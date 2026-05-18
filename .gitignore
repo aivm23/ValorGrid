@@ -1,0 +1,42 @@
+# Local portfolio data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+data/
+.backups/
+
+# Local configuration and private import scripts
+.env
+.env.*
+!.env.example
+config.local.*
+local/
+imports/
+downloads/
+
+# Runtime logs and launch captures
+*.log
+*.out
+*.err
+launch-*.out
+launch-*.err
+
+# Temporary/generated diagnostics
+debug-*.js
+debug-*.json
+tmp/
+temp/
+.cache/
+dist/
+
+# Internal planning drafts
+AGENTS.md
+PLAN*.md
+Plan_*.md
+
+# Dependencies and editor metadata
+node_modules/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+{
+  "name": "portfolio-dashboard",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "backup": "powershell -ExecutionPolicy Bypass -File scripts/backup-db.ps1",
+    "seed:demo": "node scripts/seed-loadtest-db.js",
+    "seed:loadtest": "node scripts/seed-loadtest-db.js",
+    "verify:publication": "powershell -ExecutionPolicy Bypass -File scripts/verify-publication.ps1"
+  }
+}

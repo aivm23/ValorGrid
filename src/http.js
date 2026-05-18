@@ -1,0 +1,38 @@
+module.exports = function attach(ctx) {
+  with (ctx) {
+const server = http.createServer(async (request, response) => {
+  const url = new URL(request.url || '/', `http://${request.headers.host || `localhost:${port}`}`);
+
+  if (url.pathname.startsWith('/api/')) {
+    try {
+      const handled = await handleApi(request, response, url);
+      if (!handled) sendJson(response, 404, { error: 'Not found' });
+    } catch (error) {
+      sendJson(response, 500, { error: error.message || 'Internal server error' });
+    }
+    return;
+  }
+
+  const filePath = resolveRequestPath(request.url || '/');
+  if (!filePath) {
+    response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('Forbidden');
+    return;
+  }
+
+  try {
+    const data = await fs.readFile(filePath);
+    const ext = path.extname(filePath);
+    response.writeHead(200, {
+      'Content-Type': contentTypes[ext] || 'application/octet-stream',
+      'Cache-Control': 'no-store',
+    });
+    response.end(data);
+  } catch {
+    response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('Not found');
+  }
+});
+    Object.assign(ctx, { server });
+  }
+};

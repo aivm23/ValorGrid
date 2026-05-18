@@ -1,0 +1,299 @@
+module.exports = function attach(ctx) {
+  with (ctx) {
+function replaceMaterializedHistory(pointRows, positionRows, replaceFromDate) {
+  const deleteFrom = replaceFromDate || pointRows[0]?.date || getToday();
+  const positionInsert = db.prepare(
+    `INSERT INTO portfolio_positions_daily
+      (date, symbol, shares, price_eur, value_eur, data_quality)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  );
+  const totalInsert = db.prepare(
+    `INSERT INTO portfolio_value_daily (date, value_eur, data_quality)
+     VALUES (?, ?, ?)`,
+  );
+  const weeklyInsert = db.prepare(
+    `INSERT OR REPLACE INTO portfolio_value_weekly
+      (week_start, date, value_eur, data_quality, ledger_version, price_version)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  );
+  const versions = getDataVersions();
+  const weeklyRows = new Map();
+
+  for (const row of pointRows) {
+    weeklyRows.set(weekKey(row.date), row);
+  }
+
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM portfolio_positions_daily WHERE date >= ?').run(deleteFrom);
+    db.prepare('DELETE FROM portfolio_value_daily WHERE date >= ?').run(deleteFrom);
+    db.prepare('DELETE FROM portfolio_value_weekly WHERE week_start >= ?').run(weekKey(deleteFrom));
+    for (const row of positionRows) {
+      positionInsert.run(row.date, row.symbol, row.shares, row.priceEur, row.valueEur, row.dataQuality);
+    }
+    for (const row of pointRows) {
+      totalInsert.run(row.date, row.value, row.dataQuality);
+    }
+    for (const [weekStart, row] of weeklyRows) {
+      weeklyInsert.run(weekStart, row.date, row.value, row.dataQuality, versions.ledgerVersion, versions.priceVersion);
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, coverageFrom = fromDate) {
+  const started = Date.now();
+  markHistoryBuild('building', coverageFrom, toDate, versionsBefore);
+
+  try {
+    const instruments = getHistoryInstruments(toDate);
+    const priceRowsBySymbol = new Map();
+
+    const instrumentPriceResults = await Promise.all(
+      instruments.map(async (instrument) => ({
+        instrument,
+        rows: await getDailyPrices(instrument.yahooSymbol, fromDate, toDate),
+      })),
+    );
+
+    for (const { instrument, rows } of instrumentPriceResults) {
+      priceRowsBySymbol.set(instrument.symbol, rows);
+      replaceMarketPrices(instrument.symbol, instrument.yahooSymbol, rows);
+    }
+
+    const hasUsd = instruments.some((instrument) => instrument.currency === 'USD');
+    const fxRows = hasUsd ? await getDailyPrices('USDEUR=X', fromDate, toDate) : [];
+    if (hasUsd) replaceFxRates('USDEUR', fxRows);
+
+    const events = getHistoryEvents(fromDate, toDate);
+    const pointDates = pointDatesFromPriceRows(
+      priceRowsBySymbol,
+      fromDate,
+      toDate,
+      'daily',
+      events.map((event) => event.plotDate || event.date),
+    );
+    const positions = new Map(instruments.map((instrument) => [instrument.symbol, Number(instrument.baseShares || 0)]));
+    const transactionRows = getTransactionsUntil(toDate);
+    const priceIndexes = new Map(instruments.map((instrument) => [instrument.symbol, -1]));
+    let transactionIndex = 0;
+    let fxIndex = -1;
+    const pointRows = [];
+    const positionRows = [];
+
+    for (const date of pointDates) {
+      while (transactionIndex < transactionRows.length && transactionRows[transactionIndex].date <= date) {
+        const transaction = transactionRows[transactionIndex];
+        if (positions.has(transaction.symbol)) {
+          positions.set(
+            transaction.symbol,
+            positions.get(transaction.symbol) + transactionSign(transaction.type) * Number(transaction.shares),
+          );
+        }
+        transactionIndex += 1;
+      }
+
+      while (fxIndex + 1 < fxRows.length && fxRows[fxIndex + 1].date <= date) {
+        fxIndex += 1;
+      }
+
+      const usdToEur = fxIndex >= 0 ? Number(fxRows[fxIndex].price) : 1;
+      let value = 0;
+      let dataQuality = 'ok';
+
+      for (const instrument of instruments) {
+        const rows = priceRowsBySymbol.get(instrument.symbol) || [];
+        let priceIndex = priceIndexes.get(instrument.symbol);
+        while (priceIndex + 1 < rows.length && rows[priceIndex + 1].date <= date) {
+          priceIndex += 1;
+        }
+        priceIndexes.set(instrument.symbol, priceIndex);
+
+        const shares = Number(positions.get(instrument.symbol) || 0);
+        if (priceIndex < 0) {
+          if (Math.abs(shares) > 0.0000001) dataQuality = 'missing';
+          positionRows.push({
+            date,
+            symbol: instrument.symbol,
+            shares,
+            priceEur: 0,
+            valueEur: 0,
+            dataQuality: 'missing',
+          });
+          continue;
+        }
+
+        const price = rows[priceIndex];
+        const rowQuality = price.date === date ? 'ok' : 'stale';
+        if (rowQuality === 'stale' && dataQuality === 'ok') dataQuality = 'stale';
+        const priceEur = toEur(Number(price.price), price.currency, usdToEur);
+        const valueEur = shares * priceEur;
+        value += valueEur;
+        positionRows.push({
+          date,
+          symbol: instrument.symbol,
+          shares,
+          priceEur,
+          valueEur,
+          dataQuality: rowQuality,
+        });
+      }
+
+      pointRows.push({ date, value, dataQuality });
+    }
+
+    replaceMaterializedHistory(pointRows, positionRows, fromDate);
+    rebuildPortfolioEvents();
+    db.prepare('DELETE FROM history_invalidations').run();
+
+    const versionsAfter = getDataVersions();
+    markHistoryBuild('ready', coverageFrom, toDate, versionsAfter, {
+      durationMs: Date.now() - started,
+      points: pointRows.length,
+    });
+  } catch (error) {
+    markHistoryBuild('error', fromDate, toDate, getDataVersions(), {
+      durationMs: Date.now() - started,
+      error: error.message || 'Unknown history build error',
+    });
+    throw error;
+  }
+}
+
+async function ensureHistoryBuilt(fromDate, toDate) {
+  const versions = getDataVersions();
+  if (historyBuildIsFresh(fromDate, toDate, versions)) {
+    return { cached: true, build: getHistoryBuild() };
+  }
+
+  const build = getHistoryBuild();
+  const oldestInvalidation = getOldestHistoryInvalidation();
+  let rebuildFrom = fromDate;
+  let coverageFrom = fromDate;
+
+  if (build?.status === 'ready' && build.from_date <= fromDate) {
+    coverageFrom = build.from_date;
+    if (oldestInvalidation && oldestInvalidation > build.from_date) {
+      rebuildFrom = oldestInvalidation;
+    } else if (build.to_date && build.to_date < toDate) {
+      rebuildFrom = addDays(build.to_date, 1);
+    }
+  }
+
+  await rebuildDailyPortfolioHistory(rebuildFrom, toDate, versions, coverageFrom);
+  return { cached: false, build: getHistoryBuild() };
+}
+
+function queryHistorySeries(window) {
+  if (window.granularity === 'daily') {
+    return db
+      .prepare(
+        `SELECT date, value_eur AS value, data_quality AS dataQuality
+         FROM portfolio_value_daily
+         WHERE date BETWEEN ? AND ?
+         ORDER BY date ASC`,
+      )
+      .all(window.from, window.to);
+  }
+
+  return db
+    .prepare(
+      `SELECT date, value_eur AS value, data_quality AS dataQuality
+       FROM portfolio_value_weekly
+       WHERE date BETWEEN ? AND ?
+       ORDER BY date ASC`,
+    )
+    .all(window.from, window.to);
+}
+
+function queryHistoryEvents(fromDate, toDate) {
+  return db
+    .prepare(
+      `SELECT id, type, symbol, name, date, market_date AS marketDate, plot_date AS plotDate,
+              shares, value_eur AS valueEur, price, currency, origin, color, created_at AS createdAt
+       FROM portfolio_events
+       WHERE plot_date BETWEEN ? AND ?
+       ORDER BY plot_date ASC, created_at ASC`,
+    )
+    .all(fromDate, toDate);
+}
+
+function ensureRangeStartPoint(series, fromDate) {
+  if (!series.length || series[0].date === fromDate) return series;
+  const start = db
+    .prepare(
+      `SELECT date, value_eur AS value, data_quality AS dataQuality
+       FROM portfolio_value_daily
+       WHERE date = ?`,
+    )
+    .get(fromDate);
+  return start ? [start, ...series] : series;
+}
+
+function enrichSeriesWithContributed(series) {
+  const transactions = getTransactions();
+  let index = 0;
+  let contributed = 0;
+  return series.map((point) => {
+    while (index < transactions.length && transactions[index].date <= point.date) {
+      contributed -= Number(transactions[index].cashFlowEur || 0);
+      index += 1;
+    }
+    return { ...point, contributed };
+  });
+}
+
+async function buildPortfolioHistory(inputRange = 'all', inputGranularity = 'auto') {
+  await executeDueAutoPlans();
+
+  const window = resolveHistoryWindow(inputRange);
+  if (inputGranularity === 'daily' || inputGranularity === 'weekly') {
+    window.granularity = inputGranularity;
+  }
+  if (window.empty) {
+    return { ...window, series: [], events: [], meta: { cached: true, points: 0, status: 'empty' } };
+  }
+
+  const started = Date.now();
+  const buildState = await ensureHistoryBuilt(window.from, window.to);
+  let series = enrichSeriesWithContributed(ensureRangeStartPoint(queryHistorySeries(window), window.from));
+  const events = queryHistoryEvents(window.from, window.to);
+
+  if (!series.length && events.length) {
+    series = enrichSeriesWithContributed(
+      ensureRangeStartPoint(queryHistorySeries({ ...window, from: firstTransactionDate() || window.from }), window.from),
+    );
+  }
+
+  const build = getHistoryBuild();
+  return {
+    range: window.range,
+    granularity: window.granularity,
+    from: window.from,
+    to: window.to,
+    series,
+    events,
+    meta: {
+      cached: buildState.cached,
+      status: build?.status || 'ready',
+      points: series.length,
+      durationMs: Date.now() - started,
+      buildDurationMs: Number(build?.duration_ms || 0),
+      dataQuality: series.some((row) => row.dataQuality === 'missing')
+        ? 'missing'
+        : series.some((row) => row.dataQuality === 'stale')
+          ? 'stale'
+          : 'ok',
+    },
+  };
+}
+
+function tableCount(table) {
+  return db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
+}
+    Object.assign(ctx, { replaceMaterializedHistory, rebuildDailyPortfolioHistory, ensureHistoryBuilt, queryHistorySeries, queryHistoryEvents, ensureRangeStartPoint, enrichSeriesWithContributed, buildPortfolioHistory });
+  }
+};

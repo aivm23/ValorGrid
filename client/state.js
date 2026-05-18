@@ -1,0 +1,33 @@
+export function attach(ctx) {
+  const eurFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+  const sharesFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 });
+  const historyRangeConfig = {
+    all: { granularity: 'weekly', years: null },
+    '5y': { granularity: 'weekly', years: 5 },
+    '2y': { granularity: 'weekly', years: 2 },
+    '1y': { granularity: 'daily', years: 1 },
+    ytd: { granularity: 'daily', years: 0 },
+  };
+  const assetColors = {};
+  const state = {
+    summary: null,
+    onboarding: null,
+    monthly: null,
+    history: null,
+    historyRange: 'ytd',
+    historyCache: {},
+    historyRequestId: 0,
+    historyAbortController: null,
+    autoPlans: [],
+    autoPlanDrafts: [],
+    transactions: [],
+    instruments: [],
+    groups: [],
+    backups: [],
+    transactionPreviewOk: false,
+    version: null,
+    expandedGroupId: null,
+  };
+
+  Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });
+}

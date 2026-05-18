@@ -1,0 +1,126 @@
+$ErrorActionPreference = 'Stop'
+
+$root = Resolve-Path (Join-Path $PSScriptRoot '..')
+$node = Join-Path $env:LOCALAPPDATA 'OpenAI\Codex\bin\node.exe'
+
+if (-not (Test-Path $node)) {
+  $node = 'node'
+}
+
+function Invoke-Checked {
+  param(
+    [Parameter(Mandatory = $true)][string]$Label,
+    [Parameter(Mandatory = $true)][scriptblock]$Command
+  )
+
+  Write-Output "==> $Label"
+  & $Command
+}
+
+function Get-PublicFiles {
+  param([string]$Path)
+
+  $ignoredDirs = @(
+    '.git',
+    '.backups',
+    '.idea',
+    '.vscode',
+    'data',
+    'dist',
+    'imports',
+    'local',
+    'node_modules',
+    'tmp',
+    'temp',
+    '.cache'
+  )
+  $ignoredFiles = @('AGENTS.md')
+
+  Get-ChildItem -Path $Path -Recurse -Force -File |
+    Where-Object {
+      if ($ignoredFiles -contains $_.Name) { return $false }
+      $relative = $_.FullName.Substring($root.Path.Length + 1)
+      $parts = $relative -split '[\\/]'
+      foreach ($dir in $ignoredDirs) {
+        if ($parts -contains $dir) { return $false }
+      }
+      return $true
+    }
+}
+
+Set-Location $root
+
+Invoke-Checked 'node --check server.js' { & $node --check 'server.js' }
+Invoke-Checked 'node --check app.js' { & $node --check 'app.js' }
+Invoke-Checked 'node --test' { & $node --test }
+
+$version = (Get-Content (Join-Path $root 'version.json') -Raw | ConvertFrom-Json).version
+$packageVersion = (Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
+if ($version -ne $packageVersion) {
+  throw "package.json version ($packageVersion) does not match version.json ($version)"
+}
+
+$gitignore = Get-Content (Join-Path $root '.gitignore') -Raw
+foreach ($pattern in @('*.sqlite', '*.sqlite-wal', '*.sqlite-shm', 'data/', '.backups/', 'dist/', 'AGENTS.md', '.env', 'local/', 'imports/', 'downloads/')) {
+  if (-not $gitignore.Contains($pattern)) {
+    throw ".gitignore does not contain required pattern: $pattern"
+  }
+}
+
+$publicFiles = @(Get-PublicFiles -Path $root)
+$allowedPrivateRootFiles = @('portfolio.sqlite', ('portfolio.sqlite' + '-wal'), ('portfolio.sqlite' + '-shm'))
+$forbiddenFiles = @()
+
+foreach ($file in $publicFiles) {
+  $name = $file.Name
+  if ($allowedPrivateRootFiles -contains $name) { continue }
+  if (
+    $name -like '*.sqlite' -or
+    $name -like '*.sqlite-wal' -or
+    $name -like '*.sqlite-shm' -or
+    $name -like '*.log' -or
+    $name -like '*.out' -or
+    $name -like '*.err' -or
+    $name -like 'debug-*' -or
+    $name -like 'PLAN*.md' -or
+    $name -like 'Plan_*.md'
+  ) {
+    $forbiddenFiles += $file.FullName
+  }
+}
+
+if ($forbiddenFiles.Count -gt 0) {
+  throw "Forbidden publishable files found:$([Environment]::NewLine)$($forbiddenFiles -join [Environment]::NewLine)"
+}
+
+$textExtensions = @('.css', '.html', '.js', '.json', '.md', '.ps1', '.txt', '.yml')
+$forbiddenTextPatterns = @(
+  ('C:' + '\' + 'Users'),
+  ('C:' + '\\' + 'Users'),
+  ('Lib' + 'ro1'),
+  ('github' + '-preview'),
+  ('portfolio-dashboard-' + 'github' + '-preview'),
+  ('preview:' + 'github'),
+  ('start:' + 'github' + '-preview'),
+  ('create-' + 'github' + '-preview'),
+  ('start-' + 'github' + '-preview'),
+  ('SPPW' + ', META'),
+  ('SPPW.DE' + ', META')
+)
+$textLeaks = @()
+
+foreach ($file in $publicFiles) {
+  if ($textExtensions -notcontains $file.Extension) { continue }
+  $content = Get-Content -Path $file.FullName -Raw
+  foreach ($pattern in $forbiddenTextPatterns) {
+    if ($content.Contains($pattern)) {
+      $textLeaks += "$($file.FullName) contains $pattern"
+    }
+  }
+}
+
+if ($textLeaks.Count -gt 0) {
+  throw "Private or preview text patterns found:$([Environment]::NewLine)$($textLeaks -join [Environment]::NewLine)"
+}
+
+Write-Output "Publication verification passed for version $version."

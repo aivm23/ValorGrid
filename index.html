@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard de cartera</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow">Dashboard de cartera</p>
+            <h1>Dashboard de cartera local</h1>
+            <p class="hero-copy">
+              Configura tus grupos, instrumentos, automatizaciones y seguimiento privado.
+            </p>
+          </div>
+          <div class="header-actions">
+            <span id="app-version" class="app-version" aria-label="Version de la aplicacion"></span>
+            <button id="onboarding-wizard" class="calendar-button" type="button" aria-label="Alta guiada">
+              <span class="plus-icon" aria-hidden="true"></span>
+              <span>Empezar</span>
+            </button>
+            <button id="auto-calendar" class="calendar-button" type="button" aria-label="Inversiones automaticas">
+              <span class="calendar-icon" aria-hidden="true"></span>
+              <span>Calendario</span>
+            </button>
+            <button id="instrument-manager" class="calendar-button" type="button" aria-label="Configurar instrumentos">
+              <span class="settings-icon" aria-hidden="true"></span>
+              <span>Instrumentos</span>
+            </button>
+            <button
+              id="theme-toggle"
+              class="theme-toggle"
+              type="button"
+              aria-label="Cambiar tema"
+              title="Cambiar tema"
+            >
+              <span class="theme-toggle-track" aria-hidden="true">
+                <span class="theme-symbol theme-symbol-sun"></span>
+                <span class="theme-symbol theme-symbol-moon"></span>
+                <span class="theme-thumb"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="dashboard-grid">
+        <section class="panel" aria-labelledby="distribution-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="distribution-title">Distribucion actual</h2>
+              <p class="subtle">Peso de cada posicion sobre el total.</p>
+            </div>
+            <div class="total-box">
+              <span>Total actual estimado</span>
+              <strong id="portfolio-total"></strong>
+            </div>
+          </div>
+
+          <div class="source-row">
+            <span id="price-status">Cargando precios online...</span>
+            <div class="actions">
+              <button id="add-position" class="button" type="button">Anadir</button>
+              <button id="remove-position" class="button" type="button">Eliminar</button>
+              <button id="refresh-prices" class="button" type="button">Actualizar</button>
+            </div>
+          </div>
+
+          <div class="chart-layout">
+            <div class="donut-chart" id="portfolio-chart" role="img" aria-label="Distribucion de cartera">
+              <div class="donut-center">
+                <span>Total</span>
+                <strong id="portfolio-total-center"></strong>
+              </div>
+            </div>
+            <div id="holdings-legend" class="legend"></div>
+          </div>
+
+          <div class="subchart" id="stock-detail" hidden>
+            <div class="subchart-header">
+              <div>
+                <h3 id="stock-detail-title">Detalle</h3>
+                <p class="subtle">Desglose del grupo seleccionado.</p>
+              </div>
+              <button id="stock-detail-close" class="button" type="button">Cerrar</button>
+            </div>
+            <div class="subchart-grid">
+              <div
+                class="donut-chart donut-chart-small"
+                id="stock-chart"
+                role="img"
+                aria-label="Distribucion de stock picking"
+              >
+                <div class="donut-center">
+                  <span>Total</span>
+                  <strong id="stock-total-center"></strong>
+                </div>
+              </div>
+              <div id="stock-legend" class="legend"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="tracking-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="tracking-title">Seguimiento mensual</h2>
+              <p class="subtle">
+                Grupos configurados calculados con el cierre disponible de cada plan.
+              </p>
+            </div>
+          </div>
+          <div id="monthly-summary" class="monthly-summary"></div>
+          <div class="table-wrap">
+            <table>
+              <thead id="monthly-head">
+                <tr>
+                  <th>Mes</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-tracking"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel history-panel" aria-labelledby="history-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="history-title">Historico</h2>
+            <p class="subtle">Valor total de la cartera desde la primera inversion.</p>
+          </div>
+          <div class="history-controls" aria-label="Filtro historico">
+            <button class="button history-range" type="button" data-history-range="all">Todo</button>
+            <button class="button history-range" type="button" data-history-range="5y">5 anos</button>
+            <button class="button history-range" type="button" data-history-range="2y">2 anos</button>
+            <button class="button history-range" type="button" data-history-range="1y">1 ano</button>
+            <button class="button history-range is-active" type="button" data-history-range="ytd">YTD</button>
+          </div>
+        </div>
+        <div id="history-stats" class="history-stats"></div>
+        <div class="history-meta">
+          <span id="history-status">Cargando historico...</span>
+          <span id="history-granularity" class="granularity-pill"></span>
+        </div>
+        <div class="history-chart-wrap">
+          <div id="history-chart" class="history-chart" role="img" aria-label="Historico de valor de cartera"></div>
+          <div id="history-tooltip" class="history-tooltip" hidden></div>
+          <div id="history-event-panel" class="history-event-panel" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel operations-panel" aria-labelledby="operations-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="operations-title">Operativa</h2>
+            <p class="subtle">Rentabilidad, backups, exportacion y configuracion de instrumentos.</p>
+          </div>
+          <div class="actions">
+            <button id="create-backup" class="button" type="button">Backup</button>
+            <a id="export-csv" class="button" href="/api/export/transactions.csv">CSV</a>
+            <a id="export-json" class="button" href="/api/export/transactions.json">JSON</a>
+          </div>
+        </div>
+        <div id="performance-summary" class="metric-grid"></div>
+        <div class="ops-grid">
+          <div>
+            <h3>Backups</h3>
+            <div id="backup-list" class="backup-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ledger-panel" aria-labelledby="ledger-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="ledger-title">Movimientos</h2>
+            <p class="subtle">Auditoria del ledger: compras, ventas, automaticos e importados.</p>
+          </div>
+        </div>
+        <div class="ledger-filters">
+          <label class="field">
+            <span>Ticker</span>
+            <input id="ledger-filter-symbol" placeholder="Todos" />
+          </label>
+          <label class="field">
+            <span>Origen</span>
+            <select id="ledger-filter-origin">
+              <option value="">Todos</option>
+              <option value="manual">Manual</option>
+              <option value="auto">Automatico</option>
+              <option value="import">Importado</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Tipo</span>
+            <select id="ledger-filter-type">
+              <option value="">Todos</option>
+              <option value="add">Compra</option>
+              <option value="remove">Venta</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Desde</span>
+            <input id="ledger-filter-from" type="date" />
+          </label>
+          <label class="field">
+            <span>Hasta</span>
+            <input id="ledger-filter-to" type="date" />
+          </label>
+        </div>
+        <div id="ledger-totals" class="ledger-totals"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Ticker</th>
+                <th>Tipo</th>
+                <th>Acciones</th>
+                <th>Precio</th>
+                <th>Valor</th>
+                <th>Comision</th>
+                <th>Cash-flow</th>
+                <th>Origen</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ledger-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="add-dialog" class="modal">
+      <form id="add-form" class="modal-panel" method="dialog">
+        <div class="modal-header">
+          <div>
+            <h2 id="operation-title">Anadir aportacion</h2>
+            <p class="subtle">Indica ticker, fecha y una cantidad en euros o en acciones.</p>
+          </div>
+          <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <label class="field sr-only">
+          <span>Operacion</span>
+          <select id="operation-type" name="operation">
+            <option value="add">Anadir</option>
+            <option value="remove">Eliminar</option>
+          </select>
+        </label>
+
+        <label class="field" id="ticker-input-field">
+          <span>Ticker</span>
+          <input id="add-ticker" name="ticker" required placeholder="Ticker o simbolo Yahoo" />
+        </label>
+
+        <label class="field" id="ticker-select-field" hidden>
+          <span>Ticker</span>
+          <select id="remove-ticker" name="removeTicker"></select>
+        </label>
+
+        <label class="field">
+          <span>Fecha</span>
+          <input id="add-date" name="date" type="date" required />
+        </label>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Euros</span>
+            <input id="add-euros" name="euros" type="number" min="0" step="0.01" placeholder="100" />
+          </label>
+
+          <label class="field">
+            <span>Acciones</span>
+            <input id="add-shares" name="shares" type="number" min="0" step="0.000001" placeholder="2.5" />
+          </label>
+
+          <label class="field">
+            <span>Comision EUR</span>
+            <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
+          </label>
+        </div>
+
+        <p id="add-feedback" class="form-feedback" role="status"></p>
+        <div id="transaction-preview" class="transaction-preview" hidden></div>
+
+        <div class="modal-actions">
+          <button id="add-cancel" class="button" type="button">Cancelar</button>
+          <button id="add-submit" class="button button-primary" type="submit">Anadir</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="instrument-dialog" class="modal">
+      <div class="modal-panel modal-panel-wide">
+        <div class="modal-header">
+          <div>
+            <h2>Instrumentos y grupos</h2>
+            <p class="subtle">Define la estructura de cartera, los grupos visibles y los desgloses.</p>
+          </div>
+          <button id="instrument-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="instrument-config-stack">
+          <section class="instrument-config-section">
+            <h3>Grupos</h3>
+            <div class="instrument-create-form group-create-form">
+              <input id="new-group-name" placeholder="Nombre del grupo" />
+              <input id="new-group-color" type="color" value="#16a34a" aria-label="Color del grupo" />
+              <button id="create-group" class="button" type="button">Crear grupo</button>
+            </div>
+            <div id="group-rows" class="group-card-grid"></div>
+          </section>
+
+          <section class="instrument-config-section">
+            <h3>Instrumentos</h3>
+            <div class="instrument-create-form instrument-create-form-wide">
+              <input id="new-instrument-symbol" placeholder="Ticker interno" />
+              <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
+              <input id="new-instrument-name" placeholder="Nombre" />
+              <select id="new-instrument-type">
+                <option value="etf">ETF</option>
+                <option value="stock">Stock</option>
+              </select>
+              <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
+              <select id="new-instrument-group"></select>
+              <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
+              <button id="create-instrument" class="button" type="button">Crear instrumento</button>
+            </div>
+            <div class="table-wrap compact-table instrument-table-wrap">
+              <table class="instrument-table">
+                <thead>
+                  <tr>
+                    <th>Ticker</th>
+                    <th>Yahoo</th>
+                    <th>Nombre</th>
+                    <th>Grupo</th>
+                    <th>Tipo</th>
+                    <th>Divisa</th>
+                    <th>Color</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="instrument-rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div class="modal-actions">
+          <button id="instrument-cancel" class="button" type="button">Cerrar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="auto-dialog" class="modal">
+      <form id="auto-form" class="modal-panel" method="dialog">
+        <div class="modal-header">
+          <div>
+            <h2>Inversiones automaticas</h2>
+            <p class="subtle">
+              Cada plan define ticker, importe y dia. Si no hay mercado, se usa el siguiente cierre disponible.
+            </p>
+          </div>
+          <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div id="auto-plan-list" class="auto-plan-list"></div>
+        <p id="auto-feedback" class="form-feedback" role="status"></p>
+
+        <div class="modal-actions">
+          <button id="auto-cancel" class="button" type="button">Cancelar</button>
+          <button id="auto-submit" class="button button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="wizard-dialog" class="modal">
+      <form id="wizard-form" class="modal-panel modal-panel-wide" method="dialog">
+        <div class="modal-header">
+          <div>
+            <h2>Alta guiada</h2>
+            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan automatico.</p>
+          </div>
+          <button id="wizard-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="wizard-grid">
+          <section class="wizard-step">
+            <span>Paso 1</span>
+            <h3>Grupo</h3>
+            <label class="field">
+              <span>Nombre del grupo</span>
+              <input id="wizard-group-name" required placeholder="Core, Stock picking, ETFs..." />
+            </label>
+            <label class="field">
+              <span>Color del grupo</span>
+              <input id="wizard-group-color" class="color-input" type="color" value="#16a34a" />
+            </label>
+            <div class="group-card-options wizard-group-options">
+              <label class="switch-field"><input id="wizard-group-distribution" type="checkbox" checked /> Distribucion</label>
+              <label class="switch-field"><input id="wizard-group-monthly" type="checkbox" checked /> Mensual</label>
+              <label class="switch-field"><input id="wizard-group-expandable" type="checkbox" /> Desglose</label>
+            </div>
+          </section>
+
+          <section class="wizard-step">
+            <span>Paso 2</span>
+            <h3>Instrumento</h3>
+            <div class="field-grid">
+              <label class="field">
+                <span>Ticker interno</span>
+                <input id="wizard-instrument-symbol" required placeholder="ETF01, STOCK01..." />
+              </label>
+              <label class="field">
+                <span>Ticker Yahoo</span>
+                <input id="wizard-instrument-yahoo" placeholder="ETF01.EX, STOCK01..." />
+              </label>
+            </div>
+            <label class="field">
+              <span>Nombre</span>
+              <input id="wizard-instrument-name" placeholder="Nombre visible" />
+            </label>
+            <div class="field-grid">
+              <label class="field">
+                <span>Tipo</span>
+                <select id="wizard-instrument-type">
+                  <option value="etf">ETF</option>
+                  <option value="stock">Stock</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Divisa</span>
+                <input id="wizard-instrument-currency" value="EUR" />
+              </label>
+              <label class="field">
+                <span>Color</span>
+                <input id="wizard-instrument-color" class="color-input" type="color" value="#2563eb" />
+              </label>
+            </div>
+          </section>
+
+          <section class="wizard-step">
+            <span>Paso 3</span>
+            <h3>Primera compra opcional</h3>
+            <label class="check-field"><input id="wizard-add-transaction" type="checkbox" /> <span>Anadir primera compra</span></label>
+            <label class="field">
+              <span>Fecha</span>
+              <input id="wizard-transaction-date" type="date" data-optional-section="transaction" disabled />
+            </label>
+            <div class="field-grid">
+              <label class="field">
+                <span>Euros</span>
+                <input id="wizard-transaction-euros" type="number" min="0" step="0.01" placeholder="100" data-optional-section="transaction" disabled />
+              </label>
+              <label class="field">
+                <span>Acciones</span>
+                <input id="wizard-transaction-shares" type="number" min="0" step="0.000001" placeholder="2.5" data-optional-section="transaction" disabled />
+              </label>
+              <label class="field">
+                <span>Comision EUR</span>
+                <input id="wizard-transaction-commission" type="number" min="0" step="0.01" placeholder="0" data-optional-section="transaction" disabled />
+              </label>
+            </div>
+          </section>
+
+          <section class="wizard-step">
+            <span>Paso 4</span>
+            <h3>Plan automatico opcional</h3>
+            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportacion automatica</span></label>
+            <div class="field-grid">
+              <label class="field">
+                <span>Importe EUR</span>
+                <input id="wizard-plan-amount" type="number" min="0" step="0.01" placeholder="100" data-optional-section="plan" disabled />
+              </label>
+              <label class="field">
+                <span>Dia</span>
+                <input id="wizard-plan-day" type="number" min="1" max="28" step="1" value="3" data-optional-section="plan" disabled />
+              </label>
+              <label class="field">
+                <span>Fecha de inicio</span>
+                <input id="wizard-plan-start" type="date" data-optional-section="plan" disabled />
+              </label>
+            </div>
+            <p class="subtle">Si el dia elegido no tiene mercado, se usara el siguiente cierre disponible.</p>
+          </section>
+        </div>
+
+        <p id="wizard-feedback" class="form-feedback" role="status"></p>
+
+        <div class="modal-actions">
+          <button id="wizard-cancel" class="button" type="button">Cancelar</button>
+          <button id="wizard-submit" class="button button-primary" type="submit">Crear cartera</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
