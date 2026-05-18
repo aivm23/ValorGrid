@@ -1,0 +1,34 @@
+name: valorgrid
+
+services:
+  valorgrid:
+    image: ghcr.io/alvarovalderramamolina/valorgrid:latest
+    container_name: valorgrid
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5173
+      PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+    ports:
+      - "5173:5173"
+    volumes:
+      - /DATA/AppData/valorgrid/data:/data
+      - /DATA/AppData/valorgrid/backups:/app/.backups
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: valorgrid
+  author: alvarovalderramamolina
+  developer: alvarovalderramamolina
+  category: Finance
+  port_map: "5173"
+  scheme: http
+  index: /
+  title:
+    en_us: ValorGrid
+  tagline:
+    en_us: Private local portfolio dashboard
+  description:
+    en_us: ValorGrid is a private, single-user portfolio dashboard with SQLite persistence, local backups and market-price cache.

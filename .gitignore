@@ -4,6 +4,7 @@
 *.sqlite-shm
 data/
 .backups/
+backups/
 
 # Local configuration and private import scripts
 .env

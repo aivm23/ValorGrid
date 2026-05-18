@@ -1,10 +1,12 @@
 $ErrorActionPreference = 'Stop'
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-$node = Join-Path $env:LOCALAPPDATA 'OpenAI\Codex\bin\node.exe'
-
-if (-not (Test-Path $node)) {
-  $node = 'node'
+$node = 'node'
+if ($env:LOCALAPPDATA) {
+  $candidateNode = Join-Path $env:LOCALAPPDATA 'OpenAI\Codex\bin\node.exe'
+  if (Test-Path $candidateNode) {
+    $node = $candidateNode
+  }
 }
 
 function Invoke-Checked {
@@ -23,6 +25,7 @@ function Get-PublicFiles {
   $ignoredDirs = @(
     '.git',
     '.backups',
+    'backups',
     '.idea',
     '.vscode',
     'data',
@@ -74,6 +77,18 @@ foreach ($pattern in @('*.sqlite', '*.sqlite-wal', '*.sqlite-shm', 'data/', '.ba
   }
 }
 
+$dockerignorePath = Join-Path $root '.dockerignore'
+if (-not (Test-Path $dockerignorePath)) {
+  throw '.dockerignore is required for Docker publication safety'
+}
+
+$dockerignore = Get-Content $dockerignorePath -Raw
+foreach ($pattern in @('.git', '*.sqlite', '*.sqlite-wal', '*.sqlite-shm', 'data', '.backups', 'backups', '.env', 'local', 'imports', 'node_modules')) {
+  if (-not $dockerignore.Contains($pattern)) {
+    throw ".dockerignore does not contain required pattern: $pattern"
+  }
+}
+
 $publicFiles = @(Get-PublicFiles -Path $root)
 $allowedPrivateRootFiles = @('portfolio.sqlite', ('portfolio.sqlite' + '-wal'), ('portfolio.sqlite' + '-shm'))
 $forbiddenFiles = @()
@@ -100,7 +115,7 @@ if ($forbiddenFiles.Count -gt 0) {
   throw "Forbidden publishable files found:$([Environment]::NewLine)$($forbiddenFiles -join [Environment]::NewLine)"
 }
 
-$textExtensions = @('.css', '.html', '.js', '.json', '.md', '.ps1', '.txt', '.yml')
+$textExtensions = @('', '.css', '.html', '.js', '.json', '.md', '.ps1', '.sh', '.txt', '.yml')
 $forbiddenTextPatterns = @(
   ('C:' + '\' + 'Users'),
   ('C:' + '\\' + 'Users'),

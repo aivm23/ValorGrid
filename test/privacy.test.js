@@ -6,6 +6,7 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const ignoredDirs = new Set([
   '.backups',
+  'backups',
   '.git',
   '.github',
   '.idea',
@@ -18,12 +19,14 @@ const ignoredDirs = new Set([
 ]);
 const ignoredFiles = [/^AGENTS\.md$/i, /^PLAN.*\.md$/i, /^Plan_.*\.md$/i];
 const textExtensions = new Set([
+  '',
   '.css',
   '.html',
   '.js',
   '.json',
   '.md',
   '.ps1',
+  '.sh',
   '.txt',
   '.yml',
 ]);
@@ -94,7 +97,14 @@ test('fresh install configuration does not bundle personal holdings or plans', (
 
 test('gitignore protects local portfolio data and private imports', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'data/', 'local/', '.env', 'AGENTS.md']) {
+  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env', 'AGENTS.md']) {
     assert.ok(gitignore.includes(pattern), `${pattern} is ignored`);
+  }
+});
+
+test('dockerignore protects private data from container build context', () => {
+  const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
+  for (const pattern of ['.git', '*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups', 'backups', 'data', '.env', 'local', 'imports']) {
+    assert.ok(dockerignore.includes(pattern), `${pattern} is ignored in Docker build context`);
   }
 });

@@ -1,0 +1,16 @@
+services:
+  valorgrid:
+    build:
+      context: .
+    image: valorgrid:local
+    container_name: valorgrid
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5173
+      PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./data:/data
+      - ./backups:/app/.backups
