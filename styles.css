@@ -269,41 +269,26 @@ h2 {
 }
 
 .eye-icon {
-  position: relative;
   display: block;
   width: 19px;
-  height: 13px;
-  border: 2px solid currentColor;
-  border-radius: 999px 999px 999px 999px / 80% 80% 80% 80%;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
-.eye-icon::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  content: "";
-  transform: translate(-50%, -50%);
+.eye-pupil {
+  fill: currentColor;
+  stroke: none;
 }
 
-.eye-icon::after {
-  position: absolute;
-  top: -5px;
-  left: 8px;
-  display: block;
-  width: 2px;
-  height: 23px;
-  border-radius: 999px;
-  background: currentColor;
-  content: "";
+.eye-slash {
   opacity: 0;
-  transform: rotate(45deg);
 }
 
-.balance-toggle.is-hidden .eye-icon::after {
+.balance-toggle.is-hidden .eye-slash {
   opacity: 1;
 }
 

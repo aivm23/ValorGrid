@@ -1,7 +1,149 @@
-import { attachSource, decodeSource } from './attach.js';
-
-const source = decodeSource('ZnVuY3Rpb24gZm9ybWF0Q3VycmVuY3kodmFsdWUpIHsKICByZXR1cm4gTnVtYmVyLmlzRmluaXRlKHZhbHVlKSA/IGV1ckZvcm1hdHRlci5mb3JtYXQodmFsdWUpIDogJ1BlbmRpZW50ZSc7Cn0KCmZ1bmN0aW9uIGZvcm1hdERhdGUodmFsdWUpIHsKICBpZiAoIXZhbHVlKSByZXR1cm4gJ3NpbiBmZWNoYSc7CiAgcmV0dXJuIG5ldyBJbnRsLkRhdGVUaW1lRm9ybWF0KCdlcy1FUycsIHsKICAgIGRheTogJzItZGlnaXQnLAogICAgbW9udGg6ICcyLWRpZ2l0JywKICAgIHllYXI6ICdudW1lcmljJywKICB9KS5mb3JtYXQobmV3IERhdGUoYCR7dmFsdWV9VDAwOjAwOjAwYCkpOwp9CgpmdW5jdGlvbiBmb3JtYXREYXRlVGltZSh2YWx1ZSkgewogIHJldHVybiBuZXcgSW50bC5EYXRlVGltZUZvcm1hdCgnZXMtRVMnLCB7CiAgICBkYXRlU3R5bGU6ICdzaG9ydCcsCiAgICB0aW1lU3R5bGU6ICdzaG9ydCcsCiAgfSkuZm9ybWF0KG5ldyBEYXRlKHZhbHVlKSk7Cn0KCmZ1bmN0aW9uIGZvcm1hdFBsYWluRGF0ZSh2YWx1ZSkgewogIHJldHVybiBuZXcgSW50bC5EYXRlVGltZUZvcm1hdCgnZXMtRVMnLCB7CiAgICBkYXk6ICcyLWRpZ2l0JywKICAgIG1vbnRoOiAnMi1kaWdpdCcsCiAgICB5ZWFyOiAnbnVtZXJpYycsCiAgfSkuZm9ybWF0KG5ldyBEYXRlKGAke3ZhbHVlfVQwMDowMDowMGApKTsKfQoKZnVuY3Rpb24gdG9kYXlJbnB1dFZhbHVlKCkgewogIGNvbnN0IG5vdyA9IG5ldyBEYXRlKCk7CiAgcmV0dXJuIGAke25vdy5nZXRGdWxsWWVhcigpfS0ke1N0cmluZyhub3cuZ2V0TW9udGgoKSArIDEpLnBhZFN0YXJ0KDIsICcwJyl9LSR7U3RyaW5nKAogICAgbm93LmdldERhdGUoKSwKICApLnBhZFN0YXJ0KDIsICcwJyl9YDsKfQoKZnVuY3Rpb24gYWRkWWVhcnMoZGF0ZVZhbHVlLCB5ZWFycykgewogIGNvbnN0IGRhdGUgPSBuZXcgRGF0ZShgJHtkYXRlVmFsdWV9VDAwOjAwOjAwYCk7CiAgZGF0ZS5zZXRGdWxsWWVhcihkYXRlLmdldEZ1bGxZZWFyKCkgKyB5ZWFycyk7CiAgcmV0dXJuIGRhdGUudG9JU09TdHJpbmcoKS5zbGljZSgwLCAxMCk7Cn0KCmZ1bmN0aW9uIHJlcXVlc3RlZEhpc3RvcnlTdGFydChyYW5nZSwgdG9EYXRlKSB7CiAgaWYgKHJhbmdlID09PSAnYWxsJykgcmV0dXJuIG51bGw7CiAgaWYgKHJhbmdlID09PSAneXRkJykgcmV0dXJuIGAke3RvRGF0ZS5zbGljZSgwLCA0KX0tMDEtMDFgOwogIHJldHVybiBhZGRZZWFycyh0b0RhdGUsIC1oaXN0b3J5UmFuZ2VDb25maWdbcmFuZ2VdLnllYXJzKTsKfQoKZnVuY3Rpb24gY2FuUmV1c2VIaXN0b3J5Rm9yUmFuZ2UoaGlzdG9yeSwgdGFyZ2V0UmFuZ2UpIHsKICBjb25zdCB0YXJnZXQgPSBoaXN0b3J5UmFuZ2VDb25maWdbdGFyZ2V0UmFuZ2VdOwogIGlmICghaGlzdG9yeSB8fCAhdGFyZ2V0IHx8IGhpc3RvcnkuZ3JhbnVsYXJpdHkgIT09IHRhcmdldC5ncmFudWxhcml0eSkgcmV0dXJuIGZhbHNlOwogIGlmIChoaXN0b3J5LnJhbmdlID09PSB0YXJnZXRSYW5nZSkgcmV0dXJuIHRydWU7CgogIGNvbnN0IHRhcmdldFN0YXJ0ID0gcmVxdWVzdGVkSGlzdG9yeVN0YXJ0KHRhcmdldFJhbmdlLCBoaXN0b3J5LnRvKTsKICBpZiAoIXRhcmdldFN0YXJ0KSB7CiAgICBjb25zdCBzb3VyY2VTdGFydCA9IHJlcXVlc3RlZEhpc3RvcnlTdGFydChoaXN0b3J5LnJhbmdlLCBoaXN0b3J5LnRvKTsKICAgIHJldHVybiAhc291cmNlU3RhcnQgfHwgaGlzdG9yeS5mcm9tID4gc291cmNlU3RhcnQ7CiAgfQoKICByZXR1cm4gaGlzdG9yeS5mcm9tID49IHRhcmdldFN0YXJ0Owp9CgpmdW5jdGlvbiBoaXN0b3J5Rm9yUmFuZ2UoaGlzdG9yeSwgcmFuZ2UpIHsKICByZXR1cm4gaGlzdG9yeS5yYW5nZSA9PT0gcmFuZ2UgPyBoaXN0b3J5IDogeyAuLi5oaXN0b3J5LCByYW5nZSB9Owp9CgpmdW5jdGlvbiBnZXRDYWNoZWRIaXN0b3J5KHJhbmdlKSB7CiAgY29uc3QgZXhhY3QgPSBzdGF0ZS5oaXN0b3J5Q2FjaGVbcmFuZ2VdOwogIGlmIChleGFjdD8ucmFuZ2UgPT09IHJhbmdlKSByZXR1cm4gZXhhY3Q7CiAgcmV0dXJuIG51bGw7Cn0KCmZ1bmN0aW9uIGNhY2hlSGlzdG9yeShoaXN0b3J5KSB7CiAgc3RhdGUuaGlzdG9yeUNhY2hlW2hpc3RvcnkucmFuZ2VdID0gaGlzdG9yeTsKfQoKZnVuY3Rpb24gY2xpZW50UmVxdWVzdElkKHByZWZpeCA9ICdjbGllbnQnKSB7CiAgcmV0dXJuIGAke3ByZWZpeH0tJHtEYXRlLm5vdygpfS0ke01hdGgucmFuZG9tKCkudG9TdHJpbmcoMTYpLnNsaWNlKDIpfWA7Cn0KCmFzeW5jIGZ1bmN0aW9uIGZpbmRUcmFuc2FjdGlvbkJ5SWQoaWQpIHsKICBpZiAoIWlkKSByZXR1cm4gbnVsbDsKICBjb25zdCBkYXRhID0gYXdhaXQgZmV0Y2hKc29uKCcvYXBpL3RyYW5zYWN0aW9ucycsIHsgdGltZW91dE1zOiAxNTAwMCB9KTsKICByZXR1cm4gKGRhdGEudHJhbnNhY3Rpb25zIHx8IFtdKS5maW5kKCh0cmFuc2FjdGlvbikgPT4gdHJhbnNhY3Rpb24uaWQgPT09IGlkKSB8fCBudWxsOwp9CgpmdW5jdGlvbiBmb3JtYXRTaGFyZXMoaXRlbSkgewogIHJldHVybiBmb3JtYXRTaGFyZU51bWJlcihpdGVtLnNoYXJlcyB8fCAwKTsKfQoKZnVuY3Rpb24gZm9ybWF0U2hhcmVOdW1iZXIodmFsdWUpIHsKICBjb25zdCBzaGFyZXMgPSBOdW1iZXIodmFsdWUgfHwgMCk7CiAgcmV0dXJuIE51bWJlci5pc0Zpbml0ZShzaGFyZXMpID8gc2hhcmVzRm9ybWF0dGVyLmZvcm1hdChzaGFyZXMpIDogJzAnOwp9CgpmdW5jdGlvbiBhc3NldENvbG9yKHN5bWJvbCwgZmFsbGJhY2spIHsKICByZXR1cm4gYXNzZXRDb2xvcnNbc3ltYm9sXSB8fCBmYWxsYmFjayB8fCAnIzE2YTM0YSc7Cn0KCmZ1bmN0aW9uIHdpdGhBc3NldENvbG9ycyhpdGVtcykgewogIHJldHVybiAoaXRlbXMgfHwgW10pLm1hcCgoaXRlbSkgPT4gKHsgLi4uaXRlbSwgY29sb3I6IGFzc2V0Q29sb3IoaXRlbS5zeW1ib2wsIGl0ZW0uY29sb3IpIH0pKTsKfQoKZnVuY3Rpb24gZXNjYXBlSHRtbCh2YWx1ZSkgewogIHJldHVybiBTdHJpbmcodmFsdWUpCiAgICAucmVwbGFjZUFsbCgnJicsICcmYW1wOycpCiAgICAucmVwbGFjZUFsbCgnPCcsICcmbHQ7JykKICAgIC5yZXBsYWNlQWxsKCc+JywgJyZndDsnKQogICAgLnJlcGxhY2VBbGwoJyInLCAnJnF1b3Q7JykKICAgIC5yZXBsYWNlQWxsKCInIiwgJyYjMDM5OycpOwp9CgpmdW5jdGlvbiBmb3JtYXRQZXJjZW50KHZhbHVlKSB7CiAgcmV0dXJuIE51bWJlci5pc0Zpbml0ZShOdW1iZXIodmFsdWUpKSA/IGAke051bWJlcih2YWx1ZSkudG9Mb2NhbGVTdHJpbmcoJ2VzLUVTJywgeyBtYXhpbXVtRnJhY3Rpb25EaWdpdHM6IDIgfSl9JWAgOiAnc2luIGRhdG9zJzsKfQoKZnVuY3Rpb24gZm9ybWF0RmlsZVNpemUoYnl0ZXMpIHsKICBjb25zdCBzaXplID0gTnVtYmVyKGJ5dGVzIHx8IDApOwogIGlmIChzaXplIDwgMTAyNCAqIDEwMjQpIHJldHVybiBgJHsoc2l6ZSAvIDEwMjQpLnRvTG9jYWxlU3RyaW5nKCdlcy1FUycsIHsgbWF4aW11bUZyYWN0aW9uRGlnaXRzOiAxIH0pfSBLQmA7CiAgcmV0dXJuIGAkeyhzaXplIC8gKDEwMjQgKiAxMDI0KSkudG9Mb2NhbGVTdHJpbmcoJ2VzLUVTJywgeyBtYXhpbXVtRnJhY3Rpb25EaWdpdHM6IDEgfSl9IE1CYDsKfQ==');
-
 export function attach(ctx) {
-  attachSource(ctx, source, ["formatCurrency","formatDate","formatDateTime","formatPlainDate","todayInputValue","addYears","requestedHistoryStart","canReuseHistoryForRange","historyForRange","getCachedHistory","cacheHistory","clientRequestId","findTransactionById","formatShares","formatShareNumber","assetColor","withAssetColors","escapeHtml","formatPercent","formatFileSize"]);
+  function formatCurrency(value) {
+    if (ctx.state.hideBalances) return '••••';
+    return Number.isFinite(value) ? ctx.eurFormatter.format(value) : 'Pendiente';
+  }
+
+  function formatDate(value) {
+    if (!value) return 'sin fecha';
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(`${value}T00:00:00`));
+  }
+
+  function formatDateTime(value) {
+    return new Intl.DateTimeFormat('es-ES', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  }
+
+  function formatPlainDate(value) {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(`${value}T00:00:00`));
+  }
+
+  function todayInputValue() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+      now.getDate(),
+    ).padStart(2, '0')}`;
+  }
+
+  function addYears(dateValue, years) {
+    const date = new Date(`${dateValue}T00:00:00`);
+    date.setFullYear(date.getFullYear() + years);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function requestedHistoryStart(range, toDate) {
+    if (range === 'all') return null;
+    if (range === 'ytd') return `${toDate.slice(0, 4)}-01-01`;
+    return addYears(toDate, -ctx.historyRangeConfig[range].years);
+  }
+
+  function canReuseHistoryForRange(history, targetRange) {
+    const target = ctx.historyRangeConfig[targetRange];
+    if (!history || !target || history.granularity !== target.granularity) return false;
+    if (history.range === targetRange) return true;
+
+    const targetStart = requestedHistoryStart(targetRange, history.to);
+    if (!targetStart) {
+      const sourceStart = requestedHistoryStart(history.range, history.to);
+      return !sourceStart || history.from > sourceStart;
+    }
+
+    return history.from >= targetStart;
+  }
+
+  function historyForRange(history, range) {
+    return history.range === range ? history : { ...history, range };
+  }
+
+  function getCachedHistory(range) {
+    const exact = ctx.state.historyCache[range];
+    if (exact?.range === range) return exact;
+    return null;
+  }
+
+  function cacheHistory(history) {
+    ctx.state.historyCache[history.range] = history;
+  }
+
+  function clientRequestId(prefix = 'client') {
+    return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  async function findTransactionById(id) {
+    if (!id) return null;
+    const data = await ctx.fetchJson('/api/transactions', { timeoutMs: 15000 });
+    return (data.transactions || []).find((transaction) => transaction.id === id) || null;
+  }
+
+  function formatShares(item) {
+    return formatShareNumber(item.shares || 0);
+  }
+
+  function formatShareNumber(value) {
+    if (ctx.state.hideBalances) return '••••';
+    const shares = Number(value || 0);
+    return Number.isFinite(shares) ? ctx.sharesFormatter.format(shares) : '0';
+  }
+
+  function assetColor(symbol, fallback) {
+    return ctx.assetColors[symbol] || fallback || '#16a34a';
+  }
+
+  function withAssetColors(items) {
+    return (items || []).map((item) => ({ ...item, color: assetColor(item.symbol, item.color) }));
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function formatPercent(value) {
+    return Number.isFinite(Number(value))
+      ? `${Number(value).toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`
+      : 'sin datos';
+  }
+
+  function formatFileSize(bytes) {
+    const size = Number(bytes || 0);
+    if (size < 1024 * 1024) return `${(size / 1024).toLocaleString('es-ES', { maximumFractionDigits: 1 })} KB`;
+    return `${(size / (1024 * 1024)).toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`;
+  }
+
+  Object.assign(ctx, {
+    formatCurrency,
+    formatDate,
+    formatDateTime,
+    formatPlainDate,
+    todayInputValue,
+    addYears,
+    requestedHistoryStart,
+    canReuseHistoryForRange,
+    historyForRange,
+    getCachedHistory,
+    cacheHistory,
+    clientRequestId,
+    findTransactionById,
+    formatShares,
+    formatShareNumber,
+    assetColor,
+    withAssetColors,
+    escapeHtml,
+    formatPercent,
+    formatFileSize,
+  });
 }
