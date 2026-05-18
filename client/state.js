@@ -27,6 +27,7 @@ export function attach(ctx) {
     transactionPreviewOk: false,
     version: null,
     expandedGroupId: null,
+    hideBalances: false,
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

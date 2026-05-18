@@ -104,6 +104,7 @@ export function attach(ctx) {
     transactionPreview: document.querySelector('#transaction-preview'),
     addSubmit: document.querySelector('#add-submit'),
     refreshPrices: document.querySelector('#refresh-prices'),
+    balanceToggle: document.querySelector('#balance-toggle'),
     themeToggle: document.querySelector('#theme-toggle'),
   };
 

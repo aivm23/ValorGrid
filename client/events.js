@@ -54,6 +54,7 @@ export function attach(ctx) {
   elements.themeToggle.addEventListener('click', () => {
     ctx.applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
   });
+  elements.balanceToggle.addEventListener('click', ctx.toggleBalanceVisibility);
   elements.legend.addEventListener('click', (event) => toggleExpandableGroup(ctx, event));
   elements.legend.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;

@@ -11,6 +11,7 @@ import { attach as attachDashboard } from './client/dashboard.js';
 import { attach as attachForms } from './client/forms.js';
 import { attach as attachOnboarding } from './client/onboarding.js';
 import { attach as attachTheme } from './client/theme.js';
+import { attach as attachPrivacy } from './client/privacy.js';
 import { attach as attachHistory } from './client/history.js';
 import { attach as attachEvents } from './client/events.js';
 
@@ -19,10 +20,11 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, loca
 [
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
-  attachOnboarding,
+  attachOnboarding, attachPrivacy,
 ].forEach((attach) => attach(ctx));
 
 attachEvents(ctx);
 ctx.initTheme();
+ctx.initBalancePrivacy();
 ctx.refreshDashboard();
 ctx.refreshHistory();

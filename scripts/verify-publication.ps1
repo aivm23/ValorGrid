@@ -54,6 +54,13 @@ Invoke-Checked 'node --check server.js' { & $node --check 'server.js' }
 Invoke-Checked 'node --check app.js' { & $node --check 'app.js' }
 Invoke-Checked 'node --test' { & $node --test }
 
+foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlite' + '-shm'), ('portfolio.loadtest.sqlite' + '-wal'))) {
+  $generatedPath = Join-Path $root $generated
+  if (Test-Path $generatedPath) {
+    Remove-Item -LiteralPath $generatedPath -Force
+  }
+}
+
 $version = (Get-Content (Join-Path $root 'version.json') -Raw | ConvertFrom-Json).version
 $packageVersion = (Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
 if ($version -ne $packageVersion) {
