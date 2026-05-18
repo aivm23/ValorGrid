@@ -880,6 +880,55 @@ test('GET /api/portfolio/monthly returns monthly rows and skips future months', 
   assert.equal(body.rows.some((row) => row.total === null), false);
 });
 
+test('monthly tracking ignores zero-value groups and zero-share instruments', async () => {
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('zero-monthly-test', 'Zero Monthly Test', '#64748b', 900, 1, 1, 0, 1)`,
+  ).run();
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('mixed-monthly-test', 'Mixed Monthly Test', '#0d9488', 901, 1, 1, 0, 1)`,
+  ).run();
+  db.prepare(
+    `INSERT OR REPLACE INTO instruments
+      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order, show_in_monthly)
+     VALUES (?, ?, ?, 'stock', 'EUR', ?, 0, 0, 1, ?, ?, 1)`,
+  ).run('ZERO0', 'ZERO0.DE', 'Zero Position', '#64748b', 'zero-monthly-test', 900);
+  db.prepare(
+    `INSERT OR REPLACE INTO instruments
+      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order, show_in_monthly)
+     VALUES (?, ?, ?, 'stock', 'EUR', ?, 0, 0, 1, ?, ?, 1)`,
+  ).run('MIX1', 'MIX1.DE', 'Mixed Valued', '#0d9488', 'mixed-monthly-test', 901);
+  db.prepare(
+    `INSERT OR REPLACE INTO instruments
+      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order, show_in_monthly)
+     VALUES (?, ?, ?, 'stock', 'EUR', ?, 0, 0, 1, ?, ?, 1)`,
+  ).run('MIX0', 'MIX0.DE', 'Mixed Zero', '#94a3b8', 'mixed-monthly-test', 902);
+  cachePrice('MIX1.DE', '2026-01-02', 20);
+  cachePrice('MIX1.DE', '2026-01-03', 22);
+  await createTransaction({
+    id: 'monthly-effective-position',
+    type: 'add',
+    symbol: 'MIX1',
+    date: '2026-01-02',
+    shares: 1,
+  });
+
+  const monthly = await buildMonthly(2026);
+  const zeroColumn = monthly.columns.find((column) => column.id === 'zero-monthly-test');
+  const mixedColumn = monthly.columns.find((column) => column.id === 'mixed-monthly-test');
+  const january = monthly.rows.find((row) => row.month === 1);
+  const mixedCell = january.cells['mixed-monthly-test'];
+
+  assert.equal(zeroColumn, undefined);
+  assert.ok(mixedColumn);
+  assert.equal(mixedCell.positions.length, 1);
+  assert.equal(mixedCell.positions[0].symbol, 'MIX1');
+  assert.equal(mixedCell.positions.some((position) => position.symbol === 'MIX0'), false);
+});
+
 test('GET /api/portfolio/history works for every range', async () => {
   for (const [range, granularity] of [
     ['ytd', 'daily'],

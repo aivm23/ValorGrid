@@ -4,7 +4,8 @@ export function attach(ctx) {
     if (!state.monthly) return;
     const columns = state.monthly.columns || [];
     const completedRows = state.monthly.rows.filter((row) => row.total !== null && Number.isFinite(Number(row.total)));
-    const latest = completedRows[completedRows.length - 1];
+    const hasMonthlyData = columns.length > 0 && completedRows.some((row) => Number(row.total || 0) > 0);
+    const latest = hasMonthlyData ? completedRows[completedRows.length - 1] : null;
     const first = completedRows[0];
     const change = latest && first ? latest.total - first.total : null;
 
@@ -12,7 +13,7 @@ export function attach(ctx) {
       ? `
         <article><span>Ultimo mes</span><strong>${latest.label}</strong><small>${ctx.formatCurrency(latest.total)}</small></article>
         <article><span>Variacion anual</span><strong>${ctx.formatCurrency(change)}</strong><small>${completedRows.length} meses cerrados</small></article>
-        <article><span>Columnas activas</span><strong>${columns.length}</strong><small>grupos configurados</small></article>
+        <article><span>Columnas activas</span><strong>${columns.length}</strong><small>grupos con valor</small></article>
       `
       : '<article><span>Seguimiento</span><strong>Pendiente</strong><small>Configura instrumentos para empezar</small></article>';
 
@@ -42,6 +43,9 @@ export function attach(ctx) {
 
   function renderValueCell(item) {
     if (!item) return '<td><span class="pending">Pendiente</span></td>';
+    if (item.empty) {
+      return '<td><span class="pending">Sin posicion</span></td>';
+    }
     const detail = item.priceEur ? `${ctx.formatCurrency(item.priceEur)}` : `${(item.positions || []).length} posiciones`;
     return `
       <td>

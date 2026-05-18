@@ -142,6 +142,10 @@ function withPercentages(items, total) {
     .sort((a, b) => (b.value || 0) - (a.value || 0));
 }
 
+function isEffectiveValuation(item) {
+  return Math.abs(Number(item?.shares || 0)) > 0.0000001 && Number(item?.value || 0) >= minimumDisplayValueEur;
+}
+
 async function buildMonthly(year) {
   await executeDueAutoPlans();
 
@@ -153,7 +157,7 @@ async function buildMonthly(year) {
   const rows = [];
   const instruments = listInstruments().filter((item) => item.type !== 'fx' && item.showInMonthly);
   const groups = listInstrumentGroups().filter((group) => group.showInMonthly);
-  const columns = groups.map((group) => ({ id: group.id, label: group.name, color: group.color }));
+  const configuredColumns = groups.map((group) => ({ id: group.id, label: group.name, color: group.color }));
 
   for (const month of months) {
     const asOfDate = getMonthEndDate(year, month);
@@ -164,8 +168,18 @@ async function buildMonthly(year) {
         instruments.map((item) => getInstrumentValuationAt(dbInstrument(item.symbol), requestedDate, asOfDate)),
       );
       const cells = {};
-      for (const column of columns) {
-        const positions = valuations.filter((item) => item.groupId === column.id);
+      for (const column of configuredColumns) {
+        const positions = valuations.filter((item) => item.groupId === column.id && isEffectiveValuation(item));
+        if (!positions.length) {
+          cells[column.id] = {
+            value: null,
+            priceEur: null,
+            marketDate: null,
+            positions: [],
+            empty: true,
+          };
+          continue;
+        }
         const value = positions.reduce((sum, item) => sum + item.value, 0);
         const firstPriced = positions.find((item) => item.marketDate);
         cells[column.id] = {
@@ -181,17 +195,21 @@ async function buildMonthly(year) {
         month,
         label: monthLabel(month),
         cells,
-        total,
+        total: total >= minimumDisplayValueEur ? total : 0,
       });
     } catch {
       rows.push({
         month,
         label: monthLabel(month),
-        cells: Object.fromEntries(columns.map((column) => [column.id, null])),
+        cells: Object.fromEntries(configuredColumns.map((column) => [column.id, null])),
         total: null,
       });
     }
   }
+
+  const columns = configuredColumns.filter((column) =>
+    rows.some((row) => Number(row.cells?.[column.id]?.value || 0) >= minimumDisplayValueEur),
+  );
 
   return { year, columns, rows };
 }
@@ -251,6 +269,6 @@ function buildOnboardingStatus() {
     autoPlanCount,
   };
 }
-    Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus });
+    Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
   }
 };

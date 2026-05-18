@@ -1152,6 +1152,7 @@ td:last-child {
 .field-grid {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .field-grid {
@@ -1194,12 +1195,17 @@ td:last-child {
 
 .auto-plan-row {
   display: grid;
-  grid-template-columns: 84px minmax(160px, 1fr) minmax(92px, 0.55fr) 76px 140px 72px;
+  grid-template-columns: 86px minmax(180px, 1fr) minmax(100px, 0.55fr) 76px minmax(160px, 0.7fr) 86px;
   gap: 12px;
   align-items: end;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.auto-plan-row input,
+.auto-plan-row select {
+  min-width: 0;
 }
 
 .auto-plan-row [data-remove-auto-plan] {
