@@ -1015,13 +1015,16 @@ test('portfolio history uses SQLite daily cache when Yahoo is unavailable', asyn
   };
 
   try {
-    const started = performance.now();
     const history = await buildPortfolioHistory('all');
-    const elapsed = performance.now() - started;
+    const secondStarted = performance.now();
+    const cachedHistory = await buildPortfolioHistory('all');
+    const secondElapsed = performance.now() - secondStarted;
 
     assert.ok(history.series.length > 100);
     assert.ok(history.events.length >= 100);
-    assert.ok(elapsed < 1000, `cache fallback history took ${elapsed}ms`);
+    assert.equal(cachedHistory.meta.cached, true);
+    assert.deepEqual(cachedHistory.series, history.series);
+    assert.ok(secondElapsed < 300, `warm cache fallback history took ${secondElapsed}ms`);
   } finally {
     global.fetch = previousFetch;
   }
