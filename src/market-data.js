@@ -232,10 +232,23 @@ async function getQuoteForSymbol(inputSymbol, requestedDate = null) {
   };
 }
 
+async function getQuoteForYahooSymbol(symbol, yahooSymbol, requestedDate = null) {
+  const resolvedYahooSymbol = String(yahooSymbol || symbol || '').trim();
+  if (!resolvedYahooSymbol) throw new Error('Missing Yahoo symbol');
+  const quote = requestedDate
+    ? await fetchDatedYahooPrice(resolvedYahooSymbol, requestedDate)
+    : await fetchLatestYahooPrice(resolvedYahooSymbol);
+  return {
+    symbol: normalizeSymbol(symbol || resolvedYahooSymbol),
+    yahooSymbol: resolvedYahooSymbol,
+    ...quote,
+  };
+}
+
 async function getUsdToEur(requestedDate = null) {
   const quote = await getQuoteForSymbol('USDEUR', requestedDate);
   return quote.price || 1;
 }
-    Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getUsdToEur });
+    Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur });
   }
 };

@@ -490,17 +490,45 @@
             <div class="field-grid">
               <label class="field">
                 <span>Importe EUR</span>
-                <input id="wizard-plan-amount" type="number" min="0" step="0.01" placeholder="100" data-optional-section="plan" disabled />
+                <input id="wizard-plan-amount" type="number" min="0" step="0.01" placeholder="Importe a invertir" data-optional-section="plan" disabled />
               </label>
               <label class="field">
-                <span>Dia</span>
-                <input id="wizard-plan-day" type="number" min="1" max="28" step="1" value="3" data-optional-section="plan" disabled />
+                <span>Frecuencia</span>
+                <select id="wizard-plan-frequency" data-optional-section="plan" disabled>
+                  <option value="">Selecciona frecuencia</option>
+                  <option value="daily">Diaria</option>
+                  <option value="weekly">Semanal</option>
+                  <option value="biweekly">Bisemanal</option>
+                  <option value="monthly">Mensual</option>
+                </select>
+              </label>
+              <label id="wizard-plan-day-field" class="field" hidden>
+                <span>Dia del mes</span>
+                <input id="wizard-plan-day" type="number" min="1" max="28" step="1" placeholder="1 a 28" data-optional-section="plan" disabled />
+              </label>
+              <label id="wizard-plan-weekday-field" class="field" hidden>
+                <span>Dia de la semana</span>
+                <select id="wizard-plan-weekday" data-optional-section="plan" disabled>
+                  <option value="">Selecciona dia</option>
+                  <option value="1">Lunes</option>
+                  <option value="2">Martes</option>
+                  <option value="3">Miercoles</option>
+                  <option value="4">Jueves</option>
+                  <option value="5">Viernes</option>
+                  <option value="6">Sabado</option>
+                  <option value="7">Domingo</option>
+                </select>
               </label>
               <label class="field">
                 <span>Fecha de inicio</span>
                 <input id="wizard-plan-start" type="date" data-optional-section="plan" disabled />
               </label>
             </div>
+            <label id="wizard-plan-confirm-field" class="check-field" hidden>
+              <input id="wizard-plan-confirm-retroactive" type="checkbox" />
+              <span>Confirmo crear las aportaciones retroactivas pendientes</span>
+            </label>
+            <div id="wizard-plan-preview" class="transaction-preview" hidden></div>
             <p class="subtle">Si el dia elegido no tiene mercado, se usara el siguiente cierre disponible.</p>
           </section>
         </div>

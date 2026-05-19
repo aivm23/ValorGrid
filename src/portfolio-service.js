@@ -10,29 +10,22 @@ function getScheduledDate(year, month, day) {
 
 async function executeDueAutoPlans() {
   const today = getToday();
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+  for (const plan of getAutoPlans().filter((item) => item.enabled)) {
+    for (const scheduledDate of getAutoPlanScheduledDates(plan, today)) {
+      const autoKey = autoKeyForPlan(plan, scheduledDate);
+      if (autoPlanExists(autoKey) || isAutoPlanSkipped(autoKey)) continue;
 
-  for (const plan of getAutoPlans().filter((item) => item.enabled && now.getDate() >= item.day)) {
-    const autoKey = `auto:${monthKey}:${plan.symbol}`;
-    const exists = db.prepare('SELECT id FROM transactions WHERE auto_key = ?').get(autoKey);
-    if (exists || isAutoPlanSkipped(autoKey)) continue;
+      try {
+        const quote = await getQuoteForSymbol(plan.symbol, scheduledDate);
+        if ((quote.marketDate || scheduledDate) > today) continue;
 
-    const scheduledDate = getScheduledDate(year, month, plan.day);
-    if (plan.startDate && plan.startDate > scheduledDate) continue;
-
-    try {
-      const quote = await getQuoteForSymbol(plan.symbol, scheduledDate);
-      if ((quote.marketDate || scheduledDate) > today) continue;
-
-      await createTransaction(
-        { type: 'add', symbol: plan.symbol, date: quote.marketDate || scheduledDate, euros: plan.amountEur },
-        { origin: 'auto', autoKey },
-      );
-    } catch {
-      // Retry on next summary/monthly request.
+        await createTransaction(
+          { type: 'add', symbol: plan.symbol, date: quote.marketDate || scheduledDate, euros: plan.amountEur },
+          { origin: 'auto', autoKey },
+        );
+      } catch {
+        // Retry on next summary/monthly request.
+      }
     }
   }
 }

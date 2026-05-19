@@ -1195,7 +1195,7 @@ td:last-child {
 
 .auto-plan-row {
   display: grid;
-  grid-template-columns: 86px minmax(180px, 1fr) minmax(100px, 0.55fr) 76px minmax(160px, 0.7fr) 86px;
+  grid-template-columns: 86px minmax(170px, 1fr) minmax(94px, 0.48fr) minmax(120px, 0.58fr) minmax(90px, 0.42fr) minmax(150px, 0.62fr) 86px;
   gap: 12px;
   align-items: end;
   padding: 12px;

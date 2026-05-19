@@ -84,6 +84,24 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/onboarding/wizard/preview' && request.method === 'POST') {
+    try {
+      sendJson(response, 200, { preview: await previewOnboardingWizard(await readJsonBody(request)) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/onboarding/wizard/commit' && request.method === 'POST') {
+    try {
+      sendJson(response, 201, await commitOnboardingWizard(await readJsonBody(request)));
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/transactions' && request.method === 'GET') {
     sendJson(response, 200, { transactions: getTransactions() });
     return true;
@@ -120,6 +138,15 @@ async function handleApi(request, response, url) {
 
   if (url.pathname === '/api/auto-plans' && request.method === 'GET') {
     sendJson(response, 200, { autoPlans: getAutoPlans() });
+    return true;
+  }
+
+  if (url.pathname === '/api/auto-plans/preview' && request.method === 'POST') {
+    try {
+      sendJson(response, 200, { preview: previewAutoPlanExecutions((await readJsonBody(request)).autoPlans || []) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
     return true;
   }
 

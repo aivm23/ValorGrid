@@ -570,7 +570,7 @@ test('GET and PUT /api/auto-plans round-trip plan settings', async () => {
   assert.equal(before.response.status, 200);
   assert.ok(Array.isArray(before.body.autoPlans));
 
-  const nextPlans = [{ symbol: 'NVO', amountEur: 12, day: 3, enabled: true, startDate: '2026-06-01' }];
+  const nextPlans = [{ symbol: 'NVO', amountEur: 12, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }];
   const updated = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -580,6 +580,7 @@ test('GET and PUT /api/auto-plans round-trip plan settings', async () => {
   assert.equal(updated.response.status, 200);
   assert.equal(updated.body.autoPlans.find((plan) => plan.symbol === 'NVO').amountEur, 12);
   assert.equal(updated.body.autoPlans.find((plan) => plan.symbol === 'NVO').startDate, '2026-06-01');
+  assert.equal(updated.body.autoPlans.find((plan) => plan.symbol === 'NVO').frequency, 'monthly');
 
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',
@@ -591,11 +592,13 @@ test('GET and PUT /api/auto-plans round-trip plan settings', async () => {
 test('auto plan schema and API validate configurable start dates', async () => {
   const columns = db.prepare('PRAGMA table_info(auto_plans)').all().map((column) => column.name);
   assert.ok(columns.includes('start_date'));
+  assert.ok(columns.includes('frequency'));
+  assert.ok(columns.includes('weekday'));
 
   const missingInstrument = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'MISSING', amountEur: 10, day: 3, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'MISSING', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
   });
   assert.equal(missingInstrument.response.status, 400);
   assert.match(missingInstrument.body.error, /Instrument not found/);
@@ -603,7 +606,7 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const fxPlan = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'USDEUR', amountEur: 10, day: 3, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'USDEUR', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
   });
   assert.equal(fxPlan.response.status, 400);
   assert.match(fxPlan.body.error, /FX instruments/);
@@ -611,7 +614,7 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const badDay = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 10, day: 31, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 10, day: 31, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
   });
   assert.equal(badDay.response.status, 400);
   assert.match(badDay.body.error, /between 1 and 28/);
@@ -619,10 +622,18 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const badAmount = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 0, day: 3, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 0, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
   });
   assert.equal(badAmount.response.status, 400);
   assert.match(badAmount.body.error, /greater than 0/);
+
+  const badWeekday = await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 10, frequency: 'weekly', weekday: 8, enabled: true, startDate: '2026-06-01' }] }),
+  });
+  assert.equal(badWeekday.response.status, 400);
+  assert.match(badWeekday.body.error, /weekday/);
 });
 
 test('database includes scalability indexes and persistent history tables', () => {
@@ -685,7 +696,7 @@ test('deleting an automatic transaction prevents same month auto recreation', as
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const scheduledDate = `${monthKey}-03`;
-  const autoKey = `auto:${monthKey}:U308`;
+  const autoKey = `auto:U308:${scheduledDate}`;
   cachePrice('URA', scheduledDate, 52.5, 'USD');
 
   const transaction =
@@ -707,7 +718,7 @@ test('automatic plans respect startDate before creating monthly transactions', a
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const scheduledDate = `${monthKey}-03`;
-  const autoKey = `auto:${monthKey}:NVO`;
+  const autoKey = `auto:NVO:${scheduledDate}`;
   db.prepare('DELETE FROM transactions WHERE auto_key = ?').run(autoKey);
   db.prepare('DELETE FROM auto_plan_skips WHERE auto_key = ?').run(autoKey);
   cachePrice('NOV.DE', scheduledDate, 40);
@@ -715,7 +726,7 @@ test('automatic plans respect startDate before creating monthly transactions', a
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
   });
 
   const futureStart = await jsonRequest('/api/portfolio/summary');
@@ -725,7 +736,7 @@ test('automatic plans respect startDate before creating monthly transactions', a
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, enabled: true, startDate: `${monthKey}-01` }] }),
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }] }),
   });
 
   const activeStart = await jsonRequest('/api/portfolio/summary');
@@ -738,6 +749,89 @@ test('automatic plans respect startDate before creating monthly transactions', a
   await jsonRequest('/api/portfolio/summary');
   const afterCount = getTransactions().filter((item) => item.autoKey === autoKey).length;
   assert.equal(afterCount, beforeCount);
+});
+
+test('automatic plans support weekly, biweekly, monthly backfill, and stable auto keys', async () => {
+  for (const symbol of ['WEEK1', 'WEEK2', 'BIW1', 'MON1']) {
+    seedTestInstrument({ symbol, yahooSymbol: symbol, name: symbol, type: 'etf' });
+    db.prepare('DELETE FROM transactions WHERE symbol = ?').run(symbol);
+  }
+
+  await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'WEEK1', amountEur: 10, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-05-07' },
+        { symbol: 'WEEK2', amountEur: 10, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-05-06' },
+        { symbol: 'BIW1', amountEur: 10, frequency: 'biweekly', weekday: 3, enabled: true, startDate: '2026-04-22' },
+        { symbol: 'MON1', amountEur: 10, frequency: 'monthly', day: 3, enabled: true, startDate: '2026-01-01' },
+      ],
+    }),
+  });
+
+  const firstRun = await jsonRequest('/api/portfolio/summary');
+  assert.equal(firstRun.response.status, 200);
+
+  const autoKeys = getTransactions()
+    .filter((transaction) => ['WEEK1', 'WEEK2', 'BIW1', 'MON1'].includes(transaction.symbol))
+    .map((transaction) => transaction.autoKey)
+    .sort();
+  assert.ok(autoKeys.includes('auto:WEEK1:2026-05-13'));
+  assert.ok(autoKeys.includes('auto:WEEK2:2026-05-06'));
+  assert.ok(autoKeys.includes('auto:WEEK2:2026-05-13'));
+  assert.ok(autoKeys.includes('auto:BIW1:2026-04-22'));
+  assert.ok(autoKeys.includes('auto:BIW1:2026-05-06'));
+  assert.ok(autoKeys.includes('auto:MON1:2026-01-03'));
+  assert.ok(autoKeys.includes('auto:MON1:2026-05-03'));
+  assert.equal(autoKeys.filter((key) => key.startsWith('auto:MON1:')).length, 5);
+
+  const beforeCount = autoKeys.length;
+  await jsonRequest('/api/portfolio/summary');
+  const afterCount = getTransactions()
+    .filter((transaction) => ['WEEK1', 'WEEK2', 'BIW1', 'MON1'].includes(transaction.symbol))
+    .length;
+  assert.equal(afterCount, beforeCount);
+});
+
+test('onboarding wizard preview is read-only and commit is atomic', async () => {
+  const payload = {
+    group: { name: 'Wizard Atomic', color: '#16a34a', showInDistribution: true, showInMonthly: true, isExpandable: false },
+    instrument: { symbol: 'WIZA', yahooSymbol: 'WIZA', name: 'Wizard Asset', type: 'etf', currency: 'EUR', color: '#2563eb' },
+    transaction: { enabled: true, date: '2026-05-10', euros: 100, commissionEur: 1 },
+    autoPlan: { enabled: true, amountEur: 25, frequency: 'monthly', day: 3, startDate: '2026-05-01' },
+  };
+  const preview = await jsonRequest('/api/onboarding/wizard/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  assert.equal(preview.response.status, 200);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZA'").get().count, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Atomic'").get().count, 0);
+
+  const commit = await jsonRequest('/api/onboarding/wizard/commit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  assert.equal(commit.response.status, 201);
+  assert.equal(getPositionShares('WIZA') > 0, true);
+  assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'WIZA'").get().frequency, 'monthly');
+
+  const badPayload = {
+    group: { name: 'Wizard Rollback', color: '#16a34a' },
+    instrument: { symbol: 'WIZB', yahooSymbol: 'WIZB', name: 'Wizard Bad', type: 'etf', currency: 'EUR', color: '#2563eb' },
+    autoPlan: { enabled: true, amountEur: 25, frequency: 'weekly', weekday: 9, startDate: '2026-05-01' },
+  };
+  const failed = await jsonRequest('/api/onboarding/wizard/commit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(badPayload),
+  });
+  assert.equal(failed.response.status, 400);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZB'").get().count, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Rollback'").get().count, 0);
 });
 
 test('portfolio history applies adaptive granularity and returns events', async () => {
@@ -998,7 +1092,10 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   assert.ok(first.events.some((event) => event.symbol === 'GOOG'));
   assert.ok(first.events.some((event) => event.symbol === 'META'));
   assert.ok(first.events.some((event) => event.symbol === 'SPPW'));
+  assert.ok(first.events.some((event) => event.symbol === 'SEMI'));
   assert.ok(first.events.some((event) => event.type === 'remove'));
+  assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'SEMI'").get().frequency, 'monthly');
+  assert.ok(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'SEMI' AND origin = 'auto'").get().count >= 24);
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
   assert.ok(secondElapsed < 300, `warm 5y loadtest history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
@@ -1034,6 +1131,7 @@ test('YTD history starts at the range axis before the first operation', async ()
   seedLoadtestDb(db, { from: '2026-01-01', to: '2026-05-16' });
   db.exec(`
     DELETE FROM transactions;
+    DELETE FROM auto_plans;
     DELETE FROM history_builds;
     DELETE FROM portfolio_value_daily;
     DELETE FROM portfolio_value_weekly;

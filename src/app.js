@@ -62,6 +62,7 @@ const ctx = {
   './instrument-service',
   './market-data',
   './transaction-service',
+  './onboarding-service',
   './portfolio-service',
   './history-core',
   './history-service',

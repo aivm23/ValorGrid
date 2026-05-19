@@ -164,19 +164,40 @@ export function attach(ctx) {
     const options = instruments
       .map((instrument) => `<option value="${ctx.escapeHtml(instrument.symbol)}" ${instrument.symbol === plan.symbol ? 'selected' : ''}>${ctx.escapeHtml(instrument.symbol)} - ${ctx.escapeHtml(instrument.name)}</option>`)
       .join('');
+    const frequency = plan.frequency || '';
+    const isMonthly = frequency === 'monthly';
+    const isWeekly = frequency === 'weekly' || frequency === 'biweekly';
     return `
       <div class="auto-plan-row" data-auto-plan-row="${index}">
         <label class="check-field"><input type="checkbox" data-auto-field="enabled" ${plan.enabled ? 'checked' : ''} /><span>Activo</span></label>
-        <label class="field"><span>Instrumento</span><select data-auto-field="symbol">${options}</select></label>
-        <label class="field"><span>Euros</span><input data-auto-field="amountEur" type="number" min="0.01" step="0.01" value="${Number(plan.amountEur || 0)}" /></label>
-        <label class="field"><span>Dia</span><input data-auto-field="day" type="number" min="1" max="28" step="1" value="${Number(plan.day || 3)}" /></label>
-        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" value="${ctx.escapeHtml(plan.startDate || ctx.todayInputValue())}" /></label>
+        <label class="field"><span>Instrumento</span><select data-auto-field="symbol"><option value="">Selecciona instrumento</option>${options}</select></label>
+        <label class="field"><span>Euros</span><input data-auto-field="amountEur" type="number" min="0.01" step="0.01" placeholder="Importe" value="${ctx.escapeHtml(plan.amountEur ?? '')}" /></label>
+        <label class="field"><span>Frecuencia</span><select data-auto-field="frequency">
+          <option value="">Frecuencia</option>
+          <option value="daily" ${frequency === 'daily' ? 'selected' : ''}>Diaria</option>
+          <option value="weekly" ${frequency === 'weekly' ? 'selected' : ''}>Semanal</option>
+          <option value="biweekly" ${frequency === 'biweekly' ? 'selected' : ''}>Bisemanal</option>
+          <option value="monthly" ${frequency === 'monthly' ? 'selected' : ''}>Mensual</option>
+        </select></label>
+        <label class="field" ${isMonthly ? '' : 'hidden'}><span>Dia mes</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
+        <label class="field" ${isWeekly ? '' : 'hidden'}><span>Dia semana</span><select data-auto-field="weekday">
+          <option value="">Dia</option>
+          <option value="1" ${Number(plan.weekday) === 1 ? 'selected' : ''}>Lunes</option>
+          <option value="2" ${Number(plan.weekday) === 2 ? 'selected' : ''}>Martes</option>
+          <option value="3" ${Number(plan.weekday) === 3 ? 'selected' : ''}>Miercoles</option>
+          <option value="4" ${Number(plan.weekday) === 4 ? 'selected' : ''}>Jueves</option>
+          <option value="5" ${Number(plan.weekday) === 5 ? 'selected' : ''}>Viernes</option>
+          <option value="6" ${Number(plan.weekday) === 6 ? 'selected' : ''}>Sabado</option>
+          <option value="7" ${Number(plan.weekday) === 7 ? 'selected' : ''}>Domingo</option>
+        </select></label>
+        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
         <button class="button button-compact" type="button" data-remove-auto-plan="${index}">Quitar</button>
       </div>`;
   }
 
   function openAutoDialog() {
     ctx.state.autoPlanDrafts = (ctx.state.autoPlans || []).map((plan) => ({ ...plan }));
+    ctx.state.autoPlanRetroactiveConfirmed = false;
     renderAutoPlans();
     ctx.elements.autoFeedback.textContent = 'Si el dia elegido no tiene mercado, se usara el siguiente cierre disponible.';
     ctx.elements.autoFeedback.dataset.state = '';
@@ -194,32 +215,63 @@ export function attach(ctx) {
       ctx.openWizardDialog();
       return;
     }
-    const used = new Set((ctx.state.autoPlanDrafts || []).map((plan) => plan.symbol));
-    const instrument = instruments.find((item) => !used.has(item.symbol)) || instruments[0];
     ctx.state.autoPlanDrafts = [
       ...(ctx.state.autoPlanDrafts || []),
-      { symbol: instrument.symbol, amountEur: 100, day: 3, enabled: true, startDate: ctx.todayInputValue() },
+      { symbol: '', amountEur: '', frequency: '', day: '', weekday: '', enabled: true, startDate: '' },
     ];
+    ctx.state.autoPlanRetroactiveConfirmed = false;
     renderAutoPlans();
   }
 
   function removeAutoPlanDraft(index) {
     ctx.state.autoPlanDrafts = (ctx.state.autoPlanDrafts || []).filter((_, itemIndex) => itemIndex !== index);
+    ctx.state.autoPlanRetroactiveConfirmed = false;
     renderAutoPlans();
   }
 
+  function updateAutoPlanDraftFromField(field) {
+    const row = field.closest('[data-auto-plan-row]');
+    if (!row) return;
+    const index = Number(row.dataset.autoPlanRow);
+    const draft = { ...(ctx.state.autoPlanDrafts[index] || {}) };
+    const key = field.dataset.autoField;
+    draft[key] = field.type === 'checkbox' ? field.checked : field.value;
+    ctx.state.autoPlanDrafts[index] = draft;
+    ctx.state.autoPlanRetroactiveConfirmed = false;
+    if (key === 'frequency') renderAutoPlans();
+  }
+
+  function collectAutoPlansFromForm() {
+    return Array.from(ctx.elements.autoPlanList.querySelectorAll('[data-auto-plan-row]')).map((row) => {
+      const frequency = row.querySelector('[data-auto-field="frequency"]')?.value || '';
+      return {
+        symbol: row.querySelector('[data-auto-field="symbol"]').value.trim().toUpperCase(),
+        amountEur: Number(row.querySelector('[data-auto-field="amountEur"]').value),
+        frequency,
+        day: frequency === 'monthly' ? Number(row.querySelector('[data-auto-field="day"]')?.value) : undefined,
+        weekday: ['weekly', 'biweekly'].includes(frequency)
+          ? Number(row.querySelector('[data-auto-field="weekday"]')?.value)
+          : undefined,
+        startDate: row.querySelector('[data-auto-field="startDate"]').value,
+        enabled: row.querySelector('[data-auto-field="enabled"]').checked,
+      };
+    });
+  }
+
   async function saveAutoPlansFromForm() {
-    const autoPlans = Array.from(ctx.elements.autoPlanList.querySelectorAll('[data-auto-plan-row]')).map((row) => ({
-      symbol: row.querySelector('[data-auto-field="symbol"]').value.trim().toUpperCase(),
-      amountEur: Number(row.querySelector('[data-auto-field="amountEur"]').value),
-      day: Number(row.querySelector('[data-auto-field="day"]').value),
-      startDate: row.querySelector('[data-auto-field="startDate"]').value,
-      enabled: row.querySelector('[data-auto-field="enabled"]').checked,
-    }));
+    const autoPlans = collectAutoPlansFromForm();
     try {
+      const previewData = await ctx.sendJson('/api/auto-plans/preview', 'POST', { autoPlans });
+      if (previewData.preview.pendingCount > 1 && !ctx.state.autoPlanRetroactiveConfirmed) {
+        ctx.state.autoPlanRetroactiveConfirmed = true;
+        ctx.elements.autoFeedback.textContent = `${previewData.preview.pendingCount} aportaciones retroactivas pendientes. Pulsa Guardar de nuevo para confirmar.`;
+        ctx.elements.autoFeedback.dataset.state = 'error';
+        return;
+      }
       const data = await ctx.sendJson('/api/auto-plans', 'PUT', { autoPlans });
       ctx.state.autoPlans = data.autoPlans;
       ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
+      ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
       ctx.elements.autoFeedback.textContent = 'Guardado para proximos meses.';
       ctx.elements.autoFeedback.dataset.state = 'ok';
@@ -250,6 +302,7 @@ export function attach(ctx) {
     closeAutoDialog,
     addAutoPlanDraft,
     removeAutoPlanDraft,
+    updateAutoPlanDraftFromField,
     saveAutoPlansFromForm,
   });
 }

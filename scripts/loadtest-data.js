@@ -10,6 +10,7 @@ const instruments = [
   { symbol: 'SPPW', yahooSymbol: 'SPPW.DE', name: 'ETF MSCI World', type: 'etf', currency: 'EUR', color: '#a855f7', base: 36 },
   { symbol: 'ICGA', yahooSymbol: 'ICGA.DE', name: 'ETF MSCI China', type: 'etf', currency: 'EUR', color: '#dc2626', base: 4.6 },
   { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 31 },
+  { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 152 },
   { symbol: 'USDEUR', yahooSymbol: 'USDEUR=X', name: 'USD/EUR', type: 'fx', currency: 'EUR', color: '#64748b', base: 0.9 },
 ];
 
@@ -127,6 +128,16 @@ function seedLoadtestDb(db, options = {}) {
       (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', NULL)`,
   );
+  const insertAutoTransaction = db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
+     VALUES (?, 'add', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'auto', ?)`,
+  );
+  const insertAutoPlan = db.prepare(
+    `INSERT OR REPLACE INTO auto_plans
+      (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  );
   const insertMigration = db.prepare('INSERT OR REPLACE INTO migrations (id) VALUES (?)');
 
   clearLoadtestTables(db);
@@ -215,6 +226,32 @@ function seedLoadtestDb(db, options = {}) {
           );
         }
       }
+    }
+
+    insertAutoPlan.run('SEMI', 100, 3, 1, '2024-01-01', 'monthly', null);
+    const semi = bySymbol.get('SEMI');
+    for (const { year, month } of monthsBetween('2024-01-01', to)) {
+      const date = monthDate(year, month, 3);
+      if (date > to) continue;
+      const price = deterministicPrice(semi, date, from);
+      const fx = deterministicPrice(bySymbol.get('USDEUR'), date, from);
+      const priceEur = price * fx;
+      const shares = Number((100 / priceEur).toFixed(8));
+      holdings.set('SEMI', holdings.get('SEMI') + shares);
+      insertAutoTransaction.run(
+        `loadtest-auto-semi-${date}`,
+        'SEMI',
+        semi.name,
+        date,
+        date,
+        shares,
+        100,
+        price,
+        semi.currency,
+        fx,
+        semi.color,
+        `auto:SEMI:${date}`,
+      );
     }
 
     insertMigration.run('historical-etf-ledger-2026-01');

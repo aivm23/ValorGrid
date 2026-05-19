@@ -16,12 +16,19 @@ function getTransactions() {
 function getAutoPlans() {
   return db
     .prepare(
-      `SELECT symbol, amount_eur AS amountEur, day, enabled, start_date AS startDate
+      `SELECT symbol, amount_eur AS amountEur, day, enabled, start_date AS startDate,
+              frequency, weekday
        FROM auto_plans
        ORDER BY symbol ASC`,
     )
     .all()
-    .map((plan) => ({ ...plan, enabled: Boolean(plan.enabled) }));
+    .map((plan) => ({
+      ...plan,
+      enabled: Boolean(plan.enabled),
+      frequency: plan.frequency || 'monthly',
+      day: plan.frequency === 'monthly' || !plan.frequency ? Number(plan.day) : null,
+      weekday: plan.weekday === null || plan.weekday === undefined ? null : Number(plan.weekday),
+    }));
 }
 
 function buildLedgerAnalytics(currentValue = 0) {
@@ -109,10 +116,20 @@ function replaceAutoPlans(plans) {
   try {
     db.exec('DELETE FROM auto_plans');
     const insert = db.prepare(
-      'INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date) VALUES (?, ?, ?, ?, ?)',
+      `INSERT INTO auto_plans
+        (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     );
     for (const plan of normalizedPlans) {
-      insert.run(plan.symbol, plan.amountEur, plan.day, plan.enabled ? 1 : 0, plan.startDate || null);
+      insert.run(
+        plan.symbol,
+        plan.amountEur,
+        storageDayForPlan(plan),
+        plan.enabled ? 1 : 0,
+        plan.startDate || null,
+        plan.frequency,
+        plan.weekday || null,
+      );
     }
     db.exec('COMMIT');
   } catch (error) {
@@ -120,6 +137,23 @@ function replaceAutoPlans(plans) {
     throw error;
   }
   invalidateLedger(invalidationDate, 'auto-plans');
+}
+
+function autoPlanFrequency(value) {
+  if (value === '') throw new Error('Auto plan frequency is required');
+  const frequency = String(value || 'monthly').trim().toLowerCase();
+  if (!['daily', 'weekly', 'biweekly', 'monthly'].includes(frequency)) {
+    throw new Error('Invalid auto plan frequency');
+  }
+  return frequency;
+}
+
+function isIsoDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
+}
+
+function storageDayForPlan(plan) {
+  return plan.frequency === 'monthly' ? plan.day : 1;
 }
 
 function normalizeAutoPlans(plans) {
@@ -135,20 +169,121 @@ function normalizeAutoPlans(plans) {
     if (instrument.type === 'fx') throw new Error('FX instruments cannot have auto plans');
 
     const amountEur = Number(plan.amountEur);
-    const day = Number(plan.day);
+    const frequency = autoPlanFrequency(plan.frequency);
+    const day = frequency === 'monthly' ? Number(plan.day) : 1;
+    const weekday = ['weekly', 'biweekly'].includes(frequency) ? Number(plan.weekday) : null;
     const startDate = String(plan.startDate || plan.start_date || '').trim() || null;
     if (!Number.isFinite(amountEur) || amountEur <= 0) throw new Error('Auto plan amount must be greater than 0');
-    if (!Number.isInteger(day) || day < 1 || day > 28) throw new Error('Auto plan day must be between 1 and 28');
-    if (startDate && !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) throw new Error('Auto plan startDate must use YYYY-MM-DD');
+    if (frequency === 'monthly' && (!Number.isInteger(day) || day < 1 || day > 28)) {
+      throw new Error('Auto plan day must be between 1 and 28');
+    }
+    if (['weekly', 'biweekly'].includes(frequency) && (!Number.isInteger(weekday) || weekday < 1 || weekday > 7)) {
+      throw new Error('Auto plan weekday must be between 1 and 7');
+    }
+    if (startDate && !isIsoDate(startDate)) throw new Error('Auto plan startDate must use YYYY-MM-DD');
 
     return {
       symbol: instrument.symbol,
       amountEur,
       day,
+      frequency,
+      weekday,
       enabled: Boolean(plan.enabled),
       startDate,
     };
   });
+}
+
+function weekdayNumber(dateValue) {
+  const jsDay = dateUtc(dateValue).getUTCDay();
+  return jsDay === 0 ? 7 : jsDay;
+}
+
+function nextWeekdayOnOrAfter(startDate, weekday) {
+  const current = weekdayNumber(startDate);
+  const diff = (weekday - current + 7) % 7;
+  return addDays(startDate, diff);
+}
+
+function currentMonthScheduledDate(plan, today = getToday()) {
+  const date = dateUtc(today);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(plan.day).padStart(2, '0')}`;
+}
+
+function effectiveAutoPlanStart(plan, today = getToday()) {
+  if (plan.startDate) return plan.startDate;
+  if ((plan.frequency || 'monthly') === 'monthly') return currentMonthScheduledDate(plan, today);
+  return today;
+}
+
+function getAutoPlanScheduledDates(plan, toDate = getToday()) {
+  const normalized = {
+    ...plan,
+    frequency: plan.frequency || 'monthly',
+    day: plan.day || 1,
+    weekday: plan.weekday || null,
+  };
+  const startDate = effectiveAutoPlanStart(normalized, toDate);
+  if (!startDate || startDate > toDate) return [];
+  const dates = [];
+
+  if (normalized.frequency === 'daily') {
+    for (let date = startDate; date <= toDate; date = addDays(date, 1)) dates.push(date);
+    return dates;
+  }
+
+  if (normalized.frequency === 'weekly' || normalized.frequency === 'biweekly') {
+    const step = normalized.frequency === 'biweekly' ? 14 : 7;
+    for (let date = nextWeekdayOnOrAfter(startDate, Number(normalized.weekday)); date <= toDate; date = addDays(date, step)) {
+      dates.push(date);
+    }
+    return dates;
+  }
+
+  const start = dateUtc(startDate);
+  const end = dateUtc(toDate);
+  for (let year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year += 1) {
+    const startMonth = year === start.getUTCFullYear() ? start.getUTCMonth() + 1 : 1;
+    const endMonth = year === end.getUTCFullYear() ? end.getUTCMonth() + 1 : 12;
+    for (let month = startMonth; month <= endMonth; month += 1) {
+      const scheduledDate = `${year}-${String(month).padStart(2, '0')}-${String(normalized.day).padStart(2, '0')}`;
+      if (scheduledDate >= startDate && scheduledDate <= toDate) dates.push(scheduledDate);
+    }
+  }
+  return dates;
+}
+
+function autoKeyForPlan(plan, scheduledDate) {
+  return `auto:${plan.symbol}:${scheduledDate}`;
+}
+
+function autoPlanExists(autoKey) {
+  return Boolean(db.prepare('SELECT 1 FROM transactions WHERE auto_key = ?').get(autoKey));
+}
+
+function previewAutoPlanExecutions(plans, toDate = getToday()) {
+  const normalizedPlans = normalizeAutoPlans(plans);
+  const items = normalizedPlans.map((plan) => {
+    const scheduledDates = plan.enabled ? getAutoPlanScheduledDates(plan, toDate) : [];
+    const pendingDates = scheduledDates.filter((scheduledDate) => {
+      const autoKey = autoKeyForPlan(plan, scheduledDate);
+      return !autoPlanExists(autoKey) && !isAutoPlanSkipped(autoKey);
+    });
+    return {
+      symbol: plan.symbol,
+      frequency: plan.frequency,
+      amountEur: plan.amountEur,
+      pendingCount: pendingDates.length,
+      firstDate: pendingDates[0] || null,
+      lastDate: pendingDates[pendingDates.length - 1] || null,
+      estimatedTotalEur: pendingDates.length * plan.amountEur,
+    };
+  });
+  return {
+    plans: items,
+    pendingCount: items.reduce((sum, item) => sum + item.pendingCount, 0),
+    estimatedTotalEur: items.reduce((sum, item) => sum + item.estimatedTotalEur, 0),
+  };
 }
 
 function getPositionShares(symbol, asOfDate = null) {
@@ -287,6 +422,6 @@ function deleteTransaction(id) {
 function isAutoPlanSkipped(autoKey) {
   return Boolean(db.prepare('SELECT auto_key FROM auto_plan_skips WHERE auto_key = ?').get(autoKey));
 }
-    Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, normalizeAutoPlans, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
+    Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
   }
 };

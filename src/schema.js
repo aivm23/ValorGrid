@@ -54,7 +54,9 @@ function initDatabase() {
       amount_eur REAL NOT NULL,
       day INTEGER NOT NULL,
       enabled INTEGER NOT NULL,
-      start_date TEXT
+      start_date TEXT,
+      frequency TEXT NOT NULL DEFAULT 'monthly',
+      weekday INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS price_cache (
@@ -217,6 +219,8 @@ function initDatabase() {
   addColumnIfMissing('transactions', 'commission_eur', 'REAL NOT NULL DEFAULT 0');
   addColumnIfMissing('transactions', 'cash_flow_eur', 'REAL NOT NULL DEFAULT 0');
   addColumnIfMissing('auto_plans', 'start_date', 'TEXT');
+  addColumnIfMissing('auto_plans', 'frequency', "TEXT NOT NULL DEFAULT 'monthly'");
+  addColumnIfMissing('auto_plans', 'weekday', 'INTEGER');
   addColumnIfMissing('instruments', 'group_id', 'TEXT');
   addColumnIfMissing('instruments', 'display_order', 'INTEGER NOT NULL DEFAULT 0');
   addColumnIfMissing('instruments', 'show_in_distribution', 'INTEGER NOT NULL DEFAULT 1');
@@ -283,10 +287,18 @@ function initDatabase() {
   const planCount = db.prepare('SELECT COUNT(*) AS count FROM auto_plans').get().count;
   if (planCount === 0) {
     const planInsert = db.prepare(
-      'INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date, frequency, weekday) VALUES (?, ?, ?, ?, ?, ?, ?)',
     );
     for (const plan of defaultAutoPlans) {
-      planInsert.run(plan.symbol, plan.amountEur, plan.day, plan.enabled ? 1 : 0, plan.startDate || null);
+      planInsert.run(
+        plan.symbol,
+        plan.amountEur,
+        plan.day,
+        plan.enabled ? 1 : 0,
+        plan.startDate || null,
+        plan.frequency || 'monthly',
+        plan.weekday || null,
+      );
     }
   }
 }

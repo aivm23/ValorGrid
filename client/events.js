@@ -37,6 +37,12 @@ export function attach(ctx) {
       ctx.openWizardDialog();
     }
   });
+  elements.autoPlanList.addEventListener('input', (event) => {
+    if (event.target.matches('[data-auto-field]')) ctx.updateAutoPlanDraftFromField(event.target);
+  });
+  elements.autoPlanList.addEventListener('change', (event) => {
+    if (event.target.matches('[data-auto-field]')) ctx.updateAutoPlanDraftFromField(event.target);
+  });
   elements.autoForm.addEventListener('submit', (event) => {
     event.preventDefault();
     ctx.saveAutoPlansFromForm();
@@ -46,6 +52,7 @@ export function attach(ctx) {
   elements.wizardForm.addEventListener('submit', ctx.handleWizardSubmit);
   elements.wizardAddTransaction.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardAddPlan.addEventListener('change', ctx.syncWizardOptionalSections);
+  elements.wizardPlanFrequency.addEventListener('change', ctx.syncWizardPlanFrequency);
   elements.wizardTransactionEuros.addEventListener('input', ctx.syncWizardAmountInputs);
   elements.wizardTransactionShares.addEventListener('input', ctx.syncWizardAmountInputs);
   document.addEventListener('click', (event) => {
