@@ -1,5 +1,10 @@
 export function attach(ctx) {
   const { elements, state, document, window, fetchJson, sendJson, normalizeErrorMessage } = ctx;
+  const syncStickyToolbar = () => {
+    elements.headerActions.classList.toggle('is-fixed', window.scrollY > 120);
+  };
+  syncStickyToolbar();
+  window.addEventListener('scroll', syncStickyToolbar, { passive: true });
 
   elements.refreshPrices.addEventListener('click', () => {
     state.historyCache = {};

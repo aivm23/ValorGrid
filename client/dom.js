@@ -31,6 +31,7 @@ export function attach(ctx) {
     performanceSummary: document.querySelector('#performance-summary'),
     backupList: document.querySelector('#backup-list'),
     createBackup: document.querySelector('#create-backup'),
+    headerActions: document.querySelector('.header-actions'),
     onboardingWizard: document.querySelector('#onboarding-wizard'),
     instrumentManager: document.querySelector('#instrument-manager'),
     instrumentDialog: document.querySelector('#instrument-dialog'),

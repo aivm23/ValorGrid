@@ -63,27 +63,83 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
 
 .hero {
-  padding: 26px 28px;
+  padding: 28px;
 }
 
 .hero-top {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+:root[data-theme="dark"] .hero {
+  background:
+    linear-gradient(135deg, rgba(9, 20, 42, 0.98), rgba(6, 14, 31, 0.98)),
+    var(--card);
+  border-color: #1e3763;
 }
 
 .header-actions {
   display: flex;
-  flex: 0 0 auto;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  justify-content: flex-end;
-  max-width: 560px;
+  justify-content: center;
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.header-actions.is-fixed {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 30;
+  width: min(940px, calc(100vw - 24px));
+  justify-content: center;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border-color: var(--line);
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(14px);
+  transform: translateX(-50%);
+}
+
+:root[data-theme="dark"] .header-actions.is-fixed {
+  background: rgba(7, 18, 38, 0.88);
+  border-color: #1e3763;
+}
+
+.toolbar-brand {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.toolbar-brand img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.header-actions.is-fixed .toolbar-brand {
+  display: inline-flex;
 }
 
 .app-version {
@@ -104,14 +160,15 @@ p {
 
 .brand-block {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
+  justify-items: start;
 }
 
 .brand-banner {
   position: relative;
   display: block;
-  width: min(440px, 52vw);
+  width: min(500px, 100%);
   aspect-ratio: 2172 / 724;
 }
 
@@ -163,6 +220,7 @@ h1 {
   grid-template-columns: minmax(360px, 0.9fr) minmax(0, 1.35fr);
   gap: 28px;
   align-items: start;
+  min-width: 0;
 }
 
 .panel {
@@ -566,6 +624,7 @@ h3 {
 }
 
 .table-wrap {
+  min-width: 0;
   overflow-x: auto;
 }
 
@@ -1337,6 +1396,7 @@ td:last-child {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .hero,
@@ -1530,6 +1590,22 @@ td:last-child {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+  }
+
+  .header-actions.is-fixed {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: calc(100vw - 16px);
+    padding: 7px;
+  }
+
+  .header-actions.is-fixed .toolbar-brand {
+    margin-right: 2px;
+  }
+
+  .header-actions.is-fixed .calendar-button > span:last-child {
+    display: none;
   }
 
   .header-actions .app-version {
