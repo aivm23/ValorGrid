@@ -66,20 +66,24 @@ p {
 }
 
 .hero {
-  padding: 32px;
+  padding: 26px 28px;
 }
 
 .hero-top {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 24px;
+  align-items: center;
   justify-content: space-between;
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
+  justify-content: flex-end;
+  max-width: 560px;
 }
 
 .app-version {
@@ -90,12 +94,54 @@ p {
 }
 
 .eyebrow {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.brand-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.brand-banner {
+  position: relative;
+  display: block;
+  width: min(440px, 52vw);
+  aspect-ratio: 2172 / 724;
+}
+
+.brand-banner-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.brand-banner-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .brand-banner-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .brand-banner-dark {
+  display: block;
+}
+
+.brand-logo {
+  display: none;
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
 }
 
 h1 {
@@ -106,9 +152,9 @@ h1 {
 
 .hero-copy {
   max-width: 760px;
-  margin-top: 14px;
+  margin-top: 0;
   color: var(--muted);
-  font-size: 1.08rem;
+  font-size: 0.98rem;
   line-height: 1.6;
 }
 
@@ -208,16 +254,16 @@ h2 {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  height: 38px;
+  height: 36px;
   border: 1px solid var(--button-border);
   border-radius: 999px;
   background: var(--card);
   color: var(--text);
   cursor: pointer;
   font: inherit;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 0 12px;
+  padding: 0 11px;
 }
 
 .calendar-icon {
@@ -258,8 +304,8 @@ h2 {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--button-border);
   border-radius: 999px;
   background: var(--card);
@@ -310,8 +356,8 @@ h2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
-  width: 74px;
-  height: 38px;
+  width: 70px;
+  height: 36px;
   padding: 4px;
   border: 1px solid var(--button-border);
   border-radius: 999px;
@@ -1304,11 +1350,17 @@ td:last-child {
 
   .hero-top {
     display: grid;
+    gap: 18px;
+  }
+
+  .brand-banner {
+    width: min(420px, 100%);
   }
 
   .header-actions {
     flex-wrap: wrap;
     justify-content: flex-start;
+    max-width: none;
   }
 
   .source-row {
@@ -1454,5 +1506,43 @@ td:last-child {
 
   .total-box {
     text-align: left;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    padding: 18px;
+  }
+
+  .brand-banner {
+    display: none;
+  }
+
+  .brand-logo {
+    display: block;
+  }
+
+  .hero-copy {
+    font-size: 0.92rem;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .header-actions .app-version {
+    grid-column: 1 / -1;
+  }
+
+  .calendar-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .balance-toggle,
+  .theme-toggle {
+    justify-self: start;
   }
 }
