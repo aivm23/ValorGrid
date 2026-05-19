@@ -751,6 +751,30 @@ test('automatic plans respect startDate before creating monthly transactions', a
   assert.equal(afterCount, beforeCount);
 });
 
+test('automatic plans do not duplicate legacy monthly auto keys', async () => {
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const scheduledDate = `${monthKey}-03`;
+  const legacyAutoKey = `auto:${monthKey}:NVO`;
+  const newAutoKey = `auto:NVO:${scheduledDate}`;
+  db.prepare('DELETE FROM transactions WHERE auto_key IN (?, ?)').run(legacyAutoKey, newAutoKey);
+  db.prepare('DELETE FROM auto_plan_skips WHERE auto_key IN (?, ?)').run(legacyAutoKey, newAutoKey);
+  await createTransaction(
+    { type: 'add', symbol: 'NVO', date: scheduledDate, euros: 25 },
+    { origin: 'auto', autoKey: legacyAutoKey },
+  );
+
+  await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }] }),
+  });
+  await jsonRequest('/api/portfolio/summary');
+
+  assert.equal(getTransactions().filter((item) => item.autoKey === legacyAutoKey).length, 1);
+  assert.equal(getTransactions().filter((item) => item.autoKey === newAutoKey).length, 0);
+});
+
 test('automatic plans support weekly, biweekly, monthly backfill, and stable auto keys', async () => {
   for (const symbol of ['WEEK1', 'WEEK2', 'BIW1', 'MON1']) {
     seedTestInstrument({ symbol, yahooSymbol: symbol, name: symbol, type: 'etf' });
