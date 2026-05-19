@@ -877,7 +877,7 @@ td:last-child {
 }
 
 #auto-dialog {
-  width: min(860px, calc(100vw - 32px));
+  width: min(1120px, calc(100vw - 32px));
 }
 
 #wizard-dialog {
@@ -1195,7 +1195,14 @@ td:last-child {
 
 .auto-plan-row {
   display: grid;
-  grid-template-columns: 86px minmax(170px, 1fr) minmax(94px, 0.48fr) minmax(120px, 0.58fr) minmax(90px, 0.42fr) minmax(150px, 0.62fr) 86px;
+  grid-template-columns:
+    86px
+    minmax(190px, 1.35fr)
+    minmax(92px, 0.5fr)
+    minmax(118px, 0.58fr)
+    minmax(86px, 0.42fr)
+    minmax(145px, 0.68fr)
+    88px;
   gap: 12px;
   align-items: end;
   padding: 12px;
