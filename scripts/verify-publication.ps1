@@ -95,6 +95,18 @@ $forbiddenFiles = @()
 
 foreach ($file in $publicFiles) {
   $name = $file.Name
+  $hasUnsafeNameChar = $false
+  foreach ($character in $name.ToCharArray()) {
+    $codePoint = [int][char]$character
+    if ($codePoint -lt 32 -or ($codePoint -ge 0xE000 -and $codePoint -le 0xF8FF)) {
+      $hasUnsafeNameChar = $true
+      break
+    }
+  }
+  if ($hasUnsafeNameChar) {
+    $forbiddenFiles += $file.FullName
+    continue
+  }
   if ($allowedPrivateRootFiles -contains $name) { continue }
   if (
     $name -like '*.sqlite' -or
@@ -126,6 +138,7 @@ $forbiddenTextPatterns = @(
   ('start:' + 'github' + '-preview'),
   ('create-' + 'github' + '-preview'),
   ('start-' + 'github' + '-preview'),
+  ([char]27 + '['),
   ('SPPW' + ', META'),
   ('SPPW.DE' + ', META')
 )

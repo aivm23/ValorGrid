@@ -105,7 +105,7 @@ async function buildPortfolioPerformance() {
 }
 
 function replaceAutoPlans(plans) {
-  const normalizedPlans = normalizeAutoPlans(plans);
+  const { plans: normalizedPlans, warnings } = applyAutoPlanEditPolicy(normalizeAutoPlans(plans));
   const invalidationDate =
     normalizedPlans
       .map((plan) => plan.startDate)
@@ -137,6 +137,7 @@ function replaceAutoPlans(plans) {
     throw error;
   }
   invalidateLedger(invalidationDate, 'auto-plans');
+  return { warnings };
 }
 
 function autoPlanFrequency(value) {
@@ -192,6 +193,45 @@ function normalizeAutoPlans(plans) {
       startDate,
     };
   });
+}
+
+function autoPlanMateriallyChanged(previous, next) {
+  if (!previous) return false;
+  const previousFrequency = previous.frequency || 'monthly';
+  const nextFrequency = next.frequency || 'monthly';
+  const previousDay = previousFrequency === 'monthly' ? Number(previous.day || 1) : null;
+  const nextDay = nextFrequency === 'monthly' ? Number(next.day || 1) : null;
+  const previousWeekday = ['weekly', 'biweekly'].includes(previousFrequency) ? Number(previous.weekday || 0) : null;
+  const nextWeekday = ['weekly', 'biweekly'].includes(nextFrequency) ? Number(next.weekday || 0) : null;
+
+  return (
+    Number(previous.amountEur) !== Number(next.amountEur) ||
+    previousFrequency !== nextFrequency ||
+    previousDay !== nextDay ||
+    previousWeekday !== nextWeekday ||
+    Boolean(previous.enabled) !== Boolean(next.enabled) ||
+    String(previous.startDate || '') !== String(next.startDate || '')
+  );
+}
+
+function applyAutoPlanEditPolicy(plans, today = getToday()) {
+  const currentPlans = new Map(getAutoPlans().map((plan) => [plan.symbol, plan]));
+  const warnings = [];
+  const adjusted = plans.map((plan) => {
+    const previous = currentPlans.get(plan.symbol);
+    if (!previous || !plan.enabled || !autoPlanMateriallyChanged(previous, plan)) return plan;
+    if (plan.startDate && plan.startDate >= today) return plan;
+
+    warnings.push({
+      symbol: plan.symbol,
+      previousStartDate: plan.startDate || null,
+      startDate: today,
+      message: `${plan.symbol}: los cambios del plan se aplican desde ${today}; no se recalculan aportaciones anteriores.`,
+    });
+    return { ...plan, startDate: today };
+  });
+
+  return { plans: adjusted, warnings };
 }
 
 function weekdayNumber(dateValue) {
@@ -270,7 +310,7 @@ function legacyMonthlyAutoKey(autoKey) {
 }
 
 function previewAutoPlanExecutions(plans, toDate = getToday()) {
-  const normalizedPlans = normalizeAutoPlans(plans);
+  const { plans: normalizedPlans, warnings } = applyAutoPlanEditPolicy(normalizeAutoPlans(plans), toDate);
   const items = normalizedPlans.map((plan) => {
     const scheduledDates = plan.enabled ? getAutoPlanScheduledDates(plan, toDate) : [];
     const pendingDates = scheduledDates.filter((scheduledDate) => {
@@ -291,6 +331,7 @@ function previewAutoPlanExecutions(plans, toDate = getToday()) {
     plans: items,
     pendingCount: items.reduce((sum, item) => sum + item.pendingCount, 0),
     estimatedTotalEur: items.reduce((sum, item) => sum + item.estimatedTotalEur, 0),
+    warnings,
   };
 }
 
@@ -430,6 +471,6 @@ function deleteTransaction(id) {
 function isAutoPlanSkipped(autoKey) {
   return Boolean(db.prepare('SELECT auto_key FROM auto_plan_skips WHERE auto_key = ?').get(autoKey));
 }
-    Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, legacyMonthlyAutoKey, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
+    Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, legacyMonthlyAutoKey, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
   }
 };

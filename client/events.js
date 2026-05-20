@@ -62,12 +62,26 @@ export function attach(ctx) {
   elements.wizardTransactionShares.addEventListener('input', ctx.syncWizardAmountInputs);
   document.addEventListener('click', (event) => {
     if (event.target.closest('[data-open-onboarding]')) ctx.openWizardDialog();
+    if (
+      !event.target.closest('#portfolio-chart') &&
+      !event.target.closest('#holdings-legend') &&
+      !event.target.closest('#donut-tooltip')
+    ) {
+      ctx.closeDonutTooltip();
+    }
   });
   elements.themeToggle.addEventListener('click', () => {
     ctx.applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
   });
   elements.balanceToggle.addEventListener('click', ctx.toggleBalanceVisibility);
   elements.legend.addEventListener('click', (event) => toggleExpandableGroup(ctx, event));
+  elements.legend.addEventListener('mouseover', ctx.showDonutTooltipFromLegend);
+  elements.legend.addEventListener('mousemove', ctx.moveDonutTooltip);
+  elements.legend.addEventListener('mouseout', ctx.hideDonutTooltip);
+  elements.legend.addEventListener('click', ctx.pinDonutTooltip);
+  elements.chart.addEventListener('mousemove', ctx.showDonutTooltip);
+  elements.chart.addEventListener('mouseleave', ctx.hideDonutTooltip);
+  elements.chart.addEventListener('click', ctx.pinDonutTooltip);
   elements.legend.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     if (!event.target.closest('[data-action="toggle-stock-detail"]')) return;

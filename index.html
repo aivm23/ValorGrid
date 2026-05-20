@@ -54,9 +54,9 @@
               <span class="plus-icon" aria-hidden="true"></span>
               <span>Empezar</span>
             </button>
-            <button id="auto-calendar" class="calendar-button" type="button" aria-label="Inversiones automaticas">
+            <button id="auto-calendar" class="calendar-button" type="button" aria-label="Planes de aportacion">
               <span class="calendar-icon" aria-hidden="true"></span>
-              <span>Calendario</span>
+              <span>Aportaciones</span>
             </button>
             <button id="instrument-manager" class="calendar-button" type="button" aria-label="Configurar instrumentos">
               <span class="settings-icon" aria-hidden="true"></span>
@@ -122,6 +122,7 @@
               </div>
             </div>
             <div id="holdings-legend" class="legend"></div>
+            <div id="donut-tooltip" class="donut-tooltip" hidden></div>
           </div>
 
           <div class="subchart" id="stock-detail" hidden>
@@ -407,9 +408,9 @@
       <form id="auto-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Inversiones automaticas</h2>
+            <h2>Planes de aportacion</h2>
             <p class="subtle">
-              Cada plan define ticker, importe y dia. Si no hay mercado, se usa el siguiente cierre disponible.
+              Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.
             </p>
           </div>
           <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
@@ -430,7 +431,7 @@
         <div class="modal-header">
           <div>
             <h2>Alta guiada</h2>
-            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan automatico.</p>
+            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan de aportacion.</p>
           </div>
           <button id="wizard-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -516,8 +517,8 @@
 
           <section class="wizard-step">
             <span>Paso 4</span>
-            <h3>Plan automatico opcional</h3>
-            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportacion automatica</span></label>
+            <h3>Plan de aportacion opcional</h3>
+            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportacion recurrente</span></label>
             <div class="field-grid">
               <label class="field">
                 <span>Importe EUR</span>

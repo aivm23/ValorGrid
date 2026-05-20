@@ -85,7 +85,7 @@ docker compose up -d --build
 
 La base SQLite queda en `./data` y los backups en `./backups`, ambas rutas privadas e ignoradas por Git.
 
-Para CasaOS, usa `compose.casaos.yml` cuando exista imagen publicada en GitHub Container Registry. La guía completa está en `docs/DEPLOY_DOCKER.md`.
+Para CasaOS, usa `compose.casaos.yml` cuando exista imagen publicada en GitHub Container Registry. La guia completa esta en `docs/DEPLOY_DOCKER.md`.
 
 ## Tests
 

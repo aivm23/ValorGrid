@@ -3,6 +3,7 @@ export function attach(ctx) {
   const elements = {
     chart: document.querySelector('#portfolio-chart'),
     stockChart: document.querySelector('#stock-chart'),
+    donutTooltip: document.querySelector('#donut-tooltip'),
     legend: document.querySelector('#holdings-legend'),
     stockLegend: document.querySelector('#stock-legend'),
     portfolioTotal: document.querySelector('#portfolio-total'),

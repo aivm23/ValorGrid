@@ -152,8 +152,8 @@ async function handleApi(request, response, url) {
 
   if (url.pathname === '/api/auto-plans' && request.method === 'PUT') {
     try {
-      replaceAutoPlans((await readJsonBody(request)).autoPlans || []);
-      sendJson(response, 200, { autoPlans: getAutoPlans() });
+      const result = replaceAutoPlans((await readJsonBody(request)).autoPlans || []);
+      sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [] });
     } catch (error) {
       sendJson(response, 400, { error: error.message });
     }

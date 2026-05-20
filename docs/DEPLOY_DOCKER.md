@@ -1,10 +1,10 @@
 # Despliegue Docker y CasaOS
 
-ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base SQLite y los backups viven fuera del contenedor en volúmenes privados.
+ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base SQLite y los backups viven fuera del contenedor en volumenes privados.
 
 ## Docker Compose local
 
-Desde la raíz del repositorio:
+Desde la raiz del repositorio:
 
 ```bash
 docker compose up -d --build
@@ -24,7 +24,7 @@ El compose oficial usa:
 - `./data:/data`
 - `./backups:/app/.backups`
 
-`data/` y `backups/` son privados, están ignorados por Git y deben incluirse en tu sistema de backup personal.
+`data/` y `backups/` son privados, estan ignorados por Git y deben incluirse en tu sistema de backup personal.
 
 ## CasaOS
 
@@ -69,10 +69,10 @@ Backup desde UI o API:
 curl -X POST http://localhost:5173/api/backups
 ```
 
-Los backups aparecerán en `./backups` o en `/DATA/AppData/valorgrid/backups`.
+Los backups apareceran en `./backups` o en `/DATA/AppData/valorgrid/backups`.
 
-Para restaurar, detén el contenedor, sustituye `portfolio.sqlite` dentro de la carpeta `data` por el backup elegido y vuelve a levantar el servicio.
+Para restaurar, deten el contenedor, sustituye `portfolio.sqlite` dentro de la carpeta `data` por el backup elegido y vuelve a levantar el servicio.
 
 ## Seguridad
 
-ValorGrid no incluye autenticación todavía. Úsalo solo en LAN privada o detrás de VPN. No expongas el puerto directamente a Internet hasta que exista una capa de autenticación.
+ValorGrid no incluye autenticacion todavia. Usalo solo en LAN privada o detras de VPN. No expongas el puerto directamente a Internet hasta que exista una capa de autenticacion.

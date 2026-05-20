@@ -636,6 +636,59 @@ test('auto plan schema and API validate configurable start dates', async () => {
   assert.match(badWeekday.body.error, /weekday/);
 });
 
+test('editing existing auto plans never backdates material changes', async () => {
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  seedTestInstrument({ symbol: 'EDITP', yahooSymbol: 'EDITP', name: 'Editable Plan', type: 'etf' });
+  db.prepare('DELETE FROM auto_plans WHERE symbol = ?').run('EDITP');
+
+  await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: false, startDate: '2026-01-01' }],
+    }),
+  });
+
+  const activationPreview = await jsonRequest('/api/auto-plans/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' }],
+    }),
+  });
+  assert.equal(activationPreview.response.status, 200);
+  assert.equal(activationPreview.body.preview.warnings[0].startDate, todayIso);
+
+  const activated = await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' }],
+    }),
+  });
+  assert.equal(activated.response.status, 200);
+  assert.equal(activated.body.autoPlans.find((plan) => plan.symbol === 'EDITP').startDate, todayIso);
+  assert.match(activated.body.warnings[0].message, /no se recalculan aportaciones anteriores/);
+
+  const changedFrequency = await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'EDITP', amountEur: 20, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-01-01' }],
+    }),
+  });
+  assert.equal(changedFrequency.response.status, 200);
+  assert.equal(changedFrequency.body.autoPlans.find((plan) => plan.symbol === 'EDITP').startDate, todayIso);
+  assert.equal(changedFrequency.body.autoPlans.find((plan) => plan.symbol === 'EDITP').frequency, 'weekly');
+
+  await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoPlans: [] }),
+  });
+});
+
 test('database includes scalability indexes and persistent history tables', () => {
   const expectedObjects = [
     'idx_transactions_symbol_date_created',
@@ -732,6 +785,12 @@ test('automatic plans respect startDate before creating monthly transactions', a
   const futureStart = await jsonRequest('/api/portfolio/summary');
   assert.equal(futureStart.response.status, 200);
   assert.equal(getTransactions().some((item) => item.autoKey === autoKey), false);
+
+  await jsonRequest('/api/auto-plans', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoPlans: [] }),
+  });
 
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',

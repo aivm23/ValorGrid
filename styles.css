@@ -478,6 +478,7 @@ h2 {
   display: grid;
   gap: 24px;
   justify-items: center;
+  position: relative;
 }
 
 .donut-chart {
@@ -961,6 +962,56 @@ td:last-child {
   line-height: 1.45;
   padding: 10px 12px;
   pointer-events: none;
+}
+
+.donut-tooltip {
+  position: fixed;
+  z-index: 40;
+  display: grid;
+  gap: 8px;
+  width: min(280px, calc(100vw - 28px));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  padding: 12px;
+  pointer-events: none;
+}
+
+.donut-tooltip-title {
+  font-weight: 800;
+}
+
+.donut-tooltip-total {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.donut-tooltip ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.donut-tooltip li {
+  display: grid;
+  gap: 2px;
+  border-top: 1px solid var(--line);
+  padding-top: 7px;
+}
+
+.donut-tooltip li span {
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.donut-tooltip li strong {
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .history-event-panel {
@@ -1606,6 +1657,17 @@ td:last-child {
 
   .header-actions.is-fixed .calendar-button > span:last-child {
     display: none;
+  }
+
+  .donut-tooltip.is-touch {
+    left: 14px !important;
+    right: 14px;
+    top: auto !important;
+    bottom: 14px;
+    width: auto;
+    max-height: 45vh;
+    overflow-y: auto;
+    pointer-events: auto;
   }
 
   .header-actions .app-version {

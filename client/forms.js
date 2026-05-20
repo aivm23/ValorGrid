@@ -143,7 +143,7 @@ export function attach(ctx) {
     if (!instruments.length) {
       ctx.elements.autoPlanList.innerHTML = `
         <div class="empty-config-state">
-          Sin instrumentos todavia. Crea tu primer instrumento para configurar aportaciones automaticas.
+          Sin instrumentos todavia. Crea tu primer instrumento para configurar aportaciones recurrentes.
           <button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button>
         </div>`;
       return;
@@ -156,7 +156,7 @@ export function attach(ctx) {
       <div class="auto-plan-toolbar">
         <button class="button" type="button" data-add-auto-plan>Anadir plan</button>
       </div>
-      ${rows || '<p class="subtle">Sin aportaciones automaticas. Anade un plan cuando lo necesites.</p>'}
+      ${rows || '<p class="subtle">Sin planes de aportacion. Anade un plan cuando lo necesites.</p>'}
     `;
   }
 
@@ -262,9 +262,17 @@ export function attach(ctx) {
     const autoPlans = collectAutoPlansFromForm();
     try {
       const previewData = await ctx.sendJson('/api/auto-plans/preview', 'POST', { autoPlans });
-      if (previewData.preview.pendingCount > 1 && !ctx.state.autoPlanRetroactiveConfirmed) {
+      const warnings = previewData.preview.warnings || [];
+      if ((warnings.length || previewData.preview.pendingCount > 1) && !ctx.state.autoPlanRetroactiveConfirmed) {
         ctx.state.autoPlanRetroactiveConfirmed = true;
-        ctx.elements.autoFeedback.textContent = `${previewData.preview.pendingCount} aportaciones retroactivas pendientes. Pulsa Guardar de nuevo para confirmar.`;
+        const parts = [];
+        if (warnings.length) {
+          parts.push(warnings.map((warning) => warning.message).join(' '));
+        }
+        if (previewData.preview.pendingCount > 1) {
+          parts.push(`${previewData.preview.pendingCount} aportaciones pendientes. Pulsa Guardar de nuevo para confirmar.`);
+        }
+        ctx.elements.autoFeedback.textContent = parts.join(' ');
         ctx.elements.autoFeedback.dataset.state = 'error';
         return;
       }
@@ -273,7 +281,9 @@ export function attach(ctx) {
       ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
       ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
-      ctx.elements.autoFeedback.textContent = 'Guardado para proximos meses.';
+      ctx.elements.autoFeedback.textContent = data.warnings?.length
+        ? data.warnings.map((warning) => warning.message).join(' ')
+        : 'Planes de aportacion guardados.';
       ctx.elements.autoFeedback.dataset.state = 'ok';
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
