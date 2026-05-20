@@ -167,31 +167,33 @@ p {
 
 .brand-banner {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  width: auto;
+  max-width: 100%;
+}
+
+.brand-lockup-logo {
   display: block;
-  width: min(500px, 100%);
-  aspect-ratio: 2172 / 724;
+  width: 74px;
+  height: 74px;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
 }
 
-.brand-banner-image {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: left center;
+.brand-wordmark {
+  color: var(--text);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 850;
+  line-height: 0.95;
+  letter-spacing: 0;
 }
 
-.brand-banner-dark {
-  display: none;
-}
-
-:root[data-theme="dark"] .brand-banner-light {
-  display: none;
-}
-
-:root[data-theme="dark"] .brand-banner-dark {
-  display: block;
+:root[data-theme="dark"] .brand-wordmark {
+  color: #f8fafc;
+  text-shadow: 0 0 22px rgba(148, 163, 184, 0.1);
 }
 
 .brand-logo {
@@ -1626,11 +1628,21 @@ td:last-child {
   }
 
   .brand-banner {
-    display: none;
+    gap: 12px;
   }
 
   .brand-logo {
-    display: block;
+    display: none;
+  }
+
+  .brand-lockup-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+
+  .brand-wordmark {
+    font-size: clamp(2rem, 12vw, 3rem);
   }
 
   .hero-copy {
