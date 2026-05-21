@@ -128,6 +128,44 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/import/preview' && request.method === 'POST') {
+    try {
+      sendJson(response, 200, { preview: previewImport(await readJsonBody(request)) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/import/commit' && request.method === 'POST') {
+    try {
+      sendJson(response, 201, await commitImport(await readJsonBody(request)));
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/import/batches' && request.method === 'GET') {
+    sendJson(response, 200, { batches: listImportBatches() });
+    return true;
+  }
+
+  const importBatchMatch = url.pathname.match(/^\/api\/import\/batches\/([^/]+)$/);
+  if (importBatchMatch && request.method === 'GET') {
+    const batchId = decodeURIComponent(importBatchMatch[1]);
+    const batch = getImportBatch(batchId);
+    sendJson(response, batch ? 200 : 404, batch ? { batch, rows: getImportRows(batchId) } : { error: 'Import batch not found' });
+    return true;
+  }
+
+  const importRollbackMatch = url.pathname.match(/^\/api\/import\/batches\/([^/]+)\/rollback$/);
+  if (importRollbackMatch && request.method === 'POST') {
+    const ok = rollbackImportBatch(decodeURIComponent(importRollbackMatch[1]));
+    sendJson(response, ok ? 200 : 404, ok ? { ok: true } : { error: 'Import batch not found' });
+    return true;
+  }
+
   const deleteMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)$/);
   if (deleteMatch && request.method === 'DELETE') {
     sendJson(response, deleteTransaction(decodeURIComponent(deleteMatch[1])) ? 200 : 404, {

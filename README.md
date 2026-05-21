@@ -143,6 +143,11 @@ Tambien esta disponible por API local con `POST /api/backups`. Los backups se gu
 - `POST /api/backups`
 - `GET /api/export/transactions.csv`
 - `GET /api/export/transactions.json`
+- `POST /api/import/preview`
+- `POST /api/import/commit`
+- `GET /api/import/batches`
+- `GET /api/import/batches/:id`
+- `POST /api/import/batches/:id/rollback`
 - `GET /api/quote?symbol=TICKER&date=2026-05-03`
 - `GET /api/state`
 
@@ -151,6 +156,7 @@ Tambien esta disponible por API local con `POST /api/backups`. Los backups se gu
 - `instruments`: ticker interno, ticker Yahoo, nombre, tipo, divisa, color, acciones base y estado activo.
 - `instrument_groups`: agrupacion visual y funcional de instrumentos.
 - `transactions`: compras y ventas atomicas con fecha, acciones, importe EUR, precio, divisa, FX, comision, cash-flow y origen.
+- `import_batches` e `import_rows`: trazabilidad de importaciones CSV con preview, commit atomico y rollback por lote.
 - `auto_plans`: aportaciones automaticas configurables con fecha de inicio.
 - `price_cache` y `daily_price_cache`: cache local de precios.
 - `portfolio_positions_daily`, `portfolio_value_daily`, `portfolio_value_weekly`, `portfolio_events`: historico materializado para lectura rapida.

@@ -46,6 +46,9 @@ function initDatabase() {
       color TEXT,
       origin TEXT NOT NULL DEFAULT 'manual' CHECK (origin IN ('manual', 'auto', 'import')),
       auto_key TEXT UNIQUE,
+      import_batch_id TEXT,
+      external_id TEXT,
+      raw_hash TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -218,6 +221,9 @@ function initDatabase() {
   addColumnIfMissing('transactions', 'origin', "TEXT NOT NULL DEFAULT 'manual'");
   addColumnIfMissing('transactions', 'commission_eur', 'REAL NOT NULL DEFAULT 0');
   addColumnIfMissing('transactions', 'cash_flow_eur', 'REAL NOT NULL DEFAULT 0');
+  addColumnIfMissing('transactions', 'import_batch_id', 'TEXT');
+  addColumnIfMissing('transactions', 'external_id', 'TEXT');
+  addColumnIfMissing('transactions', 'raw_hash', 'TEXT');
   addColumnIfMissing('auto_plans', 'start_date', 'TEXT');
   addColumnIfMissing('auto_plans', 'frequency', "TEXT NOT NULL DEFAULT 'monthly'");
   addColumnIfMissing('auto_plans', 'weekday', 'INTEGER');
@@ -256,6 +262,7 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_history_invalidations_from_date
       ON history_invalidations (from_date);
   `);
+  runMigrations();
   ensureTransactionsAllowImportOrigin();
   backfillTransactionCashFlows();
   db.prepare("UPDATE transactions SET origin = 'auto' WHERE auto_key IS NOT NULL").run();
@@ -333,20 +340,27 @@ function migrateInstrumentGroups() {
   const instruments = db.prepare("SELECT symbol, type, color, group_id FROM instruments WHERE type != 'fx'").all();
   if (!instruments.length) return;
 
-  ensureGroup('core', 'Core', '#a855f7', { displayOrder: 10 });
-  ensureGroup('stock-picking', 'Stock picking', '#16a34a', { displayOrder: 20, isExpandable: true });
-  ensureGroup('specialized', 'Especializado', '#f59e0b', { displayOrder: 30 });
-  ensureGroup('general', 'General', '#64748b', { displayOrder: 90 });
+  const hasGroups = db.prepare('SELECT COUNT(*) AS count FROM instrument_groups').get().count > 0;
+  if (!hasGroups) {
+    ensureGroup('etf', 'ETF', '#a855f7', { displayOrder: 10 });
+    ensureGroup('stock', 'Acciones', '#16a34a', { displayOrder: 20, isExpandable: true });
+    ensureGroup('general', 'General', '#64748b', { displayOrder: 90 });
+  }
 
   const assign = db.prepare('UPDATE instruments SET group_id = ?, display_order = ? WHERE symbol = ? AND group_id IS NULL');
   for (const instrument of instruments) {
     let groupId = 'general';
-    if (['SPPW', 'ICGA'].includes(instrument.symbol)) groupId = 'core';
-    else if (['META', 'NVO'].includes(instrument.symbol) || instrument.type === 'stock') groupId = 'stock-picking';
-    else if (instrument.symbol === 'U308') groupId = 'specialized';
-    else if (instrument.type === 'etf') groupId = 'core';
+    if (instrument.type === 'stock') groupId = hasGroups ? findFirstGroupId(['stock-picking', 'stock', 'general']) : 'stock';
+    else if (instrument.type === 'etf') groupId = hasGroups ? findFirstGroupId(['core', 'etf', 'general']) : 'etf';
     assign.run(groupId, instruments.indexOf(instrument) + 1, instrument.symbol);
   }
+}
+
+function findFirstGroupId(ids) {
+  for (const id of ids) {
+    if (db.prepare('SELECT id FROM instrument_groups WHERE id = ?').get(id)) return id;
+  }
+  return 'general';
 }
 
 function addColumnIfMissing(table, column, definition) {
@@ -383,13 +397,18 @@ function ensureTransactionsAllowImportOrigin() {
       color TEXT,
       origin TEXT NOT NULL DEFAULT 'manual' CHECK (origin IN ('manual', 'auto', 'import')),
       auto_key TEXT UNIQUE,
+      import_batch_id TEXT,
+      external_id TEXT,
+      raw_hash TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
     INSERT INTO transactions
       (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-       usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key, created_at)
+       usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key, import_batch_id,
+       external_id, raw_hash, created_at)
     SELECT id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-       usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key, created_at
+       usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key, import_batch_id,
+       external_id, raw_hash, created_at
     FROM transactions_old;
     DROP TABLE transactions_old;
   `);

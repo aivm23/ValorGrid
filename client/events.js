@@ -101,6 +101,10 @@ export function attach(ctx) {
   elements.ledgerFilterTo.addEventListener('change', ctx.renderLedger);
   elements.ledgerRows.addEventListener('click', (event) => deleteLedgerRow(ctx, event));
   elements.createBackup.addEventListener('click', () => createBackup(ctx));
+  elements.importFile.addEventListener('change', ctx.handleImportFile);
+  elements.importPreview.addEventListener('click', ctx.previewCsvImport);
+  elements.importCommit.addEventListener('click', ctx.commitCsvImport);
+  elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));
   elements.createGroup.addEventListener('click', () => createGroup(ctx));

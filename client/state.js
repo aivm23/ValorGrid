@@ -24,6 +24,8 @@ export function attach(ctx) {
     instruments: [],
     groups: [],
     backups: [],
+    importPreview: null,
+    importBatches: [],
     transactionPreviewOk: false,
     version: null,
     expandedGroupId: null,

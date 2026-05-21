@@ -84,6 +84,9 @@ const {
   getPositionShares,
   getTransactions,
   getQuoteForSymbol,
+  previewImport,
+  commitImport,
+  rollbackImportBatch,
 } = require('../server.js');
 
 function cachePrice(yahooSymbol, requestedDate, price, currency = 'EUR', marketDate = requestedDate) {
@@ -712,6 +715,11 @@ test('database includes scalability indexes and persistent history tables', () =
     'idx_portfolio_value_weekly_date',
     'idx_portfolio_events_plot_date',
     'idx_history_invalidations_from_date',
+    'import_batches',
+    'import_rows',
+    'idx_import_batches_file_hash',
+    'idx_import_rows_batch_index',
+    'legacy_tables',
   ];
   const placeholders = expectedObjects.map(() => '?').join(', ');
   const objects = db
@@ -732,6 +740,104 @@ test('fresh install defaults do not include personal holdings or auto plans', ()
     assert.equal(instrument.baseShares, 0, `${instrument.symbol} starts without bundled holdings`);
   }
   assert.equal(personalAutoPlans, 0);
+});
+
+test('CSV import preview is read-only and commit is atomic and idempotent', async () => {
+  seedTestInstrument({ symbol: 'IMPA', yahooSymbol: 'IMPA', name: 'Import A', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'tipo;ticker;fecha;acciones;precio;divisa;valor EUR;comision',
+    'C;IMPA;01/05/2026;2;10;EUR;20;1',
+    'V;IMPA;02/05/2026;1;12;EUR;12;0.5',
+  ].join('\n');
+
+  const beforeTransactions = db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA'").get().count;
+  const preview = previewImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.summary.buys, 1);
+  assert.equal(preview.summary.sells, 1);
+  assert.equal(preview.summary.errorCount, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA'").get().count, beforeTransactions);
+
+  const committed = commitImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  assert.equal(committed.batch.status, 'committed');
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA' AND origin = 'import'").get().count, 2);
+  const imported = getTransactions().filter((item) => item.symbol === 'IMPA');
+  assert.equal(imported[0].commissionEur, 1);
+  assert.equal(imported[0].cashFlowEur, -21);
+  assert.equal(imported[1].cashFlowEur, 11.5);
+  assert.equal(Number(getPositionShares('IMPA', '2026-05-03').toFixed(4)), 1);
+
+  const repeated = commitImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  assert.equal(repeated.batch.id, committed.batch.id);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA' AND origin = 'import'").get().count, 2);
+});
+
+test('CSV import rejects invalid sales and rolls back the whole batch', () => {
+  seedTestInstrument({ symbol: 'IMPB', yahooSymbol: 'IMPB', name: 'Import B', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'sell,IMPB,2026-05-01,4,10,EUR,40',
+  ].join('\n');
+  const preview = previewImport({ source: 'csv', content: csv });
+  assert.equal(preview.canCommit, false);
+  assert.match(preview.rows[0].errors.join(' '), /Venta superior/);
+  assert.throws(() => commitImport({ source: 'csv', content: csv }), /contiene errores/);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPB'").get().count, 0);
+});
+
+test('CSV import rejects historical rows that would break future ledger positions', async () => {
+  seedTestInstrument({ symbol: 'IMPD', yahooSymbol: 'IMPD', name: 'Import D', type: 'stock', currency: 'EUR' });
+  await createTransaction({ type: 'add', symbol: 'IMPD', date: '2026-05-01', shares: 2 });
+  await createTransaction({ type: 'remove', symbol: 'IMPD', date: '2026-05-10', shares: 1 });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'sell,IMPD,2026-05-05,2,10,EUR,20',
+  ].join('\n');
+  const preview = previewImport({ source: 'csv', content: csv });
+  assert.equal(preview.canCommit, false);
+  assert.match(preview.rows[0].errors.join(' '), /posición negativa/);
+});
+
+test('CSV import API exposes preview, commit, list, detail and rollback', async () => {
+  seedTestInstrument({ symbol: 'IMPC', yahooSymbol: 'IMPC', name: 'Import C', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur,commissionEur',
+    'buy,IMPC,2026-05-03,3,5,EUR,15,0.25',
+  ].join('\n');
+  const payload = { source: 'csv', filename: 'api-import.csv', content: csv };
+  const preview = await jsonRequest('/api/import/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  assert.equal(preview.response.status, 200);
+  assert.equal(preview.body.preview.canCommit, true);
+
+  const committed = await jsonRequest('/api/import/commit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  assert.equal(committed.response.status, 201);
+  assert.equal(committed.body.summary.buys, 1);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPC' AND origin = 'import'").get().count, 1);
+
+  const batches = await jsonRequest('/api/import/batches');
+  assert.equal(batches.response.status, 200);
+  assert.ok(batches.body.batches.some((batch) => batch.id === committed.body.batch.id));
+
+  const detail = await jsonRequest('/api/import/batches/' + encodeURIComponent(committed.body.batch.id));
+  assert.equal(detail.response.status, 200);
+  assert.equal(detail.body.rows.length, 1);
+
+  const rolledBack = await jsonRequest('/api/import/batches/' + encodeURIComponent(committed.body.batch.id) + '/rollback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  assert.equal(rolledBack.response.status, 200);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPC'").get().count, 0);
+  assert.equal(db.prepare('SELECT status FROM import_batches WHERE id = ?').get(committed.body.batch.id).status, 'rolled_back');
 });
 
 test('GET /api/portfolio/performance returns ledger-derived return metrics', async () => {
@@ -1052,8 +1158,15 @@ test('GET /api/portfolio/monthly returns monthly rows and skips future months', 
 
   assert.equal(response.status, 200);
   assert.equal(body.rows.length, currentMonth);
+  assert.equal(body.months.length, currentMonth);
   assert.ok(Array.isArray(body.columns));
+  assert.ok(body.summary);
+  assert.ok(Number.isFinite(body.summary.currentValue));
+  assert.ok(Number.isFinite(body.summary.netContributed));
+  assert.ok(Number.isFinite(body.summary.resultYtd));
   assert.equal(body.columns.some((column) => /World valor|China valor|U308/.test(column.label)), false);
+  assert.equal(body.months.some((month) => month.month > currentMonth), false);
+  assert.equal(body.months.some((month) => month.total === null), false);
   assert.equal(body.rows.some((row) => row.total === null), false);
 });
 
@@ -1097,6 +1210,7 @@ test('monthly tracking ignores zero-value groups and zero-share instruments', as
   const zeroColumn = monthly.columns.find((column) => column.id === 'zero-monthly-test');
   const mixedColumn = monthly.columns.find((column) => column.id === 'mixed-monthly-test');
   const january = monthly.rows.find((row) => row.month === 1);
+  const januaryInsight = monthly.months.find((row) => row.month === 1);
   const mixedCell = january.cells['mixed-monthly-test'];
 
   assert.equal(zeroColumn, undefined);
@@ -1104,6 +1218,8 @@ test('monthly tracking ignores zero-value groups and zero-share instruments', as
   assert.equal(mixedCell.positions.length, 1);
   assert.equal(mixedCell.positions[0].symbol, 'MIX1');
   assert.equal(mixedCell.positions.some((position) => position.symbol === 'MIX0'), false);
+  assert.equal(januaryInsight.groups.some((group) => group.id === 'zero-monthly-test'), false);
+  assert.equal(januaryInsight.groups.some((group) => group.positions.some((position) => position.symbol === 'MIX0')), false);
 });
 
 test('GET /api/portfolio/history works for every range', async () => {

@@ -148,18 +148,36 @@ async function buildMonthly(year) {
   const monthLimit = year < currentYearValue ? 12 : year === currentYearValue ? currentMonthValue : 0;
   const months = Array.from({ length: monthLimit }, (_, index) => index + 1);
   const rows = [];
+  const monthlyInsights = [];
   const instruments = listInstruments().filter((item) => item.type !== 'fx' && item.showInMonthly);
   const groups = listInstrumentGroups().filter((group) => group.showInMonthly);
   const configuredColumns = groups.map((group) => ({ id: group.id, label: group.name, color: group.color }));
+  const instrumentGroups = new Map(listInstruments().map((instrument) => [instrument.symbol, instrument.groupId]));
+  const transactions = getTransactions().filter((transaction) => String(transaction.date || '').startsWith(`${year}-`));
+  let previousTotal = null;
+  let previousGroupValues = new Map();
 
   for (const month of months) {
-    const asOfDate = getMonthEndDate(year, month);
-    const requestedDate = getScheduledDate(year, month, 3);
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+    const calendarMonthEnd = getMonthEndDate(year, month);
+    const asOfDate = year === currentYearValue && month === currentMonthValue ? today : calendarMonthEnd;
+    const requestedDate = asOfDate;
+    const monthTransactions = transactions.filter((transaction) => String(transaction.date || '').startsWith(monthKey));
+    const monthFlows = summarizeTransactions(monthTransactions);
 
     try {
-      const valuations = await Promise.all(
-        instruments.map((item) => getInstrumentValuationAt(dbInstrument(item.symbol), requestedDate, asOfDate)),
-      );
+      let valuations;
+      try {
+        valuations = await Promise.all(
+          instruments.map((item) => getInstrumentValuationAt(dbInstrument(item.symbol), requestedDate, asOfDate)),
+        );
+      } catch (error) {
+        if (!(year === currentYearValue && month === currentMonthValue)) throw error;
+        const fallbackRequestedDate = getScheduledDate(year, month, 3);
+        valuations = await Promise.all(
+          instruments.map((item) => getInstrumentValuationAt(dbInstrument(item.symbol), fallbackRequestedDate, asOfDate)),
+        );
+      }
       const cells = {};
       for (const column of configuredColumns) {
         const positions = valuations.filter((item) => item.groupId === column.id && isEffectiveValuation(item));
@@ -183,19 +201,56 @@ async function buildMonthly(year) {
         };
       }
       const total = Object.values(cells).reduce((sum, cell) => sum + Number(cell?.value || 0), 0);
+      const effectiveTotal = total >= minimumDisplayValueEur ? total : 0;
+      const monthGroups = buildMonthlyGroups(cells, configuredColumns, total, monthTransactions, instrumentGroups);
+      const topGroup = topMonthlyGroup(monthGroups, previousGroupValues);
 
       rows.push({
         month,
         label: monthLabel(month),
         cells,
-        total: total >= minimumDisplayValueEur ? total : 0,
+        total: effectiveTotal,
       });
+      monthlyInsights.push({
+        month,
+        label: monthLabel(month),
+        period: monthKey,
+        asOfDate,
+        total: effectiveTotal,
+        contributions: monthFlows.contributions,
+        withdrawals: monthFlows.withdrawals,
+        commissions: monthFlows.commissions,
+        netContribution: monthFlows.netContribution,
+        variation: previousTotal === null ? null : effectiveTotal - previousTotal,
+        topGroup,
+        autoContributions: monthFlows.autoContributions,
+        autoStatus: monthFlows.autoContributions > 0 ? `${monthFlows.autoContributions} automáticas` : 'Sin automáticas',
+        groups: monthGroups,
+      });
+      previousTotal = effectiveTotal;
+      previousGroupValues = new Map(monthGroups.map((group) => [group.id, group.value]));
     } catch {
       rows.push({
         month,
         label: monthLabel(month),
         cells: Object.fromEntries(configuredColumns.map((column) => [column.id, null])),
         total: null,
+      });
+      monthlyInsights.push({
+        month,
+        label: monthLabel(month),
+        period: monthKey,
+        asOfDate,
+        total: null,
+        contributions: monthFlows.contributions,
+        withdrawals: monthFlows.withdrawals,
+        commissions: monthFlows.commissions,
+        netContribution: monthFlows.netContribution,
+        variation: null,
+        topGroup: null,
+        autoContributions: monthFlows.autoContributions,
+        autoStatus: 'Pendiente',
+        groups: [],
       });
     }
   }
@@ -204,7 +259,102 @@ async function buildMonthly(year) {
     rows.some((row) => Number(row.cells?.[column.id]?.value || 0) >= minimumDisplayValueEur),
   );
 
-  return { year, columns, rows };
+  const completedMonths = monthlyInsights.filter((month) => month.total !== null && Number.isFinite(Number(month.total)));
+  const latest = completedMonths[completedMonths.length - 1] || null;
+  const valueStart = await getYearStartValue(year, instruments);
+  const ytdFlows = summarizeTransactions(transactions);
+  const currentValue = Number(latest?.total || 0);
+  const resultYtd = currentValue - valueStart - ytdFlows.netContribution;
+
+  return {
+    year,
+    columns,
+    rows,
+    summary: {
+      valueStart,
+      currentValue,
+      contributions: ytdFlows.contributions,
+      withdrawals: ytdFlows.withdrawals,
+      commissions: ytdFlows.commissions,
+      netContributed: ytdFlows.netContribution,
+      resultYtd,
+      completedMonths: completedMonths.length,
+      latestMonth: latest ? latest.label : null,
+      activeGroups: columns.length,
+    },
+    months: monthlyInsights,
+  };
+}
+
+function summarizeTransactions(transactions) {
+  return transactions.reduce(
+    (summary, transaction) => {
+      const valueEur = Number(transaction.valueEur || 0);
+      const commissionEur = Number(transaction.commissionEur || 0);
+      const cashFlowEur = Number(transaction.cashFlowEur || 0);
+      summary.commissions += commissionEur;
+      summary.netContribution -= cashFlowEur;
+      if (transaction.type === 'remove') summary.withdrawals += valueEur;
+      else summary.contributions += valueEur;
+      if (transaction.origin === 'auto') summary.autoContributions += 1;
+      return summary;
+    },
+    { contributions: 0, withdrawals: 0, commissions: 0, netContribution: 0, autoContributions: 0 },
+  );
+}
+
+function summarizeGroupTransactions(transactions, groupId, instrumentGroups) {
+  return summarizeTransactions(transactions.filter((transaction) => instrumentGroups.get(transaction.symbol) === groupId));
+}
+
+function buildMonthlyGroups(cells, configuredColumns, total, monthTransactions, instrumentGroups) {
+  return configuredColumns
+    .map((column) => {
+      const cell = cells[column.id];
+      const value = Number(cell?.value || 0);
+      if (!cell || cell.empty || value < minimumDisplayValueEur) return null;
+      const flows = summarizeGroupTransactions(monthTransactions, column.id, instrumentGroups);
+      return {
+        id: column.id,
+        label: column.label,
+        color: column.color,
+        value,
+        pct: total > 0 ? (value / total) * 100 : 0,
+        contributions: flows.contributions,
+        withdrawals: flows.withdrawals,
+        commissions: flows.commissions,
+        netContribution: flows.netContribution,
+        positions: cell.positions || [],
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.value - a.value);
+}
+
+function topMonthlyGroup(groups, previousGroupValues) {
+  if (!groups.length) return null;
+  const ranked = groups
+    .map((group) => ({
+      id: group.id,
+      label: group.label,
+      color: group.color,
+      value: group.value,
+      variation: group.value - Number(previousGroupValues.get(group.id) || 0),
+    }))
+    .sort((a, b) => Math.abs(b.variation) - Math.abs(a.variation));
+  return ranked[0] || null;
+}
+
+async function getYearStartValue(year, instruments) {
+  const startDate = `${year}-01-01`;
+  try {
+    const valuations = await Promise.all(
+      instruments.map((item) => getInstrumentValuationAt(dbInstrument(item.symbol), startDate, startDate)),
+    );
+    return valuations.filter(isEffectiveValuation).reduce((sum, item) => sum + Number(item.value || 0), 0);
+  } catch {
+    return 0;
+  }
 }
 
 async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {

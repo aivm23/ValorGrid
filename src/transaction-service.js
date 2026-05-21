@@ -6,7 +6,8 @@ function getTransactions() {
       `SELECT id, type, symbol, name, date, market_date AS marketDate, shares,
               value_eur AS valueEur, price, currency, usd_to_eur AS usdToEur,
               commission_eur AS commissionEur, cash_flow_eur AS cashFlowEur,
-              color, origin, auto_key AS autoKey, created_at AS createdAt
+              color, origin, auto_key AS autoKey, import_batch_id AS importBatchId,
+              external_id AS externalId, raw_hash AS rawHash, created_at AS createdAt
        FROM transactions
        ORDER BY date ASC, created_at ASC`,
     )

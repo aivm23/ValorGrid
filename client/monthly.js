@@ -2,59 +2,168 @@ export function attach(ctx) {
   function renderMonthly() {
     const { state, elements } = ctx;
     if (!state.monthly) return;
-    const columns = state.monthly.columns || [];
-    const completedRows = state.monthly.rows.filter((row) => row.total !== null && Number.isFinite(Number(row.total)));
-    const hasMonthlyData = columns.length > 0 && completedRows.some((row) => Number(row.total || 0) > 0);
-    const latest = hasMonthlyData ? completedRows[completedRows.length - 1] : null;
-    const first = completedRows[0];
-    const change = latest && first ? latest.total - first.total : null;
 
-    elements.monthlySummary.innerHTML = latest
-      ? `
-        <article><span>Último mes</span><strong>${latest.label}</strong><small>${ctx.formatCurrency(latest.total)}</small></article>
-        <article><span>Variación anual</span><strong>${ctx.formatCurrency(change)}</strong><small>${completedRows.length} meses cerrados</small></article>
-        <article><span>Columnas activas</span><strong>${columns.length}</strong><small>grupos con valor</small></article>
-      `
-      : '<article><span>Seguimiento</span><strong>Pendiente</strong><small>Configura instrumentos para empezar</small></article>';
+    const months = state.monthly.months || buildLegacyMonths(state.monthly);
+    const completedMonths = months.filter((month) => month.total !== null && Number.isFinite(Number(month.total)));
+    const summary = state.monthly.summary || buildLegacySummary(state.monthly, completedMonths);
 
-    elements.monthlyHead.innerHTML = `
-      <tr>
-        <th>Mes</th>
-        ${columns.map((column) => `<th>${ctx.escapeHtml(column.label)}</th>`).join('')}
-        <th>Total</th>
-      </tr>
-    `;
+    elements.monthlySummary.innerHTML = renderYtdSummary(summary);
 
-    elements.monthlyTracking.innerHTML = columns.length
-      ? completedRows
-          .map((row) => {
-            const cells = columns.map((column) => renderValueCell(row.cells?.[column.id])).join('');
-            return `
-              <tr>
-                <td>${row.label}</td>
-                ${cells}
-                <td><span class="cell-main">${ctx.formatCurrency(row.total)}</span></td>
-              </tr>
-            `;
-          })
-          .join('')
-      : '<tr><td colspan="2"><div class="empty-action-state"><span class="subtle">Sin columnas mensuales. Crea grupos e instrumentos para empezar.</span><button class="button button-compact" type="button" data-open-onboarding>Crear cartera</button></div></td></tr>';
-  }
-
-  function renderValueCell(item) {
-    if (!item) return '<td><span class="pending">Pendiente</span></td>';
-    if (item.empty) {
-      return '<td><span class="pending">Sin posición</span></td>';
+    if (!completedMonths.length) {
+      elements.monthlyTracking.innerHTML = `
+        <div class="empty-action-state ytd-empty">
+          <span class="subtle">Sin movimientos ni valoraciones para el año en curso.</span>
+          <button class="button button-compact" type="button" data-open-onboarding>Crear cartera</button>
+        </div>
+      `;
+      return;
     }
-    const detail = item.priceEur ? `${ctx.formatCurrency(item.priceEur)}` : `${(item.positions || []).length} posiciones`;
+
+    const latestMonth = completedMonths[completedMonths.length - 1]?.month;
+    elements.monthlyTracking.innerHTML = completedMonths
+      .map((month) => renderMonthCard(month, month.month === latestMonth))
+      .join('');
+  }
+
+  function renderYtdSummary(summary) {
     return `
-      <td>
-        <span class="cell-main">${ctx.formatCurrency(item.value)}</span>
-        <span class="cell-price">${detail}</span>
-        <span class="cell-date">${ctx.formatDate(item.marketDate)}</span>
-      </td>
+      <article><span>Valor inicial</span><strong>${ctx.formatCurrency(Number(summary.valueStart || 0))}</strong><small>inicio del año</small></article>
+      <article><span>Aportado neto</span><strong>${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small>compras + comisiones - ventas</small></article>
+      <article><span>Valor actual</span><strong>${ctx.formatCurrency(Number(summary.currentValue || 0))}</strong><small>${summary.latestMonth ? ctx.escapeHtml(summary.latestMonth) : 'sin mes cerrado'}</small></article>
+      <article><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small>compras del año</small></article>
+      <article><span>Retiradas</span><strong>${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small>ventas del año</small></article>
+      <article><span>Resultado YTD</span><strong>${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
     `;
   }
 
-  Object.assign(ctx, { renderMonthly, renderValueCell });
+  function renderMonthCard(month, isOpen) {
+    const variation =
+      month.variation !== null && month.variation !== undefined && Number.isFinite(Number(month.variation))
+        ? Number(month.variation)
+        : null;
+    const variationClass = variation === null ? '' : variation >= 0 ? 'is-positive' : 'is-negative';
+    const topGroup = month.topGroup
+      ? `<span class="ytd-driver-dot" style="--driver-color:${ctx.escapeHtml(month.topGroup.color || '#64748b')}"></span>${ctx.escapeHtml(month.topGroup.label)} ${ctx.formatCurrency(Number(month.topGroup.variation || 0))}`
+      : 'Sin grupo dominante';
+
+    return `
+      <details class="ytd-month-card" ${isOpen ? 'open' : ''}>
+        <summary>
+          <span class="ytd-month-title">${ctx.escapeHtml(month.label)}</span>
+          <span><small>Valor final</small><strong>${ctx.formatCurrency(Number(month.total || 0))}</strong></span>
+          <span><small>Aportaciones</small><strong>${ctx.formatCurrency(Number(month.contributions || 0))}</strong></span>
+          <span><small>Retiradas</small><strong>${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
+          <span><small>Variación</small><strong class="${variationClass}">${variation === null ? 'Inicio' : ctx.formatCurrency(variation)}</strong></span>
+          <span><small>Automáticas</small><strong>${ctx.escapeHtml(month.autoStatus || 'Sin automáticas')}</strong></span>
+        </summary>
+        <div class="ytd-month-body">
+          <div class="ytd-month-meta">
+            <span>Fecha de valoración: ${ctx.formatDate(month.asOfDate)}</span>
+            <span>Motor principal: ${topGroup}</span>
+            <span>Comisiones: ${ctx.formatCurrency(Number(month.commissions || 0))}</span>
+          </div>
+          ${renderGroupBreakdown(month.groups || [])}
+        </div>
+      </details>
+    `;
+  }
+
+  function renderGroupBreakdown(groups) {
+    if (!groups.length) return '<p class="subtle">Sin grupos con valor en este mes.</p>';
+    return `
+      <div class="ytd-group-list">
+        ${groups.map((group) => renderGroupRow(group)).join('')}
+      </div>
+    `;
+  }
+
+  function renderGroupRow(group) {
+    const positions = (group.positions || [])
+      .filter((position) => Number(position.value || 0) > 0 && Math.abs(Number(position.shares || 0)) > 0.0000001)
+      .map(
+        (position) => `
+          <li>
+            <span>${ctx.escapeHtml(position.name || position.symbol)}</span>
+            <small>${ctx.escapeHtml(position.symbol)} · ${ctx.formatShareNumber(position.shares)} acciones · ${ctx.formatCurrency(Number(position.priceEur || 0))}</small>
+          </li>
+        `,
+      )
+      .join('');
+
+    return `
+      <article class="ytd-group-row">
+        <div>
+          <span class="ytd-group-name"><i style="--group-color:${ctx.escapeHtml(group.color || '#64748b')}"></i>${ctx.escapeHtml(group.label)}</span>
+          <small>${Number(group.pct || 0).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% del mes</small>
+        </div>
+        <div><small>Valor</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
+        <div><small>Aportado</small><strong>${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
+        <div><small>Neto</small><strong>${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
+        <ul>${positions || '<li><span>Sin posiciones con valor</span></li>'}</ul>
+      </article>
+    `;
+  }
+
+  function buildLegacyMonths(monthly) {
+    const columns = monthly.columns || [];
+    return (monthly.rows || [])
+      .filter((row) => row.total !== null && Number.isFinite(Number(row.total)))
+      .map((row, index, rows) => {
+        const groups = columns
+          .map((column) => {
+            const cell = row.cells?.[column.id];
+            if (!cell || cell.empty || Number(cell.value || 0) <= 0) return null;
+            return {
+              id: column.id,
+              label: column.label,
+              color: column.color,
+              value: Number(cell.value || 0),
+              pct: row.total > 0 ? (Number(cell.value || 0) / row.total) * 100 : 0,
+              contributions: 0,
+              withdrawals: 0,
+              commissions: 0,
+              netContribution: 0,
+              positions: cell.positions || [],
+            };
+          })
+          .filter(Boolean);
+        return {
+          month: row.month,
+          label: row.label,
+          asOfDate: firstGroupDate(row, columns),
+          total: row.total,
+          contributions: 0,
+          withdrawals: 0,
+          commissions: 0,
+          netContribution: 0,
+          variation: index === 0 ? null : row.total - rows[index - 1].total,
+          topGroup: groups[0] || null,
+          autoStatus: 'Sin datos',
+          groups,
+        };
+      });
+  }
+
+  function firstGroupDate(row, columns) {
+    return columns.map((column) => row.cells?.[column.id]?.marketDate).find(Boolean) || null;
+  }
+
+  function buildLegacySummary(monthly, months) {
+    const latest = months[months.length - 1] || null;
+    const first = months[0] || null;
+    return {
+      valueStart: first ? Number(first.total || 0) : 0,
+      currentValue: latest ? Number(latest.total || 0) : 0,
+      contributions: 0,
+      withdrawals: 0,
+      commissions: 0,
+      netContributed: 0,
+      resultYtd: latest && first ? latest.total - first.total : 0,
+      completedMonths: months.length,
+      latestMonth: latest?.label || null,
+      activeGroups: monthly.columns?.length || 0,
+    };
+  }
+
+  Object.assign(ctx, { renderMonthly });
 }

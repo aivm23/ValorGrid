@@ -42,6 +42,8 @@ async function buildPerformanceDiagnostics() {
       portfolioValueWeekly: tableCount('portfolio_value_weekly'),
       portfolioEvents: tableCount('portfolio_events'),
       historyBuilds: tableCount('history_builds'),
+      importBatches: tableCount('import_batches'),
+      importRows: tableCount('import_rows'),
     },
     ranges,
   };
@@ -100,6 +102,9 @@ function buildTransactionsCsv() {
     'cashFlowEur',
     'origin',
     'autoKey',
+    'importBatchId',
+    'externalId',
+    'rawHash',
   ];
   const lines = [headers.join(';')];
   for (const row of getTransactions()) {

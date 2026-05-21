@@ -222,6 +222,10 @@ h1 {
   min-width: 0;
 }
 
+.dashboard-grid-overview {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .panel {
   padding: 28px;
 }
@@ -475,9 +479,15 @@ h2 {
 
 .chart-layout {
   display: grid;
-  gap: 24px;
-  justify-items: center;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(260px, 1fr);
+  gap: 28px;
+  align-items: center;
+  justify-items: stretch;
   position: relative;
+}
+
+.chart-layout > .donut-chart {
+  justify-self: center;
 }
 
 .donut-chart {
@@ -542,11 +552,11 @@ h2 {
 }
 
 .donut-chart-small {
-  width: min(100%, 170px);
+  width: min(100%, 260px);
 }
 
 .donut-chart-small .donut-center strong {
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .subchart {
@@ -575,16 +585,21 @@ h3 {
 
 .subchart-grid {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(260px, 1fr);
+  gap: 28px;
   align-items: center;
   width: 100%;
+}
+
+.subchart-grid > .donut-chart {
+  justify-self: center;
 }
 
 .legend {
   display: grid;
   gap: 14px;
   width: 100%;
+  align-content: center;
 }
 
 .legend-row {
@@ -672,6 +687,10 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.ytd-summary {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .monthly-summary article,
 .history-stats article,
 .metric-grid article,
@@ -735,6 +754,71 @@ h3 {
 .ops-grid h3 {
   margin: 0 0 10px;
   font-size: 1rem;
+}
+
+.import-box {
+  display: grid;
+  gap: 10px;
+}
+
+.import-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 10px;
+}
+
+.import-box input,
+.import-box textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 9px 10px;
+}
+
+.import-box textarea {
+  resize: vertical;
+  min-height: 110px;
+  font: inherit;
+}
+
+.import-summary,
+.import-batch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.import-summary {
+  margin: 10px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.import-batches {
+  display: grid;
+  gap: 8px;
+}
+
+.import-batches h4 {
+  margin: 6px 0 0;
+}
+
+.import-batch-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.import-row-error td {
+  color: #fca5a5;
+}
+
+.import-row-duplicate td {
+  color: var(--muted);
 }
 
 .compact-table table {
@@ -842,6 +926,163 @@ td:last-child {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 500;
+}
+
+.ytd-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.ytd-month-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ytd-month-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.ytd-month-card summary {
+  display: grid;
+  grid-template-columns: 0.9fr repeat(5, minmax(100px, 1fr)) 36px;
+  gap: 12px;
+  align-items: center;
+  min-height: 72px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ytd-month-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.ytd-month-card summary::after {
+  content: '';
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--button-border);
+  border-radius: 999px;
+  color: var(--text);
+  background:
+    linear-gradient(45deg, transparent 45%, currentColor 46% 54%, transparent 55%) 10px 9px / 8px 8px no-repeat,
+    linear-gradient(-45deg, transparent 45%, currentColor 46% 54%, transparent 55%) 15px 9px / 8px 8px no-repeat;
+  opacity: 0.9;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.ytd-month-card[open] summary::after {
+  transform: rotate(180deg);
+  border-color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.ytd-month-card small,
+.ytd-month-meta,
+.ytd-group-row small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.ytd-month-card summary span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ytd-month-card summary small {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ytd-month-card summary strong {
+  font-size: 0.95rem;
+}
+
+.ytd-month-title {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.ytd-month-body {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 16px;
+}
+
+.ytd-month-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.ytd-driver-dot,
+.ytd-group-name i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 7px;
+  border-radius: 3px;
+  background: var(--driver-color, var(--group-color, var(--accent)));
+}
+
+.ytd-group-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ytd-group-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) repeat(3, minmax(90px, 0.7fr)) minmax(220px, 1.4fr);
+  gap: 12px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.ytd-group-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+.ytd-group-name {
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+}
+
+.ytd-group-row ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ytd-group-row li {
+  display: grid;
+  gap: 2px;
+}
+
+.is-positive {
+  color: #22c55e;
+}
+
+.is-negative {
+  color: #f87171;
 }
 
 .history-panel {
@@ -1525,6 +1766,15 @@ td:last-child {
     justify-items: center;
   }
 
+  .chart-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .chart-layout .legend {
+    align-content: start;
+  }
+
   .field-grid {
     grid-template-columns: 1fr;
   }
@@ -1630,6 +1880,24 @@ td:last-child {
     grid-template-columns: 1fr;
   }
 
+  .ytd-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ytd-month-card summary,
+  .ytd-group-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ytd-month-title,
+  .ytd-group-row ul {
+    grid-column: 1 / -1;
+  }
+
+  .ytd-month-card summary::after {
+    grid-column: 1 / -1;
+  }
+
   .history-event-panel {
     display: block;
     margin-top: 10px;
@@ -1659,6 +1927,16 @@ td:last-child {
 
   .brand-logo {
     display: none;
+  }
+
+  .ytd-summary,
+  .ytd-month-card summary,
+  .ytd-group-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ytd-month-card summary {
+    gap: 10px;
   }
 
   .brand-lockup-logo {

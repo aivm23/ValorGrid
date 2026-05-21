@@ -57,11 +57,13 @@ const ctx = {
 };
 
 [
+  './migrations',
   './schema',
   './utils',
   './instrument-service',
   './market-data',
   './transaction-service',
+  './import-service',
   './onboarding-service',
   './portfolio-service',
   './history-core',
@@ -90,4 +92,8 @@ module.exports = {
   getQuoteForSymbol: ctx.getQuoteForSymbol,
   listInstruments: ctx.listInstruments,
   updateInstrument: ctx.updateInstrument,
+  previewImport: ctx.previewImport,
+  commitImport: ctx.commitImport,
+  listImportBatches: ctx.listImportBatches,
+  rollbackImportBatch: ctx.rollbackImportBatch,
 };

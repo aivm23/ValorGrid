@@ -5,7 +5,7 @@ export function attach(ctx) {
     elements.priceStatus.textContent = 'Cargando precios online...';
 
     try {
-      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, backupData] = await Promise.all([
+      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, backupData, importData] = await Promise.all([
         ctx.fetchJson('/api/portfolio/summary'),
         ctx.fetchJson('/api/portfolio/monthly?year=2026'),
         ctx.fetchJson('/api/version'),
@@ -13,6 +13,7 @@ export function attach(ctx) {
         ctx.fetchJson('/api/instruments'),
         ctx.fetchJson('/api/instrument-groups'),
         ctx.fetchJson('/api/backups'),
+        ctx.fetchJson('/api/import/batches'),
       ]);
       state.summary = summary;
       state.onboarding = summary.onboarding || null;
@@ -22,6 +23,7 @@ export function attach(ctx) {
       state.instruments = instrumentData.instruments || [];
       state.groups = groupData.groups || [];
       state.backups = backupData.backups || [];
+      state.importBatches = importData.batches || [];
       state.autoPlans = summary.autoPlans || state.autoPlans;
       renderDashboard();
     } catch (error) {
@@ -47,6 +49,7 @@ export function attach(ctx) {
     ctx.renderLedger();
     ctx.renderPerformance();
     ctx.renderBackups();
+    ctx.renderImportBatches();
     ctx.renderInstruments();
   }
 

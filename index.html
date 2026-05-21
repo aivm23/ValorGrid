@@ -85,7 +85,7 @@
         </div>
       </header>
 
-      <div class="dashboard-grid">
+      <div class="dashboard-grid dashboard-grid-overview">
         <section class="panel" aria-labelledby="distribution-title">
           <div class="panel-header">
             <div>
@@ -143,29 +143,20 @@
           </div>
         </section>
 
-        <section class="panel" aria-labelledby="tracking-title">
-          <div class="panel-header">
-            <div>
-              <h2 id="tracking-title">Seguimiento mensual</h2>
-              <p class="subtle">
-                Grupos configurados calculados con el cierre disponible de cada plan.
-              </p>
-            </div>
-          </div>
-          <div id="monthly-summary" class="monthly-summary"></div>
-          <div class="table-wrap">
-            <table>
-              <thead id="monthly-head">
-                <tr>
-                  <th>Mes</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody id="monthly-tracking"></tbody>
-            </table>
-          </div>
-        </section>
       </div>
+
+      <section class="panel ytd-panel" aria-labelledby="tracking-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="tracking-title">Revisión YTD</h2>
+            <p class="subtle">
+              Evolución del año en curso, flujos y desglose mensual por grupos.
+            </p>
+          </div>
+        </div>
+        <div id="monthly-summary" class="monthly-summary ytd-summary"></div>
+        <div id="monthly-tracking" class="ytd-month-list"></div>
+      </section>
 
       <section class="panel history-panel" aria-labelledby="history-title">
         <div class="panel-header">
@@ -210,6 +201,22 @@
           <div>
             <h3>Backups</h3>
             <div id="backup-list" class="backup-list"></div>
+          </div>
+          <div class="import-box">
+            <h3>Importar CSV</h3>
+            <p class="subtle">Importacion generica con vista previa y commit atomico.</p>
+            <div class="import-controls">
+              <input id="import-file" type="file" accept=".csv,text/csv" />
+              <input id="import-source" value="csv" aria-label="Origen de importacion" />
+            </div>
+            <textarea id="import-content" rows="6" placeholder="Pega aqui un CSV con columnas tipo, ticker, fecha, acciones, precio, divisa, valor EUR, comision y FX."></textarea>
+            <div class="actions">
+              <button id="import-preview" class="button" type="button">Previsualizar</button>
+              <button id="import-commit" class="button button-primary" type="button" disabled>Importar</button>
+            </div>
+            <p id="import-feedback" class="form-feedback" role="status"></p>
+            <div id="import-preview-output" class="import-preview-output"></div>
+            <div id="import-batches" class="import-batches"></div>
           </div>
         </div>
       </section>
