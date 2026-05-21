@@ -85,7 +85,8 @@ export function attach(ctx) {
     }) || portfolio[portfolio.length - 1];
   }
 
-  function showDonutTooltipForItem(item, event, pinned = false) {
+  function showDonutTooltipForItem(item, event, options = {}) {
+    const { pinned = false, activateSegment = false } = options;
     const tooltip = ctx.elements.donutTooltip;
     const html = donutTooltipHtml(item);
     if (!html) {
@@ -96,7 +97,8 @@ export function attach(ctx) {
     tooltip.hidden = false;
     tooltip.classList.toggle('is-touch', pinned);
     tooltip.dataset.pinned = pinned ? 'true' : 'false';
-    setActiveDonutSegment(item);
+    if (activateSegment) setActiveDonutSegment(item);
+    else clearActiveDonutSegment();
     moveDonutTooltip(event);
   }
 
@@ -106,7 +108,7 @@ export function attach(ctx) {
       hideDonutTooltip();
       return;
     }
-    showDonutTooltipForItem(item, event);
+    showDonutTooltipForItem(item, event, { activateSegment: true });
   }
 
   function showDonutTooltipFromLegend(event) {
@@ -118,11 +120,15 @@ export function attach(ctx) {
   }
 
   function pinDonutTooltip(event) {
+    const chartItem = portfolioItemFromChartPoint(event);
     const item =
-      portfolioItemFromChartPoint(event) ||
+      chartItem ||
       portfolioItemByGroupId(event.target.closest('[data-group-id]')?.dataset.groupId);
     if (!item) return;
-    showDonutTooltipForItem(item, event, true);
+    showDonutTooltipForItem(item, event, {
+      pinned: true,
+      activateSegment: Boolean(chartItem),
+    });
   }
 
   function moveDonutTooltip(event) {
