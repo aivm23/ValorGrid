@@ -17,7 +17,7 @@ export function attach(ctx) {
 
   function renderBackups() {
     if (!ctx.state.backups.length) {
-      ctx.elements.backupList.innerHTML = '<span>No hay backups todavia.</span>';
+      ctx.elements.backupList.innerHTML = '<span>No hay backups todavía.</span>';
       return;
     }
     ctx.elements.backupList.innerHTML = ctx.state.backups
@@ -72,7 +72,7 @@ export function attach(ctx) {
           <input class="instrument-input group-name-input" data-group-field="name" value="${ctx.escapeHtml(group.name)}" aria-label="Nombre del grupo" />
           <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="Color del grupo" />
           <div class="group-card-options">
-            <label class="switch-field"><input type="checkbox" data-group-field="showInDistribution" ${group.showInDistribution ? 'checked' : ''} /> Distribucion</label>
+            <label class="switch-field"><input type="checkbox" data-group-field="showInDistribution" ${group.showInDistribution ? 'checked' : ''} /> Distribución</label>
             <label class="switch-field"><input type="checkbox" data-group-field="showInMonthly" ${group.showInMonthly ? 'checked' : ''} /> Mensual</label>
             <label class="switch-field"><input type="checkbox" data-group-field="isExpandable" ${group.isExpandable ? 'checked' : ''} /> Desglose</label>
           </div>

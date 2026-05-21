@@ -34,7 +34,7 @@
               alt="ValorGrid"
             />
             <p class="hero-copy">
-              Dashboard privado de gestion y seguimiento de cartera.
+              Dashboard privado de gestión y seguimiento de cartera.
             </p>
           </div>
           <div class="header-actions">
@@ -42,12 +42,12 @@
               <img src="./assets/brand/valorgrid-logo.png" alt="" width="1254" height="1254" />
               <span>ValorGrid</span>
             </span>
-            <span id="app-version" class="app-version" aria-label="Version de la aplicacion"></span>
+            <span id="app-version" class="app-version" aria-label="Versión de la aplicación"></span>
             <button id="onboarding-wizard" class="calendar-button" type="button" aria-label="Alta guiada">
               <span class="plus-icon" aria-hidden="true"></span>
               <span>Empezar</span>
             </button>
-            <button id="auto-calendar" class="calendar-button" type="button" aria-label="Planes de aportacion">
+            <button id="auto-calendar" class="calendar-button" type="button" aria-label="Planes de aportación">
               <span class="calendar-icon" aria-hidden="true"></span>
               <span>Aportaciones</span>
             </button>
@@ -89,8 +89,8 @@
         <section class="panel" aria-labelledby="distribution-title">
           <div class="panel-header">
             <div>
-              <h2 id="distribution-title">Distribucion actual</h2>
-              <p class="subtle">Peso de cada posicion sobre el total.</p>
+              <h2 id="distribution-title">Distribución actual</h2>
+              <p class="subtle">Peso de cada posición sobre el total.</p>
             </div>
             <div class="total-box">
               <span>Total actual estimado</span>
@@ -101,14 +101,14 @@
           <div class="source-row">
             <span id="price-status">Cargando precios online...</span>
             <div class="actions">
-              <button id="add-position" class="button" type="button">Anadir</button>
+              <button id="add-position" class="button" type="button">Añadir</button>
               <button id="remove-position" class="button" type="button">Eliminar</button>
               <button id="refresh-prices" class="button" type="button">Actualizar</button>
             </div>
           </div>
 
           <div class="chart-layout">
-            <div class="donut-chart" id="portfolio-chart" role="img" aria-label="Distribucion de cartera">
+            <div class="donut-chart" id="portfolio-chart" role="img" aria-label="Distribución de cartera">
               <div class="donut-center">
                 <span>Total</span>
                 <strong id="portfolio-total-center"></strong>
@@ -131,7 +131,7 @@
                 class="donut-chart donut-chart-small"
                 id="stock-chart"
                 role="img"
-                aria-label="Distribucion de stock picking"
+                aria-label="Distribución de stock picking"
               >
                 <div class="donut-center">
                   <span>Total</span>
@@ -170,24 +170,24 @@
       <section class="panel history-panel" aria-labelledby="history-title">
         <div class="panel-header">
           <div>
-            <h2 id="history-title">Historico</h2>
-            <p class="subtle">Valor total de la cartera desde la primera inversion.</p>
+            <h2 id="history-title">Histórico</h2>
+            <p class="subtle">Valor total de la cartera desde la primera inversión.</p>
           </div>
-          <div class="history-controls" aria-label="Filtro historico">
+          <div class="history-controls" aria-label="Filtro histórico">
             <button class="button history-range" type="button" data-history-range="all">Todo</button>
-            <button class="button history-range" type="button" data-history-range="5y">5 anos</button>
-            <button class="button history-range" type="button" data-history-range="2y">2 anos</button>
-            <button class="button history-range" type="button" data-history-range="1y">1 ano</button>
+            <button class="button history-range" type="button" data-history-range="5y">5 años</button>
+            <button class="button history-range" type="button" data-history-range="2y">2 años</button>
+            <button class="button history-range" type="button" data-history-range="1y">1 año</button>
             <button class="button history-range is-active" type="button" data-history-range="ytd">YTD</button>
           </div>
         </div>
         <div id="history-stats" class="history-stats"></div>
         <div class="history-meta">
-          <span id="history-status">Cargando historico...</span>
+          <span id="history-status">Cargando histórico...</span>
           <span id="history-granularity" class="granularity-pill"></span>
         </div>
         <div class="history-chart-wrap">
-          <div id="history-chart" class="history-chart" role="img" aria-label="Historico de valor de cartera"></div>
+          <div id="history-chart" class="history-chart" role="img" aria-label="Histórico de valor de cartera"></div>
           <div id="history-tooltip" class="history-tooltip" hidden></div>
           <div id="history-event-panel" class="history-event-panel" hidden></div>
         </div>
@@ -197,7 +197,7 @@
         <div class="panel-header">
           <div>
             <h2 id="operations-title">Operativa</h2>
-            <p class="subtle">Rentabilidad, backups, exportacion y configuracion de instrumentos.</p>
+            <p class="subtle">Rentabilidad, backups, exportación y configuración de instrumentos.</p>
           </div>
           <div class="actions">
             <button id="create-backup" class="button" type="button">Backup</button>
@@ -218,7 +218,7 @@
         <div class="panel-header">
           <div>
             <h2 id="ledger-title">Movimientos</h2>
-            <p class="subtle">Auditoria del ledger: compras, ventas, automaticos e importados.</p>
+            <p class="subtle">Auditoría del ledger: compras, ventas, automáticos e importados.</p>
           </div>
         </div>
         <div class="ledger-filters">
@@ -231,7 +231,7 @@
             <select id="ledger-filter-origin">
               <option value="">Todos</option>
               <option value="manual">Manual</option>
-              <option value="auto">Automatico</option>
+              <option value="auto">Automático</option>
               <option value="import">Importado</option>
             </select>
           </label>
@@ -263,7 +263,7 @@
                 <th>Acciones</th>
                 <th>Precio</th>
                 <th>Valor</th>
-                <th>Comision</th>
+                <th>Comisión</th>
                 <th>Cash-flow</th>
                 <th>Origen</th>
                 <th></th>
@@ -279,23 +279,23 @@
       <form id="add-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2 id="operation-title">Anadir aportacion</h2>
+            <h2 id="operation-title">Añadir aportación</h2>
             <p class="subtle">Indica ticker, fecha y una cantidad en euros o en acciones.</p>
           </div>
           <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
 
         <label class="field sr-only">
-          <span>Operacion</span>
+          <span>Operación</span>
           <select id="operation-type" name="operation">
-            <option value="add">Anadir</option>
+            <option value="add">Añadir</option>
             <option value="remove">Eliminar</option>
           </select>
         </label>
 
         <label class="field" id="ticker-input-field">
           <span>Ticker</span>
-          <input id="add-ticker" name="ticker" required placeholder="Ticker o simbolo Yahoo" />
+            <input id="add-ticker" name="ticker" required placeholder="Ticker o símbolo Yahoo" />
         </label>
 
         <label class="field" id="ticker-select-field" hidden>
@@ -320,7 +320,7 @@
           </label>
 
           <label class="field">
-            <span>Comision EUR</span>
+            <span>Comisión EUR</span>
             <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
           </label>
         </div>
@@ -330,7 +330,7 @@
 
         <div class="modal-actions">
           <button id="add-cancel" class="button" type="button">Cancelar</button>
-          <button id="add-submit" class="button button-primary" type="submit">Anadir</button>
+          <button id="add-submit" class="button button-primary" type="submit">Añadir</button>
         </div>
       </form>
     </dialog>
@@ -401,7 +401,7 @@
       <form id="auto-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Planes de aportacion</h2>
+            <h2>Planes de aportación</h2>
             <p class="subtle">
               Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.
             </p>
@@ -424,7 +424,7 @@
         <div class="modal-header">
           <div>
             <h2>Alta guiada</h2>
-            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan de aportacion.</p>
+            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan de aportación.</p>
           </div>
           <button id="wizard-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -442,7 +442,7 @@
               <input id="wizard-group-color" class="color-input" type="color" value="#16a34a" />
             </label>
             <div class="group-card-options wizard-group-options">
-              <label class="switch-field"><input id="wizard-group-distribution" type="checkbox" checked /> Distribucion</label>
+              <label class="switch-field"><input id="wizard-group-distribution" type="checkbox" checked /> Distribución</label>
               <label class="switch-field"><input id="wizard-group-monthly" type="checkbox" checked /> Mensual</label>
               <label class="switch-field"><input id="wizard-group-expandable" type="checkbox" /> Desglose</label>
             </div>
@@ -487,7 +487,7 @@
           <section class="wizard-step">
             <span>Paso 3</span>
             <h3>Primera compra opcional</h3>
-            <label class="check-field"><input id="wizard-add-transaction" type="checkbox" /> <span>Anadir primera compra</span></label>
+            <label class="check-field"><input id="wizard-add-transaction" type="checkbox" /> <span>Añadir primera compra</span></label>
             <label class="field">
               <span>Fecha</span>
               <input id="wizard-transaction-date" type="date" data-optional-section="transaction" disabled />
@@ -502,7 +502,7 @@
                 <input id="wizard-transaction-shares" type="number" min="0" step="0.000001" placeholder="2.5" data-optional-section="transaction" disabled />
               </label>
               <label class="field">
-                <span>Comision EUR</span>
+                <span>Comisión EUR</span>
                 <input id="wizard-transaction-commission" type="number" min="0" step="0.01" placeholder="0" data-optional-section="transaction" disabled />
               </label>
             </div>
@@ -510,8 +510,8 @@
 
           <section class="wizard-step">
             <span>Paso 4</span>
-            <h3>Plan de aportacion opcional</h3>
-            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportacion recurrente</span></label>
+            <h3>Plan de aportación opcional</h3>
+            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportación recurrente</span></label>
             <div class="field-grid">
               <label class="field">
                 <span>Importe EUR</span>
@@ -528,19 +528,19 @@
                 </select>
               </label>
               <label id="wizard-plan-day-field" class="field" hidden>
-                <span>Dia del mes</span>
+                <span>Día del mes</span>
                 <input id="wizard-plan-day" type="number" min="1" max="28" step="1" placeholder="1 a 28" data-optional-section="plan" disabled />
               </label>
               <label id="wizard-plan-weekday-field" class="field" hidden>
-                <span>Dia de la semana</span>
+                <span>Día de la semana</span>
                 <select id="wizard-plan-weekday" data-optional-section="plan" disabled>
-                  <option value="">Selecciona dia</option>
+                  <option value="">Selecciona día</option>
                   <option value="1">Lunes</option>
                   <option value="2">Martes</option>
-                  <option value="3">Miercoles</option>
+                  <option value="3">Miércoles</option>
                   <option value="4">Jueves</option>
                   <option value="5">Viernes</option>
-                  <option value="6">Sabado</option>
+                  <option value="6">Sábado</option>
                   <option value="7">Domingo</option>
                 </select>
               </label>
@@ -554,7 +554,7 @@
               <span>Confirmo crear las aportaciones retroactivas pendientes</span>
             </label>
             <div id="wizard-plan-preview" class="transaction-preview" hidden></div>
-            <p class="subtle">Si el dia elegido no tiene mercado, se usara el siguiente cierre disponible.</p>
+            <p class="subtle">Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.</p>
           </section>
         </div>
 

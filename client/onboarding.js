@@ -147,7 +147,7 @@ export function attach(ctx) {
     const first = preview.autoPlan.plans.find((item) => item.pendingCount > 0);
     ctx.elements.wizardPlanPreview.hidden = false;
     ctx.elements.wizardPlanPreview.innerHTML = `
-      <span>Plan de aportacion</span>
+      <span>Plan de aportación</span>
       <strong>${pending} aportaciones pendientes</strong>
       <small>Primera: ${ctx.formatDate(first?.firstDate)} - Ultima: ${ctx.formatDate(first?.lastDate)}</small>
       <small>Importe estimado: ${ctx.formatCurrency(Number(preview.autoPlan.estimatedTotalEur || 0))}</small>

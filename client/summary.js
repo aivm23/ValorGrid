@@ -96,6 +96,7 @@ export function attach(ctx) {
     tooltip.hidden = false;
     tooltip.classList.toggle('is-touch', pinned);
     tooltip.dataset.pinned = pinned ? 'true' : 'false';
+    setActiveDonutSegment(item);
     moveDonutTooltip(event);
   }
 
@@ -137,6 +138,7 @@ export function attach(ctx) {
     ctx.elements.donutTooltip.hidden = true;
     ctx.elements.donutTooltip.dataset.pinned = 'false';
     ctx.elements.donutTooltip.classList.remove('is-touch');
+    clearActiveDonutSegment();
   }
 
   function closeDonutTooltip() {
@@ -144,6 +146,57 @@ export function attach(ctx) {
     ctx.elements.donutTooltip.hidden = true;
     ctx.elements.donutTooltip.dataset.pinned = 'false';
     ctx.elements.donutTooltip.classList.remove('is-touch');
+    clearActiveDonutSegment();
+  }
+
+  function activeSegmentData(item) {
+    const portfolio = ctx.withAssetColors(ctx.state.summary?.portfolio || []).filter((entry) => Number(entry.value || 0) > 0);
+    const total = portfolio.reduce((sum, entry) => sum + Number(entry.value || 0), 0);
+    if (!item || !portfolio.length || total <= 0) return null;
+
+    let start = 0;
+    for (const entry of portfolio) {
+      const end = start + (Number(entry.value || 0) / total) * 360;
+      const matches = entry.groupId ? entry.groupId === item.groupId : entry.symbol === item.symbol;
+      if (matches) {
+        const mid = ((start + end) / 2 - 90) * (Math.PI / 180);
+        return {
+          color: ctx.assetColor(entry.symbol, entry.color),
+          start,
+          end,
+          dx: Math.cos(mid) * 9,
+          dy: Math.sin(mid) * 9,
+        };
+      }
+      start = end;
+    }
+    return null;
+  }
+
+  function setActiveDonutSegment(item) {
+    const segment = activeSegmentData(item);
+    const chart = ctx.elements.chart;
+    if (!segment) {
+      clearActiveDonutSegment();
+      return;
+    }
+    chart.classList.add('donut-chart-active');
+    chart.style.setProperty('--donut-active-color', segment.color);
+    chart.style.setProperty('--donut-active-start', `${segment.start.toFixed(2)}deg`);
+    chart.style.setProperty('--donut-active-end', `${segment.end.toFixed(2)}deg`);
+    chart.style.setProperty('--donut-active-x', `${segment.dx.toFixed(2)}px`);
+    chart.style.setProperty('--donut-active-y', `${segment.dy.toFixed(2)}px`);
+  }
+
+  function clearActiveDonutSegment() {
+    const chart = ctx.elements.chart;
+    if (!chart) return;
+    chart.classList.remove('donut-chart-active');
+    chart.style.removeProperty('--donut-active-color');
+    chart.style.removeProperty('--donut-active-start');
+    chart.style.removeProperty('--donut-active-end');
+    chart.style.removeProperty('--donut-active-x');
+    chart.style.removeProperty('--donut-active-y');
   }
 
   function renderSummary() {
@@ -169,11 +222,11 @@ export function attach(ctx) {
         });
     } else if (summary.onboarding?.needsSetup) {
       elements.legend.innerHTML = `<div class="empty-action-state">
-          <p class="subtle">Sin posiciones todavia. Crea tu primer instrumento y anade tu primer movimiento.</p>
+          <p class="subtle">Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.</p>
           <button class="button" type="button" data-open-onboarding>Crear cartera</button>
         </div>`;
     } else {
-      elements.legend.innerHTML = '<p class="subtle">Sin posiciones todavia. Usa Anadir para registrar el primer movimiento.</p>';
+      elements.legend.innerHTML = '<p class="subtle">Sin posiciones todavía. Usa Añadir para registrar el primer movimiento.</p>';
     }
 
     elements.stockDetail.hidden = !state.expandedGroupId || !group;

@@ -24,7 +24,7 @@ export function attach(ctx) {
       <span>Preview</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
       <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
-      <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
+      <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comisión: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
       <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;
   }
@@ -67,8 +67,8 @@ export function attach(ctx) {
 
   function syncOperationCopy() {
     const isRemove = ctx.elements.operationType.value === 'remove';
-    ctx.elements.operationTitle.textContent = isRemove ? 'Eliminar posicion' : 'Anadir aportacion';
-    ctx.elements.addSubmit.textContent = isRemove ? 'Eliminar' : 'Anadir';
+    ctx.elements.operationTitle.textContent = isRemove ? 'Eliminar posición' : 'Añadir aportación';
+    ctx.elements.addSubmit.textContent = isRemove ? 'Eliminar' : 'Añadir';
     ctx.elements.tickerInputField.hidden = isRemove;
     ctx.elements.tickerSelectField.hidden = !isRemove;
     ctx.elements.addTicker.required = !isRemove;
@@ -143,7 +143,7 @@ export function attach(ctx) {
     if (!instruments.length) {
       ctx.elements.autoPlanList.innerHTML = `
         <div class="empty-config-state">
-          Sin instrumentos todavia. Crea tu primer instrumento para configurar aportaciones recurrentes.
+          Sin instrumentos todavía. Crea tu primer instrumento para configurar aportaciones recurrentes.
           <button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button>
         </div>`;
       return;
@@ -154,9 +154,9 @@ export function attach(ctx) {
       .join('');
     ctx.elements.autoPlanList.innerHTML = `
       <div class="auto-plan-toolbar">
-        <button class="button" type="button" data-add-auto-plan>Anadir plan</button>
+        <button class="button" type="button" data-add-auto-plan>Añadir plan</button>
       </div>
-      ${rows || '<p class="subtle">Sin planes de aportacion. Anade un plan cuando lo necesites.</p>'}
+      ${rows || '<p class="subtle">Sin planes de aportación. Añade un plan cuando lo necesites.</p>'}
     `;
   }
 
@@ -179,15 +179,15 @@ export function attach(ctx) {
           <option value="biweekly" ${frequency === 'biweekly' ? 'selected' : ''}>Bisemanal</option>
           <option value="monthly" ${frequency === 'monthly' ? 'selected' : ''}>Mensual</option>
         </select></label>
-        <label class="field" ${isMonthly ? '' : 'hidden'}><span>Dia mes</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
-        <label class="field" ${isWeekly ? '' : 'hidden'}><span>Dia semana</span><select data-auto-field="weekday">
-          <option value="">Dia</option>
+        <label class="field" ${isMonthly ? '' : 'hidden'}><span>Día mes</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
+        <label class="field" ${isWeekly ? '' : 'hidden'}><span>Día semana</span><select data-auto-field="weekday">
+          <option value="">Día</option>
           <option value="1" ${Number(plan.weekday) === 1 ? 'selected' : ''}>Lunes</option>
           <option value="2" ${Number(plan.weekday) === 2 ? 'selected' : ''}>Martes</option>
-          <option value="3" ${Number(plan.weekday) === 3 ? 'selected' : ''}>Miercoles</option>
+          <option value="3" ${Number(plan.weekday) === 3 ? 'selected' : ''}>Miércoles</option>
           <option value="4" ${Number(plan.weekday) === 4 ? 'selected' : ''}>Jueves</option>
           <option value="5" ${Number(plan.weekday) === 5 ? 'selected' : ''}>Viernes</option>
-          <option value="6" ${Number(plan.weekday) === 6 ? 'selected' : ''}>Sabado</option>
+          <option value="6" ${Number(plan.weekday) === 6 ? 'selected' : ''}>Sábado</option>
           <option value="7" ${Number(plan.weekday) === 7 ? 'selected' : ''}>Domingo</option>
         </select></label>
         <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
@@ -199,7 +199,7 @@ export function attach(ctx) {
     ctx.state.autoPlanDrafts = (ctx.state.autoPlans || []).map((plan) => ({ ...plan }));
     ctx.state.autoPlanRetroactiveConfirmed = false;
     renderAutoPlans();
-    ctx.elements.autoFeedback.textContent = 'Si el dia elegido no tiene mercado, se usara el siguiente cierre disponible.';
+    ctx.elements.autoFeedback.textContent = 'Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.';
     ctx.elements.autoFeedback.dataset.state = '';
     ctx.elements.autoDialog.showModal();
   }
@@ -283,7 +283,7 @@ export function attach(ctx) {
       ctx.state.historyCache = {};
       ctx.elements.autoFeedback.textContent = data.warnings?.length
         ? data.warnings.map((warning) => warning.message).join(' ')
-        : 'Planes de aportacion guardados.';
+        : 'Planes de aportación guardados.';
       ctx.elements.autoFeedback.dataset.state = 'ok';
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });

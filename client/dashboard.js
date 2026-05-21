@@ -65,7 +65,7 @@ export function attach(ctx) {
 
     const controller = new AbortController();
     state.historyAbortController = controller;
-    elements.historyStatus.textContent = 'Preparando historico...';
+    elements.historyStatus.textContent = 'Preparando histórico...';
     elements.historyGranularity.textContent = '';
 
     try {
@@ -79,7 +79,7 @@ export function attach(ctx) {
       ctx.renderHistory();
     } catch (error) {
       if (requestId !== state.historyRequestId) return;
-      elements.historyStatus.textContent = `No se pudo cargar historico: ${ctx.normalizeErrorMessage(error)}`;
+      elements.historyStatus.textContent = `No se pudo cargar histórico: ${ctx.normalizeErrorMessage(error)}`;
     } finally {
       if (requestId === state.historyRequestId) state.historyAbortController = null;
     }

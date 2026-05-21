@@ -11,8 +11,8 @@ export function attach(ctx) {
 
     elements.monthlySummary.innerHTML = latest
       ? `
-        <article><span>Ultimo mes</span><strong>${latest.label}</strong><small>${ctx.formatCurrency(latest.total)}</small></article>
-        <article><span>Variacion anual</span><strong>${ctx.formatCurrency(change)}</strong><small>${completedRows.length} meses cerrados</small></article>
+        <article><span>Último mes</span><strong>${latest.label}</strong><small>${ctx.formatCurrency(latest.total)}</small></article>
+        <article><span>Variación anual</span><strong>${ctx.formatCurrency(change)}</strong><small>${completedRows.length} meses cerrados</small></article>
         <article><span>Columnas activas</span><strong>${columns.length}</strong><small>grupos con valor</small></article>
       `
       : '<article><span>Seguimiento</span><strong>Pendiente</strong><small>Configura instrumentos para empezar</small></article>';
@@ -44,7 +44,7 @@ export function attach(ctx) {
   function renderValueCell(item) {
     if (!item) return '<td><span class="pending">Pendiente</span></td>';
     if (item.empty) {
-      return '<td><span class="pending">Sin posicion</span></td>';
+      return '<td><span class="pending">Sin posición</span></td>';
     }
     const detail = item.priceEur ? `${ctx.formatCurrency(item.priceEur)}` : `${(item.positions || []).length} posiciones`;
     return `

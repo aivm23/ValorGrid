@@ -490,6 +490,33 @@ h2 {
   background: var(--track);
 }
 
+.donut-chart::before {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      transparent 0deg,
+      transparent var(--donut-active-start, 0deg),
+      var(--donut-active-color, transparent) var(--donut-active-start, 0deg),
+      var(--donut-active-color, transparent) var(--donut-active-end, 0deg),
+      transparent var(--donut-active-end, 0deg),
+      transparent 360deg
+    );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(0, 0);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.donut-chart-active::before {
+  opacity: 1;
+  transform: translate(var(--donut-active-x, 0), var(--donut-active-y, 0));
+}
+
 .donut-chart::after {
   position: absolute;
   width: 58%;
