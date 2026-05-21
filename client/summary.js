@@ -155,22 +155,30 @@ export function attach(ctx) {
     if (!item || !portfolio.length || total <= 0) return null;
 
     let start = 0;
+    let matchedSegment = null;
+    const mutedSegments = [];
     for (const entry of portfolio) {
       const end = start + (Number(entry.value || 0) / total) * 360;
       const matches = entry.groupId ? entry.groupId === item.groupId : entry.symbol === item.symbol;
+      const color = matches ? 'var(--track)' : ctx.assetColor(entry.symbol, entry.color);
+      mutedSegments.push(`${color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`);
       if (matches) {
         const mid = ((start + end) / 2 - 90) * (Math.PI / 180);
-        return {
+        matchedSegment = {
           color: ctx.assetColor(entry.symbol, entry.color),
           start,
           end,
-          dx: Math.cos(mid) * 9,
-          dy: Math.sin(mid) * 9,
+          dx: Math.cos(mid) * 15,
+          dy: Math.sin(mid) * 15,
         };
       }
       start = end;
     }
-    return null;
+    if (!matchedSegment) return null;
+    return {
+      ...matchedSegment,
+      mutedBackground: `conic-gradient(${mutedSegments.join(', ')})`,
+    };
   }
 
   function setActiveDonutSegment(item) {
@@ -180,6 +188,8 @@ export function attach(ctx) {
       clearActiveDonutSegment();
       return;
     }
+    if (!chart.dataset.baseBackground) chart.dataset.baseBackground = chart.style.background || '';
+    chart.style.background = segment.mutedBackground;
     chart.classList.add('donut-chart-active');
     chart.style.setProperty('--donut-active-color', segment.color);
     chart.style.setProperty('--donut-active-start', `${segment.start.toFixed(2)}deg`);
@@ -192,6 +202,10 @@ export function attach(ctx) {
     const chart = ctx.elements.chart;
     if (!chart) return;
     chart.classList.remove('donut-chart-active');
+    if (chart.dataset.baseBackground) {
+      chart.style.background = chart.dataset.baseBackground;
+      delete chart.dataset.baseBackground;
+    }
     chart.style.removeProperty('--donut-active-color');
     chart.style.removeProperty('--donut-active-start');
     chart.style.removeProperty('--donut-active-end');

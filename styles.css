@@ -504,9 +504,11 @@ h2 {
       transparent 360deg
     );
   content: "";
+  filter: drop-shadow(0 14px 18px rgba(2, 6, 23, 0.2));
   opacity: 0;
   pointer-events: none;
   transform: translate(0, 0);
+  transform-origin: center;
   transition:
     opacity 140ms ease,
     transform 140ms ease;
@@ -514,7 +516,7 @@ h2 {
 
 .donut-chart-active::before {
   opacity: 1;
-  transform: translate(var(--donut-active-x, 0), var(--donut-active-y, 0));
+  transform: translate(var(--donut-active-x, 0), var(--donut-active-y, 0)) scale(1.025);
 }
 
 .donut-chart::after {
