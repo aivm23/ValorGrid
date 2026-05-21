@@ -75,10 +75,6 @@ export function attach(ctx) {
   });
   elements.balanceToggle.addEventListener('click', ctx.toggleBalanceVisibility);
   elements.legend.addEventListener('click', (event) => toggleExpandableGroup(ctx, event));
-  elements.legend.addEventListener('mouseover', ctx.showDonutTooltipFromLegend);
-  elements.legend.addEventListener('mousemove', ctx.moveDonutTooltip);
-  elements.legend.addEventListener('mouseout', ctx.hideDonutTooltip);
-  elements.legend.addEventListener('click', ctx.pinDonutTooltip);
   elements.chart.addEventListener('mousemove', ctx.showDonutTooltip);
   elements.chart.addEventListener('mouseleave', ctx.hideDonutTooltip);
   elements.chart.addEventListener('click', ctx.pinDonutTooltip);
