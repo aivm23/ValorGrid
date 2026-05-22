@@ -26,6 +26,7 @@ export function attach(ctx) {
     backups: [],
     importPreview: null,
     importBatches: [],
+    importFileMeta: null,
     transactionPreviewOk: false,
     version: null,
     expandedGroupId: null,

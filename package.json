@@ -1,9 +1,12 @@
 {
   "name": "portfolio-dashboard",
-  "version": "2.10.0",
+  "version": "2.13.1",
   "private": true,
   "engines": {
     "node": ">=24"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "node server.js",

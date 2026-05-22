@@ -767,6 +767,16 @@ h3 {
   gap: 10px;
 }
 
+.import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.import-wide-field {
+  grid-column: 1 / -1;
+}
+
 .import-box input,
 .import-box textarea {
   width: 100%;
@@ -1305,6 +1315,10 @@ td:last-child {
   width: min(1120px, calc(100vw - 32px));
 }
 
+#import-dialog {
+  width: min(1020px, calc(100vw - 32px));
+}
+
 #wizard-dialog {
   width: min(1040px, calc(100vw - 32px));
 }
@@ -1784,6 +1798,7 @@ td:last-child {
   }
 
   #auto-dialog,
+  #import-dialog,
   #wizard-dialog {
     width: calc(100vw - 20px);
   }
@@ -1803,7 +1818,8 @@ td:last-child {
 
   .group-create-form,
   .instrument-create-form-wide,
-  .group-card {
+  .group-card,
+  .import-grid {
     grid-template-columns: 1fr;
   }
 

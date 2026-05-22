@@ -192,6 +192,7 @@
           </div>
           <div class="actions">
             <button id="create-backup" class="button" type="button">Backup</button>
+            <button id="open-import-dialog" class="button" type="button">Importar</button>
             <a id="export-csv" class="button" href="/api/export/transactions.csv">CSV</a>
             <a id="export-json" class="button" href="/api/export/transactions.json">JSON</a>
           </div>
@@ -203,19 +204,8 @@
             <div id="backup-list" class="backup-list"></div>
           </div>
           <div class="import-box">
-            <h3>Importar CSV</h3>
-            <p class="subtle">Importacion generica con vista previa y commit atomico.</p>
-            <div class="import-controls">
-              <input id="import-file" type="file" accept=".csv,text/csv" />
-              <input id="import-source" value="csv" aria-label="Origen de importacion" />
-            </div>
-            <textarea id="import-content" rows="6" placeholder="Pega aqui un CSV con columnas tipo, ticker, fecha, acciones, precio, divisa, valor EUR, comision y FX."></textarea>
-            <div class="actions">
-              <button id="import-preview" class="button" type="button">Previsualizar</button>
-              <button id="import-commit" class="button button-primary" type="button" disabled>Importar</button>
-            </div>
-            <p id="import-feedback" class="form-feedback" role="status"></p>
-            <div id="import-preview-output" class="import-preview-output"></div>
+            <h3>Importaciones</h3>
+            <p class="subtle">Importa CSV, Excel o plantillas de broker desde la modal dedicada.</p>
             <div id="import-batches" class="import-batches"></div>
           </div>
         </div>
@@ -422,6 +412,62 @@
         <div class="modal-actions">
           <button id="auto-cancel" class="button" type="button">Cancelar</button>
           <button id="auto-submit" class="button button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="import-dialog" class="modal">
+      <form id="import-form" class="modal-panel modal-panel-wide" method="dialog">
+        <div class="modal-header">
+          <div>
+            <h2>Importar movimientos</h2>
+            <p class="subtle">CSV, Excel y formatos de broker con preview, validación y commit atómico.</p>
+          </div>
+          <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="import-grid">
+          <label class="field">
+            <span>Formato</span>
+            <select id="import-source" aria-label="Formato de importación">
+              <option value="generic-csv">CSV genérico</option>
+              <option value="generic-xlsx">Excel genérico (XLSX)</option>
+              <option value="degiro-csv">DEGIRO CSV</option>
+              <option value="ibkr-csv">Interactive Brokers CSV</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Archivo</span>
+            <input id="import-file" type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          </label>
+
+          <label class="field" id="import-sheet-field" hidden>
+            <span>Hoja</span>
+            <select id="import-sheet"></select>
+          </label>
+
+          <label class="field import-wide-field">
+            <span>Contenido CSV opcional</span>
+            <textarea id="import-content" rows="6" placeholder="Pega aquí el CSV si no cargas fichero."></textarea>
+          </label>
+
+          <label class="field import-wide-field">
+            <span>Mapping opcional (JSON)</span>
+            <textarea id="import-mapping" rows="4" placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'></textarea>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button id="import-preview" class="button" type="button">Previsualizar</button>
+          <button id="import-commit" class="button button-primary" type="button" disabled>Importar</button>
+        </div>
+
+        <p id="import-feedback" class="form-feedback" role="status"></p>
+        <div id="import-preview-output" class="import-preview-output"></div>
+
+        <div class="modal-actions">
+          <button id="import-cancel" class="button" type="button">Cerrar</button>
         </div>
       </form>
     </dialog>

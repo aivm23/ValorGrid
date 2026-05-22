@@ -37,11 +37,17 @@ function Get-PublicFiles {
     'temp',
     '.cache'
   )
-  $ignoredFiles = @('AGENTS.md')
+  $ignoredFilePatterns = @(
+    '^AGENTS\.md$',
+    '^PLAN.*\.md$',
+    '^Plan_.*\.md$'
+  )
 
   Get-ChildItem -Path $Path -Recurse -Force -File |
     Where-Object {
-      if ($ignoredFiles -contains $_.Name) { return $false }
+      foreach ($pattern in $ignoredFilePatterns) {
+        if ($_.Name -match $pattern) { return $false }
+      }
       $relative = $_.FullName.Substring($root.Path.Length + 1)
       $parts = $relative -split '[\\/]'
       foreach ($dir in $ignoredDirs) {

@@ -65,6 +65,7 @@ test('publishable text does not contain local paths or personal import labels', 
     windowsUserPath,
     escapedWindowsUserPath,
     personalImportLabel,
+    ['Lib', 'ro1', '.xlsx'].join(''),
     ['portfolio.sqlite', 'wal'].join('-'),
     ['portfolio.sqlite', 'shm'].join('-'),
     ['github', 'preview'].join('-'),
@@ -93,6 +94,11 @@ test('fresh install configuration does not bundle personal holdings or plans', (
   const appSource = fs.readFileSync(path.join(root, 'src', 'app.js'), 'utf8');
   assert.equal(/baseShares:\s*[1-9]/.test(appSource), false);
   assert.match(appSource, /const defaultAutoPlans = \[\];/);
+  const schemaSource = fs.readFileSync(path.join(root, 'src', 'schema.js'), 'utf8');
+  const migrationSource = fs.readFileSync(path.join(root, 'src', 'migrations', 'index.js'), 'utf8');
+  const privateImportToken = ['Lib', 'ro1'].join('');
+  assert.equal(schemaSource.includes(privateImportToken), false);
+  assert.equal(migrationSource.includes(privateImportToken), false);
 });
 
 test('gitignore protects local portfolio data and private imports', () => {

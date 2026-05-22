@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const XLSX = require('../vendor/xlsx.full.min.js');
 const { seedLoadtestDb } = require('../scripts/loadtest-data');
 const appInfo = require('../version.json');
 const packageInfo = require('../package.json');
@@ -136,6 +137,16 @@ function dateRange(fromDate, toDate) {
     dates.push(date.toISOString().slice(0, 10));
   }
   return dates;
+}
+
+function createWorkbookBase64(sheetsByName) {
+  const workbook = XLSX.utils.book_new();
+  for (const [sheetName, rows] of Object.entries(sheetsByName)) {
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  }
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  return Buffer.from(buffer).toString('base64');
 }
 
 function bumpTestMeta(key) {
@@ -838,6 +849,103 @@ test('CSV import API exposes preview, commit, list, detail and rollback', async 
   assert.equal(rolledBack.response.status, 200);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPC'").get().count, 0);
   assert.equal(db.prepare('SELECT status FROM import_batches WHERE id = ?').get(committed.body.batch.id).status, 'rolled_back');
+});
+
+test('XLSX generic import supports sheet selection and atomic commit', () => {
+  seedTestInstrument({ symbol: 'IMXE', yahooSymbol: 'IMXE', name: 'Import XLSX', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    Sheet1: [
+      ['type', 'symbol', 'date', 'shares', 'price', 'currency', 'valueEur'],
+      ['buy', 'IMXE', '2026-05-05', 1, 20, 'EUR', 20],
+    ],
+    Ops: [
+      ['tipo', 'ticker', 'fecha', 'acciones', 'precio', 'divisa', 'valor EUR', 'comision'],
+      ['C', 'IMXE', '06/05/2026', 2, 10, 'EUR', 20, 0.5],
+    ],
+  });
+
+  const previewDefault = previewImport({
+    source: 'generic-xlsx',
+    filename: 'import.xlsx',
+    contentBase64,
+  });
+  assert.equal(previewDefault.selectedSheet, 'Sheet1');
+  assert.equal(previewDefault.sheets.length, 2);
+  assert.equal(previewDefault.canCommit, true);
+
+  const previewOps = previewImport({
+    source: 'generic-xlsx',
+    filename: 'import.xlsx',
+    contentBase64,
+    sheetName: 'Ops',
+  });
+  assert.equal(previewOps.selectedSheet, 'Ops');
+  assert.equal(previewOps.summary.buys, 1);
+  assert.equal(previewOps.summary.errorCount, 0);
+
+  const committed = commitImport({
+    source: 'generic-xlsx',
+    filename: 'import.xlsx',
+    contentBase64,
+    sheetName: 'Ops',
+  });
+  assert.equal(committed.batch.status, 'committed');
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMXE' AND origin = 'import'").get().count, 1);
+  assert.equal(Number(getPositionShares('IMXE', '2026-05-07').toFixed(4)), 2);
+});
+
+test('XLSX import API accepts sheetName and returns selected sheet metadata', async () => {
+  seedTestInstrument({ symbol: 'IMXF', yahooSymbol: 'IMXF', name: 'Import XLSX API', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    A: [
+      ['type', 'symbol', 'date', 'shares', 'price', 'currency', 'valueEur'],
+      ['buy', 'IMXF', '2026-05-10', 1, 10, 'EUR', 10],
+    ],
+    B: [
+      ['tipo', 'ticker', 'fecha', 'acciones', 'precio', 'divisa', 'valor EUR'],
+      ['C', 'IMXF', '11/05/2026', 2, 10, 'EUR', 20],
+    ],
+  });
+
+  const preview = await jsonRequest('/api/import/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source: 'generic-xlsx', filename: 'api.xlsx', contentBase64, sheetName: 'B' }),
+  });
+  assert.equal(preview.response.status, 200);
+  assert.equal(preview.body.preview.selectedSheet, 'B');
+  assert.equal(preview.body.preview.canCommit, true);
+});
+
+test('DEGIRO and IBKR adapters normalize broker exports to canonical import rows', () => {
+  seedTestInstrument({ symbol: 'IMDG', yahooSymbol: 'IMDG', name: 'Import DEGIRO', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'IMIB', yahooSymbol: 'IMIB', name: 'Import IBKR', type: 'stock', currency: 'USD' });
+
+  const degiroCsv = [
+    'Date;Ticker;Quantity;Price;Currency;Total in EUR;Broker Fee',
+    '2026-05-02;IMDG;2;15;EUR;30;0.5',
+    '2026-05-03;IMDG;-1;16;EUR;16;0.2',
+  ].join('\n');
+  const degiroPreview = previewImport({ source: 'degiro-csv', filename: 'degiro.csv', content: degiroCsv });
+  assert.equal(degiroPreview.canCommit, true);
+  assert.equal(degiroPreview.summary.buys, 1);
+  assert.equal(degiroPreview.summary.sells, 1);
+  const degiroCommit = commitImport({ source: 'degiro-csv', filename: 'degiro.csv', content: degiroCsv });
+  assert.equal(degiroCommit.summary.errorCount, 0);
+  assert.equal(Number(getPositionShares('IMDG', '2026-05-03').toFixed(4)), 1);
+
+  const ibkrCsv = [
+    'Date/Time,Symbol,Quantity,T. Price,Currency,Proceeds,Comm/Fee,FX',
+    '2026-05-04,IMIB,3,100,USD,-300,-1.2,0.9',
+    '2026-05-08,IMIB,-1,110,USD,110,-0.8,0.9',
+  ].join('\n');
+  const ibkrPreview = previewImport({ source: 'ibkr-csv', filename: 'ibkr.csv', content: ibkrCsv });
+  assert.equal(ibkrPreview.canCommit, true);
+  assert.equal(ibkrPreview.summary.buys, 1);
+  assert.equal(ibkrPreview.summary.sells, 1);
+  const ibkrCommit = commitImport({ source: 'ibkr-csv', filename: 'ibkr.csv', content: ibkrCsv });
+  assert.equal(ibkrCommit.summary.errorCount, 0);
+  assert.equal(Number(getPositionShares('IMIB', '2026-05-09').toFixed(4)), 2);
 });
 
 test('GET /api/portfolio/performance returns ledger-derived return metrics', async () => {
