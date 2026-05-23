@@ -59,6 +59,7 @@ const ctx = {
 [
   './migrations',
   './schema',
+  './meta-state',
   './utils',
   './instrument-service',
   './market-data',

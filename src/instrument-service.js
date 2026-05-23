@@ -4,6 +4,140 @@ function getInstrument(symbol) {
   return db.prepare('SELECT * FROM instruments WHERE symbol = ?').get(normalizeSymbol(symbol));
 }
 
+function nextIdentifierId() {
+  return `ident:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeIdentifierText(value) {
+  return String(value || '').trim();
+}
+
+function normalizeIdentifierLookup(value) {
+  return normalizeIdentifierText(value).toUpperCase();
+}
+
+function listInstrumentIdentifiers(filters = {}) {
+  const symbol = normalizeSymbol(filters.symbol || '');
+  const provider = normalizeIdentifierText(filters.provider).toLowerCase();
+  const type = normalizeIdentifierText(filters.identifierType || filters.type).toLowerCase();
+  const clauses = [];
+  const params = [];
+  if (symbol) {
+    clauses.push('instrument_symbol = ?');
+    params.push(symbol);
+  }
+  if (provider) {
+    clauses.push('provider = ?');
+    params.push(provider);
+  }
+  if (type) {
+    clauses.push('identifier_type = ?');
+    params.push(type);
+  }
+  const whereClause = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+  return db
+    .prepare(
+      `SELECT id, instrument_symbol AS instrumentSymbol, provider, identifier_type AS identifierType,
+              identifier_value AS identifierValue, display_name AS displayName, currency, exchange,
+              metadata_json AS metadataJson, created_at AS createdAt
+       FROM instrument_identifiers
+       ${whereClause}
+       ORDER BY instrument_symbol ASC, provider ASC, identifier_type ASC, identifier_value ASC`,
+    )
+    .all(...params)
+    .map((item) => ({
+      ...item,
+      metadata: item.metadataJson ? JSON.parse(item.metadataJson) : null,
+      metadataJson: undefined,
+    }));
+}
+
+function upsertInstrumentIdentifier(input = {}) {
+  const instrumentSymbol = normalizeSymbol(input.instrumentSymbol || input.symbol);
+  if (!instrumentSymbol || !getInstrument(instrumentSymbol)) throw new Error('Instrument not found for identifier');
+  const provider = normalizeIdentifierText(input.provider || 'manual').toLowerCase();
+  const identifierType = normalizeIdentifierText(input.identifierType || input.type).toLowerCase();
+  const identifierValue = normalizeIdentifierLookup(input.identifierValue || input.value);
+  if (!provider) throw new Error('Identifier provider is required');
+  if (!identifierType) throw new Error('Identifier type is required');
+  if (!identifierValue) throw new Error('Identifier value is required');
+
+  const existing = db
+    .prepare(
+      `SELECT id FROM instrument_identifiers
+       WHERE provider = ? AND identifier_type = ? AND identifier_value = ?`,
+    )
+    .get(provider, identifierType, identifierValue);
+
+  const payload = {
+    id: existing?.id || nextIdentifierId(),
+    instrumentSymbol,
+    provider,
+    identifierType,
+    identifierValue,
+    displayName: normalizeIdentifierText(input.displayName || input.display_name) || null,
+    currency: normalizeIdentifierText(input.currency || '').toUpperCase() || null,
+    exchange: normalizeIdentifierText(input.exchange || '').toUpperCase() || null,
+    metadataJson: input.metadata ? JSON.stringify(input.metadata) : input.metadataJson || null,
+  };
+
+  db.prepare(
+    `INSERT INTO instrument_identifiers
+      (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(provider, identifier_type, identifier_value)
+     DO UPDATE SET
+      instrument_symbol = excluded.instrument_symbol,
+      display_name = COALESCE(excluded.display_name, instrument_identifiers.display_name),
+      currency = COALESCE(excluded.currency, instrument_identifiers.currency),
+      exchange = COALESCE(excluded.exchange, instrument_identifiers.exchange),
+      metadata_json = COALESCE(excluded.metadata_json, instrument_identifiers.metadata_json)`,
+  ).run(
+    payload.id,
+    payload.instrumentSymbol,
+    payload.provider,
+    payload.identifierType,
+    payload.identifierValue,
+    payload.displayName,
+    payload.currency,
+    payload.exchange,
+    payload.metadataJson,
+  );
+
+  return db
+    .prepare(
+      `SELECT id, instrument_symbol AS instrumentSymbol, provider, identifier_type AS identifierType,
+              identifier_value AS identifierValue, display_name AS displayName, currency, exchange, metadata_json AS metadataJson
+       FROM instrument_identifiers WHERE provider = ? AND identifier_type = ? AND identifier_value = ?`,
+    )
+    .get(provider, identifierType, identifierValue);
+}
+
+function deleteInstrumentIdentifier(id) {
+  if (!id) return false;
+  const result = db.prepare('DELETE FROM instrument_identifiers WHERE id = ?').run(String(id));
+  return result.changes > 0;
+}
+
+function resolveInstrumentFromIdentifiers(candidates = []) {
+  for (const candidate of candidates) {
+    const provider = normalizeIdentifierText(candidate.provider || '').toLowerCase();
+    const identifierType = normalizeIdentifierText(candidate.identifierType || candidate.type).toLowerCase();
+    const identifierValue = normalizeIdentifierLookup(candidate.identifierValue || candidate.value);
+    if (!provider || !identifierType || !identifierValue) continue;
+    const resolved = db
+      .prepare(
+        `SELECT i.* FROM instrument_identifiers ii
+         JOIN instruments i ON i.symbol = ii.instrument_symbol
+         WHERE ii.provider = ? AND ii.identifier_type = ? AND ii.identifier_value = ?
+         LIMIT 1`,
+      )
+      .get(provider, identifierType, identifierValue);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
 function getInstrumentByInput(value) {
   const normalized = normalizeSymbol(value);
   return (
@@ -102,6 +236,22 @@ function updateInstrument(symbol, input = {}) {
     next.active,
     existing.symbol,
   );
+  upsertInstrumentIdentifier({
+    instrumentSymbol: existing.symbol,
+    provider: 'manual',
+    identifierType: 'ticker',
+    identifierValue: existing.symbol,
+    displayName: next.name,
+    currency: next.currency,
+  });
+  upsertInstrumentIdentifier({
+    instrumentSymbol: existing.symbol,
+    provider: 'yahoo',
+    identifierType: 'yahoo_symbol',
+    identifierValue: next.yahooSymbol,
+    displayName: next.name,
+    currency: next.currency,
+  });
   invalidatePrices(getToday(), 'instrument-update');
   return listInstruments().find((item) => item.symbol === existing.symbol);
 }
@@ -125,6 +275,22 @@ function createInstrument(input = {}) {
       (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order)
      VALUES (?, ?, ?, ?, ?, ?, 0, ?, 1, ?, ?)`,
   ).run(symbol, yahooSymbol, name, type, currency, color, fallbackPrice, groupId, listInstruments().length + 1);
+  upsertInstrumentIdentifier({
+    instrumentSymbol: symbol,
+    provider: 'manual',
+    identifierType: 'ticker',
+    identifierValue: symbol,
+    displayName: name,
+    currency,
+  });
+  upsertInstrumentIdentifier({
+    instrumentSymbol: symbol,
+    provider: 'yahoo',
+    identifierType: 'yahoo_symbol',
+    identifierValue: yahooSymbol,
+    displayName: name,
+    currency,
+  });
   invalidatePrices(getToday(), 'instrument-create');
   return listInstruments().find((item) => item.symbol === symbol);
 }
@@ -208,10 +374,41 @@ function ensureInstrument(symbol, quote = null) {
     group.id,
     listInstruments().length + 1,
   );
+  upsertInstrumentIdentifier({
+    instrumentSymbol: normalized,
+    provider: 'manual',
+    identifierType: 'ticker',
+    identifierValue: normalized,
+    displayName: normalized,
+    currency: quote?.currency || 'EUR',
+  });
+  upsertInstrumentIdentifier({
+    instrumentSymbol: normalized,
+    provider: 'yahoo',
+    identifierType: 'yahoo_symbol',
+    identifierValue: normalized,
+    displayName: normalized,
+    currency: quote?.currency || 'EUR',
+  });
 
   return getInstrument(normalized);
 }
 
-    Object.assign(ctx, { getInstrument, getInstrumentByInput, listInstruments, listInstrumentGroups, updateInstrument, createInstrument, ensureGeneralGroup, createInstrumentGroup, updateInstrumentGroup, ensureInstrument });
+    Object.assign(ctx, {
+      getInstrument,
+      getInstrumentByInput,
+      listInstruments,
+      listInstrumentGroups,
+      listInstrumentIdentifiers,
+      upsertInstrumentIdentifier,
+      deleteInstrumentIdentifier,
+      resolveInstrumentFromIdentifiers,
+      updateInstrument,
+      createInstrument,
+      ensureGeneralGroup,
+      createInstrumentGroup,
+      updateInstrumentGroup,
+      ensureInstrument,
+    });
   }
 };

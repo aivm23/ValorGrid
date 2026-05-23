@@ -40,6 +40,33 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/instrument-identifiers' && request.method === 'GET') {
+    sendJson(response, 200, {
+      identifiers: listInstrumentIdentifiers({
+        symbol: url.searchParams.get('symbol'),
+        provider: url.searchParams.get('provider'),
+        type: url.searchParams.get('type'),
+      }),
+    });
+    return true;
+  }
+
+  if (url.pathname === '/api/instrument-identifiers' && request.method === 'POST') {
+    try {
+      sendJson(response, 201, { identifier: upsertInstrumentIdentifier(await readJsonBody(request)) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  const identifierMatch = url.pathname.match(/^\/api\/instrument-identifiers\/([^/]+)$/);
+  if (identifierMatch && request.method === 'DELETE') {
+    const ok = deleteInstrumentIdentifier(decodeURIComponent(identifierMatch[1]));
+    sendJson(response, ok ? 200 : 404, ok ? { ok: true } : { error: 'Identifier not found' });
+    return true;
+  }
+
   if (url.pathname === '/api/instruments' && request.method === 'POST') {
     try {
       sendJson(response, 201, { instrument: createInstrument(await readJsonBody(request)) });

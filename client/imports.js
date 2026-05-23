@@ -44,6 +44,8 @@ export function attach(ctx) {
     ctx.elements.importMapping.value = '';
     ctx.elements.importFeedback.textContent = '';
     ctx.elements.importPreviewOutput.innerHTML = '';
+    ctx.elements.importMappingRequired.hidden = true;
+    ctx.elements.importMappingRequired.innerHTML = '';
     ctx.elements.importCommit.disabled = true;
   }
 
@@ -65,7 +67,7 @@ export function attach(ctx) {
       if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
       return value;
     } catch {
-      throw new Error('El mapping debe ser un JSON válido');
+      throw new Error('El mapping debe ser un JSON valido');
     }
   }
 
@@ -136,16 +138,21 @@ export function attach(ctx) {
   async function previewCsvImport() {
     ctx.elements.importPreview.disabled = true;
     ctx.elements.importCommit.disabled = true;
-    ctx.elements.importFeedback.textContent = 'Analizando importación...';
+    ctx.elements.importFeedback.textContent = 'Analizando importacion...';
     try {
       const data = await ctx.sendJson('/api/import/preview', 'POST', importPayload());
       ctx.state.importPreview = data.preview;
       updateSheetSelector(data.preview);
       renderImportPreview();
       ctx.elements.importCommit.disabled = !data.preview?.canCommit;
+      const warningText = (data.preview?.warnings || []).join(' ');
       ctx.elements.importFeedback.textContent = data.preview?.canCommit
-        ? 'Importación lista para guardar.'
-        : 'Corrige los errores antes de importar.';
+        ? warningText
+          ? `Importacion lista para guardar. ${warningText}`
+          : 'Importacion lista para guardar.'
+        : warningText
+          ? `Corrige los errores antes de importar. ${warningText}`
+          : 'Corrige los errores antes de importar.';
     } catch (error) {
       ctx.state.importPreview = null;
       ctx.elements.importPreviewOutput.innerHTML = '';
@@ -158,11 +165,11 @@ export function attach(ctx) {
   async function commitCsvImport() {
     if (!ctx.state.importPreview?.canCommit) return;
     ctx.elements.importCommit.disabled = true;
-    ctx.elements.importFeedback.textContent = 'Guardando importación...';
+    ctx.elements.importFeedback.textContent = 'Guardando importacion...';
     try {
       await ctx.sendJson('/api/import/commit', 'POST', importPayload(), { timeoutMs: 60000 });
       ctx.state.historyCache = {};
-      ctx.elements.importFeedback.textContent = 'Importación guardada.';
+      ctx.elements.importFeedback.textContent = 'Importacion guardada.';
       await loadImportBatches();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
@@ -178,27 +185,78 @@ export function attach(ctx) {
     const preview = ctx.state.importPreview;
     if (!preview) {
       ctx.elements.importPreviewOutput.innerHTML = '';
+      ctx.elements.importMappingRequired.hidden = true;
+      ctx.elements.importMappingRequired.innerHTML = '';
       return;
     }
     const rows = preview.rows || [];
+    const warnings = preview.warnings || [];
+    const reconciliationSummary = preview.reconciliationSummary || {};
+    const mappingRequired = preview.instrumentMappingsRequired || [];
+    if (mappingRequired.length) {
+      ctx.elements.importMappingRequired.hidden = false;
+      ctx.elements.importMappingRequired.innerHTML = `
+        <strong>Mapeos requeridos:</strong>
+        <ul>
+          ${mappingRequired
+            .map((item) => `<li><code>${ctx.escapeHtml(item.key)}</code> - ${ctx.escapeHtml(item.label || item.symbol || 'sin etiqueta')}</li>`)
+            .join('')}
+        </ul>
+        <small>Completa <em>Mapping opcional (JSON)</em> con pares clave->ticker (ej. {"isin:US30303M1027":"META"}).</small>
+      `;
+    } else {
+      ctx.elements.importMappingRequired.hidden = true;
+      ctx.elements.importMappingRequired.innerHTML = '';
+    }
+
     ctx.elements.importPreviewOutput.innerHTML = `
+      ${
+        preview.fileSubtype
+          ? `<div class="import-kind-pill">Formato detectado: <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>`
+          : ''
+      }
+      ${
+        warnings.length
+          ? `<div class="import-warning-banner">${warnings.map((item) => `<div>${ctx.escapeHtml(item)}</div>`).join('')}</div>`
+          : ''
+      }
       <div class="import-summary">
         <span>Filas: <strong>${preview.summary.rowCount}</strong></span>
         <span>Compras: <strong>${preview.summary.buys}</strong></span>
         <span>Ventas: <strong>${preview.summary.sells}</strong></span>
+        <span>Ignoradas: <strong>${preview.summary.ignoredCount || 0}</strong></span>
         <span>Duplicados: <strong>${preview.summary.duplicateCount}</strong></span>
+        <span>Mapeo: <strong>${preview.summary.needsMappingCount || 0}</strong></span>
+        <span>Bloqueadas: <strong>${preview.summary.blockedCount || 0}</strong></span>
         <span>Errores: <strong>${preview.summary.errorCount}</strong></span>
         <span>Comisiones: <strong>${ctx.formatCurrency(preview.summary.commissionEur || 0)}</strong></span>
         <span>Cash-flow: <strong>${ctx.formatCurrency(preview.summary.cashFlowEur || 0)}</strong></span>
+        ${
+          preview.fileSubtype === 'portfolio_snapshot'
+            ? `<span>Coincidencias: <strong>${Number(reconciliationSummary.exactMatches || 0)}</strong></span>
+               <span>Deltas positivos: <strong>${Number(reconciliationSummary.deltaPositive || 0)}</strong></span>
+               <span>Deltas negativos: <strong>${Number(reconciliationSummary.deltaNegative || 0)}</strong></span>`
+            : ''
+        }
       </div>
       <div class="table-wrap compact-table">
         <table>
           <thead>
-            <tr><th>Fila</th><th>Estado</th><th>Ticker</th><th>Tipo</th><th>Fecha</th><th>Valor</th><th>Detalle</th></tr>
+            <tr>
+              <th>Fila</th>
+              <th>Estado</th>
+              <th>Ticker</th>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Actual</th>
+              <th>Importado</th>
+              <th>Delta</th>
+              <th>Estrategia</th>
+              <th>Detalle</th>
+            </tr>
           </thead>
           <tbody>
             ${rows
-              .slice(0, 25)
               .map(
                 (row) => `
                   <tr class="import-row-${ctx.escapeHtml(row.status)}">
@@ -207,19 +265,23 @@ export function attach(ctx) {
                     <td>${ctx.escapeHtml(row.normalized?.symbol || '')}</td>
                     <td>${ctx.escapeHtml(row.normalized?.type || '')}</td>
                     <td>${ctx.escapeHtml(row.normalized?.date || '')}</td>
-                    <td>${ctx.formatCurrency(Number(row.normalized?.valueEur || 0))}</td>
-                    <td>${ctx.escapeHtml((row.errors || []).join('; ') || row.duplicateTransactionId || 'OK')}</td>
+                    <td>${Number.isFinite(row.ledgerShares) ? ctx.formatShareNumber(row.ledgerShares) : '-'}</td>
+                    <td>${Number.isFinite(row.snapshotShares) ? ctx.formatShareNumber(row.snapshotShares) : '-'}</td>
+                    <td>${Number.isFinite(row.deltaShares) ? ctx.formatShareNumber(row.deltaShares) : '-'}</td>
+                    <td>${ctx.escapeHtml(row.importStrategy || '-')}</td>
+                    <td>${ctx.escapeHtml(
+                      (row.errors || []).join('; ') ||
+                        row.ignoreReason ||
+                        row.ledgerMatch?.reason ||
+                        row.duplicateTransactionId ||
+                        'OK',
+                    )}</td>
                   </tr>`,
               )
               .join('')}
           </tbody>
         </table>
       </div>
-      ${
-        rows.length > 25
-          ? `<p class="subtle">Mostrando 25 de ${rows.length} filas.</p>`
-          : ''
-      }
     `;
   }
 
@@ -239,13 +301,13 @@ export function attach(ctx) {
               </div>`,
           )
           .join('')}`
-      : '<span class="subtle">Sin importaciones todavía.</span>';
+      : '<span class="subtle">Sin importaciones todavia.</span>';
   }
 
   async function rollbackImportBatch(event) {
     const button = event.target.closest('[data-rollback-import]');
     if (!button) return;
-    if (!window.confirm('¿Revertir esta importación?')) return;
+    if (!window.confirm('¿Revertir esta importacion?')) return;
     button.disabled = true;
     try {
       await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});

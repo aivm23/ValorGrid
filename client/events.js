@@ -13,7 +13,7 @@ export function attach(ctx) {
   });
   elements.addPosition.addEventListener('click', () => ctx.openOperationDialog('add'));
   elements.removePosition.addEventListener('click', () => ctx.openOperationDialog('remove'));
-  elements.onboardingWizard.addEventListener('click', ctx.openWizardDialog);
+  elements.onboardingWizard?.addEventListener('click', ctx.openWizardDialog);
   elements.addDialogClose.addEventListener('click', ctx.closeAddDialog);
   elements.addCancel.addEventListener('click', ctx.closeAddDialog);
   elements.addForm.addEventListener('submit', ctx.handleTransactionSubmit);
@@ -55,6 +55,12 @@ export function attach(ctx) {
   elements.wizardDialogClose.addEventListener('click', ctx.closeWizardDialog);
   elements.wizardCancel.addEventListener('click', ctx.closeWizardDialog);
   elements.wizardForm.addEventListener('submit', ctx.handleWizardSubmit);
+  elements.wizardModeManual?.addEventListener('change', ctx.syncWizardMode);
+  elements.wizardModeImport?.addEventListener('change', ctx.syncWizardMode);
+  elements.wizardOpenImport?.addEventListener('click', () => {
+    ctx.closeWizardDialog();
+    ctx.openImportDialog();
+  });
   elements.wizardAddTransaction.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardAddPlan.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardPlanFrequency.addEventListener('change', ctx.syncWizardPlanFrequency);
@@ -100,8 +106,10 @@ export function attach(ctx) {
   elements.ledgerFilterFrom.addEventListener('change', ctx.renderLedger);
   elements.ledgerFilterTo.addEventListener('change', ctx.renderLedger);
   elements.ledgerRows.addEventListener('click', (event) => deleteLedgerRow(ctx, event));
-  elements.createBackup.addEventListener('click', () => createBackup(ctx));
-  elements.openImportDialog.addEventListener('click', ctx.openImportDialog);
+  elements.createBackup?.addEventListener('click', () => createBackup(ctx));
+  elements.toolbarBackup?.addEventListener('click', () => createBackup(ctx));
+  elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);
+  elements.openImportDialogToolbar?.addEventListener('click', ctx.openImportDialog);
   elements.importDialogClose.addEventListener('click', ctx.closeImportDialog);
   elements.importCancel.addEventListener('click', ctx.closeImportDialog);
   elements.importSource.addEventListener('change', ctx.handleImportSourceChange);

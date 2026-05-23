@@ -1,128 +1,5 @@
-const {
-  resolveAdapter,
-  parseImportPayload,
-  normalizeImportRow,
-  summarizeImportRows,
-  serializeSummary,
-} = require('./import-parser');
-
-function positionWithPendingRows(ctx, symbol, date, pendingRows) {
-  const { getPositionShares, transactionSign } = ctx;
-  let shares = getPositionShares(symbol, date);
-  for (const row of pendingRows) {
-    if (row.symbol === symbol && row.date <= date) {
-      shares += transactionSign(row.type) * row.shares;
-    }
-  }
-  return shares;
-}
-
-function validateFuturePositions(ctx, pendingRows) {
-  const { getPositionShares, transactionSign, db, addDays } = ctx;
-  const bySymbol = new Map();
-  for (const row of pendingRows) {
-    if (!bySymbol.has(row.symbol)) bySymbol.set(row.symbol, []);
-    bySymbol.get(row.symbol).push(row);
-  }
-
-  const errors = [];
-  for (const [symbol, rows] of bySymbol) {
-    const firstDate = rows.map((row) => row.date).sort()[0];
-    let shares = getPositionShares(symbol, addDays(firstDate, -1));
-    const events = db
-      .prepare('SELECT date, type, shares FROM transactions WHERE symbol = ? AND date >= ? ORDER BY date ASC, created_at ASC')
-      .all(symbol, firstDate)
-      .map((row) => ({ date: row.date, type: row.type, shares: Number(row.shares || 0) }));
-    events.push(...rows.map((row) => ({ date: row.date, type: row.type, shares: row.shares })));
-    events.sort((a, b) => a.date.localeCompare(b.date));
-
-    const grouped = new Map();
-    for (const event of events) {
-      grouped.set(event.date, (grouped.get(event.date) || 0) + transactionSign(event.type) * event.shares);
-    }
-
-    for (const [date, delta] of [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-      shares += delta;
-      if (shares < -0.0000001) {
-        errors.push({ symbol, date });
-        break;
-      }
-    }
-  }
-  return errors;
-}
-
-function applyTimelineValidation(ctx, rows) {
-  const validRows = rows.filter((row) => row.status === 'valid').map((row) => row.normalized);
-  if (!validRows.length) return rows;
-
-  const errors = validateFuturePositions(ctx, validRows);
-  if (!errors.length) return rows;
-
-  return rows.map((row) => {
-    const match = errors.find((error) => error.symbol === row.normalized.symbol && error.date >= row.normalized.date);
-    if (!match || row.status !== 'valid') return row;
-    return {
-      ...row,
-      status: 'error',
-      errors: [...row.errors, `La importación dejaría posición negativa en ${match.symbol} el ${match.date}`],
-    };
-  });
-}
-
-function previewImportFactory(ctx, input = {}) {
-  const { getInstrument, db } = ctx;
-  const adapter = resolveAdapter(input.source || 'csv');
-  const mapping = input.mapping || {};
-  const parsedPayload = parseImportPayload(input, adapter);
-  const accepted = [];
-  const seenHashes = new Set();
-
-  let rows = parsedPayload.parsed.rows.map((row) => {
-    const { normalized, errors } = normalizeImportRow(ctx, row, mapping, adapter.source, adapter.profile);
-    const instrument = normalized.symbol ? getInstrument(normalized.symbol) : null;
-
-    if (normalized.symbol && !instrument) errors.push(`Instrumento no existe: ${normalized.symbol}`);
-    if (instrument?.type === 'fx') errors.push('No se importan movimientos sobre instrumentos FX');
-    if (normalized.type === 'remove' && normalized.symbol && normalized.date && Number.isFinite(normalized.shares)) {
-      const available = positionWithPendingRows(ctx, normalized.symbol, normalized.date, accepted);
-      if (available + 0.0000001 < normalized.shares) errors.push('Venta superior a la posición disponible');
-    }
-
-    const duplicate = db.prepare('SELECT id FROM transactions WHERE raw_hash = ? AND origin = ?').get(normalized.rowHash, 'import');
-    const repeatedInFile = seenHashes.has(normalized.rowHash);
-    const status = errors.length ? 'error' : duplicate || repeatedInFile ? 'duplicate' : 'valid';
-
-    if (!errors.length) seenHashes.add(normalized.rowHash);
-    if (status === 'valid') accepted.push(normalized);
-
-    return {
-      rowIndex: row.rowIndex,
-      raw: row.data,
-      normalized,
-      status,
-      errors,
-      duplicateTransactionId: duplicate?.id || null,
-    };
-  });
-
-  rows = applyTimelineValidation(ctx, rows);
-  const summary = serializeSummary(summarizeImportRows(rows));
-  return {
-    source: adapter.source,
-    profile: adapter.profile,
-    filename: input.filename || null,
-    fileHash: parsedPayload.fileHash,
-    payloadHash: parsedPayload.payloadHash,
-    headers: parsedPayload.parsed.headers,
-    rows,
-    summary,
-    canCommit: summary.errorCount === 0,
-    sheets: parsedPayload.sheets,
-    selectedSheet: parsedPayload.selectedSheet,
-    sheetName: parsedPayload.selectedSheet,
-  };
-}
+const { previewImportFactory } = require('./import-preview');
+const { createImportEntityHelpers } = require('./import-entities');
 
 function insertImportBatch(ctx, preview, mapping) {
   const { db } = ctx;
@@ -160,6 +37,7 @@ function insertImportBatch(ctx, preview, mapping) {
 
 module.exports = function attach(ctx) {
   const { db, getInstrument, getToday, invalidateLedger } = ctx;
+  const { ensureImportEntities, persistRowIdentifiers } = createImportEntityHelpers(ctx);
 
   function previewImport(input = {}) {
     return previewImportFactory(ctx, input);
@@ -208,12 +86,22 @@ module.exports = function attach(ctx) {
 
   function commitImport(input = {}) {
     const preview = previewImport(input);
-    if (preview.summary.errorCount > 0) throw new Error('La importación contiene errores y no se puede guardar');
-    const duplicateOnly = preview.rows.every((row) => row.status === 'duplicate');
-    const mapping = input.mapping || {};
+    if (!preview.canCommit || preview.summary.errorCount > 0) {
+      throw new Error('La importacion contiene errores y no se puede guardar');
+    }
+    if ((preview.instrumentMappingsRequired || []).length > 0) {
+      throw new Error('Faltan mapeos de instrumentos para completar la importacion');
+    }
+    if ((preview.summary.blockedCount || 0) > 0) {
+      throw new Error('Hay filas bloqueadas; revisa la preview antes de importar');
+    }
+
+    const duplicateOnly = preview.rows.every((row) => row.status === 'duplicate' || row.status === 'ignored');
+    const mapping = input.instrumentMappings || input.mapping || {};
 
     db.exec('BEGIN');
     try {
+      ensureImportEntities(input);
       const { batchId, existing } = insertImportBatch(ctx, preview, mapping);
       if (existing) {
         db.exec('COMMIT');
@@ -235,22 +123,28 @@ module.exports = function attach(ctx) {
 
       for (const row of preview.rows) {
         const rowId = `${batchId}:row:${row.rowIndex}`;
-        if (row.status === 'duplicate') {
+        if (row.status === 'duplicate' || row.status === 'ignored') {
+          const persistedStatus = row.status === 'ignored' ? 'duplicate' : row.status;
           rowInsert.run(
             rowId,
             batchId,
             row.rowIndex,
             JSON.stringify(row.raw),
             JSON.stringify(row.normalized),
-            'duplicate',
-            null,
+            persistedStatus,
+            row.ignoreReason || row.ledgerMatch?.reason || null,
             row.normalized.rowHash,
             row.duplicateTransactionId,
           );
           continue;
         }
+        if (row.status !== 'valid') {
+          throw new Error(`La fila ${row.rowIndex} no es importable (${row.status})`);
+        }
 
         const instrument = getInstrument(row.normalized.symbol);
+        if (!instrument) throw new Error(`Instrument not found during commit: ${row.normalized.symbol || 'unknown'}`);
+
         transactionInsert.run(
           row.normalized.transactionId,
           row.normalized.type,
@@ -270,6 +164,7 @@ module.exports = function attach(ctx) {
           row.normalized.externalId,
           row.normalized.rowHash,
         );
+
         rowInsert.run(
           rowId,
           batchId,
@@ -281,6 +176,8 @@ module.exports = function attach(ctx) {
           row.normalized.rowHash,
           row.normalized.transactionId,
         );
+
+        persistRowIdentifiers(row, instrument);
       }
 
       db.prepare('UPDATE import_batches SET committed_at = CURRENT_TIMESTAMP WHERE id = ?').run(batchId);

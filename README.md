@@ -79,6 +79,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-loadtest.ps1
 
 `portfolio.loadtest.sqlite` es regenerable y no debe versionarse.
 
+## Muestras de importacion
+
+Hay datasets sinteticos en `samples/` para probar el importador sin usar datos reales. Por ejemplo, `samples/broker-degiro/degiro-demo.csv` sirve para validar el flujo `DEGIRO CSV` con compras, ventas, comisiones, EUR/USD y FX.
+
 ## Docker y CasaOS
 
 ValorGrid puede ejecutarse como servicio local con Docker:

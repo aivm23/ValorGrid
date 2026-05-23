@@ -928,6 +928,7 @@ test('DEGIRO and IBKR adapters normalize broker exports to canonical import rows
   ].join('\n');
   const degiroPreview = previewImport({ source: 'degiro-csv', filename: 'degiro.csv', content: degiroCsv });
   assert.equal(degiroPreview.canCommit, true);
+  assert.equal(degiroPreview.fileSubtype, 'unknown');
   assert.equal(degiroPreview.summary.buys, 1);
   assert.equal(degiroPreview.summary.sells, 1);
   const degiroCommit = commitImport({ source: 'degiro-csv', filename: 'degiro.csv', content: degiroCsv });
@@ -946,6 +947,215 @@ test('DEGIRO and IBKR adapters normalize broker exports to canonical import rows
   const ibkrCommit = commitImport({ source: 'ibkr-csv', filename: 'ibkr.csv', content: ibkrCsv });
   assert.equal(ibkrCommit.summary.errorCount, 0);
   assert.equal(Number(getPositionShares('IMIB', '2026-05-09').toFixed(4)), 2);
+});
+
+test('DEGIRO Transactions.csv format maps signed quantity, fees and subtype correctly', () => {
+  seedTestInstrument({ symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD' });
+
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '24-12-2025,16:42,META PLATFORMS INC CLASS A,US30303M1027,NDQ,EDGX,-1,\"666,0000\",USD,\"666,00\",USD,\"565,37\",\"1,1780\",\"-1,41\",\"-2,00\",\"561,96\",,7cb1ac97-9905-4bfa-8bc1-5ba1a643cf7d',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(preview.fileSubtype, 'transactions_export');
+  assert.equal(preview.canCommit, false);
+  assert.match(preview.rows[0].errors.join(' '), /Venta superior/);
+  assert.equal(preview.rows[0].normalized.symbol, 'META');
+  assert.equal(preview.rows[0].normalized.type, 'remove');
+  assert.equal(preview.rows[0].normalized.commissionEur.toFixed(2), '3.41');
+});
+
+test('public DEGIRO sample dataset is importable', () => {
+  for (const instrument of [
+    { symbol: 'VGWD', yahooSymbol: 'VGWD.DE', name: 'ValorGrid World Demo', type: 'etf', currency: 'EUR' },
+    { symbol: 'VGCH', yahooSymbol: 'VGCH.DE', name: 'ValorGrid China Demo', type: 'etf', currency: 'EUR' },
+    { symbol: 'VGUS', yahooSymbol: 'VGUS', name: 'ValorGrid US Tech Demo', type: 'stock', currency: 'USD' },
+    { symbol: 'VGSEMI', yahooSymbol: 'VGSEMI', name: 'ValorGrid Semiconductor Demo', type: 'etf', currency: 'USD' },
+    { symbol: 'VGURA', yahooSymbol: 'VGURA', name: 'ValorGrid Uranium Demo', type: 'etf', currency: 'USD' },
+  ]) {
+    seedTestInstrument(instrument);
+  }
+
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_identifiers
+      (instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange)
+     VALUES
+      ('VGWD', 'global', 'isin', 'IE00FAKEWORLD1', 'MSCI WORLD ETF SYNTH', 'EUR', 'XET'),
+      ('VGCH', 'global', 'isin', 'IE00FAKECHINA1', 'MSCI CHINA ETF SYNTH', 'EUR', 'XET'),
+      ('VGUS', 'global', 'isin', 'US30303M1027', 'META PLATFORMS INC CLASS A', 'USD', 'NDQ'),
+      ('VGSEMI', 'global', 'isin', 'US8168511090', 'ETF SEMICONDUCTORS SYNTH', 'USD', 'ARCA'),
+      ('VGURA', 'global', 'isin', 'US91690V1044', 'ETF URANIUM SYNTH', 'USD', 'ARCA')`,
+  ).run();
+
+  const content = fs.readFileSync(path.join(__dirname, '..', 'samples', 'broker-degiro', 'degiro-transactions-synthetic.csv'), 'utf8');
+  const preview = previewImport({ source: 'degiro-csv', filename: 'degiro-transactions-synthetic.csv', content });
+
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.fileSubtype, 'transactions_export');
+  assert.equal(preview.summary.rowCount, 9);
+  assert.equal(preview.rows.length, 9);
+  assert.equal(preview.summary.buys, 5);
+  assert.equal(preview.summary.sells, 2);
+  assert.equal(preview.summary.ignoredCount, 2);
+
+  const commit = commitImport({ source: 'degiro-csv', filename: 'degiro-transactions-synthetic.csv', content });
+  assert.equal(commit.summary.errorCount, 0);
+  const expectedShares = preview.rows
+    .filter((row) => row.status === 'valid')
+    .reduce((acc, row) => {
+      const sign = row.normalized.type === 'remove' ? -1 : 1;
+      acc[row.normalized.symbol] = Number(((acc[row.normalized.symbol] || 0) + sign * row.normalized.shares).toFixed(6));
+      return acc;
+    }, {});
+  for (const [symbol, shares] of Object.entries(expectedShares)) {
+    assert.equal(Number(getPositionShares(symbol, '2024-09-04').toFixed(6)), Number(shares.toFixed(6)));
+  }
+});
+
+test('DEGIRO portfolio snapshot CSV imports as opening position', () => {
+  seedTestInstrument({
+    symbol: 'ACME',
+    yahooSymbol: 'ACME',
+    name: 'Acme Platforms',
+    type: 'stock',
+    currency: 'USD',
+  });
+
+  const content = [
+    'Producto,Symbol/ISIN,Cantidad,Precio de,Valor local,,Valor en EUR',
+    'ACME PLATFORMS INC CLASS A,US0000000001,3,"607,38",USD,"1822,14","1568,32"',
+  ].join('\n');
+  const preview = previewImport({ source: 'degiro-csv', filename: 'portfolio.csv', content });
+
+  assert.equal(preview.fileSubtype, 'portfolio_snapshot');
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].normalized.symbol, 'ACME');
+  assert.equal(preview.rows[0].normalized.type, 'add');
+  assert.equal(preview.rows[0].normalized.currency, 'USD');
+  assert.ok(preview.rows[0].normalized.usdToEur > 0);
+  assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 1568.32);
+
+  const commit = commitImport({ source: 'degiro-csv', filename: 'portfolio.csv', content });
+  assert.equal(commit.summary.errorCount, 0);
+  assert.equal(Number(getPositionShares('ACME').toFixed(4)), 3);
+});
+
+test('DEGIRO snapshot matching existing position is flagged as duplicate and does not add shares', async () => {
+  seedTestInstrument({
+    symbol: 'SMAT1',
+    yahooSymbol: 'SMAT1',
+    name: 'Snap Match Inc',
+    type: 'stock',
+    currency: 'USD',
+  });
+  await createTransaction({ type: 'add', symbol: 'SMAT1', date: '2025-01-10', shares: 3 });
+
+  const content = [
+    'Producto,Symbol/ISIN,Cantidad,Precio de,Valor local,,Valor en EUR',
+    'SNAP MATCH INC,US1111111111,3,"607,38",USD,"1822,14","1568,32"',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Portfolio.csv', content });
+  assert.equal(preview.fileSubtype, 'portfolio_snapshot');
+  assert.equal(preview.rows[0].status, 'duplicate');
+  assert.equal(preview.rows[0].reconciliationStatus, 'match_exact');
+  assert.equal(preview.rows[0].importStrategy, 'skip');
+
+  const commit = commitImport({ source: 'degiro-csv', filename: 'Portfolio.csv', content });
+  assert.equal(commit.summary.duplicateCount, 1);
+  assert.equal(Number(getPositionShares('SMAT1').toFixed(4)), 3);
+});
+
+test('DEGIRO snapshot above ledger imports only delta shares', async () => {
+  seedTestInstrument({
+    symbol: 'SDEL1',
+    yahooSymbol: 'SDEL1',
+    name: 'Snap Delta Inc',
+    type: 'stock',
+    currency: 'USD',
+  });
+  await createTransaction({ type: 'add', symbol: 'SDEL1', date: '2025-01-10', shares: 2 });
+
+  const content = [
+    'Producto,Symbol/ISIN,Cantidad,Precio de,Valor local,,Valor en EUR',
+    'SNAP DELTA INC,US2222222222,3,"600,00",USD,"1800,00","1530,00"',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Portfolio.csv', content });
+  assert.equal(preview.rows[0].status, 'valid');
+  assert.equal(preview.rows[0].reconciliationStatus, 'delta_positive');
+  assert.equal(Number(preview.rows[0].normalized.shares.toFixed(4)), 1);
+
+  commitImport({ source: 'degiro-csv', filename: 'Portfolio.csv', content });
+  assert.equal(Number(getPositionShares('SDEL1').toFixed(4)), 3);
+});
+
+test('DEGIRO Transactions marks ledger-matching trade as duplicate_ledger_match', async () => {
+  seedTestInstrument({ symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD' });
+  db.prepare("DELETE FROM instrument_identifiers WHERE provider = 'global' AND identifier_type = 'isin' AND identifier_value = 'US30303M1027'").run();
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_identifiers
+      (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange)
+     VALUES ('meta-isin-test', 'META', 'global', 'isin', 'US30303M1027', 'META PLATFORMS INC CLASS A', 'USD', 'NDQ')`,
+  ).run();
+  db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, commission_eur, cash_flow_eur, color, origin, raw_hash)
+     VALUES
+      ('meta-existing-buy', 'add', 'META', 'Meta Platforms', '2025-01-10', '2025-01-10', 1, 340, 400, 'USD', 0.85, 0, -340, '#16a34a', 'manual', 'meta-existing-buy-hash'),
+      ('meta-existing-sale', 'remove', 'META', 'Meta Platforms', '2025-12-24', '2025-12-24', 1, 565.37, 666, 'USD', 0.8486036036, 3.41, 561.96, '#16a34a', 'manual', 'meta-existing-sale-hash')`,
+  ).run();
+
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '24-12-2025,16:42,META PLATFORMS INC CLASS A,US30303M1027,NDQ,EDGX,-1,"666,0000",USD,"666,00",USD,"565,37","1,1780","-1,41","-2,00","561,96","ord-meta-duplicate",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].status, 'duplicate');
+  assert.equal(preview.rows[0].rowKind, 'duplicate_ledger_match');
+  assert.match(preview.rows[0].ledgerMatch.reason, /Movimiento ya existente/);
+});
+
+test('DEGIRO Transactions ignores RTS/NON TRADEABLE corporate actions without flow', () => {
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '18-05-2026,10:28,VIDRALA SA - RTS - NON TRADEABLE,ES0183746314,MAD,,2,"0,0000",EUR,"0,00",EUR,"0,00","1,0000","0,00","0,00","0,00","ord-rts-1",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.summary.ignoredCount, 1);
+  assert.equal(preview.rows[0].status, 'ignored');
+  assert.equal(preview.rows[0].rowKind, 'corporate_action_ignored');
+  assert.match(preview.rows[0].ignoreReason, /Accion corporativa/);
+
+  const commit = commitImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(commit.summary.ignoredCount, 1);
+});
+
+test('DEGIRO snapshot below ledger is blocked for manual review', async () => {
+  seedTestInstrument({
+    symbol: 'SLOW1',
+    yahooSymbol: 'SLOW1',
+    name: 'Snap Low Inc',
+    type: 'stock',
+    currency: 'USD',
+  });
+  await createTransaction({ type: 'add', symbol: 'SLOW1', date: '2025-01-10', shares: 3 });
+
+  const content = [
+    'Producto,Symbol/ISIN,Cantidad,Precio de,Valor local,,Valor en EUR',
+    'SNAP LOW INC,US3333333333,2,"600,00",USD,"1200,00","1020,00"',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Portfolio.csv', content });
+  assert.equal(preview.canCommit, false);
+  assert.equal(preview.rows[0].status, 'blocked');
+  assert.equal(preview.rows[0].reconciliationStatus, 'delta_negative');
+  assert.match(preview.rows[0].errors.join(' '), /Snapshot inferior/);
 });
 
 test('GET /api/portfolio/performance returns ledger-derived return metrics', async () => {

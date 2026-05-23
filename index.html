@@ -55,6 +55,21 @@
               <span class="settings-icon" aria-hidden="true"></span>
               <span>Instrumentos</span>
             </button>
+            <button id="open-import-dialog-toolbar" class="calendar-button" type="button" aria-label="Importar movimientos">
+              <span class="plus-icon" aria-hidden="true"></span>
+              <span>Importar</span>
+            </button>
+            <details id="export-menu" class="toolbar-menu" hidden>
+              <summary class="calendar-button" aria-label="Exportar datos">
+                <span class="settings-icon" aria-hidden="true"></span>
+                <span>Exportar</span>
+              </summary>
+              <div class="toolbar-menu-panel" role="menu">
+                <button id="toolbar-backup" class="button button-compact" type="button" role="menuitem">Backup BD</button>
+                <a id="toolbar-export-csv" class="button button-compact" href="/api/export/transactions.csv" role="menuitem">Exportar CSV</a>
+                <a id="toolbar-export-json" class="button button-compact" href="/api/export/transactions.json" role="menuitem">Exportar JSON</a>
+              </div>
+            </details>
             <button
               id="balance-toggle"
               class="balance-toggle"
@@ -158,6 +173,16 @@
         <div id="monthly-tracking" class="ytd-month-list"></div>
       </section>
 
+      <section class="panel metric-panel" aria-labelledby="operations-kpi-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="operations-kpi-title">Operativa</h2>
+            <p class="subtle">Resumen financiero del ledger y evolución acumulada.</p>
+          </div>
+        </div>
+        <div id="performance-summary" class="metric-grid"></div>
+      </section>
+
       <section class="panel history-panel" aria-labelledby="history-title">
         <div class="panel-header">
           <div>
@@ -187,20 +212,14 @@
       <section class="panel operations-panel" aria-labelledby="operations-title">
         <div class="panel-header">
           <div>
-            <h2 id="operations-title">Operativa</h2>
-            <p class="subtle">Rentabilidad, backups, exportación y configuración de instrumentos.</p>
-          </div>
-          <div class="actions">
-            <button id="create-backup" class="button" type="button">Backup</button>
-            <button id="open-import-dialog" class="button" type="button">Importar</button>
-            <a id="export-csv" class="button" href="/api/export/transactions.csv">CSV</a>
-            <a id="export-json" class="button" href="/api/export/transactions.json">JSON</a>
+            <h2 id="operations-title">Administración</h2>
+            <p class="subtle">Backups e historial de importaciones.</p>
           </div>
         </div>
-        <div id="performance-summary" class="metric-grid"></div>
         <div class="ops-grid">
           <div>
             <h3>Backups</h3>
+            <button id="create-backup" class="button button-compact" type="button">Crear backup</button>
             <div id="backup-list" class="backup-list"></div>
           </div>
           <div class="import-box">
@@ -421,7 +440,7 @@
         <div class="modal-header">
           <div>
             <h2>Importar movimientos</h2>
-            <p class="subtle">CSV, Excel y formatos de broker con preview, validación y commit atómico.</p>
+            <p class="subtle">Formato recomendado: DEGIRO Transacciones CSV. Portfolio CSV se trata como snapshot de cartera.</p>
           </div>
           <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -432,7 +451,7 @@
             <select id="import-source" aria-label="Formato de importación">
               <option value="generic-csv">CSV genérico</option>
               <option value="generic-xlsx">Excel genérico (XLSX)</option>
-              <option value="degiro-csv">DEGIRO CSV</option>
+              <option value="degiro-csv">DEGIRO Transacciones CSV</option>
               <option value="ibkr-csv">Interactive Brokers CSV</option>
             </select>
           </label>
@@ -458,6 +477,8 @@
           </label>
         </div>
 
+        <div id="import-mapping-required" class="import-mapping-required" hidden></div>
+
         <div class="modal-actions">
           <button id="import-preview" class="button" type="button">Previsualizar</button>
           <button id="import-commit" class="button button-primary" type="button" disabled>Importar</button>
@@ -480,6 +501,24 @@
             <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan de aportación.</p>
           </div>
           <button id="wizard-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="wizard-mode-selector" role="radiogroup" aria-label="Modo de alta">
+          <label class="switch-field">
+            <input id="wizard-mode-manual" type="radio" name="wizard-mode" value="manual" checked />
+            Alta manual
+          </label>
+          <label class="switch-field">
+            <input id="wizard-mode-import" type="radio" name="wizard-mode" value="import" />
+            Importar movimientos
+          </label>
+        </div>
+
+        <div id="wizard-import-entry" class="wizard-import-entry" hidden>
+          <p class="subtle">
+            Usa el importador para cargar operaciones de broker y resolver mapeos de instrumentos y grupos.
+          </p>
+          <button id="wizard-open-import" class="button" type="button">Abrir importador</button>
         </div>
 
         <div class="wizard-grid">

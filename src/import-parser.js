@@ -1,78 +1,43 @@
 const crypto = require('node:crypto');
 const XLSX = require('../vendor/xlsx.full.min.js');
-
-const typeAliases = {
-  add: new Set(['add', 'buy', 'compra', 'comprar', 'c']),
-  remove: new Set(['remove', 'sell', 'venta', 'vender', 'v']),
-};
-
-const baseFieldAliases = {
-  type: ['type', 'tipo', 'operacion', 'operación', 'side', 'action'],
-  symbol: ['symbol', 'ticker', 'simbolo', 'símbolo', 'instrumento'],
-  date: ['date', 'fecha', 'fecha operacion', 'fecha operación', 'fecha de operación'],
-  marketDate: ['marketdate', 'market_date', 'fecha mercado'],
-  shares: ['shares', 'acciones', 'titulos', 'títulos', 'cantidad', 'quantity'],
-  price: ['price', 'precio', 'precio unitario'],
-  valueEur: ['valueeur', 'value_eur', 'valor eur', 'valor €', 'importe eur', 'importe €', 'gross eur'],
-  commissionEur: ['commissioneur', 'commission_eur', 'comision', 'comision eur', 'comisión', 'comisión eur', 'gastos', 'comisiones', 'fee', 'broker fee', 'comm/fee'],
-  currency: ['currency', 'divisa', 'moneda'],
-  usdToEur: ['usdtoeur', 'usd_to_eur', 'tipo de cambio', 'fx', 'cambio', 'exchange rate'],
-  externalId: ['externalid', 'external_id', 'id externo', 'referencia', 'order id', 'transaction id'],
-};
-
-const adapterDefinitions = {
-  csv: { parser: 'csv', profile: 'generic' },
-  xlsx: { parser: 'xlsx', profile: 'generic' },
-  'generic-csv': { parser: 'csv', profile: 'generic' },
-  'generic-xlsx': { parser: 'xlsx', profile: 'generic' },
-  'degiro-csv': { parser: 'csv', profile: 'degiro' },
-  'ibkr-csv': { parser: 'csv', profile: 'ibkr' },
-};
-
-const profileOverrides = {
-  degiro: {
-    fieldAliases: {
-      type: ['tipo', 'type', 'action'],
-      symbol: ['ticker', 'symbol', 'product', 'isin'],
-      date: ['date', 'fecha', 'execution date', 'date/time'],
-      shares: ['quantity', 'cantidad', 'acciones'],
-      price: ['price', 'precio'],
-      valueEur: ['total in eur', 'total eur', 'importe eur', 'valor eur'],
-      commissionEur: ['fee in eur', 'broker fee', 'fees', 'comision', 'comisión'],
-      currency: ['currency', 'divisa'],
-      usdToEur: ['exchange rate', 'fx', 'tipo de cambio'],
-      externalId: ['id', 'order id', 'transaction id'],
-    },
-  },
-  ibkr: {
-    fieldAliases: {
-      type: ['buy/sell', 'action', 'side'],
-      symbol: ['symbol', 'ticker'],
-      date: ['date/time', 'trade date', 'date'],
-      shares: ['quantity', 'qty', 'shares'],
-      price: ['t. price', 'tradeprice', 'price'],
-      valueEur: ['valor eur', 'value eur'],
-      commissionEur: ['comm/fee', 'commission', 'comision', 'comisión'],
-      currency: ['currency', 'divisa'],
-      usdToEur: ['fx rate to base', 'exchange rate', 'fx'],
-      externalId: ['trade id', 'execution id', 'transaction id'],
-    },
-  },
-};
+const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides } = require('./import-profiles');
 
 function sha256(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
-
 function normalizeHeader(value) {
-  return String(value || '')
+  let text = String(value || '');
+  if (/[ÃÂ]/.test(text)) {
+    try {
+      const decoded = Buffer.from(text, 'latin1').toString('utf8');
+      if (!decoded.includes('�')) text = decoded;
+    } catch {}
+  }
+  return text
     .trim()
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ');
 }
+function headerSet(headers = []) {
+  return new Set((headers || []).map(normalizeHeader));
+}
 
+function detectDegiroFileSubtype(headers = []) {
+  const normalized = headerSet(headers);
+  const has = (key) => normalized.has(normalizeHeader(key));
+  const snapshotLike = has('producto') && (has('symbol/isin') || has('isin')) && has('cantidad') && has('valor en eur');
+  const transactionLike =
+    has('fecha') &&
+    (has('numero') || has('número')) &&
+    has('precio') &&
+    (has('valor eur') || has('valor en eur')) &&
+    has('id orden');
+  if (transactionLike) return 'transactions_export';
+  if (snapshotLike) return 'portfolio_snapshot';
+  return 'unknown';
+}
 function chooseDelimiter(text) {
   const firstLine = String(text || '').split(/\r?\n/).find((line) => line.trim()) || '';
   const semicolons = (firstLine.match(/;/g) || []).length;
@@ -87,7 +52,6 @@ function parseCsvRows(content) {
   let row = [];
   let cell = '';
   let quoted = false;
-
   for (let index = 0; index < text.length; index += 1) {
     const char = text[index];
     const next = text[index + 1];
@@ -111,11 +75,12 @@ function parseCsvRows(content) {
       rows.push(row);
       row = [];
       cell = '';
-    } else if (char !== '\r') cell += char;
+    } else if (char !== '\r') {
+      cell += char;
+    }
   }
   row.push(cell);
   rows.push(row);
-
   const nonEmptyRows = rows.filter((item) => item.some((value) => String(value).trim() !== ''));
   if (nonEmptyRows.length < 2) return { headers: [], rows: [] };
   const headers = nonEmptyRows[0].map((header) => String(header || '').trim());
@@ -124,11 +89,11 @@ function parseCsvRows(content) {
     rows: nonEmptyRows.slice(1).map((values, rowIndex) => ({
       rowIndex: rowIndex + 2,
       values,
+      headers,
       data: Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])),
     })),
   };
 }
-
 function parseXlsxRows(contentBase64, sheetNameInput) {
   const buffer = Buffer.from(String(contentBase64 || ''), 'base64');
   if (!buffer.length) throw new Error('Contenido XLSX obligatorio');
@@ -146,23 +111,38 @@ function parseXlsxRows(contentBase64, sheetNameInput) {
     rows: nonEmptyRows.slice(1).map((values, rowIndex) => ({
       rowIndex: rowIndex + 2,
       values,
+      headers,
       data: Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])),
     })),
     sheets,
     selectedSheet,
   };
 }
-
 function parseNumber(value) {
   const text = String(value ?? '').trim();
   if (!text) return null;
-  const cleaned = text.replace(/[€$%\s]/g, '');
-  const decimalComma = /,\d{1,8}$/.test(cleaned);
-  const normalized = decimalComma ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned.replace(/,/g, '');
+  let cleaned = text
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, '')
+    .replace(/[€$£%]/g, '')
+    .replace(/[−–—]/g, '-');
+  if (/^\(.*\)$/.test(cleaned)) cleaned = `-${cleaned.slice(1, -1)}`;
+
+  const hasComma = cleaned.includes(',');
+  const hasDot = cleaned.includes('.');
+  let normalized = cleaned;
+  if (hasComma && hasDot) {
+    normalized =
+      cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')
+        ? cleaned.replace(/\./g, '').replace(',', '.')
+        : cleaned.replace(/,/g, '');
+  } else if (hasComma) {
+    normalized = cleaned.replace(',', '.');
+  }
+
   const number = Number(normalized);
   return Number.isFinite(number) ? number : null;
 }
-
 function parseDateValue(value) {
   const text = String(value || '').trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
@@ -173,26 +153,28 @@ function parseDateValue(value) {
   const [, day, month, year] = match;
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
-
+function defaultDegiroSnapshotDate(ctx, profile, dateInput, row, fileSubtype = 'unknown') {
+  if (dateInput) return parseDateValue(dateInput);
+  if (profile !== 'degiro' || typeof ctx.getToday !== 'function') return null;
+  const subtype = fileSubtype === 'unknown' ? detectDegiroFileSubtype(Object.keys(row.data || {})) : fileSubtype;
+  return subtype === 'portfolio_snapshot' ? ctx.getToday() : null;
+}
 function normalizeType(value) {
   const key = normalizeHeader(value);
   if (typeAliases.add.has(key)) return 'add';
   if (typeAliases.remove.has(key)) return 'remove';
   return null;
 }
-
 function resolveAdapter(sourceInput = 'csv') {
   const source = String(sourceInput || 'csv').trim().toLowerCase();
   const adapter = adapterDefinitions[source];
   if (!adapter) throw new Error(`Origen de importación no soportado: ${sourceInput}`);
   return { source, ...adapter };
 }
-
 function resolveFieldAliases(profile, field) {
   const profileAliases = profileOverrides[profile]?.fieldAliases?.[field] || [];
   return [...profileAliases, ...(baseFieldAliases[field] || [])];
 }
-
 function mappedValue(row, mapping, profile, field) {
   const explicit = mapping?.[field];
   if (explicit !== undefined && explicit !== null && explicit !== '') {
@@ -208,54 +190,199 @@ function mappedValue(row, mapping, profile, field) {
   }
   return '';
 }
-
+function rowValueByHeaders(row, aliases = []) {
+  const headers = row.headers || [];
+  const normalizedHeaders = headers.map(normalizeHeader);
+  for (const alias of aliases) {
+    const target = normalizeHeader(alias);
+    const index = normalizedHeaders.findIndex((item) => item === target);
+    if (index >= 0) return row.values[index] ?? '';
+  }
+  return '';
+}
+function degiroCurrencyHint(row) {
+  const headers = row.headers || [];
+  const normalizedHeaders = headers.map(normalizeHeader);
+  const candidates = [];
+  const priceIndex = normalizedHeaders.findIndex((item) => item === 'precio');
+  if (priceIndex >= 0 && row.values[priceIndex + 1] !== undefined) {
+    candidates.push(String(row.values[priceIndex + 1] || '').trim().toUpperCase());
+  }
+  const localIndex = normalizedHeaders.findIndex((item) => item === 'valor local');
+  if (localIndex >= 0 && row.values[localIndex + 1] !== undefined) {
+    candidates.push(String(row.values[localIndex + 1] || '').trim().toUpperCase());
+  }
+  candidates.push(String(mappedValue(row, {}, 'degiro', 'currency') || '').trim().toUpperCase());
+  return candidates.find((item) => /^[A-Z]{3}$/.test(item)) || '';
+}
 function inferTypeFromData(explicitType, rawShares, valueEurInput) {
   if (explicitType) return explicitType;
   if (Number.isFinite(rawShares)) return rawShares < 0 ? 'remove' : rawShares > 0 ? 'add' : null;
   if (Number.isFinite(valueEurInput)) return valueEurInput < 0 ? 'add' : valueEurInput > 0 ? 'remove' : null;
   return null;
 }
+function looksLikeIsin(value) {
+  return /^[A-Z]{2}[A-Z0-9]{10}$/.test(String(value || '').trim().toUpperCase());
+}
 
-function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'generic') {
-  const { normalizeSymbol, toEur } = ctx;
+function extractExternalIdentifiers(profile, row, symbol) {
+  const identifiers = [];
+  if (symbol) {
+    identifiers.push({ provider: 'manual', identifierType: 'ticker', identifierValue: String(symbol || '').toUpperCase() });
+  }
+  if (profile !== 'degiro') return identifiers;
+  const isinRaw = String(rowValueByHeaders(row, ['Symbol/ISIN', 'symbol/isin', 'ISIN', 'isin']) || '')
+    .trim()
+    .toUpperCase();
+  if (looksLikeIsin(isinRaw)) {
+    identifiers.push({ provider: 'global', identifierType: 'isin', identifierValue: isinRaw });
+  }
+  const product = String(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || '').trim();
+  if (product) {
+    identifiers.push({ provider: 'degiro', identifierType: 'broker_product', identifierValue: product.toUpperCase(), displayName: product });
+  }
+  const exchange = String(
+    rowValueByHeaders(row, ['Bolsa de referencia', 'Centro de ejecucion', 'Centro de ejecución']) || '',
+  )
+    .trim()
+    .toUpperCase();
+  if (exchange) {
+    identifiers.push({ provider: 'degiro', identifierType: 'exchange', identifierValue: exchange });
+  }
+  return identifiers;
+}
+function normalizeText(value) {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+function degiroCorporateActionReason(row, fileSubtype, values) {
+  if (fileSubtype !== 'transactions_export') return null;
+  const product = normalizeText(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']));
+  const centerRaw = String(
+    rowValueByHeaders(row, ['Centro de ejecución', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
+  ).trim();
+  const hasRightsKeyword = /\b(RTS?|RIGHTS?|NON\s*TRADEABLE)\b/.test(product);
+  const centerLooksEmpty = !centerRaw || centerRaw === '-' || centerRaw === '--';
+  const hasZeroFlow =
+    values.shares === 0 ||
+    values.price === 0 ||
+    values.valueEurInput === 0 ||
+    values.localValue === 0 ||
+    values.totalEur === 0;
+  if (hasRightsKeyword && (hasZeroFlow || centerLooksEmpty)) {
+    return 'Accion corporativa sin flujo economico (RTS/RIGHT/NON TRADEABLE)';
+  }
+  if (hasZeroFlow && centerLooksEmpty && /\b(RTS?|RIGHTS?)\b/.test(product)) {
+    return 'Accion corporativa sin ejecucion de mercado';
+  }
+  return null;
+}
+function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'generic', options = {}) {
+  const { normalizeSymbol } = ctx;
+  const fileSubtype = options.fileSubtype || 'unknown';
   const explicitType = normalizeType(mappedValue(row, mapping, profile, 'type'));
-  const symbol = normalizeSymbol(mappedValue(row, mapping, profile, 'symbol'));
-  const date = parseDateValue(mappedValue(row, mapping, profile, 'date'));
+  const mappedSymbolRaw = mappedValue(row, mapping, profile, 'symbol');
+  let symbol = normalizeSymbol(mappedSymbolRaw);
+  if (profile === 'degiro' && fileSubtype === 'transactions_export' && looksLikeIsin(symbol)) symbol = '';
+
+  const date = defaultDegiroSnapshotDate(ctx, profile, mappedValue(row, mapping, profile, 'date'), row, fileSubtype);
   const marketDate = parseDateValue(mappedValue(row, mapping, profile, 'marketDate')) || date;
   const rawShares = parseNumber(mappedValue(row, mapping, profile, 'shares'));
-  const inferredType = inferTypeFromData(explicitType, rawShares, parseNumber(mappedValue(row, mapping, profile, 'valueEur')));
-  const shares = Number.isFinite(rawShares) ? Math.abs(rawShares) : rawShares;
   const rawPrice = parseNumber(mappedValue(row, mapping, profile, 'price'));
-  const price = Number.isFinite(rawPrice) ? Math.abs(rawPrice) : rawPrice;
-  const rawValueEurInput = parseNumber(mappedValue(row, mapping, profile, 'valueEur'));
-  const valueEurInput = Number.isFinite(rawValueEurInput) ? Math.abs(rawValueEurInput) : rawValueEurInput;
-  const commissionEur = Math.abs(parseNumber(mappedValue(row, mapping, profile, 'commissionEur')) || 0);
-  const currency = String(mappedValue(row, mapping, profile, 'currency') || 'EUR').trim().toUpperCase();
-  const usdToEur = currency === 'USD' ? parseNumber(mappedValue(row, mapping, profile, 'usdToEur')) : 1;
-  const externalId = String(mappedValue(row, mapping, profile, 'externalId') || '').trim() || null;
-  const errors = [];
+  const rawValueEur = parseNumber(mappedValue(row, mapping, profile, 'valueEur'));
 
-  if (!inferredType) errors.push('Tipo no reconocido');
-  if (!symbol) errors.push('Ticker obligatorio');
-  if (!date) errors.push('Fecha inválida');
-  if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
-  if (!Number.isFinite(price) || price <= 0) errors.push('Precio debe ser mayor que 0');
-  if (!['EUR', 'USD'].includes(currency)) errors.push('Divisa no soportada');
-  if (currency === 'USD' && (!Number.isFinite(usdToEur) || usdToEur <= 0)) errors.push('FX USD/EUR obligatorio');
+  const inferredType = inferTypeFromData(explicitType, rawShares, rawValueEur);
+  const shares = Number.isFinite(rawShares) ? Math.abs(rawShares) : rawShares;
+  const price = Number.isFinite(rawPrice) ? Math.abs(rawPrice) : rawPrice;
+  const valueEurInput = Number.isFinite(rawValueEur) ? Math.abs(rawValueEur) : rawValueEur;
+  const totalEur = parseNumber(rowValueByHeaders(row, ['Total EUR', 'Total in EUR', 'Total eur']));
+
+  const mappedCommission = parseNumber(mappedValue(row, mapping, profile, 'commissionEur'));
+  const degiroAutoFx =
+    profile === 'degiro'
+      ? parseNumber(rowValueByHeaders(row, ['Comisión AutoFX', 'Comision AutoFX', 'Comisión AutoFx', 'Comision AutoFx']))
+      : null;
+  const degiroCosts =
+    profile === 'degiro'
+      ? parseNumber(rowValueByHeaders(row, ['Costes de transacción y/o externos EUR', 'Costes de transaccion y/o externos EUR']))
+      : null;
+  const commissionEur = Math.abs(
+    profile === 'degiro' && (Number.isFinite(degiroAutoFx) || Number.isFinite(degiroCosts))
+      ? Number(degiroAutoFx || 0) + Number(degiroCosts || 0)
+      : Number(mappedCommission || 0),
+  );
+
+  const detectedCurrency =
+    profile === 'degiro' && fileSubtype === 'transactions_export'
+      ? degiroCurrencyHint(row)
+      : String(mappedValue(row, mapping, profile, 'currency') || '').trim().toUpperCase();
+  const currency = detectedCurrency || 'EUR';
+  const fxInput = parseNumber(mappedValue(row, mapping, profile, 'usdToEur'));
+  const explicitLocalValue = parseNumber(rowValueByHeaders(row, ['Valor local', 'Local value', 'valor local']));
+  const localValue = Number.isFinite(explicitLocalValue)
+    ? Math.abs(explicitLocalValue)
+    : Number.isFinite(shares) && Number.isFinite(price)
+      ? shares * price
+      : null;
+  const derivedFxToEur = Number.isFinite(valueEurInput) && Number.isFinite(localValue) && localValue > 0 ? valueEurInput / localValue : null;
+  let fxToEur = 1;
+  if (currency !== 'EUR') {
+    if (Number.isFinite(derivedFxToEur) && derivedFxToEur > 0) fxToEur = derivedFxToEur;
+    else if (Number.isFinite(fxInput) && fxInput > 0) fxToEur = profile === 'degiro' ? 1 / fxInput : fxInput;
+    else fxToEur = null;
+  }
+
+  const externalIdBase =
+    profile === 'degiro' && fileSubtype === 'transactions_export'
+      ? String(rowValueByHeaders(row, ['ID Orden', 'Id Orden', 'ID orden']) || mappedValue(row, mapping, profile, 'externalId') || '').trim()
+      : String(mappedValue(row, mapping, profile, 'externalId') || '').trim();
+  const externalId = externalIdBase ? `${externalIdBase}:${row.rowIndex}` : null;
+
+  const corporateReason =
+    profile === 'degiro'
+      ? degiroCorporateActionReason(row, fileSubtype, {
+          shares,
+          price,
+          valueEurInput,
+          localValue,
+          totalEur,
+        })
+      : null;
+
+  const errors = [];
+  if (!corporateReason) {
+    if (!inferredType) errors.push('Tipo no reconocido');
+    if (!date) errors.push('Fecha invalida');
+    if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
+    if (!Number.isFinite(price) || price <= 0) errors.push('Precio debe ser mayor que 0');
+    if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
+    if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
+  }
 
   const computedValueEur =
-    Number.isFinite(shares) && Number.isFinite(price) && Number.isFinite(usdToEur)
-      ? shares * toEur(price, currency, usdToEur)
+    Number.isFinite(shares) && Number.isFinite(price) && (currency === 'EUR' || Number.isFinite(fxToEur))
+      ? currency === 'EUR'
+        ? shares * price
+        : shares * price * fxToEur
       : null;
   const valueEur = Number.isFinite(valueEurInput) && valueEurInput > 0 ? valueEurInput : computedValueEur;
-  if (!Number.isFinite(valueEur) || valueEur <= 0) errors.push('Valor EUR debe ser mayor que 0');
-  if (Number.isFinite(valueEurInput) && Number.isFinite(computedValueEur)) {
+
+  if (!corporateReason && (!Number.isFinite(valueEur) || valueEur <= 0)) {
+    errors.push('Valor EUR debe ser mayor que 0');
+  }
+  if (!corporateReason && Number.isFinite(valueEurInput) && Number.isFinite(computedValueEur)) {
     const tolerance = Math.max(0.05, Math.abs(computedValueEur) * 0.02);
-    if (Math.abs(valueEurInput - computedValueEur) > tolerance) errors.push('Valor EUR no cuadra con precio, acciones y FX');
+    if (Math.abs(valueEurInput - computedValueEur) > tolerance) {
+      const isDegiroTransactions = profile === 'degiro' && fileSubtype === 'transactions_export';
+      if (!isDegiroTransactions) errors.push('Valor EUR no cuadra con precio, acciones y FX');
+    }
   }
 
   const normalized = {
-    type: inferredType,
+    type: inferredType || 'add',
     symbol,
     date,
     marketDate,
@@ -263,23 +390,32 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     valueEur,
     price,
     currency,
-    usdToEur: usdToEur || 1,
+    usdToEur: currency === 'USD' && Number.isFinite(fxToEur) ? fxToEur : 1,
+    fxToEur: Number.isFinite(fxToEur) ? fxToEur : null,
     commissionEur,
-    cashFlowEur: inferredType === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
+    cashFlowEur: (inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
     externalId,
     source,
+    externalIdentifiers: extractExternalIdentifiers(profile, row, symbol),
+    rowKind: corporateReason ? 'corporate_action_ignored' : 'trade',
+    ignoreReason: corporateReason || null,
   };
   normalized.rowHash = sha256(JSON.stringify(normalized));
   normalized.transactionId = `import:${source}:${normalized.rowHash.slice(0, 24)}`;
   return { normalized, errors };
 }
-
 function summarizeImportRows(rows) {
   return rows.reduce(
     (summary, row) => {
       summary.rowCount += 1;
       if (row.status === 'error') summary.errorCount += 1;
-      if (row.status === 'duplicate') summary.duplicateCount += 1;
+      if (row.status === 'blocked') summary.blockedCount += 1;
+      if (row.status === 'duplicate') {
+        summary.duplicateCount += 1;
+        if (row.rowKind === 'duplicate_ledger_match') summary.duplicateLedgerCount += 1;
+      }
+      if (row.status === 'needs_mapping') summary.needsMappingCount += 1;
+      if (row.status === 'ignored') summary.ignoredCount += 1;
       if (row.status === 'valid') {
         if (row.normalized.type === 'add') summary.buys += 1;
         if (row.normalized.type === 'remove') summary.sells += 1;
@@ -295,7 +431,11 @@ function summarizeImportRows(rows) {
     {
       rowCount: 0,
       errorCount: 0,
+      blockedCount: 0,
       duplicateCount: 0,
+      duplicateLedgerCount: 0,
+      needsMappingCount: 0,
+      ignoredCount: 0,
       buys: 0,
       sells: 0,
       valueEur: 0,
@@ -307,21 +447,21 @@ function summarizeImportRows(rows) {
     },
   );
 }
-
 function serializeSummary(summary) {
   return { ...summary, symbols: Array.from(summary.symbols || []) };
 }
-
 function parseImportPayload(input, adapter) {
   if (adapter.parser === 'csv') {
     const content = String(input.content || input.csv || '');
     if (!content.trim()) throw new Error('Contenido CSV obligatorio');
+    const parsed = parseCsvRows(content);
     return {
-      parsed: parseCsvRows(content),
+      parsed,
       fileHash: sha256(content),
       payloadHash: sha256(`${adapter.profile}:${content}`),
       sheets: [],
       selectedSheet: null,
+      fileSubtype: adapter.profile === 'degiro' ? detectDegiroFileSubtype(parsed.headers) : 'unknown',
     };
   }
 
@@ -334,12 +474,13 @@ function parseImportPayload(input, adapter) {
     payloadHash: sha256(`${adapter.profile}:${parsed.selectedSheet}:${contentBase64}`),
     sheets: parsed.sheets,
     selectedSheet: parsed.selectedSheet,
+    fileSubtype: adapter.profile === 'degiro' ? detectDegiroFileSubtype(parsed.headers) : 'unknown',
   };
 }
-
 module.exports = {
   sha256,
   resolveAdapter,
+  detectDegiroFileSubtype,
   parseImportPayload,
   normalizeImportRow,
   summarizeImportRows,

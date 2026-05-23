@@ -1,5 +1,4 @@
-module.exports = function attach(ctx) {
-  with (ctx) {
+module.exports = function attach(ctx) { with (ctx) {
 function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS instruments (
@@ -27,6 +26,20 @@ function initDatabase() {
       show_in_monthly INTEGER NOT NULL DEFAULT 1,
       is_expandable INTEGER NOT NULL DEFAULT 0,
       active INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS instrument_identifiers (
+      id TEXT PRIMARY KEY,
+      instrument_symbol TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      identifier_type TEXT NOT NULL,
+      identifier_value TEXT NOT NULL,
+      display_name TEXT,
+      currency TEXT,
+      exchange TEXT,
+      metadata_json TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(provider, identifier_type, identifier_value)
     );
 
     CREATE TABLE IF NOT EXISTS transactions (
@@ -243,6 +256,10 @@ function initDatabase() {
       ON instruments (type, active);
     CREATE INDEX IF NOT EXISTS idx_instruments_group_active
       ON instruments (group_id, active);
+    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_symbol
+      ON instrument_identifiers (instrument_symbol);
+    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_lookup
+      ON instrument_identifiers (provider, identifier_type, identifier_value);
     CREATE INDEX IF NOT EXISTS idx_instrument_groups_order
       ON instrument_groups (display_order, active);
     CREATE INDEX IF NOT EXISTS idx_portfolio_snapshots_range_date
@@ -290,6 +307,7 @@ function initDatabase() {
   }
 
   migrateInstrumentGroups();
+  backfillInstrumentIdentifiers();
 
   const planCount = db.prepare('SELECT COUNT(*) AS count FROM auto_plans').get().count;
   if (planCount === 0) {
@@ -363,6 +381,48 @@ function findFirstGroupId(ids) {
   return 'general';
 }
 
+function nextIdentifierId() {
+  return `ident:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function backfillInstrumentIdentifiers() {
+  const instruments = db
+    .prepare("SELECT symbol, yahoo_symbol, name, currency FROM instruments WHERE active = 1")
+    .all();
+  if (!instruments.length) return;
+  const insertIdentifier = db.prepare(
+    `INSERT OR IGNORE INTO instrument_identifiers
+      (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+  for (const instrument of instruments) {
+    insertIdentifier.run(
+      nextIdentifierId(),
+      instrument.symbol,
+      'manual',
+      'ticker',
+      instrument.symbol,
+      instrument.name,
+      instrument.currency,
+      null,
+      null,
+    );
+    if (instrument.yahoo_symbol) {
+      insertIdentifier.run(
+        nextIdentifierId(),
+        instrument.symbol,
+        'yahoo',
+        'yahoo_symbol',
+        String(instrument.yahoo_symbol).toUpperCase(),
+        instrument.name,
+        instrument.currency,
+        null,
+        null,
+      );
+    }
+  }
+}
+
 function addColumnIfMissing(table, column, definition) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all().map((item) => item.name);
   if (!columns.includes(column)) {
@@ -434,45 +494,6 @@ function backfillTransactionCashFlows() {
   ).run();
 }
 
-function getMetaNumber(key) {
-  const row = db.prepare('SELECT value FROM app_meta WHERE key = ?').get(key);
-  return Number(row?.value || 0);
-}
-
-function bumpMetaVersion(key) {
-  const nextValue = getMetaNumber(key) + 1;
-  db.prepare(
-    `INSERT INTO app_meta (key, value, updated_at)
-     VALUES (?, ?, CURRENT_TIMESTAMP)
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
-  ).run(key, String(nextValue));
-  return nextValue;
-}
-
-function getDataVersions() {
-  return {
-    ledgerVersion: getMetaNumber(metaKeys.ledgerVersion),
-    priceVersion: getMetaNumber(metaKeys.priceVersion),
-  };
-}
-
-function recordHistoryInvalidation(fromDate = null, reason = 'ledger') {
-  const date = fromDate || firstTransactionDate() || getToday();
-  db.prepare('INSERT INTO history_invalidations (from_date, reason) VALUES (?, ?)').run(date, reason);
-}
-
-function invalidateLedger(fromDate = null, reason = 'ledger') {
-  memoryCache.clear();
-  recordHistoryInvalidation(fromDate, reason);
-  return bumpMetaVersion(metaKeys.ledgerVersion);
-}
-
-function invalidatePrices(fromDate = null, reason = 'price') {
-  memoryCache.clear();
-  recordHistoryInvalidation(fromDate, reason);
-  return bumpMetaVersion(metaKeys.priceVersion);
-}
-
-    Object.assign(ctx, { initDatabase, addColumnIfMissing, ensureMetaKey, ensureTransactionsAllowImportOrigin, backfillTransactionCashFlows, groupIdFromName, ensureGroup, migrateInstrumentGroups, getMetaNumber, bumpMetaVersion, getDataVersions, recordHistoryInvalidation, invalidateLedger, invalidatePrices });
+    Object.assign(ctx, { initDatabase, addColumnIfMissing, ensureMetaKey, ensureTransactionsAllowImportOrigin, backfillTransactionCashFlows, groupIdFromName, ensureGroup, migrateInstrumentGroups });
   }
 };

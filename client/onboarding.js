@@ -10,6 +10,7 @@ export function attach(ctx) {
     if (ctx.elements.addDialog.open) ctx.elements.addDialog.close();
     if (ctx.elements.wizardDialog.open) return;
     ctx.elements.wizardForm.reset();
+    if (ctx.elements.wizardModeManual) ctx.elements.wizardModeManual.checked = true;
     ctx.elements.wizardGroupColor.value = '#16a34a';
     ctx.elements.wizardGroupDistribution.checked = true;
     ctx.elements.wizardGroupMonthly.checked = true;
@@ -27,6 +28,7 @@ export function attach(ctx) {
     ctx.elements.wizardPlanPreview.hidden = true;
     ctx.state.wizardPreview = null;
     syncWizardOptionalSections();
+    syncWizardMode();
     setWizardFeedback('');
     ctx.elements.wizardDialog.showModal();
     ctx.elements.wizardGroupName.focus();
@@ -76,6 +78,16 @@ export function attach(ctx) {
     ctx.elements.wizardPlanWeekdayField.hidden = frequency !== 'weekly' && frequency !== 'biweekly';
     ctx.elements.wizardPlanDay.disabled = !planEnabled || frequency !== 'monthly';
     ctx.elements.wizardPlanWeekday.disabled = !planEnabled || (frequency !== 'weekly' && frequency !== 'biweekly');
+  }
+
+  function syncWizardMode() {
+    const importMode = Boolean(ctx.elements.wizardModeImport?.checked);
+    ctx.elements.wizardImportEntry.hidden = !importMode;
+    const grid = ctx.elements.wizardForm.querySelector('.wizard-grid');
+    if (grid) grid.hidden = importMode;
+    ctx.elements.wizardSubmit.hidden = importMode;
+    if (!importMode) return;
+    setWizardFeedback('El modo importación abre la modal de importaciones para cargar operaciones en bloque.');
   }
 
   function buildWizardTransactionPayload(symbol) {
@@ -190,6 +202,7 @@ export function attach(ctx) {
     syncWizardAmountInputs,
     syncWizardOptionalSections,
     syncWizardPlanFrequency,
+    syncWizardMode,
     buildWizardPayload,
     handleWizardSubmit,
   });

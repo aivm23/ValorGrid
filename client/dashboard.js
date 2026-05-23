@@ -31,6 +31,7 @@ export function attach(ctx) {
       try {
         state.onboarding = await ctx.fetchJson('/api/onboarding/status');
         elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
+        if (elements.exportMenu) elements.exportMenu.hidden = Boolean(state.onboarding?.needsSetup);
       } catch {
         // Keep the previous toolbar state if even onboarding cannot be read.
       }
@@ -43,6 +44,7 @@ export function attach(ctx) {
     const { state, elements } = ctx;
     if (state.version) elements.appVersion.textContent = `v${state.version}`;
     elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
+    if (elements.exportMenu) elements.exportMenu.hidden = Boolean(state.onboarding?.needsSetup);
     ctx.renderSummary();
     ctx.renderMonthly();
     ctx.renderHistory();
