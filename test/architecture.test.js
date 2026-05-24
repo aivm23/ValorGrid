@@ -81,8 +81,8 @@ test('import wizard uses non technical row decisions', () => {
   const renderer = read(path.join('client', 'import-preview-renderer.js'));
   const workflow = read(path.join('client', 'import-workflow.js'));
 
-  assert.equal(renderer.includes('select class="import-row-control"'), false, 'row actions must not use a dropdown');
-  assert.ok(renderer.includes('type="checkbox" data-import-row-action'), 'row actions must use checkbox import toggles');
+  assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
   assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
+  assert.ok(workflow.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
 });

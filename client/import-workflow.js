@@ -26,6 +26,9 @@ function suggestSymbol(label = '') {
   return cleaned.slice(0, 10) || 'NEW01';
 }
 
+const IMPORTED_GROUP_ID = 'importados';
+const IMPORTED_GROUP_NAME = 'Importados';
+
 export function resetImportDraft(ctx) {
   ctx.state.importPreview = null;
   ctx.state.importRowActions = {};
@@ -111,7 +114,7 @@ export function ensureInstrumentChoices(ctx, preview) {
         name: item.label || '',
         type: 'stock',
         currency: item.currency || 'EUR',
-        groupId: (ctx.state.groups || [])[0]?.id || '',
+        groupId: IMPORTED_GROUP_ID,
         color: '#2563eb',
       },
     };
@@ -127,7 +130,7 @@ export function unresolvedInstrumentItems(ctx, preview) {
     if (choice.action === 'map') return !choice.symbol || !existingSymbols.has(choice.symbol);
     if (choice.action === 'create') {
       const create = choice.create || {};
-      return !create.symbol || !create.yahooSymbol || !create.name || !create.groupId || !create.type || !create.currency;
+      return !create.symbol || !create.yahooSymbol || !create.name || !create.type || !create.currency;
     }
     const rows = rowsForDetected(preview, item);
     const relevant = rows.filter((row) => !['ignored', 'duplicate', 'skipped'].includes(row.status));
@@ -142,7 +145,7 @@ export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
   if (choice.action === 'map') return Boolean(String(choice.symbol || '').trim() && existingSymbols.has(String(choice.symbol || '').trim().toUpperCase()));
   if (choice.action === 'create') {
     const create = choice.create || {};
-    return ['symbol', 'yahooSymbol', 'name', 'groupId', 'type', 'currency'].every((field) => String(create[field] || '').trim());
+    return ['symbol', 'yahooSymbol', 'name', 'type', 'currency'].every((field) => String(create[field] || '').trim());
   }
   return item.resolutionStatus !== 'needs_mapping';
 }
@@ -169,8 +172,10 @@ function applyInstrumentChoices(ctx, payload, preview) {
   const choices = ctx.state.importInstrumentChoices || {};
   const rowsByIndex = new Map((preview.rows || []).map((row) => [row.rowIndex, row]));
   const newInstruments = [];
+  const newGroups = [];
   const instrumentMappings = { ...(payload.instrumentMappings || {}) };
   const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const existingGroups = new Set((ctx.state.groups || []).map((item) => item.id));
   for (const item of preview.detectedInstruments || []) {
     const choice = choices[item.key];
     if (!choice) continue;
@@ -192,8 +197,11 @@ function applyInstrumentChoices(ctx, payload, preview) {
     }
     if (choice.action === 'create') {
       const create = choice.create || {};
-      if (!create.symbol || !create.yahooSymbol || !create.name || !create.groupId || !create.type || !create.currency) continue;
+      if (!create.symbol || !create.yahooSymbol || !create.name || !create.type || !create.currency) continue;
       const symbol = String(create.symbol).trim().toUpperCase();
+      if (!existingGroups.has(IMPORTED_GROUP_ID) && !newGroups.some((group) => group.id === IMPORTED_GROUP_ID)) {
+        newGroups.push({ id: IMPORTED_GROUP_ID, name: IMPORTED_GROUP_NAME, color: '#64748b' });
+      }
       instrumentMappings[item.key] = symbol;
       newInstruments.push({
         symbol,
@@ -201,7 +209,7 @@ function applyInstrumentChoices(ctx, payload, preview) {
         name: String(create.name || symbol).trim(),
         type: String(create.type || 'stock').trim().toLowerCase(),
         currency: String(create.currency || 'EUR').trim().toUpperCase(),
-        groupId: String(create.groupId || '').trim(),
+        groupId: IMPORTED_GROUP_ID,
         color: String(create.color || '#2563eb').trim(),
       });
       rowIndexes.forEach((rowIndex) => {
@@ -213,7 +221,7 @@ function applyInstrumentChoices(ctx, payload, preview) {
   }
   payload.instrumentMappings = instrumentMappings;
   payload.newInstruments = newInstruments;
-  payload.newGroups = [];
+  payload.newGroups = newGroups;
 }
 
 export function buildImportPayload(ctx) {

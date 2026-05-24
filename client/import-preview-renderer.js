@@ -97,13 +97,13 @@ function choiceIsComplete(choice, item, instrumentOptions = []) {
   }
   if (choice?.action === 'create') {
     const create = choice.create || {};
-    return ['symbol', 'yahooSymbol', 'name', 'groupId', 'type', 'currency'].every((field) => String(create[field] || '').trim());
+    return ['symbol', 'yahooSymbol', 'name', 'type', 'currency'].every((field) => String(create[field] || '').trim());
   }
   return item.resolutionStatus !== 'needs_mapping';
 }
 
 function missingCreateFields(create = {}) {
-  return new Set(['symbol', 'yahooSymbol', 'name', 'groupId', 'type', 'currency'].filter((field) => !String(create[field] || '').trim()));
+  return new Set(['symbol', 'yahooSymbol', 'name', 'type', 'currency'].filter((field) => !String(create[field] || '').trim()));
 }
 
 function renderSuggestions(ctx, item) {
@@ -185,12 +185,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)
                 <option value="stock"${(create.type || 'stock') === 'stock' ? ' selected' : ''}>Stock</option>
               </select>
               <input class="${missingFields.has('currency') ? 'import-field-missing' : ''}" data-import-create-currency="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.currency || item.currency || 'EUR')}" placeholder="Divisa" />
-              <select class="${missingFields.has('groupId') ? 'import-field-missing' : ''}" data-import-create-group="${ctx.escapeHtml(item.key)}">
-                <option value="">Selecciona grupo</option>
-                ${groupOptions
-                  .map((group) => `<option value="${ctx.escapeHtml(group.id)}"${group.id === create.groupId ? ' selected' : ''}>${ctx.escapeHtml(group.name)}</option>`)
-                  .join('')}
-              </select>
+              <div class="import-auto-group">Grupo: Importados</div>
               <input class="color-input" data-import-create-color="${ctx.escapeHtml(item.key)}" type="color" value="${ctx.escapeHtml(create.color || '#2563eb')}" />
             </div>`
           : ''
@@ -254,10 +249,10 @@ function renderOperationsStep(ctx, preview, state) {
                 <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
                 <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
               </div>
-              <label class="import-row-toggle">
-                <input type="checkbox" data-import-row-action="${row.rowIndex}"${selectedAction === 'import' ? ' checked' : ''} />
-                <span>${selectedAction === 'import' ? 'Importar' : 'Omitir'}</span>
-              </label>
+              <select class="import-row-control" data-import-row-action="${row.rowIndex}">
+                <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
+                <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
+              </select>
               <p>${ctx.escapeHtml((row.errors || []).join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
             </article>`;
         })
