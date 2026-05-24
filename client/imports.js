@@ -185,6 +185,7 @@ export function attach(ctx) {
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
       resetImportDraft(ctx);
+      closeImportDialog();
     } catch (error) {
       ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
     } finally {
