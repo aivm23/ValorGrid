@@ -124,14 +124,14 @@ export function unresolvedInstrumentItems(ctx, preview) {
   return (preview?.detectedInstruments || []).filter((item) => {
     const choice = choices[item.key] || {};
     if (choice.action === 'omit') return false;
-    const rows = rowsForDetected(preview, item);
-    const relevant = rows.filter((row) => !['ignored', 'duplicate', 'skipped'].includes(row.status));
-    if (!relevant.length) return false;
     if (choice.action === 'map') return !choice.symbol || !existingSymbols.has(choice.symbol);
     if (choice.action === 'create') {
       const create = choice.create || {};
       return !create.symbol || !create.yahooSymbol || !create.name || !create.groupId || !create.type || !create.currency;
     }
+    const rows = rowsForDetected(preview, item);
+    const relevant = rows.filter((row) => !['ignored', 'duplicate', 'skipped'].includes(row.status));
+    if (!relevant.length) return false;
     return item.resolutionStatus === 'needs_mapping';
   });
 }
@@ -268,9 +268,7 @@ export function updateSheetSelector(ctx, preview) {
 }
 
 export function updateCommitButton(ctx) {
-  const preview = ctx.state.importPreview;
-  const onConfirmStep = ctx.state.importStep === 'confirm';
-  ctx.elements.importCommit.disabled = !(preview?.canCommit && onConfirmStep);
-  ctx.elements.importCommit.hidden = !onConfirmStep;
+  ctx.elements.importCommit.disabled = true;
+  ctx.elements.importCommit.hidden = true;
   ctx.elements.importCommit.textContent = 'Importar operaciones seleccionadas';
 }

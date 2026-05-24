@@ -76,3 +76,13 @@ test('frontend architecture stays modular', () => {
   assert.equal(/api\/|fetchJson|sendJson/.test(read(path.join('client', 'theme.js'))), false, 'theme must not call portfolio APIs');
   assert.equal(read('app.js').includes('undefined'), false, 'app.js must not render undefined text');
 });
+
+test('import wizard uses non technical row decisions', () => {
+  const renderer = read(path.join('client', 'import-preview-renderer.js'));
+  const workflow = read(path.join('client', 'import-workflow.js'));
+
+  assert.equal(renderer.includes('select class="import-row-control"'), false, 'row actions must not use a dropdown');
+  assert.ok(renderer.includes('type="checkbox" data-import-row-action'), 'row actions must use checkbox import toggles');
+  assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
+  assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
+});

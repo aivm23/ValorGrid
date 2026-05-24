@@ -10,11 +10,11 @@ const STEP_LABELS = {
 const STATUS_LABELS = {
   valid: 'Lista para importar',
   needs_mapping: 'Pendiente de asignar instrumento',
-  blocked: 'Requiere revisión',
+  blocked: 'No importable ahora',
   ignored: 'Ignorada automáticamente',
   duplicate: 'Ya existe',
   skipped: 'Omitida por el usuario',
-  error: 'Requiere revisión',
+  error: 'No importable ahora',
 };
 
 function statusBadgeClass(status) {
@@ -46,13 +46,13 @@ function renderProgress(activeStep, state) {
 function renderWorkflowActions(activeStep, preview, canContinue = true, state = {}) {
   const busy = Boolean(state.importWorkflowBusy);
   const backDisabled = activeStep === 'file' || busy ? ' disabled' : '';
-  let nextLabel = 'Listo para guardar';
+  let nextLabel = 'Importar operaciones seleccionadas';
   if (busy && activeStep === 'instruments') nextLabel = 'Confirmando...';
   else if (busy && activeStep === 'file') nextLabel = 'Analizando...';
   else if (activeStep === 'file') nextLabel = 'Continuar a instrumentos';
   else if (activeStep === 'instruments') nextLabel = 'Confirmar instrumentos';
   else if (activeStep === 'operations') nextLabel = 'Revisar impacto';
-  const nextDisabled = activeStep === 'confirm' || !preview || !canContinue || busy ? ' disabled' : '';
+  const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
   return `
     <div class="import-workflow-actions">
       <button type="button" class="button" data-import-back${backDisabled}>Atrás</button>
@@ -226,7 +226,8 @@ function renderOperationsStep(ctx, preview, state) {
         <select data-import-op-filter>
           <option value="all"${filter === 'all' ? ' selected' : ''}>Todas</option>
           <option value="valid"${filter === 'valid' ? ' selected' : ''}>Listas para importar</option>
-          <option value="blocked"${filter === 'blocked' ? ' selected' : ''}>Requieren revisión</option>
+          <option value="needs_mapping"${filter === 'needs_mapping' ? ' selected' : ''}>Sin instrumento</option>
+          <option value="blocked"${filter === 'blocked' ? ' selected' : ''}>No importables</option>
           <option value="duplicate"${filter === 'duplicate' ? ' selected' : ''}>Ya existen</option>
           <option value="ignored"${filter === 'ignored' ? ' selected' : ''}>Ignoradas</option>
           <option value="skipped"${filter === 'skipped' ? ' selected' : ''}>Omitidas</option>
@@ -241,7 +242,7 @@ function renderOperationsStep(ctx, preview, state) {
       ${rows
         .map((row) => {
           const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
-          const symbol = row.normalized?.symbol || '-';
+          const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
           return `
             <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
               <div>
@@ -253,10 +254,10 @@ function renderOperationsStep(ctx, preview, state) {
                 <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
                 <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
               </div>
-              <select class="import-row-control" data-import-row-action="${row.rowIndex}">
-                <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
-                <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
-              </select>
+              <label class="import-row-toggle">
+                <input type="checkbox" data-import-row-action="${row.rowIndex}"${selectedAction === 'import' ? ' checked' : ''} />
+                <span>${selectedAction === 'import' ? 'Importar' : 'Omitir'}</span>
+              </label>
               <p>${ctx.escapeHtml((row.errors || []).join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
             </article>`;
         })

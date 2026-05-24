@@ -78,6 +78,7 @@ export function attach(ctx) {
       ctx.state.importConfirmedSteps.operations = true;
       return setImportStep('confirm');
     }
+    if (current === 'confirm') return commitCsvImport();
   }
 
   function retreatImportStep() {
@@ -191,12 +192,6 @@ export function attach(ctx) {
     }
   }
 
-  let rowPreviewTimer = null;
-  function schedulePreviewRefresh() {
-    window.clearTimeout(rowPreviewTimer);
-    rowPreviewTimer = window.setTimeout(() => previewCsvImport({ keepStep: true }), 300);
-  }
-
   function updateChoiceCreateField(key, field, value) {
     if (!ctx.state.importInstrumentChoices[key]) return;
     ctx.state.importInstrumentChoices[key].create = {
@@ -236,7 +231,8 @@ export function attach(ctx) {
     const rowAction = event.target.closest('[data-import-row-action]');
     if (rowAction) {
       const rowIndex = Number(rowAction.dataset.importRowAction);
-      ctx.state.importRowActions[rowIndex] = rowAction.value === 'import' ? 'import' : 'skip';
+      const wantsImport = rowAction.type === 'checkbox' ? rowAction.checked : rowAction.value === 'import';
+      ctx.state.importRowActions[rowIndex] = wantsImport ? 'import' : 'skip';
       delete ctx.state.importConfirmedSteps.confirm;
       return renderImportPreview();
     }
