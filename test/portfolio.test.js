@@ -783,16 +783,19 @@ test('CSV import preview is read-only and commit is atomic and idempotent', asyn
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA' AND origin = 'import'").get().count, 2);
 });
 
-test('CSV import rejects invalid sales and rolls back the whole batch', () => {
+test('CSV import skips invalid sales by default with a clear existing-empty-position reason', () => {
   seedTestInstrument({ symbol: 'IMPB', yahooSymbol: 'IMPB', name: 'Import B', type: 'stock', currency: 'EUR' });
   const csv = [
     'type,symbol,date,shares,price,currency,valueEur',
     'sell,IMPB,2026-05-01,4,10,EUR,40',
   ].join('\n');
   const preview = previewImport({ source: 'csv', content: csv });
-  assert.equal(preview.canCommit, false);
-  assert.match(preview.rows[0].errors.join(' '), /Venta superior/);
-  assert.throws(() => commitImport({ source: 'csv', content: csv }), /contiene errores/);
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].status, 'skipped');
+  assert.equal(preview.rows[0].blockReasonCode, 'existing_empty_position');
+  assert.match(preview.rows[0].blockReasonMessage, /instrumento existe/i);
+  const committed = commitImport({ source: 'csv', content: csv });
+  assert.equal(committed.summary.skippedCount, 1);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPB'").get().count, 0);
 });
 
@@ -881,6 +884,36 @@ test('CSV import API exposes preview, commit, list, detail and rollback', async 
   assert.equal(rolledBack.response.status, 200);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPC'").get().count, 0);
   assert.equal(db.prepare('SELECT status FROM import_batches WHERE id = ?').get(committed.body.batch.id).status, 'rolled_back');
+});
+
+test('import rollback allows reimporting the same file hash with a different selected subset', () => {
+  seedTestInstrument({ symbol: 'IRB1', yahooSymbol: 'IRB1', name: 'Import Rollback One', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'IRB2', yahooSymbol: 'IRB2', name: 'Import Rollback Two', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'buy,IRB1,2026-05-01,1,10,EUR,10',
+    'buy,IRB2,2026-05-02,2,20,EUR,40',
+  ].join('\n');
+
+  const first = commitImport({
+    source: 'csv',
+    filename: 'rollback-reimport.csv',
+    content: csv,
+    rowActions: { 2: 'import', 3: 'skip' },
+  });
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IRB1' AND origin = 'import'").get().count, 1);
+  assert.equal(rollbackImportBatch(first.batch.id), true);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol IN ('IRB1', 'IRB2') AND origin = 'import'").get().count, 0);
+
+  const second = commitImport({
+    source: 'csv',
+    filename: 'rollback-reimport.csv',
+    content: csv,
+    rowActions: { 2: 'skip', 3: 'import' },
+  });
+  assert.equal(second.batch.id, first.batch.id);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IRB1' AND origin = 'import'").get().count, 0);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IRB2' AND origin = 'import'").get().count, 1);
 });
 
 test('XLSX generic import supports sheet selection and atomic commit', () => {
@@ -983,6 +1016,11 @@ test('DEGIRO and IBKR adapters normalize broker exports to canonical import rows
 
 test('DEGIRO Transactions.csv format maps signed quantity, fees and subtype correctly', () => {
   seedTestInstrument({ symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD' });
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_identifiers
+      (instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange)
+     VALUES ('META', 'global', 'isin', 'US30303M1027', 'META PLATFORMS INC CLASS A', 'USD', 'NDQ')`,
+  ).run();
 
   const content = [
     'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
@@ -991,8 +1029,9 @@ test('DEGIRO Transactions.csv format maps signed quantity, fees and subtype corr
 
   const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
   assert.equal(preview.fileSubtype, 'transactions_export');
-  assert.equal(preview.canCommit, false);
-  assert.match(preview.rows[0].errors.join(' '), /Venta superior/);
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].status, 'skipped');
+  assert.equal(preview.rows[0].blockReasonCode, 'existing_empty_position');
   assert.equal(preview.rows[0].normalized.symbol, 'META');
   assert.equal(preview.rows[0].normalized.type, 'remove');
   assert.equal(preview.rows[0].normalized.commissionEur.toFixed(2), '3.41');
@@ -1005,6 +1044,7 @@ test('public DEGIRO sample dataset is importable', () => {
     { symbol: 'VGUS', yahooSymbol: 'VGUS', name: 'ValorGrid US Tech Demo', type: 'stock', currency: 'USD' },
     { symbol: 'VGSEMI', yahooSymbol: 'VGSEMI', name: 'ValorGrid Semiconductor Demo', type: 'etf', currency: 'USD' },
     { symbol: 'VGURA', yahooSymbol: 'VGURA', name: 'ValorGrid Uranium Demo', type: 'etf', currency: 'USD' },
+    { symbol: 'VGTXT', yahooSymbol: 'TXT.WA', name: 'ValorGrid Text Demo', type: 'stock', currency: 'PLN' },
   ]) {
     seedTestInstrument(instrument);
   }
@@ -1013,11 +1053,12 @@ test('public DEGIRO sample dataset is importable', () => {
     `INSERT OR REPLACE INTO instrument_identifiers
       (instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange)
      VALUES
-      ('VGWD', 'global', 'isin', 'IE00FAKEWORLD1', 'MSCI WORLD ETF SYNTH', 'EUR', 'XET'),
-      ('VGCH', 'global', 'isin', 'IE00FAKECHINA1', 'MSCI CHINA ETF SYNTH', 'EUR', 'XET'),
+      ('VGWD', 'global', 'isin', 'IE0000000019', 'MSCI WORLD ETF SYNTH', 'EUR', 'XET'),
+      ('VGCH', 'global', 'isin', 'IE0000000027', 'MSCI CHINA ETF SYNTH', 'EUR', 'XET'),
       ('VGUS', 'global', 'isin', 'US30303M1027', 'META PLATFORMS INC CLASS A', 'USD', 'NDQ'),
       ('VGSEMI', 'global', 'isin', 'US8168511090', 'ETF SEMICONDUCTORS SYNTH', 'USD', 'ARCA'),
-      ('VGURA', 'global', 'isin', 'US91690V1044', 'ETF URANIUM SYNTH', 'USD', 'ARCA')`,
+      ('VGURA', 'global', 'isin', 'US91690V1044', 'ETF URANIUM SYNTH', 'USD', 'ARCA'),
+      ('VGTXT', 'global', 'isin', 'PLTEXT000010', 'TEXT SA', 'PLN', 'WSE')`,
   ).run();
 
   const content = fs.readFileSync(path.join(__dirname, '..', 'samples', 'broker-degiro', 'degiro-transactions-synthetic.csv'), 'utf8');
@@ -1025,11 +1066,13 @@ test('public DEGIRO sample dataset is importable', () => {
 
   assert.equal(preview.canCommit, true);
   assert.equal(preview.fileSubtype, 'transactions_export');
-  assert.equal(preview.summary.rowCount, 9);
-  assert.equal(preview.rows.length, 9);
-  assert.equal(preview.summary.buys, 5);
-  assert.equal(preview.summary.sells, 2);
+  assert.equal(preview.summary.rowCount, 13);
+  assert.equal(preview.rows.length, 13);
+  assert.equal(preview.summary.buys, 6);
+  assert.equal(preview.summary.sells, 3);
   assert.equal(preview.summary.ignoredCount, 2);
+  assert.equal(preview.summary.skippedCount, 2);
+  assert.ok(preview.rows.some((row) => row.blockReasonCode === 'unknown_sell_only'));
 
   const commit = commitImport({ source: 'degiro-csv', filename: 'degiro-transactions-synthetic.csv', content });
   assert.equal(commit.summary.errorCount, 0);
@@ -1041,7 +1084,7 @@ test('public DEGIRO sample dataset is importable', () => {
       return acc;
     }, {});
   for (const [symbol, shares] of Object.entries(expectedShares)) {
-    assert.equal(Number(getPositionShares(symbol, '2024-09-04').toFixed(6)), Number(shares.toFixed(6)));
+    assert.equal(Number(getPositionShares(symbol, '2024-12-31').toFixed(6)), Number(shares.toFixed(6)));
   }
 });
 
@@ -1148,6 +1191,11 @@ test('DEGIRO portfolio snapshot CSV imports as opening position', () => {
     type: 'stock',
     currency: 'USD',
   });
+  db.prepare(
+    `INSERT OR REPLACE INTO instrument_identifiers
+      (instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange)
+     VALUES ('ACME', 'global', 'isin', 'US0000000001', 'ACME PLATFORMS INC CLASS A', 'USD', NULL)`,
+  ).run();
 
   const content = [
     'Producto,Symbol/ISIN,Cantidad,Precio de,Valor local,,Valor en EUR',
@@ -1264,15 +1312,55 @@ test('DEGIRO Transactions ignores RTS/NON TRADEABLE corporate actions without fl
 });
 
 test('DEGIRO unresolved sell-only products are skipped by default instead of blocking import', () => {
+  const uniqueIsin = `ZZSELL${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
   const content = [
     'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
-    '18-05-2026,10:28,SELL ONLY UNKNOWN,PLSELL000001,WSE,XWAR,-3,"40,1800",PLN,"120,54",PLN,"28,39","4,2447","-0,43","-4,90","23,06","ord-sell-only",',
+    `18-05-2026,10:28,SELL ONLY UNKNOWN ${uniqueIsin},${uniqueIsin},WSE,XWAR,-3,"40,1800",PLN,"120,54",PLN,"28,39","4,2447","-0,43","-4,90","23,06","ord-sell-only-${uniqueIsin}",`,
   ].join('\n');
 
   const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'skipped');
-  assert.match(preview.rows[0].ignoreReason, /Venta sin posición registrada/);
+  assert.equal(preview.rows[0].blockReasonCode, 'unknown_sell_only');
+  assert.match(preview.rows[0].blockReasonMessage, /No existe este instrumento/);
+});
+
+test('DEGIRO existing instrument sales distinguish empty and insufficient positions', async () => {
+  seedTestInstrument({ symbol: 'EMPTY1', yahooSymbol: 'EMPTY1', name: 'Empty Position Corp', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'PART1', yahooSymbol: 'PART1', name: 'Partial Position Corp', type: 'stock', currency: 'EUR' });
+  await createTransaction({ type: 'add', symbol: 'PART1', date: '2026-01-02', shares: 2 });
+
+  const emptyCsv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'sell,EMPTY1,2026-05-01,1,10,EUR,10',
+  ].join('\n');
+  const partialCsv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'sell,PART1,2026-05-01,5,10,EUR,50',
+  ].join('\n');
+
+  const emptyPreview = previewImport({ source: 'csv', filename: 'empty.csv', content: emptyCsv });
+  assert.equal(emptyPreview.rows[0].status, 'skipped');
+  assert.equal(emptyPreview.rows[0].blockReasonCode, 'existing_empty_position');
+  assert.match(emptyPreview.rows[0].blockReasonMessage, /no hay acciones registradas suficientes/i);
+
+  const partialPreview = previewImport({ source: 'csv', filename: 'partial.csv', content: partialCsv });
+  assert.equal(partialPreview.rows[0].status, 'skipped');
+  assert.equal(partialPreview.rows[0].blockReasonCode, 'existing_insufficient_position');
+  assert.match(partialPreview.rows[0].blockReasonMessage, /disponibles 2/);
+});
+
+test('DEGIRO does not auto-map similar product names without confirmed identifiers', () => {
+  seedTestInstrument({ symbol: 'VIDRALASA', yahooSymbol: 'VID.MC', name: 'VIDRALA SA', type: 'stock', currency: 'EUR' });
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciÃ³n,NÃºmero,Precio,,Valor local,,Valor EUR,Tipo de cambio,ComisiÃ³n AutoFX,Costes de transacciÃ³n y/o externos EUR,Total EUR,ID Orden,',
+    '11-07-2025,12:00,INDUSTRIA DE DISENO TEXTIL SA,ES0148396007,MAD,MAD,-1,"346,9600",EUR,"346,96",EUR,"346,96","1,0000","0,00","0,00","346,96","ord-inditex-like",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.notEqual(preview.rows[0].normalized.symbol, 'VIDRALASA');
+  assert.equal(preview.rows[0].status, 'skipped');
+  assert.equal(preview.rows[0].blockReasonCode, 'unknown_sell_only');
 });
 
 test('DEGIRO imports non EUR currencies using generic FX to EUR without assuming USD', () => {

@@ -1039,6 +1039,44 @@ h3 {
   gap: 8px;
 }
 
+.import-operation-group {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  overflow: hidden;
+}
+
+.import-operation-group > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, auto);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.import-operation-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.import-operation-group > summary div {
+  display: grid;
+  gap: 3px;
+}
+
+.import-operation-group > summary span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.import-operation-group-details {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding: 10px;
+}
+
 .import-operation-row,
 .import-impact-list article {
   display: grid;
@@ -2317,6 +2355,7 @@ td:last-child {
   }
 
   .import-operation-row,
+  .import-operation-group > summary,
   .import-impact-list article {
     grid-template-columns: 1fr;
     align-items: stretch;

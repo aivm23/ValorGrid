@@ -98,6 +98,11 @@ function shouldOmitInstrumentByDefault(preview, item) {
   return unresolvedSellOnly;
 }
 
+function inferInstrumentType(item) {
+  const label = String(item?.label || '').toUpperCase();
+  return /\b(ETF|ETC|ETN|UCITS|FUND|INDEX)\b/.test(label) ? 'etf' : 'stock';
+}
+
 export function ensureInstrumentChoices(ctx, preview) {
   const detected = preview?.detectedInstruments || [];
   const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
@@ -112,7 +117,7 @@ export function ensureInstrumentChoices(ctx, preview) {
         symbol: suggestSymbol(item.label),
         yahooSymbol: item.tickerSuggestions?.[0]?.yahooSymbol || '',
         name: item.label || '',
-        type: 'stock',
+        type: inferInstrumentType(item),
         currency: item.currency || 'EUR',
         groupId: IMPORTED_GROUP_ID,
         color: '#2563eb',
@@ -165,6 +170,19 @@ export function ensureDefaultRowActions(ctx, preview = ctx.state.importPreview) 
   for (const row of preview?.rows || []) {
     if (ctx.state.importRowActions?.[row.rowIndex]) continue;
     ctx.state.importRowActions[row.rowIndex] = row.status === 'valid' ? 'import' : 'skip';
+  }
+}
+
+export function applyImportGroupAction(ctx, groupAction) {
+  const wantsImport = groupAction.value === 'import';
+  const rowIndexes = String(groupAction.dataset.importGroupAction || '')
+    .split(',')
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+  const rowsByIndex = new Map((ctx.state.importPreview?.rows || []).map((row) => [row.rowIndex, row]));
+  for (const rowIndex of rowIndexes) {
+    const row = rowsByIndex.get(rowIndex);
+    ctx.state.importRowActions[rowIndex] = wantsImport && row?.status === 'valid' ? 'import' : 'skip';
   }
 }
 

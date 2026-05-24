@@ -8,6 +8,7 @@ import {
   buildImportPayload,
   canAdvanceImportStep,
   ensureDefaultRowActions,
+  applyImportGroupAction,
   unresolvedInstrumentItems,
   invalidateImportAfter,
   applySuggestionToChoice,
@@ -201,15 +202,6 @@ export function attach(ctx) {
     };
   }
 
-  function applyMassAction(action) {
-    for (const row of ctx.state.importPreview?.rows || []) {
-      if (action === 'import-valid' && row.status === 'valid') ctx.state.importRowActions[row.rowIndex] = 'import';
-      if (action === 'skip-not-importable' && row.status !== 'valid') ctx.state.importRowActions[row.rowIndex] = 'skip';
-    }
-    invalidateImportAfter(ctx, 'operations');
-    renderImportPreview();
-  }
-
   function handleImportPreviewClick(event) {
     const nextButton = event.target.closest('[data-import-next]');
     if (nextButton) return advanceImportStep();
@@ -224,8 +216,6 @@ export function attach(ctx) {
       invalidateImportAfter(ctx, 'instruments');
       return renderImportPreview();
     }
-    const massAction = event.target.closest('[data-import-mass-action]');
-    if (massAction) return applyMassAction(massAction.dataset.importMassAction);
   }
 
   function handleImportPreviewInteraction(event) {
@@ -234,6 +224,12 @@ export function attach(ctx) {
       const rowIndex = Number(rowAction.dataset.importRowAction);
       const wantsImport = rowAction.type === 'checkbox' ? rowAction.checked : rowAction.value === 'import';
       ctx.state.importRowActions[rowIndex] = wantsImport ? 'import' : 'skip';
+      delete ctx.state.importConfirmedSteps.confirm;
+      return renderImportPreview();
+    }
+    const groupAction = event.target.closest('[data-import-group-action]');
+    if (groupAction) {
+      applyImportGroupAction(ctx, groupAction);
       delete ctx.state.importConfirmedSteps.confirm;
       return renderImportPreview();
     }

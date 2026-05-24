@@ -3,9 +3,14 @@ const { createImportEntityHelpers } = require('./import-entities');
 
 function insertImportBatch(ctx, preview, mapping) {
   const { db } = ctx;
-  const batchId = `import-batch:${preview.source}:${preview.payloadHash.slice(0, 24)}`;
-  const existing = db.prepare('SELECT * FROM import_batches WHERE id = ?').get(batchId);
+  const requestedBatchId = `import-batch:${preview.source}:${preview.payloadHash.slice(0, 24)}`;
+  const existingByFile = db.prepare('SELECT * FROM import_batches WHERE source = ? AND file_hash = ?').get(preview.source, preview.fileHash);
+  const batchId = existingByFile?.id || requestedBatchId;
+  const existing = existingByFile || db.prepare('SELECT * FROM import_batches WHERE id = ?').get(batchId);
   if (existing?.status === 'committed') return { batchId, existing };
+  if (existing?.status === 'rolled_back') {
+    db.prepare('DELETE FROM import_rows WHERE batch_id = ?').run(batchId);
+  }
 
   db.prepare(
     `INSERT INTO import_batches
@@ -19,7 +24,8 @@ function insertImportBatch(ctx, preview, mapping) {
        error_count = excluded.error_count,
        first_date = excluded.first_date,
        last_date = excluded.last_date,
-       committed_at = CURRENT_TIMESTAMP`,
+       committed_at = CURRENT_TIMESTAMP,
+       rolled_back_at = NULL`,
   ).run(
     batchId,
     preview.source,

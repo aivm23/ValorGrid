@@ -114,8 +114,7 @@ function buildDetectedInstrumentOutput(detectedInstruments) {
       firstDate: item.firstDate || null,
       lastDate: item.lastDate || null,
       rowIndexes: Array.from(item.rowIndexes || []),
-    }))
-    .sort((a, b) => (b.rowCount || 0) - (a.rowCount || 0));
+    }));
 }
 
 function buildImpactPreview(ctx, rows) {

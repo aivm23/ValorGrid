@@ -13,12 +13,8 @@ const {
   buildDetectedInstrumentOutput,
   buildImpactPreview,
 } = require('./import-reconcile');
-
-const DEGIRO_SUBTYPE_LABELS = {
-  transactions_export: 'DEGIRO Transacciones CSV',
-  portfolio_snapshot: 'DEGIRO Snapshot de cartera',
-  unknown: 'DEGIRO CSV',
-};
+const { DEGIRO_SUBTYPE_LABELS, fileSubtypeWarnings } = require('./import-labels');
+const { markSkippedSaleDeficit } = require('./import-sale-rules');
 
 function normalizeMatchText(value) {
   return String(value || '')
@@ -35,19 +31,6 @@ function getRawValue(raw = {}, names = []) {
     if (raw[name] !== undefined && raw[name] !== null && String(raw[name]).trim() !== '') return raw[name];
   }
   return '';
-}
-
-function fileSubtypeWarnings(fileSubtype) {
-  if (fileSubtype === 'transactions_export') {
-    return ['Formato recomendado: export de Transacciones de DEGIRO.'];
-  }
-  if (fileSubtype === 'portfolio_snapshot') {
-    return [
-      'Este CSV parece un snapshot de cartera (Portfolio), no un historico de transacciones.',
-      'Se usara para conciliacion de posiciones, no para reconstruir historico completo.',
-    ];
-  }
-  return [];
 }
 
 function rebuildImportIdentity(normalized, source) {
@@ -87,20 +70,15 @@ function resolveByHeuristic(ctx, normalized, raw) {
   const product = getRawValue(raw, ['Producto', 'Product', 'producto', 'product']);
   const productKey = normalizeMatchText(product);
   if (!productKey) return null;
-  let best = null;
   for (const instrument of instruments) {
     const symbolKey = normalizeMatchText(instrument.symbol);
     const yahooKey = normalizeMatchText(instrument.yahooSymbol);
     const nameKey = normalizeMatchText(instrument.name);
-    let score = 0;
-    if (symbolKey && productKey.includes(symbolKey)) score += 6;
-    if (yahooKey && productKey.includes(yahooKey)) score += 6;
-    if (nameKey && productKey.includes(nameKey)) score += 10;
-    const nameTokens = nameKey.split(' ').filter((token) => token.length >= 4);
-    if (nameTokens.length && nameTokens.every((token) => productKey.includes(token))) score += 7;
-    if (!best || score > best.score) best = { instrument, score };
+    if (symbolKey && productKey === symbolKey) return instrument;
+    if (yahooKey && productKey === yahooKey) return instrument;
+    if (nameKey && productKey === nameKey) return instrument;
   }
-  return best?.score > 0 ? best.instrument : null;
+  return null;
 }
 
 function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
@@ -129,7 +107,14 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
     }
   }
 
-  const resolvedByIdentifier = ctx.resolveInstrumentFromIdentifiers(candidates);
+  const identifierCandidates = candidates.filter((candidate) => {
+    const provider = String(candidate.provider || '').trim().toLowerCase();
+    const type = String(candidate.identifierType || candidate.type || '').trim().toLowerCase();
+    if (provider === 'manual' && type === 'ticker') return false;
+    if (type === 'exchange') return false;
+    return true;
+  });
+  const resolvedByIdentifier = ctx.resolveInstrumentFromIdentifiers(identifierCandidates);
   if (resolvedByIdentifier) return { instrument: resolvedByIdentifier, resolutionStatus: 'resolved', matchedBy: 'identifier' };
 
   const resolvedByHeuristic = resolveByHeuristic(ctx, row.normalized, row.raw);
@@ -349,6 +334,9 @@ function previewImportFactory(ctx, input = {}) {
         currency: normalized.currency || null,
         exchange: String(getRawValue(row.data, ['Bolsa de referencia', 'Centro de ejecución', 'Centro de ejecucion']) || '').trim() || null,
         resolutionStatus: resolution.resolutionStatus,
+        resolutionSource: resolution.matchedBy || null,
+        autoResolutionConfidence:
+          resolution.matchedBy === 'identifier' ? 'alta' : resolution.matchedBy === 'row_mapping' ? 'alta' : resolution.matchedBy ? 'media' : 'ninguna',
         rowCount: 0,
         buys: 0,
         sells: 0,
@@ -368,6 +356,7 @@ function previewImportFactory(ctx, input = {}) {
       if (normalized.date && (!instrumentInfo.firstDate || normalized.date < instrumentInfo.firstDate)) instrumentInfo.firstDate = normalized.date;
       if (normalized.date && (!instrumentInfo.lastDate || normalized.date > instrumentInfo.lastDate)) instrumentInfo.lastDate = normalized.date;
       if (resolution.resolutionStatus === 'needs_mapping') instrumentInfo.resolutionStatus = 'needs_mapping';
+      if (resolution.matchedBy && !instrumentInfo.resolutionSource) instrumentInfo.resolutionSource = resolution.matchedBy;
       if (rowDecision.action === 'skip') instrumentInfo.hasSkippedRows = true;
     }
 
@@ -402,10 +391,14 @@ function previewImportFactory(ctx, input = {}) {
     }
     if (instrument?.type === 'fx' && rowKind === 'trade') errors.push('No se importan movimientos sobre instrumentos FX');
 
+    let saleDeficit = null;
     if (resolution.resolutionStatus !== 'needs_mapping' && rowKind === 'trade' && normalized.type === 'remove' && normalized.symbol && normalized.date) {
       const available = positionWithPendingRows(ctx, normalized.symbol, normalized.date, accepted);
       if (available + 0.0000001 < normalized.shares) {
-        errors.push(`Venta superior a la posicion disponible (${available.toFixed(6)} acciones)`);
+        saleDeficit = {
+          code: available <= 0.0000001 ? 'existing_empty_position' : 'existing_insufficient_position',
+          available,
+        };
       }
     }
 
@@ -416,6 +409,10 @@ function previewImportFactory(ctx, input = {}) {
     else if (errors.length > 0) status = 'error';
     else if (resolution.resolutionStatus === 'needs_mapping') status = 'needs_mapping';
     else if (duplicateByHash || repeatedInFile || ledgerMatch) status = 'duplicate';
+    if (saleDeficit && status === 'valid') {
+      status = 'skipped';
+      rowKind = 'skipped';
+    }
 
     if (!errors.length && status === 'valid') {
       accepted.push(normalized);
@@ -424,7 +421,7 @@ function previewImportFactory(ctx, input = {}) {
       seenHashes.add(normalized.rowHash);
     }
 
-    return {
+    const outputRow = {
       rowIndex: row.rowIndex,
       raw: row.data,
       normalized,
@@ -438,6 +435,7 @@ function previewImportFactory(ctx, input = {}) {
       duplicateTransactionId: duplicateByHash?.id || ledgerMatch?.id || null,
       ledgerMatch,
     };
+    return saleDeficit ? markSkippedSaleDeficit(outputRow, saleDeficit.code, saleDeficit.available) : outputRow;
   });
 
   const reconciliation = reconcileSnapshotRows(ctx, rows, fileSubtype);
@@ -448,7 +446,7 @@ function previewImportFactory(ctx, input = {}) {
   if (sellOnlyUnresolvedKeys.size) {
     rows = rows.map((row) => {
       if (row.status !== 'needs_mapping' || !sellOnlyUnresolvedKeys.has(row.mappingKey)) return row;
-      return { ...row, status: 'skipped', rowKind: 'skipped', errors: [], ignoreReason: 'Venta sin posición registrada; importa compras anteriores o asígnalo manualmente si procede.' };
+      return markSkippedSaleDeficit(row, 'unknown_sell_only', 0);
     });
     for (const key of sellOnlyUnresolvedKeys) mappingsRequired.delete(key);
   }

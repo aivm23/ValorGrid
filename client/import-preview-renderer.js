@@ -1,17 +1,17 @@
-const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
+﻿const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
 
 const STEP_LABELS = {
   file: 'Archivo',
   instruments: 'Instrumentos',
   operations: 'Operaciones',
-  confirm: 'Confirmación',
+  confirm: 'ConfirmaciÃ³n',
 };
 
 const STATUS_LABELS = {
   valid: 'Lista para importar',
   needs_mapping: 'Pendiente de asignar instrumento',
   blocked: 'No importable ahora',
-  ignored: 'Ignorada automáticamente',
+  ignored: 'Ignorada automÃ¡ticamente',
   duplicate: 'Ya existe',
   skipped: 'Omitida por el usuario',
   error: 'No importable ahora',
@@ -31,7 +31,7 @@ function stepIndex(step) {
 function renderProgress(activeStep, state) {
   const activeIndex = stepIndex(activeStep);
   return `
-    <div class="import-progress" aria-label="Progreso de importación">
+    <div class="import-progress" aria-label="Progreso de importaciÃ³n">
       ${STEP_ORDER.map((step, index) => {
         const done = Boolean(state.importConfirmedSteps?.[step]) || index < activeIndex;
         return `
@@ -55,7 +55,7 @@ function renderWorkflowActions(activeStep, preview, canContinue = true, state = 
   const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
   return `
     <div class="import-workflow-actions">
-      <button type="button" class="button" data-import-back${backDisabled}>Atrás</button>
+      <button type="button" class="button" data-import-back${backDisabled}>AtrÃ¡s</button>
       <button type="button" class="button button-primary" data-import-next${nextDisabled}>${nextLabel}</button>
     </div>`;
 }
@@ -67,7 +67,7 @@ function renderSummary(ctx, preview) {
       <article><span>Filas</span><strong>${summary.rowCount || 0}</strong></article>
       <article><span>Importables</span><strong>${summary.buys + summary.sells || 0}</strong></article>
       <article><span>Pendientes</span><strong>${summary.needsMappingCount || 0}</strong></article>
-      <article><span>Revisión</span><strong>${summary.blockedCount || 0}</strong></article>
+      <article><span>RevisiÃ³n</span><strong>${summary.blockedCount || 0}</strong></article>
       <article><span>Ya existen</span><strong>${summary.duplicateCount || 0}</strong></article>
       <article><span>Ignoradas</span><strong>${summary.ignoredCount || 0}</strong></article>
       <article><span>Comisiones</span><strong>${ctx.formatCurrency(summary.commissionEur || 0)}</strong></article>
@@ -79,7 +79,7 @@ function renderFileStep(ctx, preview, warnings = []) {
     return `
       <div class="import-empty-step">
         <strong>Selecciona un archivo y pulsa Analizar archivo.</strong>
-        <span>Después revisaremos instrumentos, operaciones e impacto antes de guardar nada.</span>
+        <span>DespuÃ©s revisaremos instrumentos, operaciones e impacto antes de guardar nada.</span>
       </div>`;
   }
   return `
@@ -109,7 +109,7 @@ function missingCreateFields(create = {}) {
 function renderSuggestions(ctx, item) {
   const suggestions = item.tickerSuggestions || [];
   if (!suggestions.length) {
-    return `<div class="subtle">Sin sugerencias automáticas. Puedes crear el instrumento manualmente.</div>`;
+    return `<div class="subtle">Sin sugerencias automÃ¡ticas. Puedes crear el instrumento manualmente.</div>`;
   }
   return `
     <div class="import-suggestions">
@@ -142,7 +142,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)
       <header>
         <div>
           <strong>${ctx.escapeHtml(item.label || item.key)}</strong>
-          <p class="subtle">${ctx.escapeHtml(item.isin || 'Sin ISIN')} · ${ctx.escapeHtml(item.currency || '-')} · ${ctx.escapeHtml(item.exchange || '-')}</p>
+          <p class="subtle">${ctx.escapeHtml(item.isin || 'Sin ISIN')} Â· ${ctx.escapeHtml(item.currency || '-')} Â· ${ctx.escapeHtml(item.exchange || '-')}</p>
         </div>
         <span class="status-pill status-${statusBadgeClass(badgeStatus)}">${badgeLabel}</span>
       </header>
@@ -154,7 +154,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)
       </div>
       ${!complete || action !== 'map' ? renderSuggestions(ctx, item) : ''}
       <label class="field">
-        <span>Decisión</span>
+        <span>DecisiÃ³n</span>
         <select data-import-instrument-action="${ctx.escapeHtml(item.key)}">
           <option value="map"${action === 'map' ? ' selected' : ''}>Asignar a instrumento existente</option>
           <option value="create"${action === 'create' ? ' selected' : ''}>Crear instrumento nuevo</option>
@@ -200,7 +200,7 @@ function renderInstrumentsStep(ctx, preview, state, instrumentOptions, groupOpti
   return `
     <div class="import-step-intro">
       <strong>Confirma los instrumentos una sola vez.</strong>
-      <span>Las operaciones del siguiente paso usarán estas decisiones y ya no pedirán ticker por fila.</span>
+      <span>Las operaciones del siguiente paso usarÃ¡n estas decisiones y ya no pedirÃ¡n ticker por fila.</span>
     </div>
     <div class="import-instrument-grid">${detected.map((item) => renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)).join('')}</div>`;
 }
@@ -211,7 +211,7 @@ function renderOperationsStep(ctx, preview, state) {
   if ((preview.instrumentMappingsRequired || []).length) {
     return `
       <div class="import-warning-banner">
-        Quedan instrumentos sin confirmar. Vuelve al paso Instrumentos y asígnalos u omítelos antes de revisar operaciones.
+        Quedan instrumentos sin confirmar. Vuelve al paso Instrumentos y asigna u omite cada producto antes de revisar operaciones.
       </div>`;
   }
   return `
@@ -228,36 +228,65 @@ function renderOperationsStep(ctx, preview, state) {
           <option value="skipped"${filter === 'skipped' ? ' selected' : ''}>Omitidas</option>
         </select>
       </label>
-      <div class="import-mass-actions">
-        <button type="button" class="button button-compact" data-import-mass-action="import-valid">Importar válidas</button>
-        <button type="button" class="button button-compact" data-import-mass-action="skip-not-importable">Omitir no importables</button>
-      </div>
     </div>
-    <div class="import-operation-list">
-      ${rows
-        .map((row) => {
-          const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
-          const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
-          return `
-            <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
-              <div>
-                <strong>${ctx.escapeHtml(symbol)}</strong>
-                <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${ctx.escapeHtml(row.normalized?.date || '-')} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatShareNumber(row.normalized.shares) : '-'} acciones</span>
-              </div>
-              <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(STATUS_LABELS[row.status] || row.status)}</span>
-              <div class="import-operation-money">
-                <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
-                <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
-              </div>
-              <select class="import-row-control" data-import-row-action="${row.rowIndex}">
-                <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
-                <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
-              </select>
-              <p>${ctx.escapeHtml((row.errors || []).join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
-            </article>`;
-        })
-        .join('')}
-    </div>`;
+    <div class="import-operation-list">${renderOperationGroups(ctx, rows, state)}</div>`;
+}
+
+function renderOperationGroups(ctx, rows, state) {
+  const groups = new Map();
+  for (const row of rows) {
+    const product = row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
+    const symbol = row.normalized?.symbol || product;
+    const key = String(symbol || product);
+    if (!groups.has(key)) groups.set(key, { symbol, product, rows: [] });
+    groups.get(key).rows.push(row);
+  }
+  return Array.from(groups.values())
+    .map((group) => {
+      const importableRows = group.rows.filter((row) => row.status === 'valid');
+      const importedRows = group.rows.filter((row) => (state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip')) === 'import');
+      const groupAction = importableRows.length && importedRows.length === importableRows.length ? 'import' : 'skip';
+      const rowIndexes = group.rows.map((row) => row.rowIndex).join(',');
+      return `
+        <details class="import-operation-group" open>
+          <summary>
+            <div>
+              <strong>${ctx.escapeHtml(group.symbol || group.product)}</strong>
+              <span>${group.rows.length} movimientos Â· ${importableRows.length} importables</span>
+            </div>
+            <select class="import-row-control" data-import-group-action="${ctx.escapeHtml(rowIndexes)}">
+              <option value="import"${groupAction === 'import' ? ' selected' : ''}>Importar grupo</option>
+              <option value="skip"${groupAction === 'skip' ? ' selected' : ''}>Omitir grupo</option>
+            </select>
+          </summary>
+          <div class="import-operation-group-details">
+            ${group.rows.map((row) => renderOperationRow(ctx, row, state)).join('')}
+          </div>
+        </details>`;
+    })
+    .join('');
+}
+
+function renderOperationRow(ctx, row, state) {
+  const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
+  const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
+  return `
+    <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
+      <div>
+        <strong>${ctx.escapeHtml(symbol)}</strong>
+        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} Â· ${ctx.escapeHtml(row.normalized?.date || '-')} Â· ${Number.isFinite(row.normalized?.shares) ? ctx.formatShareNumber(row.normalized.shares) : '-'} acciones</span>
+      </div>
+      <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(STATUS_LABELS[row.status] || row.status)}</span>
+      <div class="import-operation-money">
+        <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
+        <small>Comision ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
+      </div>
+      <select class="import-row-control" data-import-row-action="${row.rowIndex}">
+        <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
+        <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
+      </select>
+      <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
+    </article>`;
 }
 
 function renderConfirmStep(ctx, preview) {
@@ -277,8 +306,8 @@ function renderConfirmStep(ctx, preview) {
           (item) => `
             <article>
               <strong>${ctx.escapeHtml(item.symbol)}</strong>
-              <span>Antes ${ctx.formatShareNumber(item.beforeShares || 0)} · Delta ${ctx.formatShareNumber(item.deltaShares || 0)} · Después ${ctx.formatShareNumber(item.afterShares || 0)}</span>
-              <small>${item.buys || 0} compras · ${item.sells || 0} ventas</small>
+              <span>Acciones antes ${ctx.formatShareNumber(item.beforeShares || 0)} Â· Acciones a importar ${ctx.formatShareNumber(item.deltaShares || 0)} Â· Acciones despues ${ctx.formatShareNumber(item.afterShares || 0)}</span>
+              <small>${item.buys || 0} compras Â· ${item.sells || 0} ventas</small>
             </article>`,
         )
         .join('') || '<div class="subtle">No hay operaciones seleccionadas para importar.</div>'}
