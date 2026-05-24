@@ -796,6 +796,38 @@ test('CSV import rejects invalid sales and rolls back the whole batch', () => {
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPB'").get().count, 0);
 });
 
+test('CSV import impact and commit use only selected rows', () => {
+  seedTestInstrument({ symbol: 'IMPS1', yahooSymbol: 'IMPS1', name: 'Import Selected One', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'IMPS2', yahooSymbol: 'IMPS2', name: 'Import Selected Two', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'buy,IMPS1,2026-05-01,1,10,EUR,10',
+    'buy,IMPS2,2026-05-02,3,20,EUR,60',
+  ].join('\n');
+
+  const selected = previewImport({
+    source: 'csv',
+    filename: 'selected-rows.csv',
+    content: csv,
+    rowActions: { 2: 'import', 3: 'skip' },
+  });
+  assert.equal(selected.canCommit, true);
+  assert.equal(selected.summary.buys, 1);
+  assert.equal(selected.summary.skippedCount, 1);
+  assert.equal(selected.impactPreview.buyCount, 1);
+  assert.equal(selected.impactPreview.totalValueEur, 10);
+
+  const committed = commitImport({
+    source: 'csv',
+    filename: 'selected-rows.csv',
+    content: csv,
+    rowActions: { 2: 'import', 3: 'skip' },
+  });
+  assert.equal(committed.summary.buys, 1);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPS1' AND origin = 'import'").get().count, 1);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPS2' AND origin = 'import'").get().count, 0);
+});
+
 test('CSV import rejects historical rows that would break future ledger positions', async () => {
   seedTestInstrument({ symbol: 'IMPD', yahooSymbol: 'IMPD', name: 'Import D', type: 'stock', currency: 'EUR' });
   await createTransaction({ type: 'add', symbol: 'IMPD', date: '2026-05-01', shares: 2 });
@@ -806,7 +838,7 @@ test('CSV import rejects historical rows that would break future ledger position
   ].join('\n');
   const preview = previewImport({ source: 'csv', content: csv });
   assert.equal(preview.canCommit, false);
-  assert.match(preview.rows[0].errors.join(' '), /posición negativa/);
+  assert.match(preview.rows[0].errors.join(' '), /necesita compras anteriores/);
 });
 
 test('CSV import API exposes preview, commit, list, detail and rollback', async () => {
@@ -1013,6 +1045,101 @@ test('public DEGIRO sample dataset is importable', () => {
   }
 });
 
+test('import preview returns detected instruments grouping and impact summary', () => {
+  seedTestInstrument({ symbol: 'IGR1', yahooSymbol: 'IGR1', name: 'Import Group 1', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'IGR2', yahooSymbol: 'IGR2', name: 'Import Group 2', type: 'stock', currency: 'EUR' });
+  const csv = [
+    'type,symbol,date,shares,price,currency,valueEur',
+    'buy,IGR1,2026-05-01,1,10,EUR,10',
+    'sell,IGR1,2026-05-03,0.5,12,EUR,6',
+    'buy,IGR2,2026-05-04,2,8,EUR,16',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'csv', filename: 'grouped.csv', content: csv });
+  assert.equal(preview.canCommit, true);
+  assert.ok(Array.isArray(preview.detectedInstruments));
+  assert.ok(preview.detectedInstruments.length >= 2);
+  const igr1 = preview.detectedInstruments.find((item) => item.symbol === 'IGR1');
+  assert.ok(igr1);
+  assert.equal(igr1.rowCount, 2);
+  assert.equal(igr1.buys, 1);
+  assert.equal(igr1.sells, 1);
+  assert.ok(Array.isArray(igr1.rowIndexes));
+  assert.equal(preview.impactPreview.instrumentCount, 2);
+  assert.equal(preview.impactPreview.buyCount, 2);
+  assert.equal(preview.impactPreview.sellCount, 1);
+});
+
+test('import preview suggests common Yahoo tickers without resolving automatically', () => {
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '06-05-2026,17:53,ADVANCED MICRO DEVICES INC,US0079031078,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-amd-suggest",',
+    '07-05-2026,17:53,ALPHABET INC CLASS C,US02079K1079,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-goog-suggest",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  const amd = preview.detectedInstruments.find((item) => item.isin === 'US0079031078');
+  const goog = preview.detectedInstruments.find((item) => item.isin === 'US02079K1079');
+  assert.ok(amd?.tickerSuggestions.some((item) => item.yahooSymbol === 'AMD'));
+  assert.ok(goog?.tickerSuggestions.some((item) => item.yahooSymbol === 'GOOG'));
+  assert.ok(['needs_mapping', 'valid'].includes(preview.rows[0].status));
+});
+
+test('ticker suggestion API returns best-effort suggestions and tolerates provider fallback', async () => {
+  const { response, body } = await jsonRequest('/api/import/ticker-suggestions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'ADVANCED MICRO DEVICES INC', isin: 'US0079031078', currency: 'USD', exchange: 'NDQ' }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.ok(body.suggestions.some((item) => item.yahooSymbol === 'AMD'));
+});
+
+test('import can create instrument from confirmed instrument mapping and persist identifiers', () => {
+  db.prepare(
+    `INSERT OR IGNORE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('import-test-group', 'Import Test', '#2563eb', 1, 1, 1, 0, 1)`,
+  ).run();
+  const group = db.prepare("SELECT id FROM instrument_groups WHERE id = 'import-test-group'").get();
+  db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'ZZ0079031078'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'AMDIMP'").run();
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '06-05-2026,17:53,ADVANCED MICRO DEVICES INC,ZZ0079031078,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-amd-create",',
+  ].join('\n');
+  const mappingKey = 'isin:ZZ0079031078';
+  const payload = {
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    instrumentMappings: { [mappingKey]: 'AMDIMP' },
+    newInstruments: [
+      {
+        symbol: 'AMDIMP',
+        yahooSymbol: 'AMD',
+        name: 'Advanced Micro Devices Import',
+        type: 'stock',
+        currency: 'USD',
+        groupId: group.id,
+        color: '#2563eb',
+      },
+    ],
+  };
+
+  const preview = previewImport(payload);
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].normalized.symbol, 'AMDIMP');
+
+  commitImport(payload);
+  assert.equal(Number(getPositionShares('AMDIMP', '2026-05-06').toFixed(2)), 1);
+  const identifier = db
+    .prepare("SELECT instrument_symbol AS symbol FROM instrument_identifiers WHERE provider = 'global' AND identifier_type = 'isin' AND identifier_value = 'ZZ0079031078'")
+    .get();
+  assert.equal(identifier.symbol, 'AMDIMP');
+});
+
 test('DEGIRO portfolio snapshot CSV imports as opening position', () => {
   seedTestInstrument({
     symbol: 'ACME',
@@ -1134,6 +1261,99 @@ test('DEGIRO Transactions ignores RTS/NON TRADEABLE corporate actions without fl
 
   const commit = commitImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
   assert.equal(commit.summary.ignoredCount, 1);
+});
+
+test('DEGIRO unresolved sell-only products are skipped by default instead of blocking import', () => {
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '18-05-2026,10:28,SELL ONLY UNKNOWN,PLSELL000001,WSE,XWAR,-3,"40,1800",PLN,"120,54",PLN,"28,39","4,2447","-0,43","-4,90","23,06","ord-sell-only",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].status, 'skipped');
+  assert.match(preview.rows[0].ignoreReason, /Venta sin posición registrada/);
+});
+
+test('DEGIRO imports non EUR currencies using generic FX to EUR without assuming USD', () => {
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '18-05-2026,10:28,TEXT SA,PLLVTsf00010,WSE,XWAR,18,"40,1800",PLN,"723,24",PLN,"170,39","4,2447","-0,43","-4,90","-165,06","ord-pln-buy",',
+  ].join('\n');
+
+  const preview = previewImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    instrumentMappings: { 'isin:PLLVTsf00010': 'TPLN' },
+    newInstruments: [{ symbol: 'TPLN', yahooSymbol: 'TXT.WA', name: 'TEXT SA', type: 'stock', currency: 'PLN', groupId: 'demo', color: '#16a34a' }],
+  });
+
+  assert.equal(preview.rows[0].status, 'valid');
+  assert.equal(preview.rows[0].normalized.currency, 'PLN');
+  assert.notEqual(preview.rows[0].normalized.usdToEur, 1);
+  assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 170.39);
+});
+
+test('DEGIRO import can skip non-importable rows and commit the remaining valid rows', () => {
+  seedTestInstrument({ symbol: 'DGOOD', yahooSymbol: 'DGOOD', name: 'Degiro Good Corp', type: 'stock', currency: 'EUR' });
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciÃ³n,NÃºmero,Precio,,Valor local,,Valor EUR,Tipo de cambio,ComisiÃ³n AutoFX,Costes de transacciÃ³n y/o externos EUR,Total EUR,ID Orden,',
+    '05-01-2026,10:00,DEGIRO GOOD CORP,US1000000001,XAMS,XAMS,2,"10,0000",EUR,"20,00",EUR,"20,00","1,0000","0,00","0,00","-20,00","ord-good-1",',
+    'fecha-no-valida,10:00,UNKNOWN IMPORT CORP,US9999999999,XAMS,XAMS,1,"10,0000",EUR,"10,00",EUR,"10,00","1,0000","0,00","0,00","-10,00","ord-unknown-1",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.equal(preview.canCommit, false);
+  assert.notEqual(preview.rows[1].status, 'valid');
+
+  const skipped = previewImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    rowActions: { 3: 'skip' },
+  });
+  assert.equal(skipped.canCommit, true);
+  assert.equal(skipped.summary.skippedCount, 1);
+
+  const commit = commitImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    rowActions: { 3: 'skip' },
+  });
+  assert.equal(commit.summary.buys, 1);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'DGOOD' AND origin = 'import'").get().count, 1);
+});
+
+test('DEGIRO import can map an unresolved row to an existing instrument before commit', () => {
+  seedTestInstrument({ symbol: 'DMAP1', yahooSymbol: 'DMAP1', name: 'Mapped Import Corp', type: 'stock', currency: 'EUR' });
+  const uniqueIsin = `ZZMAP${Date.now().toString().slice(-8)}`;
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciÃ³n,NÃºmero,Precio,,Valor local,,Valor EUR,Tipo de cambio,ComisiÃ³n AutoFX,Costes de transacciÃ³n y/o externos EUR,Total EUR,ID Orden,',
+    `08-01-2026,10:00,QXZ UNLISTED SECURITY ${uniqueIsin},${uniqueIsin},XAMS,XAMS,3,"12,0000",EUR,"36,00",EUR,"36,00","1,0000","0,00","0,00","-36,00","ord-map-1",`,
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content });
+  assert.notEqual(preview.rows[0].normalized.symbol, 'DMAP1');
+
+  const mapped = previewImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    rowMappings: { 2: { symbol: 'DMAP1' } },
+  });
+  assert.equal(mapped.canCommit, true);
+  assert.equal(mapped.rows[0].status, 'valid');
+  assert.equal(mapped.rows[0].normalized.symbol, 'DMAP1');
+
+  commitImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    rowMappings: { 2: { symbol: 'DMAP1' } },
+  });
+  assert.equal(Number(getPositionShares('DMAP1', '2026-01-08').toFixed(2)), 3);
 });
 
 test('DEGIRO snapshot below ledger is blocked for manual review', async () => {

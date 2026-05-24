@@ -96,7 +96,7 @@ module.exports = function attach(ctx) {
       throw new Error('Hay filas bloqueadas; revisa la preview antes de importar');
     }
 
-    const duplicateOnly = preview.rows.every((row) => row.status === 'duplicate' || row.status === 'ignored');
+    const duplicateOnly = preview.rows.every((row) => ['duplicate', 'ignored', 'skipped'].includes(row.status));
     const mapping = input.instrumentMappings || input.mapping || {};
 
     db.exec('BEGIN');
@@ -123,8 +123,8 @@ module.exports = function attach(ctx) {
 
       for (const row of preview.rows) {
         const rowId = `${batchId}:row:${row.rowIndex}`;
-        if (row.status === 'duplicate' || row.status === 'ignored') {
-          const persistedStatus = row.status === 'ignored' ? 'duplicate' : row.status;
+        if (row.status === 'duplicate' || row.status === 'ignored' || row.status === 'skipped') {
+          const persistedStatus = row.status === 'ignored' || row.status === 'skipped' ? 'duplicate' : row.status;
           rowInsert.run(
             rowId,
             batchId,

@@ -6,6 +6,13 @@ const {
   summarizeImportRows,
   serializeSummary,
 } = require('./import-parser');
+const { buildScopedPayloadHash } = require('./import-hash');
+const {
+  normalizeRowDecisions,
+  applyRowEdit,
+  buildDetectedInstrumentOutput,
+  buildImpactPreview,
+} = require('./import-reconcile');
 
 const DEGIRO_SUBTYPE_LABELS = {
   transactions_export: 'DEGIRO Transacciones CSV',
@@ -70,6 +77,7 @@ function buildInstrumentMapping(input = {}) {
   return mapping;
 }
 
+
 function resolveByHeuristic(ctx, normalized, raw) {
   if (normalized.symbol) {
     const exactSymbol = ctx.getInstrument(normalized.symbol);
@@ -108,7 +116,7 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   for (const candidate of candidates) {
     const key = mappingKeyForIdentifier(candidate);
     if (!key) continue;
-    const mappedSymbol = mapping.get(key);
+    const mappedSymbol = mapping.get(key) || mapping.get(key.toLowerCase());
     if (!mappedSymbol) continue;
     const mappedInstrument = ctx.getInstrument(mappedSymbol);
     if (mappedInstrument) return { instrument: mappedInstrument, resolutionStatus: 'resolved', matchedBy: key };
@@ -220,10 +228,14 @@ function applyTimelineValidation(ctx, rows) {
       ...row,
       status: 'blocked',
       rowKind: 'blocked',
-      errors: [...row.errors, `La importación dejaría posición negativa en ${match.symbol} el ${match.date}`],
+      errors: [
+        ...row.errors,
+        `Esta venta necesita compras anteriores del mismo instrumento (${match.symbol} en ${match.date}). Asignalas/importalas primero u omite esta fila.`,
+      ],
     };
   });
 }
+
 
 function reconcileSnapshotRows(ctx, rows, fileSubtype) {
   if (fileSubtype !== 'portfolio_snapshot') {
@@ -288,8 +300,10 @@ function reconcileSnapshotRows(ctx, rows, fileSubtype) {
 function previewImportFactory(ctx, input = {}) {
   const adapter = resolveAdapter(input.source || 'csv');
   const mapping = buildInstrumentMapping(input);
+  const rowDecisions = normalizeRowDecisions(input);
   const virtualSymbols = new Set((input.newInstruments || []).map((item) => String(item.symbol || '').trim().toUpperCase()).filter(Boolean));
   const parsedPayload = parseImportPayload(input, adapter);
+  const scopedPayloadHash = buildScopedPayloadHash(parsedPayload, input);
   const fileSubtype = parsedPayload.fileSubtype || 'unknown';
   const accepted = [];
   const seenHashes = new Set();
@@ -298,7 +312,21 @@ function previewImportFactory(ctx, input = {}) {
 
   let rows = parsedPayload.parsed.rows.map((row) => {
     const { normalized, errors } = normalizeImportRow(ctx, row, input.mapping || {}, adapter.source, adapter.profile, { fileSubtype });
-    const resolution = resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
+    const rowDecision = rowDecisions.get(row.rowIndex) || {};
+    const skipRequested = rowDecision.action === 'skip';
+    if (rowDecision.symbol) {
+      normalized.symbol = rowDecision.symbol;
+      rebuildImportIdentity(normalized, adapter.source);
+    }
+    if (rowDecision.edit) {
+      const edited = applyRowEdit(normalized, rowDecision.edit, adapter.source, rebuildImportIdentity);
+      normalized = edited.normalized;
+      if (edited.errors.length) errors.push(...edited.errors);
+    }
+    const forcedInstrument = rowDecision.symbol ? ctx.getInstrument(rowDecision.symbol) : null;
+    const resolution = forcedInstrument
+      ? { instrument: forcedInstrument, resolutionStatus: 'resolved', matchedBy: 'row_mapping' }
+      : resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
     if (resolution.instrument && normalized.symbol !== resolution.instrument.symbol) {
       normalized.symbol = resolution.instrument.symbol;
       rebuildImportIdentity(normalized, adapter.source);
@@ -310,11 +338,57 @@ function previewImportFactory(ctx, input = {}) {
     const detectedLabel = String(getRawValue(row.data, ['Producto', 'Product', 'producto', 'product']) || normalized.symbol || mappingKey || '').trim();
 
     if (mappingKey && !detectedInstruments.has(mappingKey)) {
-      detectedInstruments.set(mappingKey, { key: mappingKey, label: detectedLabel, symbol: normalized.symbol || null, resolutionStatus: resolution.resolutionStatus });
+      detectedInstruments.set(mappingKey, {
+        key: mappingKey,
+        label: detectedLabel,
+        symbol: normalized.symbol || null,
+        isin:
+          normalized.externalIdentifiers
+            ?.find((item) => String(item.identifierType || '').toLowerCase() === 'isin')
+            ?.identifierValue || null,
+        currency: normalized.currency || null,
+        exchange: String(getRawValue(row.data, ['Bolsa de referencia', 'Centro de ejecución', 'Centro de ejecucion']) || '').trim() || null,
+        resolutionStatus: resolution.resolutionStatus,
+        rowCount: 0,
+        buys: 0,
+        sells: 0,
+        approxValueEur: 0,
+        rowIndexes: new Set(),
+        firstDate: null,
+        lastDate: null,
+      });
+    }
+    if (mappingKey && detectedInstruments.has(mappingKey)) {
+      const instrumentInfo = detectedInstruments.get(mappingKey);
+      instrumentInfo.rowCount += 1;
+      instrumentInfo.rowIndexes.add(row.rowIndex);
+      if (normalized.type === 'add') instrumentInfo.buys += 1;
+      if (normalized.type === 'remove') instrumentInfo.sells += 1;
+      instrumentInfo.approxValueEur += Number(normalized.valueEur || 0);
+      if (normalized.date && (!instrumentInfo.firstDate || normalized.date < instrumentInfo.firstDate)) instrumentInfo.firstDate = normalized.date;
+      if (normalized.date && (!instrumentInfo.lastDate || normalized.date > instrumentInfo.lastDate)) instrumentInfo.lastDate = normalized.date;
+      if (resolution.resolutionStatus === 'needs_mapping') instrumentInfo.resolutionStatus = 'needs_mapping';
+      if (rowDecision.action === 'skip') instrumentInfo.hasSkippedRows = true;
     }
 
     let rowKind = normalized.rowKind || 'trade';
     let ledgerMatch = null;
+    if (skipRequested) {
+      return {
+        rowIndex: row.rowIndex,
+        raw: row.data,
+        normalized,
+        status: 'skipped',
+        rowKind: 'skipped',
+        resolutionStatus: resolution.resolutionStatus,
+        mappingKey,
+        matchedBy: resolution.matchedBy || null,
+        errors: [],
+        ignoreReason: 'Fila omitida por el usuario',
+        duplicateTransactionId: null,
+        ledgerMatch: null,
+      };
+    }
     if (rowKind === 'trade' && resolution.resolutionStatus !== 'needs_mapping' && normalized.symbol && instrument) {
       ledgerMatch = matchExistingLedgerTransaction(ctx, normalized);
       if (ledgerMatch) rowKind = 'duplicate_ledger_match';
@@ -368,10 +442,34 @@ function previewImportFactory(ctx, input = {}) {
 
   const reconciliation = reconcileSnapshotRows(ctx, rows, fileSubtype);
   rows = reconciliation.rows;
+  const sellOnlyUnresolvedKeys = new Set(Array.from(detectedInstruments.values())
+    .filter((item) => item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0)
+    .map((item) => item.key));
+  if (sellOnlyUnresolvedKeys.size) {
+    rows = rows.map((row) => {
+      if (row.status !== 'needs_mapping' || !sellOnlyUnresolvedKeys.has(row.mappingKey)) return row;
+      return { ...row, status: 'skipped', rowKind: 'skipped', errors: [], ignoreReason: 'Venta sin posición registrada; importa compras anteriores o asígnalo manualmente si procede.' };
+    });
+    for (const key of sellOnlyUnresolvedKeys) mappingsRequired.delete(key);
+  }
   rows = applyTimelineValidation(ctx, rows);
   const summary = serializeSummary(summarizeImportRows(rows));
   const blockedCount = rows.filter((row) => row.status === 'blocked').length;
   const needsMappingCount = rows.filter((row) => row.status === 'needs_mapping').length;
+
+  const detectedInstrumentOutput = buildDetectedInstrumentOutput(detectedInstruments).map((item) => ({
+    ...item,
+    tickerSuggestions:
+      typeof ctx.suggestTickersForIdentity === 'function'
+        ? ctx.suggestTickersForIdentity({
+            name: item.label,
+            label: item.label,
+            isin: item.isin,
+            currency: item.currency,
+            exchange: item.exchange,
+          })
+        : [],
+  }));
 
   return {
     source: adapter.source,
@@ -382,12 +480,13 @@ function previewImportFactory(ctx, input = {}) {
     reconciliationSummary: reconciliation.summary,
     filename: input.filename || null,
     fileHash: parsedPayload.fileHash,
-    payloadHash: parsedPayload.payloadHash,
+    payloadHash: scopedPayloadHash,
     headers: parsedPayload.parsed.headers,
     rows,
     summary,
-    detectedInstruments: Array.from(detectedInstruments.values()),
+    detectedInstruments: detectedInstrumentOutput,
     instrumentMappingsRequired: Array.from(mappingsRequired.values()),
+    impactPreview: buildImpactPreview(ctx, rows),
     canCommit: summary.errorCount === 0 && needsMappingCount === 0 && blockedCount === 0,
     sheets: parsedPayload.sheets,
     selectedSheet: parsedPayload.selectedSheet,

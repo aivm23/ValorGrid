@@ -164,6 +164,15 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/import/ticker-suggestions' && request.method === 'POST') {
+    try {
+      sendJson(response, 200, { suggestions: await searchTickerSuggestions(await readJsonBody(request)) });
+    } catch (error) {
+      sendJson(response, 200, { suggestions: [], warning: error.message });
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/import/commit' && request.method === 'POST') {
     try {
       sendJson(response, 201, await commitImport(await readJsonBody(request)));

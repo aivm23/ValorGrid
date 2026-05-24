@@ -1,19 +1,307 @@
-function toBase64(buffer) {
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-  return btoa(binary);
-}
+import { renderImportPreviewContent } from './import-preview-renderer.js';
+import {
+  toBase64,
+  isXlsxSource,
+  resetImportDraft,
+  syncImportMode,
+  ensureInstrumentChoices,
+  buildImportPayload,
+  canAdvanceImportStep,
+  ensureDefaultRowActions,
+  unresolvedInstrumentItems,
+  invalidateImportAfter,
+  applySuggestionToChoice,
+  updateSheetSelector,
+  updateCommitButton,
+} from './import-workflow.js';
 
-function isXlsxSource(source) {
-  return source === 'generic-xlsx';
-}
+const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
 
 export function attach(ctx) {
+  function openImportDialog() {
+    resetImportDraft(ctx);
+    syncImportMode(ctx);
+    ctx.elements.importDialog.showModal();
+    renderImportPreview();
+  }
+
+  function closeImportDialog() {
+    ctx.elements.importDialog.close();
+  }
+
+  function setImportStep(step) {
+    if (!STEP_ORDER.includes(step)) return;
+    const targetIndex = STEP_ORDER.indexOf(step);
+    const currentIndex = STEP_ORDER.indexOf(ctx.state.importStep || 'file');
+    if (targetIndex > currentIndex + 1) return;
+    if (targetIndex > currentIndex && !canAdvanceImportStep(ctx, ctx.state.importStep || 'file')) return;
+    ctx.state.importStep = step;
+    renderImportPreview();
+  }
+
+  async function advanceImportStep() {
+    if (ctx.state.importWorkflowBusy) return;
+    const current = ctx.state.importStep || 'file';
+    if (current === 'file') {
+      if (!ctx.state.importPreview) await previewCsvImport({ keepStep: true });
+      if (!ctx.state.importPreview) return;
+      ctx.state.importConfirmedSteps.file = true;
+      return setImportStep('instruments');
+    }
+    if (current === 'instruments') {
+      ctx.state.importInstrumentValidationAttempted = true;
+      const unresolvedBefore = unresolvedInstrumentItems(ctx, ctx.state.importPreview);
+      if (unresolvedBefore.length) {
+        ctx.elements.importFeedback.textContent = `Confirma cada instrumento pendiente antes de continuar (${unresolvedBefore.length} pendiente${unresolvedBefore.length === 1 ? '' : 's'}).`;
+        return renderImportPreview();
+      }
+      ctx.state.importWorkflowBusy = true;
+      renderImportPreview();
+      try {
+        await previewCsvImport({ keepStep: true, preserveOnError: true, feedback: 'Confirmando instrumentos...' });
+        const unresolvedAfter = unresolvedInstrumentItems(ctx, ctx.state.importPreview);
+        if (unresolvedAfter.length) {
+          ctx.elements.importFeedback.textContent = `Confirma cada instrumento pendiente antes de continuar (${unresolvedAfter.length} pendiente${unresolvedAfter.length === 1 ? '' : 's'}).`;
+          return renderImportPreview();
+        }
+        ctx.state.importConfirmedSteps.instruments = true;
+        ctx.state.importInstrumentValidationAttempted = false;
+        return setImportStep('operations');
+      } finally {
+        ctx.state.importWorkflowBusy = false;
+        renderImportPreview();
+      }
+    }
+    if (current === 'operations') {
+      ensureDefaultRowActions(ctx);
+      await previewCsvImport({ keepStep: true });
+      ctx.state.importConfirmedSteps.operations = true;
+      return setImportStep('confirm');
+    }
+  }
+
+  function retreatImportStep() {
+    const currentIndex = STEP_ORDER.indexOf(ctx.state.importStep || 'file');
+    if (currentIndex <= 0) return;
+    ctx.state.importStep = STEP_ORDER[currentIndex - 1];
+    renderImportPreview();
+  }
+
+  function renderImportPreview() {
+    const preview = ctx.state.importPreview;
+    if (!preview) {
+      ctx.state.importStep = 'file';
+      ctx.elements.importPreviewOutput.innerHTML = renderImportPreviewContent(ctx, null, ctx.state, []);
+      ctx.elements.importMappingRequired.hidden = true;
+      ctx.elements.importMappingRequired.innerHTML = '';
+      updateCommitButton(ctx);
+      return;
+    }
+    ensureInstrumentChoices(ctx, preview);
+    ctx.elements.importMappingRequired.hidden = true;
+    ctx.elements.importMappingRequired.innerHTML = '';
+    ctx.elements.importPreviewOutput.innerHTML = renderImportPreviewContent(ctx, preview, ctx.state, preview.warnings || []);
+    updateCommitButton(ctx);
+  }
+
+  async function handleImportSourceChange() {
+    syncImportMode(ctx);
+    ctx.state.importPreview = null;
+    ctx.state.importRowActions = {};
+    ctx.state.importRowMappings = {};
+    ctx.state.importInstrumentChoices = {};
+    ctx.state.importConfirmedSteps = {};
+    ctx.state.importInstrumentValidationAttempted = false;
+    ctx.state.importStep = 'file';
+    renderImportPreview();
+    ctx.elements.importFeedback.textContent = '';
+    updateCommitButton(ctx);
+  }
+
+  async function handleImportFile() {
+    const source = ctx.elements.importSource.value || 'generic-csv';
+    const file = ctx.elements.importFile.files?.[0];
+    if (!file) return;
+    if (isXlsxSource(source)) {
+      const buffer = await file.arrayBuffer();
+      ctx.state.importFileMeta = { name: file.name, contentBase64: toBase64(buffer) };
+    } else {
+      ctx.elements.importContent.value = await file.text();
+      ctx.state.importFileMeta = { name: file.name, contentBase64: null };
+    }
+    ctx.state.importPreview = null;
+    ctx.state.importRowActions = {};
+    ctx.state.importRowMappings = {};
+    ctx.state.importInstrumentChoices = {};
+    ctx.state.importConfirmedSteps = {};
+    ctx.state.importInstrumentValidationAttempted = false;
+    ctx.state.importStep = 'file';
+    renderImportPreview();
+    ctx.elements.importFeedback.textContent = '';
+    updateCommitButton(ctx);
+  }
+
+  async function handleImportSheetChange() {
+    if (ctx.state.importPreview) await previewCsvImport({ keepStep: true });
+  }
+
+  async function previewCsvImport(options = {}) {
+    ctx.elements.importPreview.disabled = true;
+    ctx.elements.importFeedback.textContent = options.feedback || 'Analizando importación...';
+    try {
+      const data = await ctx.sendJson('/api/import/preview', 'POST', buildImportPayload(ctx));
+      ctx.state.importPreview = data.preview;
+      updateSheetSelector(ctx, data.preview);
+      if (!options.keepStep) ctx.state.importStep = 'file';
+      renderImportPreview();
+      ctx.elements.importFeedback.textContent = data.preview?.canCommit
+        ? 'Previsualización preparada. Revisa instrumentos, operaciones e impacto antes de importar.'
+        : 'Revisa los elementos pendientes antes de confirmar la importación.';
+    } catch (error) {
+      if (!options.preserveOnError) {
+        ctx.state.importPreview = null;
+        ctx.elements.importPreviewOutput.innerHTML = '';
+      } else {
+        renderImportPreview();
+      }
+      ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
+      updateCommitButton(ctx);
+    } finally {
+      ctx.elements.importPreview.disabled = false;
+    }
+  }
+
+  async function commitCsvImport() {
+    if (!ctx.state.importPreview?.canCommit) return;
+    ctx.elements.importCommit.disabled = true;
+    ctx.elements.importFeedback.textContent = 'Guardando importación...';
+    try {
+      ensureDefaultRowActions(ctx);
+      await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
+      ctx.state.historyCache = {};
+      ctx.elements.importFeedback.textContent = 'Importación guardada.';
+      await loadImportBatches();
+      await ctx.refreshDashboard();
+      await ctx.refreshHistory({ force: true });
+      resetImportDraft(ctx);
+    } catch (error) {
+      ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
+    } finally {
+      updateCommitButton(ctx);
+    }
+  }
+
+  let rowPreviewTimer = null;
+  function schedulePreviewRefresh() {
+    window.clearTimeout(rowPreviewTimer);
+    rowPreviewTimer = window.setTimeout(() => previewCsvImport({ keepStep: true }), 300);
+  }
+
+  function updateChoiceCreateField(key, field, value) {
+    if (!ctx.state.importInstrumentChoices[key]) return;
+    ctx.state.importInstrumentChoices[key].create = {
+      ...(ctx.state.importInstrumentChoices[key].create || {}),
+      [field]: value,
+    };
+  }
+
+  function applyMassAction(action) {
+    for (const row of ctx.state.importPreview?.rows || []) {
+      if (action === 'import-valid' && row.status === 'valid') ctx.state.importRowActions[row.rowIndex] = 'import';
+      if (action === 'skip-not-importable' && row.status !== 'valid') ctx.state.importRowActions[row.rowIndex] = 'skip';
+    }
+    invalidateImportAfter(ctx, 'operations');
+    renderImportPreview();
+  }
+
+  function handleImportPreviewClick(event) {
+    const nextButton = event.target.closest('[data-import-next]');
+    if (nextButton) return advanceImportStep();
+    const backButton = event.target.closest('[data-import-back]');
+    if (backButton) return retreatImportStep();
+    const suggestionButton = event.target.closest('[data-import-use-suggestion]');
+    if (suggestionButton) {
+      const key = suggestionButton.dataset.importUseSuggestion;
+      const suggestionIndex = Number(suggestionButton.dataset.suggestionIndex || 0);
+      const item = (ctx.state.importPreview?.detectedInstruments || []).find((entry) => entry.key === key);
+      applySuggestionToChoice(ctx, key, item?.tickerSuggestions?.[suggestionIndex]);
+      invalidateImportAfter(ctx, 'instruments');
+      return renderImportPreview();
+    }
+    const massAction = event.target.closest('[data-import-mass-action]');
+    if (massAction) return applyMassAction(massAction.dataset.importMassAction);
+  }
+
+  function handleImportPreviewInteraction(event) {
+    const rowAction = event.target.closest('[data-import-row-action]');
+    if (rowAction) {
+      const rowIndex = Number(rowAction.dataset.importRowAction);
+      ctx.state.importRowActions[rowIndex] = rowAction.value === 'import' ? 'import' : 'skip';
+      delete ctx.state.importConfirmedSteps.confirm;
+      return renderImportPreview();
+    }
+    const rowSymbol = event.target.closest('[data-import-row-symbol]');
+    if (rowSymbol) {
+      const rowIndex = Number(rowSymbol.dataset.importRowSymbol);
+      const value = String(rowSymbol.value || '').trim().toUpperCase();
+      if (value) {
+        ctx.state.importRowMappings[rowIndex] = { symbol: value };
+        ctx.state.importRowActions[rowIndex] = 'import';
+      } else delete ctx.state.importRowMappings[rowIndex];
+      invalidateImportAfter(ctx, 'operations');
+      return renderImportPreview();
+    }
+    const choiceAction = event.target.closest('[data-import-instrument-action]');
+    if (choiceAction) {
+      const key = choiceAction.dataset.importInstrumentAction;
+      if (ctx.state.importInstrumentChoices[key]) ctx.state.importInstrumentChoices[key].action = choiceAction.value;
+      ctx.state.importInstrumentValidationAttempted = false;
+      invalidateImportAfter(ctx, 'instruments');
+      return renderImportPreview();
+    }
+    const choiceSymbol = event.target.closest('[data-import-instrument-symbol]');
+    if (choiceSymbol) {
+      const key = choiceSymbol.dataset.importInstrumentSymbol;
+      if (ctx.state.importInstrumentChoices[key]) ctx.state.importInstrumentChoices[key].symbol = String(choiceSymbol.value || '').trim().toUpperCase();
+      invalidateImportAfter(ctx, 'instruments');
+      return;
+    }
+    const filter = event.target.closest('[data-import-op-filter]');
+    if (filter) {
+      ctx.state.importOperationFilter = filter.value || 'all';
+      return renderImportPreview();
+    }
+    const fields = ['Symbol', 'Yahoo', 'Name', 'Type', 'Currency', 'Group', 'Color'];
+    for (const fieldName of fields) {
+      const attr = `data-import-create-${fieldName.toLowerCase()}`;
+      const node = event.target.closest(`[${attr}]`);
+      if (!node) continue;
+      const key = node.dataset[`importCreate${fieldName}`];
+      const normalized = ['Symbol', 'Currency'].includes(fieldName) ? String(node.value || '').trim().toUpperCase() : node.value;
+      updateChoiceCreateField(key, fieldName === 'Symbol' ? 'symbol' : fieldName === 'Yahoo' ? 'yahooSymbol' : fieldName.toLowerCase(), normalized);
+      if (String(normalized || '').trim()) node.classList.remove('import-field-missing');
+      invalidateImportAfter(ctx, 'instruments');
+      return;
+    }
+  }
+
+  function renderImportBatches() {
+    const batches = ctx.state.importBatches || [];
+    ctx.elements.importBatches.innerHTML = batches.length
+      ? `<h4>Importaciones recientes</h4>${batches
+          .slice(0, 5)
+          .map(
+            (batch) => `
+        <div class="import-batch-row">
+          <span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${ctx.escapeHtml(batch.status)}</span>
+          <small>${ctx.escapeHtml(batch.firstDate || '')} ${ctx.escapeHtml(batch.lastDate || '')}</small>
+          <button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>
+        </div>`,
+          )
+          .join('')}`
+      : '<span class="subtle">Sin importaciones todavía.</span>';
+  }
+
   async function loadImportBatches() {
     try {
       const data = await ctx.fetchJson('/api/import/batches');
@@ -24,290 +312,10 @@ export function attach(ctx) {
     renderImportBatches();
   }
 
-  function openImportDialog() {
-    resetImportDraft();
-    syncImportMode();
-    ctx.elements.importDialog.showModal();
-  }
-
-  function closeImportDialog() {
-    ctx.elements.importDialog.close();
-  }
-
-  function resetImportDraft() {
-    ctx.state.importPreview = null;
-    ctx.state.importFileMeta = null;
-    ctx.elements.importFile.value = '';
-    ctx.elements.importSheet.innerHTML = '';
-    ctx.elements.importSheetField.hidden = true;
-    ctx.elements.importContent.value = '';
-    ctx.elements.importMapping.value = '';
-    ctx.elements.importFeedback.textContent = '';
-    ctx.elements.importPreviewOutput.innerHTML = '';
-    ctx.elements.importMappingRequired.hidden = true;
-    ctx.elements.importMappingRequired.innerHTML = '';
-    ctx.elements.importCommit.disabled = true;
-  }
-
-  function syncImportMode() {
-    const source = ctx.elements.importSource.value || 'generic-csv';
-    const xlsxMode = isXlsxSource(source);
-    ctx.elements.importContent.closest('.field').hidden = xlsxMode;
-    if (!xlsxMode) {
-      ctx.elements.importSheetField.hidden = true;
-      ctx.elements.importSheet.innerHTML = '';
-    }
-  }
-
-  function parseMapping() {
-    const raw = String(ctx.elements.importMapping.value || '').trim();
-    if (!raw) return {};
-    try {
-      const value = JSON.parse(raw);
-      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
-      return value;
-    } catch {
-      throw new Error('El mapping debe ser un JSON valido');
-    }
-  }
-
-  function importPayload() {
-    const source = ctx.elements.importSource.value || 'generic-csv';
-    const mapping = parseMapping();
-    const payload = {
-      source,
-      filename: ctx.state.importFileMeta?.name || ctx.elements.importFile.files?.[0]?.name || null,
-      mapping,
-    };
-    if (isXlsxSource(source)) {
-      payload.contentBase64 = ctx.state.importFileMeta?.contentBase64 || '';
-      payload.sheetName = ctx.elements.importSheet.value || null;
-    } else {
-      payload.content = ctx.elements.importContent.value;
-    }
-    return payload;
-  }
-
-  function updateSheetSelector(preview) {
-    const sheets = preview?.sheets || [];
-    const show = sheets.length > 0;
-    ctx.elements.importSheetField.hidden = !show;
-    if (!show) {
-      ctx.elements.importSheet.innerHTML = '';
-      return;
-    }
-    const selected = preview.selectedSheet || preview.sheetName || sheets[0];
-    ctx.elements.importSheet.innerHTML = sheets
-      .map((sheet) => `<option value="${ctx.escapeHtml(sheet)}"${sheet === selected ? ' selected' : ''}>${ctx.escapeHtml(sheet)}</option>`)
-      .join('');
-  }
-
-  async function handleImportSourceChange() {
-    syncImportMode();
-    ctx.state.importPreview = null;
-    ctx.elements.importCommit.disabled = true;
-    ctx.elements.importPreviewOutput.innerHTML = '';
-    ctx.elements.importFeedback.textContent = '';
-  }
-
-  async function handleImportFile() {
-    const source = ctx.elements.importSource.value || 'generic-csv';
-    const file = ctx.elements.importFile.files?.[0];
-    if (!file) return;
-    if (isXlsxSource(source)) {
-      const buffer = await file.arrayBuffer();
-      ctx.state.importFileMeta = {
-        name: file.name,
-        contentBase64: toBase64(buffer),
-      };
-    } else {
-      ctx.elements.importContent.value = await file.text();
-      ctx.state.importFileMeta = { name: file.name, contentBase64: null };
-    }
-    ctx.state.importPreview = null;
-    ctx.elements.importCommit.disabled = true;
-    ctx.elements.importPreviewOutput.innerHTML = '';
-    ctx.elements.importFeedback.textContent = '';
-  }
-
-  async function handleImportSheetChange() {
-    if (!ctx.state.importPreview) return;
-    await previewCsvImport();
-  }
-
-  async function previewCsvImport() {
-    ctx.elements.importPreview.disabled = true;
-    ctx.elements.importCommit.disabled = true;
-    ctx.elements.importFeedback.textContent = 'Analizando importacion...';
-    try {
-      const data = await ctx.sendJson('/api/import/preview', 'POST', importPayload());
-      ctx.state.importPreview = data.preview;
-      updateSheetSelector(data.preview);
-      renderImportPreview();
-      ctx.elements.importCommit.disabled = !data.preview?.canCommit;
-      const warningText = (data.preview?.warnings || []).join(' ');
-      ctx.elements.importFeedback.textContent = data.preview?.canCommit
-        ? warningText
-          ? `Importacion lista para guardar. ${warningText}`
-          : 'Importacion lista para guardar.'
-        : warningText
-          ? `Corrige los errores antes de importar. ${warningText}`
-          : 'Corrige los errores antes de importar.';
-    } catch (error) {
-      ctx.state.importPreview = null;
-      ctx.elements.importPreviewOutput.innerHTML = '';
-      ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
-    } finally {
-      ctx.elements.importPreview.disabled = false;
-    }
-  }
-
-  async function commitCsvImport() {
-    if (!ctx.state.importPreview?.canCommit) return;
-    ctx.elements.importCommit.disabled = true;
-    ctx.elements.importFeedback.textContent = 'Guardando importacion...';
-    try {
-      await ctx.sendJson('/api/import/commit', 'POST', importPayload(), { timeoutMs: 60000 });
-      ctx.state.historyCache = {};
-      ctx.elements.importFeedback.textContent = 'Importacion guardada.';
-      await loadImportBatches();
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
-      resetImportDraft();
-    } catch (error) {
-      ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
-    } finally {
-      ctx.elements.importCommit.disabled = true;
-    }
-  }
-
-  function renderImportPreview() {
-    const preview = ctx.state.importPreview;
-    if (!preview) {
-      ctx.elements.importPreviewOutput.innerHTML = '';
-      ctx.elements.importMappingRequired.hidden = true;
-      ctx.elements.importMappingRequired.innerHTML = '';
-      return;
-    }
-    const rows = preview.rows || [];
-    const warnings = preview.warnings || [];
-    const reconciliationSummary = preview.reconciliationSummary || {};
-    const mappingRequired = preview.instrumentMappingsRequired || [];
-    if (mappingRequired.length) {
-      ctx.elements.importMappingRequired.hidden = false;
-      ctx.elements.importMappingRequired.innerHTML = `
-        <strong>Mapeos requeridos:</strong>
-        <ul>
-          ${mappingRequired
-            .map((item) => `<li><code>${ctx.escapeHtml(item.key)}</code> - ${ctx.escapeHtml(item.label || item.symbol || 'sin etiqueta')}</li>`)
-            .join('')}
-        </ul>
-        <small>Completa <em>Mapping opcional (JSON)</em> con pares clave->ticker (ej. {"isin:US30303M1027":"META"}).</small>
-      `;
-    } else {
-      ctx.elements.importMappingRequired.hidden = true;
-      ctx.elements.importMappingRequired.innerHTML = '';
-    }
-
-    ctx.elements.importPreviewOutput.innerHTML = `
-      ${
-        preview.fileSubtype
-          ? `<div class="import-kind-pill">Formato detectado: <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>`
-          : ''
-      }
-      ${
-        warnings.length
-          ? `<div class="import-warning-banner">${warnings.map((item) => `<div>${ctx.escapeHtml(item)}</div>`).join('')}</div>`
-          : ''
-      }
-      <div class="import-summary">
-        <span>Filas: <strong>${preview.summary.rowCount}</strong></span>
-        <span>Compras: <strong>${preview.summary.buys}</strong></span>
-        <span>Ventas: <strong>${preview.summary.sells}</strong></span>
-        <span>Ignoradas: <strong>${preview.summary.ignoredCount || 0}</strong></span>
-        <span>Duplicados: <strong>${preview.summary.duplicateCount}</strong></span>
-        <span>Mapeo: <strong>${preview.summary.needsMappingCount || 0}</strong></span>
-        <span>Bloqueadas: <strong>${preview.summary.blockedCount || 0}</strong></span>
-        <span>Errores: <strong>${preview.summary.errorCount}</strong></span>
-        <span>Comisiones: <strong>${ctx.formatCurrency(preview.summary.commissionEur || 0)}</strong></span>
-        <span>Cash-flow: <strong>${ctx.formatCurrency(preview.summary.cashFlowEur || 0)}</strong></span>
-        ${
-          preview.fileSubtype === 'portfolio_snapshot'
-            ? `<span>Coincidencias: <strong>${Number(reconciliationSummary.exactMatches || 0)}</strong></span>
-               <span>Deltas positivos: <strong>${Number(reconciliationSummary.deltaPositive || 0)}</strong></span>
-               <span>Deltas negativos: <strong>${Number(reconciliationSummary.deltaNegative || 0)}</strong></span>`
-            : ''
-        }
-      </div>
-      <div class="table-wrap compact-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Fila</th>
-              <th>Estado</th>
-              <th>Ticker</th>
-              <th>Tipo</th>
-              <th>Fecha</th>
-              <th>Actual</th>
-              <th>Importado</th>
-              <th>Delta</th>
-              <th>Estrategia</th>
-              <th>Detalle</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows
-              .map(
-                (row) => `
-                  <tr class="import-row-${ctx.escapeHtml(row.status)}">
-                    <td>${row.rowIndex}</td>
-                    <td>${ctx.escapeHtml(row.status)}</td>
-                    <td>${ctx.escapeHtml(row.normalized?.symbol || '')}</td>
-                    <td>${ctx.escapeHtml(row.normalized?.type || '')}</td>
-                    <td>${ctx.escapeHtml(row.normalized?.date || '')}</td>
-                    <td>${Number.isFinite(row.ledgerShares) ? ctx.formatShareNumber(row.ledgerShares) : '-'}</td>
-                    <td>${Number.isFinite(row.snapshotShares) ? ctx.formatShareNumber(row.snapshotShares) : '-'}</td>
-                    <td>${Number.isFinite(row.deltaShares) ? ctx.formatShareNumber(row.deltaShares) : '-'}</td>
-                    <td>${ctx.escapeHtml(row.importStrategy || '-')}</td>
-                    <td>${ctx.escapeHtml(
-                      (row.errors || []).join('; ') ||
-                        row.ignoreReason ||
-                        row.ledgerMatch?.reason ||
-                        row.duplicateTransactionId ||
-                        'OK',
-                    )}</td>
-                  </tr>`,
-              )
-              .join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  function renderImportBatches() {
-    const batches = ctx.state.importBatches || [];
-    ctx.elements.importBatches.innerHTML = batches.length
-      ? `
-        <h4>Importaciones recientes</h4>
-        ${batches
-          .slice(0, 5)
-          .map(
-            (batch) => `
-              <div class="import-batch-row">
-                <span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${ctx.escapeHtml(batch.status)}</span>
-                <small>${ctx.escapeHtml(batch.firstDate || '')} ${ctx.escapeHtml(batch.lastDate || '')}</small>
-                <button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>
-              </div>`,
-          )
-          .join('')}`
-      : '<span class="subtle">Sin importaciones todavia.</span>';
-  }
-
   async function rollbackImportBatch(event) {
     const button = event.target.closest('[data-rollback-import]');
     if (!button) return;
-    if (!window.confirm('¿Revertir esta importacion?')) return;
+    if (!window.confirm('¿Revertir esta importación?')) return;
     button.disabled = true;
     try {
       await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});
@@ -334,5 +342,7 @@ export function attach(ctx) {
     renderImportPreview,
     renderImportBatches,
     rollbackImportBatch,
+    handleImportPreviewInteraction,
+    handleImportPreviewClick,
   });
 }

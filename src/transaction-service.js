@@ -408,7 +408,7 @@ async function previewTransaction(input) {
   if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
   const quote = await getQuoteForSymbol(symbolInput, date);
-  const usdToEur = quote.currency === 'USD' ? await getUsdToEur(quote.marketDate || date) : 1;
+  const usdToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
   const priceEur = toEur(quote.price, quote.currency, usdToEur);
   const shares = hasShares ? Number(input.shares) : Number(input.euros) / priceEur;
   const valueEur = hasEuros ? Number(input.euros) : shares * priceEur;

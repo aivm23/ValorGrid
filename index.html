@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div id="boot-overlay" class="boot-overlay" role="status" aria-live="polite">
+      <div class="boot-card">
+        <img src="./assets/brand/valorgrid-logo.png" width="1254" height="1254" alt="" aria-hidden="true" />
+        <strong>Cargando ValorGrid...</strong>
+        <span>Preparando datos y cartera local.</span>
+        <button id="boot-retry" class="button button-compact" type="button" hidden>Reintentar</button>
+      </div>
+    </div>
     <main class="page-shell">
       <header class="hero">
         <div class="hero-top">
@@ -440,7 +448,7 @@
         <div class="modal-header">
           <div>
             <h2>Importar movimientos</h2>
-            <p class="subtle">Formato recomendado: DEGIRO Transacciones CSV. Portfolio CSV se trata como snapshot de cartera.</p>
+            <p class="subtle">Asistente de conciliacion para revisar instrumentos, operaciones e impacto antes de guardar.</p>
           </div>
           <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -466,22 +474,25 @@
             <select id="import-sheet"></select>
           </label>
 
-          <label class="field import-wide-field">
-            <span>Contenido CSV opcional</span>
+          <label class="field import-wide-field" hidden>
+            <span>Pegar CSV manualmente (opcional)</span>
             <textarea id="import-content" rows="6" placeholder="Pega aquí el CSV si no cargas fichero."></textarea>
           </label>
 
-          <label class="field import-wide-field">
+          <details class="import-advanced-options import-wide-field" hidden>
+            <summary>Opciones avanzadas de mapeo</summary>
+            <label class="field">
             <span>Mapping opcional (JSON)</span>
             <textarea id="import-mapping" rows="4" placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'></textarea>
-          </label>
+            </label>
+          </details>
         </div>
 
         <div id="import-mapping-required" class="import-mapping-required" hidden></div>
 
         <div class="modal-actions">
-          <button id="import-preview" class="button" type="button">Previsualizar</button>
-          <button id="import-commit" class="button button-primary" type="button" disabled>Importar</button>
+          <button id="import-preview" class="button" type="button">Analizar archivo</button>
+          <button id="import-commit" class="button button-primary" type="button" disabled hidden>Importar operaciones seleccionadas</button>
         </div>
 
         <p id="import-feedback" class="form-feedback" role="status"></p>

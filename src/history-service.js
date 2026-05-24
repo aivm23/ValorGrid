@@ -64,9 +64,23 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
       replaceMarketPrices(instrument.symbol, instrument.yahooSymbol, rows);
     }
 
-    const hasUsd = instruments.some((instrument) => instrument.currency === 'USD');
-    const fxRows = hasUsd ? await getDailyPrices('USDEUR=X', fromDate, toDate) : [];
-    if (hasUsd) replaceFxRates('USDEUR', fxRows);
+    const fxRowsByCurrency = new Map();
+    const fxIndexes = new Map();
+    const currencies = Array.from(
+      new Set(instruments.map((instrument) => String(instrument.currency || 'EUR').toUpperCase()).filter((currency) => currency && currency !== 'EUR')),
+    );
+    for (const currency of currencies) {
+      try {
+        const pairSymbol = `${currency}EUR=X`;
+        const rows = await getDailyPrices(pairSymbol, fromDate, toDate);
+        fxRowsByCurrency.set(currency, rows);
+        fxIndexes.set(currency, -1);
+        replaceFxRates(`${currency}EUR`, rows);
+      } catch {
+        fxRowsByCurrency.set(currency, []);
+        fxIndexes.set(currency, -1);
+      }
+    }
 
     const events = getHistoryEvents(fromDate, toDate);
     const pointDates = pointDatesFromPriceRows(
@@ -80,7 +94,6 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
     const transactionRows = getTransactionsUntil(toDate);
     const priceIndexes = new Map(instruments.map((instrument) => [instrument.symbol, -1]));
     let transactionIndex = 0;
-    let fxIndex = -1;
     const pointRows = [];
     const positionRows = [];
 
@@ -96,11 +109,14 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
         transactionIndex += 1;
       }
 
-      while (fxIndex + 1 < fxRows.length && fxRows[fxIndex + 1].date <= date) {
-        fxIndex += 1;
+      for (const currency of currencies) {
+        const rows = fxRowsByCurrency.get(currency) || [];
+        let fxIndex = fxIndexes.get(currency) ?? -1;
+        while (fxIndex + 1 < rows.length && rows[fxIndex + 1].date <= date) {
+          fxIndex += 1;
+        }
+        fxIndexes.set(currency, fxIndex);
       }
-
-      const usdToEur = fxIndex >= 0 ? Number(fxRows[fxIndex].price) : 1;
       let value = 0;
       let dataQuality = 'ok';
 
@@ -129,7 +145,12 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
         const price = rows[priceIndex];
         const rowQuality = price.date === date ? 'ok' : 'stale';
         if (rowQuality === 'stale' && dataQuality === 'ok') dataQuality = 'stale';
-        const priceEur = toEur(Number(price.price), price.currency, usdToEur);
+        const currency = String(price.currency || instrument.currency || 'EUR').toUpperCase();
+        const fxRows = fxRowsByCurrency.get(currency) || [];
+        const fxIndex = fxIndexes.get(currency) ?? -1;
+        const fxToEur = currency === 'EUR' ? 1 : fxIndex >= 0 ? Number(fxRows[fxIndex].price) : null;
+        if (currency !== 'EUR' && !Number.isFinite(fxToEur)) dataQuality = 'missing';
+        const priceEur = toEur(Number(price.price), currency, Number.isFinite(fxToEur) ? fxToEur : 1);
         const valueEur = shares * priceEur;
         value += valueEur;
         positionRows.push({

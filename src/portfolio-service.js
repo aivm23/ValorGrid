@@ -53,8 +53,8 @@ async function getInstrumentValuation(instrument, asOfDate = null) {
   const quote = asOfDate
     ? await getQuoteForSymbol(instrument.symbol, asOfDate)
     : await getQuoteForSymbol(instrument.symbol);
-  const usdToEur = quote.currency === 'USD' ? await getUsdToEur(quote.marketDate || asOfDate) : 1;
-  const priceEur = toEur(quote.price, quote.currency, usdToEur);
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || asOfDate)) ?? 1;
+  const priceEur = toEur(quote.price, quote.currency, fxToEur);
 
   return {
     symbol: instrument.symbol,
@@ -375,8 +375,8 @@ async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {
     };
   }
   const quote = await getQuoteForSymbol(instrument.symbol, requestedDate);
-  const usdToEur = quote.currency === 'USD' ? await getUsdToEur(quote.marketDate || requestedDate) : 1;
-  const priceEur = toEur(quote.price, quote.currency, usdToEur);
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || requestedDate)) ?? 1;
+  const priceEur = toEur(quote.price, quote.currency, fxToEur);
 
   return {
     symbol: instrument.symbol,

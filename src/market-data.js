@@ -249,6 +249,19 @@ async function getUsdToEur(requestedDate = null) {
   const quote = await getQuoteForSymbol('USDEUR', requestedDate);
   return quote.price || 1;
 }
-    Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur });
+
+async function getFxToEur(currencyInput, requestedDate = null) {
+  const currency = String(currencyInput || 'EUR').trim().toUpperCase();
+  if (!currency || currency === 'EUR') return 1;
+  if (currency === 'USD') return getUsdToEur(requestedDate);
+  try {
+    const yahooSymbol = `${currency}EUR=X`;
+    const quote = await getQuoteForYahooSymbol(`${currency}EUR`, yahooSymbol, requestedDate);
+    return Number.isFinite(Number(quote.price)) ? Number(quote.price) : null;
+  } catch {
+    return null;
+  }
+}
+    Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
   }
 };

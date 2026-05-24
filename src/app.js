@@ -62,6 +62,7 @@ const ctx = {
   './meta-state',
   './utils',
   './instrument-service',
+  './ticker-suggestions',
   './market-data',
   './transaction-service',
   './import-service',

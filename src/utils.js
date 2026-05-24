@@ -61,8 +61,8 @@ function toUnixSeconds(date) {
   return Math.floor(date.getTime() / 1000);
 }
 
-function toEur(price, currency, usdToEur) {
-  return currency === 'USD' ? price * usdToEur : price;
+function toEur(price, currency, fxToEur = 1) {
+  return String(currency || 'EUR').toUpperCase() === 'EUR' ? price : price * fxToEur;
 }
 
 function transactionSign(type) {

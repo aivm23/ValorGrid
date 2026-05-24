@@ -11,6 +11,10 @@ export function attach(ctx) {
     ctx.refreshDashboard();
     ctx.refreshHistory({ force: true });
   });
+  elements.bootRetry?.addEventListener('click', () => {
+    ctx.refreshDashboard();
+    ctx.refreshHistory({ force: true });
+  });
   elements.addPosition.addEventListener('click', () => ctx.openOperationDialog('add'));
   elements.removePosition.addEventListener('click', () => ctx.openOperationDialog('remove'));
   elements.onboardingWizard?.addEventListener('click', ctx.openWizardDialog);
@@ -117,6 +121,9 @@ export function attach(ctx) {
   elements.importSheet.addEventListener('change', ctx.handleImportSheetChange);
   elements.importPreview.addEventListener('click', ctx.previewCsvImport);
   elements.importCommit.addEventListener('click', ctx.commitCsvImport);
+  elements.importPreviewOutput.addEventListener('click', ctx.handleImportPreviewClick);
+  elements.importPreviewOutput.addEventListener('change', ctx.handleImportPreviewInteraction);
+  elements.importPreviewOutput.addEventListener('input', ctx.handleImportPreviewInteraction);
   elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));

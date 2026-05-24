@@ -1,8 +1,19 @@
 export function attach(ctx) {
+  function setBootState(status, message = '') {
+    const { elements } = ctx;
+    if (!elements.bootOverlay) return;
+    const text = elements.bootOverlay.querySelector('span');
+    if (text && message) text.textContent = message;
+    elements.bootOverlay.classList.toggle('is-error', status === 'error');
+    elements.bootOverlay.hidden = status === 'ready';
+    if (elements.bootRetry) elements.bootRetry.hidden = status !== 'error';
+  }
+
   async function refreshDashboard() {
     const { elements, state } = ctx;
     elements.refreshPrices.disabled = true;
     elements.priceStatus.textContent = 'Cargando precios online...';
+    if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
       const [summary, monthly, appInfo, transactionData, instrumentData, groupData, backupData, importData] = await Promise.all([
@@ -26,8 +37,11 @@ export function attach(ctx) {
       state.importBatches = importData.batches || [];
       state.autoPlans = summary.autoPlans || state.autoPlans;
       renderDashboard();
+      state.initialLoadComplete = true;
+      setBootState('ready');
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
+      if (!state.initialLoadComplete) setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
       try {
         state.onboarding = await ctx.fetchJson('/api/onboarding/status');
         elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
@@ -90,5 +104,5 @@ export function attach(ctx) {
     }
   }
 
-  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory });
+  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory, setBootState });
 }

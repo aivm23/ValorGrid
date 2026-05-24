@@ -1,17 +1,17 @@
-const crypto = require('node:crypto');
+﻿const crypto = require('node:crypto');
 const XLSX = require('../vendor/xlsx.full.min.js');
 const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides } = require('./import-profiles');
-
-function sha256(value) {
-  return crypto.createHash('sha256').update(String(value)).digest('hex');
-}
+function sha256(value) { return crypto.createHash('sha256').update(String(value)).digest('hex'); }
 function normalizeHeader(value) {
   let text = String(value || '');
-  if (/[ÃÂ]/.test(text)) {
+  for (let attempt = 0; attempt < 3 && /[ÃƒÃ‚]/.test(text); attempt += 1) {
     try {
       const decoded = Buffer.from(text, 'latin1').toString('utf8');
-      if (!decoded.includes('�')) text = decoded;
-    } catch {}
+      if (!decoded || decoded === text || decoded.includes('ï¿½')) break;
+      text = decoded;
+    } catch {
+      break;
+    }
   }
   return text
     .trim()
@@ -20,21 +20,27 @@ function normalizeHeader(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ');
 }
-function headerSet(headers = []) {
-  return new Set((headers || []).map(normalizeHeader));
-}
-
+function headerSet(headers = []) { return new Set((headers || []).map(normalizeHeader)); }
 function detectDegiroFileSubtype(headers = []) {
   const normalized = headerSet(headers);
   const has = (key) => normalized.has(normalizeHeader(key));
+  const hasIndexedTransactionShape =
+    headers.length >= 17 &&
+    has('fecha') &&
+    has('producto') &&
+    has('isin') &&
+    has('precio') &&
+    has('valor local') &&
+    (has('valor eur') || has('valor en eur')) &&
+    has('id orden');
   const snapshotLike = has('producto') && (has('symbol/isin') || has('isin')) && has('cantidad') && has('valor en eur');
   const transactionLike =
     has('fecha') &&
-    (has('numero') || has('número')) &&
+    (has('numero') || has('nÃºmero')) &&
     has('precio') &&
     (has('valor eur') || has('valor en eur')) &&
     has('id orden');
-  if (transactionLike) return 'transactions_export';
+  if (transactionLike || hasIndexedTransactionShape) return 'transactions_export';
   if (snapshotLike) return 'portfolio_snapshot';
   return 'unknown';
 }
@@ -44,7 +50,6 @@ function chooseDelimiter(text) {
   const commas = (firstLine.match(/,/g) || []).length;
   return semicolons >= commas ? ';' : ',';
 }
-
 function parseCsvRows(content) {
   const text = String(content || '').replace(/^\uFEFF/, '');
   const delimiter = chooseDelimiter(text);
@@ -124,10 +129,9 @@ function parseNumber(value) {
   let cleaned = text
     .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, '')
-    .replace(/[€$£%]/g, '')
-    .replace(/[−–—]/g, '-');
+    .replace(/[â‚¬$Â£%]/g, '')
+    .replace(/[âˆ’â€“â€”]/g, '-');
   if (/^\(.*\)$/.test(cleaned)) cleaned = `-${cleaned.slice(1, -1)}`;
-
   const hasComma = cleaned.includes(',');
   const hasDot = cleaned.includes('.');
   let normalized = cleaned;
@@ -139,7 +143,6 @@ function parseNumber(value) {
   } else if (hasComma) {
     normalized = cleaned.replace(',', '.');
   }
-
   const number = Number(normalized);
   return Number.isFinite(number) ? number : null;
 }
@@ -168,7 +171,7 @@ function normalizeType(value) {
 function resolveAdapter(sourceInput = 'csv') {
   const source = String(sourceInput || 'csv').trim().toLowerCase();
   const adapter = adapterDefinitions[source];
-  if (!adapter) throw new Error(`Origen de importación no soportado: ${sourceInput}`);
+  if (!adapter) throw new Error(`Origen de importaciÃ³n no soportado: ${sourceInput}`);
   return { source, ...adapter };
 }
 function resolveFieldAliases(profile, field) {
@@ -200,6 +203,15 @@ function rowValueByHeaders(row, aliases = []) {
   }
   return '';
 }
+const degiroTransactionColumns = {
+  date: 0, product: 2, isin: 3, exchange: 4, center: 5, shares: 6, price: 7, priceCurrency: 8,
+  localValue: 9, localCurrency: 10, valueEur: 11, fx: 12, autoFx: 13, costs: 14, totalEur: 15, externalId: 16,
+};
+function degiroTransactionCell(row, field) {
+  const index = degiroTransactionColumns[field];
+  if (!Number.isInteger(index)) return '';
+  return row.values?.[index] ?? '';
+}
 function degiroCurrencyHint(row) {
   const headers = row.headers || [];
   const normalizedHeaders = headers.map(normalizeHeader);
@@ -224,25 +236,25 @@ function inferTypeFromData(explicitType, rawShares, valueEurInput) {
 function looksLikeIsin(value) {
   return /^[A-Z]{2}[A-Z0-9]{10}$/.test(String(value || '').trim().toUpperCase());
 }
-
-function extractExternalIdentifiers(profile, row, symbol) {
+function extractExternalIdentifiers(profile, row, symbol, fileSubtype = 'unknown') {
   const identifiers = [];
   if (symbol) {
     identifiers.push({ provider: 'manual', identifierType: 'ticker', identifierValue: String(symbol || '').toUpperCase() });
   }
   if (profile !== 'degiro') return identifiers;
-  const isinRaw = String(rowValueByHeaders(row, ['Symbol/ISIN', 'symbol/isin', 'ISIN', 'isin']) || '')
+  const degiroTransactions = profile === 'degiro' && fileSubtype === 'transactions_export';
+  const isinRaw = String(rowValueByHeaders(row, ['Symbol/ISIN', 'symbol/isin', 'ISIN', 'isin']) || (degiroTransactions ? degiroTransactionCell(row, 'isin') : ''))
     .trim()
     .toUpperCase();
   if (looksLikeIsin(isinRaw)) {
     identifiers.push({ provider: 'global', identifierType: 'isin', identifierValue: isinRaw });
   }
-  const product = String(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || '').trim();
+  const product = String(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || (degiroTransactions ? degiroTransactionCell(row, 'product') : '')).trim();
   if (product) {
     identifiers.push({ provider: 'degiro', identifierType: 'broker_product', identifierValue: product.toUpperCase(), displayName: product });
   }
   const exchange = String(
-    rowValueByHeaders(row, ['Bolsa de referencia', 'Centro de ejecucion', 'Centro de ejecución']) || '',
+    rowValueByHeaders(row, ['Bolsa de referencia', 'Centro de ejecucion', 'Centro de ejecuciÃ³n']) || '',
   )
     .trim()
     .toUpperCase();
@@ -260,9 +272,9 @@ function normalizeText(value) {
 }
 function degiroCorporateActionReason(row, fileSubtype, values) {
   if (fileSubtype !== 'transactions_export') return null;
-  const product = normalizeText(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']));
+  const product = normalizeText(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || degiroTransactionCell(row, 'product'));
   const centerRaw = String(
-    rowValueByHeaders(row, ['Centro de ejecución', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
+    rowValueByHeaders(row, ['Centro de ejecuciÃ³n', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
   ).trim();
   const hasRightsKeyword = /\b(RTS?|RIGHTS?|NON\s*TRADEABLE)\b/.test(product);
   const centerLooksEmpty = !centerRaw || centerRaw === '-' || centerRaw === '--';
@@ -283,45 +295,48 @@ function degiroCorporateActionReason(row, fileSubtype, values) {
 function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'generic', options = {}) {
   const { normalizeSymbol } = ctx;
   const fileSubtype = options.fileSubtype || 'unknown';
+  const degiroTransactions = profile === 'degiro' && fileSubtype === 'transactions_export';
   const explicitType = normalizeType(mappedValue(row, mapping, profile, 'type'));
   const mappedSymbolRaw = mappedValue(row, mapping, profile, 'symbol');
   let symbol = normalizeSymbol(mappedSymbolRaw);
   if (profile === 'degiro' && fileSubtype === 'transactions_export' && looksLikeIsin(symbol)) symbol = '';
-
-  const date = defaultDegiroSnapshotDate(ctx, profile, mappedValue(row, mapping, profile, 'date'), row, fileSubtype);
+  const date = defaultDegiroSnapshotDate(
+    ctx,
+    profile,
+    degiroTransactions ? degiroTransactionCell(row, 'date') || mappedValue(row, mapping, profile, 'date') : mappedValue(row, mapping, profile, 'date'),
+    row,
+    fileSubtype,
+  );
   const marketDate = parseDateValue(mappedValue(row, mapping, profile, 'marketDate')) || date;
-  const rawShares = parseNumber(mappedValue(row, mapping, profile, 'shares'));
-  const rawPrice = parseNumber(mappedValue(row, mapping, profile, 'price'));
-  const rawValueEur = parseNumber(mappedValue(row, mapping, profile, 'valueEur'));
-
+  const rawShares = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'shares') || mappedValue(row, mapping, profile, 'shares') : mappedValue(row, mapping, profile, 'shares'));
+  const rawPrice = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'price') || mappedValue(row, mapping, profile, 'price') : mappedValue(row, mapping, profile, 'price'));
+  const rawValueEur = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'valueEur') || mappedValue(row, mapping, profile, 'valueEur') : mappedValue(row, mapping, profile, 'valueEur'));
   const inferredType = inferTypeFromData(explicitType, rawShares, rawValueEur);
   const shares = Number.isFinite(rawShares) ? Math.abs(rawShares) : rawShares;
   const price = Number.isFinite(rawPrice) ? Math.abs(rawPrice) : rawPrice;
   const valueEurInput = Number.isFinite(rawValueEur) ? Math.abs(rawValueEur) : rawValueEur;
-  const totalEur = parseNumber(rowValueByHeaders(row, ['Total EUR', 'Total in EUR', 'Total eur']));
-
+  const totalEur = parseNumber(rowValueByHeaders(row, ['Total EUR', 'Total in EUR', 'Total eur']) || (degiroTransactions ? degiroTransactionCell(row, 'totalEur') : ''));
   const mappedCommission = parseNumber(mappedValue(row, mapping, profile, 'commissionEur'));
   const degiroAutoFx =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['Comisión AutoFX', 'Comision AutoFX', 'Comisión AutoFx', 'Comision AutoFx']))
+      ? parseNumber(rowValueByHeaders(row, ['Comisión AutoFX', 'Comision AutoFX', 'Comisión AutoFx', 'Comision AutoFx']) || (degiroTransactions ? degiroTransactionCell(row, 'autoFx') : ''))
       : null;
   const degiroCosts =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['Costes de transacción y/o externos EUR', 'Costes de transaccion y/o externos EUR']))
+      ? parseNumber(rowValueByHeaders(row, ['Costes de transacción y/o externos EUR', 'Costes de transaccion y/o externos EUR']) || (degiroTransactions ? degiroTransactionCell(row, 'costs') : ''))
       : null;
   const commissionEur = Math.abs(
     profile === 'degiro' && (Number.isFinite(degiroAutoFx) || Number.isFinite(degiroCosts))
       ? Number(degiroAutoFx || 0) + Number(degiroCosts || 0)
       : Number(mappedCommission || 0),
   );
-
   const detectedCurrency =
     profile === 'degiro' && fileSubtype === 'transactions_export'
-      ? degiroCurrencyHint(row)
+      ? String(degiroTransactionCell(row, 'priceCurrency') || degiroTransactionCell(row, 'localCurrency') || degiroCurrencyHint(row)).trim().toUpperCase()
       : String(mappedValue(row, mapping, profile, 'currency') || '').trim().toUpperCase();
   const currency = detectedCurrency || 'EUR';
-  const fxInput = parseNumber(mappedValue(row, mapping, profile, 'usdToEur'));
-  const explicitLocalValue = parseNumber(rowValueByHeaders(row, ['Valor local', 'Local value', 'valor local']));
+  const fxInput = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'fx') || mappedValue(row, mapping, profile, 'usdToEur') : mappedValue(row, mapping, profile, 'usdToEur'));
+  const explicitLocalValue = parseNumber(rowValueByHeaders(row, ['Valor local', 'Local value', 'valor local']) || (degiroTransactions ? degiroTransactionCell(row, 'localValue') : ''));
   const localValue = Number.isFinite(explicitLocalValue)
     ? Math.abs(explicitLocalValue)
     : Number.isFinite(shares) && Number.isFinite(price)
@@ -334,13 +349,11 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     else if (Number.isFinite(fxInput) && fxInput > 0) fxToEur = profile === 'degiro' ? 1 / fxInput : fxInput;
     else fxToEur = null;
   }
-
   const externalIdBase =
     profile === 'degiro' && fileSubtype === 'transactions_export'
-      ? String(rowValueByHeaders(row, ['ID Orden', 'Id Orden', 'ID orden']) || mappedValue(row, mapping, profile, 'externalId') || '').trim()
+      ? String(rowValueByHeaders(row, ['ID Orden', 'Id Orden', 'ID orden']) || degiroTransactionCell(row, 'externalId') || mappedValue(row, mapping, profile, 'externalId') || '').trim()
       : String(mappedValue(row, mapping, profile, 'externalId') || '').trim();
   const externalId = externalIdBase ? `${externalIdBase}:${row.rowIndex}` : null;
-
   const corporateReason =
     profile === 'degiro'
       ? degiroCorporateActionReason(row, fileSubtype, {
@@ -351,7 +364,6 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
           totalEur,
         })
       : null;
-
   const errors = [];
   if (!corporateReason) {
     if (!inferredType) errors.push('Tipo no reconocido');
@@ -361,7 +373,6 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
     if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   }
-
   const computedValueEur =
     Number.isFinite(shares) && Number.isFinite(price) && (currency === 'EUR' || Number.isFinite(fxToEur))
       ? currency === 'EUR'
@@ -369,7 +380,6 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
         : shares * price * fxToEur
       : null;
   const valueEur = Number.isFinite(valueEurInput) && valueEurInput > 0 ? valueEurInput : computedValueEur;
-
   if (!corporateReason && (!Number.isFinite(valueEur) || valueEur <= 0)) {
     errors.push('Valor EUR debe ser mayor que 0');
   }
@@ -380,7 +390,6 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
       if (!isDegiroTransactions) errors.push('Valor EUR no cuadra con precio, acciones y FX');
     }
   }
-
   const normalized = {
     type: inferredType || 'add',
     symbol,
@@ -390,13 +399,13 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     valueEur,
     price,
     currency,
-    usdToEur: currency === 'USD' && Number.isFinite(fxToEur) ? fxToEur : 1,
+    usdToEur: currency !== 'EUR' && Number.isFinite(fxToEur) ? fxToEur : 1,
     fxToEur: Number.isFinite(fxToEur) ? fxToEur : null,
     commissionEur,
     cashFlowEur: (inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
     externalId,
     source,
-    externalIdentifiers: extractExternalIdentifiers(profile, row, symbol),
+    externalIdentifiers: extractExternalIdentifiers(profile, row, symbol, fileSubtype),
     rowKind: corporateReason ? 'corporate_action_ignored' : 'trade',
     ignoreReason: corporateReason || null,
   };
@@ -416,6 +425,7 @@ function summarizeImportRows(rows) {
       }
       if (row.status === 'needs_mapping') summary.needsMappingCount += 1;
       if (row.status === 'ignored') summary.ignoredCount += 1;
+      if (row.status === 'skipped') summary.skippedCount += 1;
       if (row.status === 'valid') {
         if (row.normalized.type === 'add') summary.buys += 1;
         if (row.normalized.type === 'remove') summary.sells += 1;
@@ -436,6 +446,7 @@ function summarizeImportRows(rows) {
       duplicateLedgerCount: 0,
       needsMappingCount: 0,
       ignoredCount: 0,
+      skippedCount: 0,
       buys: 0,
       sells: 0,
       valueEur: 0,
@@ -464,7 +475,6 @@ function parseImportPayload(input, adapter) {
       fileSubtype: adapter.profile === 'degiro' ? detectDegiroFileSubtype(parsed.headers) : 'unknown',
     };
   }
-
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
   const parsed = parseXlsxRows(contentBase64, input.sheetName || null);
