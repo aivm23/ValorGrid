@@ -1,41 +1,68 @@
 # ValorGrid
 
+![Node.js](https://img.shields.io/badge/Node.js-24+-339933?logo=node.js&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Tests](https://img.shields.io/badge/tests-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Privacidad](https://img.shields.io/badge/privacidad-local%20first-0f766e)
+![No financial advice](https://img.shields.io/badge/no%20financial%20advice-7c3aed)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA?logo=githubsponsors&logoColor=white)](#apoyar-el-proyecto)
+
 ![ValorGrid - dashboard privado de cartera](assets/brand/valorgrid-publicidad-completa.png)
 
-Aplicacion local de un solo usuario para gestionar una cartera privada con SQLite.
+ValorGrid es una aplicación local de un solo usuario para gestionar y visualizar una cartera privada con SQLite.
 
-La version visible se lee desde `version.json` y tambien esta disponible en `GET /api/version`.
+Está pensada como una herramienta de seguimiento, organización y visualización de cartera. No ofrece asesoramiento financiero, recomendaciones de inversión ni señales de compra o venta.
+
+## Funcionalidades principales
+
+- Dashboard de distribución actual de cartera.
+- Revisión YTD de evolución, flujos y resultado anual.
+- Registro de movimientos de compra y venta.
+- Importación de CSV/XLSX genéricos y formatos de broker con preview, conciliación y rollback.
+- Histórico de evolución de cartera.
+- Aportaciones automáticas configurables.
+- Backups locales y exportación de movimientos.
+- Ejecución local con datos bajo control del usuario.
 
 ## Privacidad
 
-El repositorio no debe contener datos reales de cartera. Las bases SQLite, backups, configuracion local e importaciones privadas estan ignoradas por Git.
+ValorGrid se ejecuta en local. La app escucha por defecto en `127.0.0.1`, no requiere login y no sincroniza datos con servidores externos.
 
-Cada usuario ejecuta su propia instalacion local:
+El repositorio no debe contener datos reales de cartera. Las bases SQLite, backups, configuración local e importaciones privadas están ignoradas por Git.
 
 ```text
-codigo del repositorio
+código del repositorio
 data/portfolio.sqlite      privado e ignorado
 .backups/                  privado e ignorado
 .env                       privado e ignorado
 ```
 
-La app escucha por defecto en `127.0.0.1`, no requiere login y no sincroniza datos con ningun servidor remoto. Yahoo Finance se usa solo como proveedor de precios y los resultados se cachean en SQLite.
+Yahoo Finance se usa solo como proveedor externo de precios. Los resultados se cachean localmente en SQLite.
+
+Más detalle en [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md).
 
 ## Requisitos
 
 - Node.js 24 o superior, por el uso de `node:sqlite`.
 - PowerShell para los scripts `.ps1` incluidos.
 
-Instala dependencias npm antes de arrancar:
+Instala dependencias:
 
 ```powershell
 npm install
 ```
 
-## Ejecutar
+## Ejecutar en local
 
 ```powershell
 npm start
+```
+
+Después abre:
+
+```text
+http://localhost:5173
 ```
 
 Equivalente manual:
@@ -44,19 +71,13 @@ Equivalente manual:
 node server.js
 ```
 
-Despues abre:
+La ruta de base de datos se decide así:
 
-```text
-http://localhost:5173
-```
-
-La ruta de base de datos se decide asi:
-
-1. `PORTFOLIO_DB_PATH`, si esta definido.
-2. `portfolio.sqlite` en la raiz, si existe por compatibilidad con instalaciones antiguas.
+1. `PORTFOLIO_DB_PATH`, si está definido.
+2. `portfolio.sqlite` en la raíz, si existe por compatibilidad con instalaciones antiguas.
 3. `data/portfolio.sqlite` para instalaciones nuevas.
 
-Ejemplo con ruta privada explicita:
+Ejemplo con ruta privada explícita:
 
 ```powershell
 $env:PORTFOLIO_DB_PATH = "D:\cartera-privada\portfolio.sqlite"
@@ -65,7 +86,7 @@ node server.js
 
 ## Dataset demo
 
-El dataset demo es sintetico y determinista. No representa una cartera real.
+El dataset demo es sintético y determinista. No representa una cartera real.
 
 ```powershell
 npm run seed:demo
@@ -73,7 +94,7 @@ $env:PORTFOLIO_DB_PATH = ".\portfolio.loadtest.sqlite"
 node server.js
 ```
 
-Tambien puedes usar:
+También puedes usar:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start-loadtest.ps1
@@ -81,11 +102,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-loadtest.ps1
 
 `portfolio.loadtest.sqlite` es regenerable y no debe versionarse.
 
-## Muestras de importacion
+## Importaciones de prueba
 
-Hay datasets sinteticos en `samples/` para probar el importador sin usar datos reales. Por ejemplo, `samples/broker-degiro/degiro-demo.csv` sirve para validar el flujo `DEGIRO CSV` con compras, ventas, comisiones, EUR/USD y FX.
+Hay datasets sintéticos en `samples/` para probar el importador sin usar datos reales.
 
-## Docker y CasaOS
+Ejemplo:
+
+```text
+samples/broker-degiro/degiro-transactions-synthetic.csv
+```
+
+Sirve para validar un flujo de broker con compras, ventas, comisiones, varias divisas, FX, acciones corporativas omitidas y conciliación de instrumentos.
+
+## Docker
 
 ValorGrid puede ejecutarse como servicio local con Docker:
 
@@ -95,19 +124,23 @@ docker compose up -d --build
 
 La base SQLite queda en `./data` y los backups en `./backups`, ambas rutas privadas e ignoradas por Git.
 
-Para CasaOS, usa `compose.casaos.yml` cuando exista imagen publicada en GitHub Container Registry. La guia completa esta en `docs/DEPLOY_DOCKER.md`.
+La guía completa está en [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md).
 
 ## Tests
+
+```powershell
+npm test
+```
+
+Equivalente:
 
 ```powershell
 node --test
 ```
 
-Ejecuta la suite antes de relanzar la app tras cambios de codigo. `npm test` es un alias.
+La suite incluye comprobaciones de privacidad para evitar publicar rutas locales, bases SQLite, backups o saldos iniciales personales en código.
 
-La suite incluye comprobaciones de privacidad para evitar publicar rutas locales, bases SQLite, backups o saldos iniciales personales en codigo.
-
-## Verificar publicacion
+## Verificar antes de publicar
 
 Antes de crear un commit o publicar en GitHub:
 
@@ -117,6 +150,8 @@ npm run verify:publication
 
 Ese comando ejecuta checks de sintaxis, tests y validaciones de privacidad sobre los archivos publicables.
 
+Antes de publicar una release, revisa [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md).
+
 ## Backups
 
 Crear backup local:
@@ -125,71 +160,35 @@ Crear backup local:
 npm run backup
 ```
 
-Tambien esta disponible por API local con `POST /api/backups`. Los backups se guardan en `.backups/`, que no debe subirse a Git.
+También está disponible por API local con:
 
-## APIs locales
-
-- `GET /api/version`
-- `GET /api/health`
-- `GET /api/instruments`
-- `POST /api/instruments`
-- `PUT /api/instruments/:symbol`
-- `GET /api/instrument-groups`
-- `POST /api/instrument-groups`
-- `PUT /api/instrument-groups/:id`
-- `GET /api/onboarding/status`
-- `GET /api/transactions`
-- `POST /api/transactions`
-- `POST /api/transactions/preview`
-- `DELETE /api/transactions/:id`
-- `GET /api/auto-plans`
-- `PUT /api/auto-plans`
-- `GET /api/portfolio/summary`
-- `GET /api/portfolio/performance`
-- `GET /api/portfolio/monthly?year=2026`
-- `GET /api/portfolio/history?range=all`
-- `GET /api/diagnostics/performance`
-- `GET /api/backups`
-- `POST /api/backups`
-- `GET /api/export/transactions.csv`
-- `GET /api/export/transactions.json`
-- `POST /api/import/preview` (`source`: `generic-csv|generic-xlsx|degiro-csv|ibkr-csv`)
-- `POST /api/import/commit` (`source`: `generic-csv|generic-xlsx|degiro-csv|ibkr-csv`)
-- `GET /api/import/batches`
-- `GET /api/import/batches/:id`
-- `POST /api/import/batches/:id/rollback`
-- `GET /api/quote?symbol=TICKER&date=2026-05-03`
-- `GET /api/state`
-
-## Modelo de datos
-
-- `instruments`: ticker interno, ticker Yahoo, nombre, tipo, divisa, color, acciones base y estado activo.
-- `instrument_groups`: agrupacion visual y funcional de instrumentos.
-- `transactions`: compras y ventas atomicas con fecha, acciones, importe EUR, precio, divisa, FX, comision, cash-flow y origen.
-- `import_batches` e `import_rows`: trazabilidad de importaciones CSV/XLSX y plantillas de broker con preview, commit atomico y rollback por lote.
-- `auto_plans`: aportaciones automaticas configurables con fecha de inicio.
-- `price_cache` y `daily_price_cache`: cache local de precios.
-- `portfolio_positions_daily`, `portfolio_value_daily`, `portfolio_value_weekly`, `portfolio_events`: historico materializado para lectura rapida.
-- `history_invalidations` y `history_builds`: control de reconstruccion historica.
-
-## Estructura
-
-- `server.js`: bootstrap del servidor.
-- `src/`: backend modular, SQLite, rutas, servicios, historico y backups.
-- `client/`: frontend modular, API, estado, graficos, formularios, ledger, tema y vistas.
-- `scripts/`: arranque, backup, verificacion y dataset demo.
-- `test/`: tests funcionales, rendimiento, privacidad y arquitectura.
-- `docs/GITHUB_RELEASE.md`: checklist para publicar en GitHub sin datos privados.
-- `GITHUB.md`: guia de inicializacion y subida del repositorio.
-- `SECURITY.md`: notas de privacidad y seguridad local.
-- `version.json`: fuente unica de version.
-
-## GitHub
-
-Antes de publicar:
-
-```powershell
-npm run verify:publication
+```text
+POST /api/backups
 ```
 
-Consulta `GITHUB.md` y `docs/GITHUB_RELEASE.md`. No subas bases SQLite, backups, ficheros `.env`, exportaciones de broker ni scripts locales con datos reales.
+Los backups se guardan en `.backups/`, que no debe subirse a Git.
+
+## Documentación útil
+
+- [docs/API.md](docs/API.md): endpoints de la API local.
+- [docs/DATA_MODEL.md](docs/DATA_MODEL.md): tablas principales y modelo SQLite.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): backend, frontend, histórico e importaciones.
+- [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md): despliegue local con Docker y CasaOS.
+- [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md): privacidad práctica, archivos ignorados y publicación segura.
+- [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md): checklist para publicar en GitHub sin datos privados.
+- [GITHUB.md](GITHUB.md): guía de inicialización y subida del repositorio.
+- [SECURITY.md](SECURITY.md): notas estándar de privacidad y seguridad local.
+
+## Apoyar el proyecto
+
+Si ValorGrid te resulta útil, puedes apoyar su desarrollo mediante GitHub Sponsors, feedback, issues o pull requests.
+
+El objetivo del proyecto es mantener una herramienta local, privada y sencilla para seguimiento de cartera, sin convertirla en una plataforma de asesoramiento financiero.
+
+## Licencia
+
+Este proyecto se publica bajo licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más información.
+
+## Aviso
+
+ValorGrid no ofrece asesoramiento financiero ni recomendaciones de inversión. Es una herramienta local de organización, seguimiento y visualización de cartera.
