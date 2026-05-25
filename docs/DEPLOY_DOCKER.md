@@ -43,7 +43,7 @@ El compose CasaOS usa:
 
 - `/DATA/AppData/valorgrid/data:/data`
 - `/DATA/AppData/valorgrid/backups:/app/.backups`
-- `ghcr.io/alvarovalderramamolina/valorgrid:latest`
+- `ghcr.io/aivm23/valorgrid:latest`
 
 ## Actualizar
 
