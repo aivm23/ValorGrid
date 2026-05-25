@@ -131,7 +131,7 @@ p {
 
 .header-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   align-items: center;
   justify-content: center;
@@ -399,6 +399,7 @@ h2 {
   display: inline-flex;
   gap: 8px;
   align-items: center;
+  flex: 0 0 auto;
   height: 36px;
   border: 1px solid var(--button-border);
   border-radius: 999px;
@@ -442,6 +443,102 @@ h2 {
   inset: 4px;
   border-radius: 50%;
   background: currentColor;
+  content: "";
+}
+
+.instruments-icon,
+.export-icon,
+.admin-icon {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.instruments-icon {
+  border: 2px solid currentColor;
+  border-radius: 4px;
+}
+
+.instruments-icon::before {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 3px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  box-shadow:
+    6px 0 0 currentColor,
+    0 6px 0 currentColor,
+    6px 6px 0 currentColor;
+  content: "";
+}
+
+.instruments-icon::after {
+  content: none;
+}
+
+.export-icon {
+  border: 2px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+}
+
+.export-icon::before {
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  width: 2px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+}
+
+.export-icon::after {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  content: "";
+  transform: rotate(-45deg);
+}
+
+.admin-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.admin-icon::before {
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  width: 13px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow:
+    0 5px 0 currentColor,
+    0 10px 0 currentColor;
+  content: "";
+}
+
+.admin-icon::after {
+  position: absolute;
+  top: 1px;
+  left: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    -6px 5px 0 currentColor,
+    2px 10px 0 currentColor;
   content: "";
 }
 
@@ -1836,6 +1933,10 @@ td:last-child {
   width: min(1160px, calc(100vw - 32px));
 }
 
+#admin-dialog {
+  width: min(880px, calc(100vw - 32px));
+}
+
 #wizard-dialog {
   width: min(1040px, calc(100vw - 32px));
 }
@@ -1889,11 +1990,18 @@ td:last-child {
 }
 
 .admin-panel {
-  max-width: min(900px, calc(100vw - 32px));
+  width: 100%;
+  max-width: min(880px, calc(100vw - 32px));
+  overflow-x: hidden;
 }
 
 .admin-grid {
-  grid-template-columns: minmax(220px, 0.85fr) minmax(280px, 1.15fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  min-width: 0;
+}
+
+.admin-grid section {
+  min-width: 0;
 }
 
 .admin-grid section:last-child {
@@ -1904,6 +2012,19 @@ td:last-child {
 
 .admin-preference {
   width: fit-content;
+}
+
+.backup-list,
+.import-batches {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.backup-list a,
+.import-batches a,
+.import-batches button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .inline-form {
@@ -2317,9 +2438,25 @@ td:last-child {
   }
 
   .header-actions {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     max-width: none;
+    gap: 6px;
+    padding: 7px 8px;
+  }
+
+  .header-actions .toolbar-label {
+    display: none;
+  }
+
+  .calendar-button {
+    justify-content: center;
+    width: 36px;
+    padding: 0;
+  }
+
+  .toolbar-menu > summary.calendar-button {
+    width: 36px;
   }
 
   .source-row {
@@ -2352,6 +2489,14 @@ td:last-child {
 
   .chart-layout .legend {
     align-content: start;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grid section:last-child {
+    grid-column: auto;
   }
 
   .field-grid {
@@ -2564,14 +2709,17 @@ td:last-child {
   }
 
   .header-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    width: fit-content;
+    max-width: calc(100vw - 24px);
+    gap: 5px;
+    overflow: visible;
   }
 
   .header-actions.is-fixed {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
     width: calc(100vw - 16px);
     padding: 7px;
@@ -2597,16 +2745,32 @@ td:last-child {
   }
 
   .header-actions .app-version {
-    grid-column: 1 / -1;
+    display: none;
   }
 
   .calendar-button {
     justify-content: center;
-    width: 100%;
+    width: 34px;
+    height: 34px;
+    padding: 0;
   }
 
   .balance-toggle,
   .theme-toggle {
-    justify-self: start;
+    justify-self: auto;
+  }
+
+  .balance-toggle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .theme-toggle-track {
+    width: 58px;
+    height: 34px;
+  }
+
+  .toolbar-brand span {
+    display: none;
   }
 }
