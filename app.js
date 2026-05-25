@@ -14,6 +14,7 @@ import { attach as attachImports } from './client/imports.js';
 import { attach as attachTheme } from './client/theme.js';
 import { attach as attachPrivacy } from './client/privacy.js';
 import { attach as attachHistory } from './client/history.js';
+import { attach as attachBulkActions } from './client/bulk-actions.js';
 import { attach as attachEvents } from './client/events.js';
 
 const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, localStorage, Intl, Number, Date, Math, Promise, Set, Map };
@@ -21,7 +22,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, loca
 [
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
-  attachOnboarding, attachImports, attachPrivacy,
+  attachOnboarding, attachImports, attachPrivacy, attachBulkActions,
 ].forEach((attach) => attach(ctx));
 
 attachEvents(ctx);

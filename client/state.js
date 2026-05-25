@@ -51,7 +51,11 @@ export function attach(ctx) {
       currency: '',
     },
     selectedInstrumentSymbols: [],
+    visibleInstrumentSymbols: [],
     selectedGroupIds: [],
+    visibleGroupIds: [],
+    selectedTransactionIds: [],
+    visibleTransactionIds: [],
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

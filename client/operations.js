@@ -57,12 +57,6 @@ export function attach(ctx) {
       ctx.elements.instrumentPositionFilter.value = ctx.state.instrumentPositionFilter || 'all';
     }
     const filters = ctx.state.instrumentFilters || {};
-    const selectedInstruments = new Set(ctx.state.selectedInstrumentSymbols || []);
-    const selectedCount = selectedInstruments.size;
-    if (ctx.elements.instrumentSelectionCount) {
-      ctx.elements.instrumentSelectionCount.textContent = `${selectedCount} valor${selectedCount === 1 ? '' : 'es'} seleccionado${selectedCount === 1 ? '' : 's'}`;
-    }
-    if (ctx.elements.deleteSelectedInstruments) ctx.elements.deleteSelectedInstruments.hidden = selectedCount === 0;
     const matchesText = (value, filter) =>
       !String(filter || '').trim() ||
       String(value || '').toLowerCase().includes(String(filter).trim().toLowerCase());
@@ -84,6 +78,21 @@ export function attach(ctx) {
           matchesText(instrument.currency, filters.currency)
         );
       });
+    ctx.state.visibleInstrumentSymbols = instruments.map((instrument) => instrument.symbol);
+    const visibleInstrumentSymbols = new Set(ctx.state.visibleInstrumentSymbols);
+    ctx.state.selectedInstrumentSymbols = (ctx.state.selectedInstrumentSymbols || []).filter((symbol) =>
+      visibleInstrumentSymbols.has(symbol),
+    );
+    const selectedInstruments = new Set(ctx.state.selectedInstrumentSymbols || []);
+    const selectedCount = selectedInstruments.size;
+    if (ctx.elements.instrumentSelectionCount) {
+      ctx.elements.instrumentSelectionCount.textContent = `${selectedCount} valor${selectedCount === 1 ? '' : 'es'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+    }
+    if (ctx.elements.deleteSelectedInstruments) ctx.elements.deleteSelectedInstruments.hidden = selectedCount === 0;
+    if (ctx.elements.selectVisibleInstruments) {
+      ctx.elements.selectVisibleInstruments.hidden =
+        selectedCount === 0 || !ctx.state.visibleInstrumentSymbols.length || selectedCount === ctx.state.visibleInstrumentSymbols.length;
+    }
     ctx.elements.instrumentRows.innerHTML = instruments.length
       ? instruments
           .map(
@@ -109,12 +118,19 @@ export function attach(ctx) {
   }
 
   function renderGroupRows() {
+    ctx.state.visibleGroupIds = ctx.state.groups.map((group) => group.id);
+    const visibleGroupIds = new Set(ctx.state.visibleGroupIds);
+    ctx.state.selectedGroupIds = (ctx.state.selectedGroupIds || []).filter((id) => visibleGroupIds.has(id));
     const selectedGroups = new Set(ctx.state.selectedGroupIds || []);
     const selectedCount = selectedGroups.size;
     if (ctx.elements.groupSelectionCount) {
       ctx.elements.groupSelectionCount.textContent = `${selectedCount} grupo${selectedCount === 1 ? '' : 's'} seleccionado${selectedCount === 1 ? '' : 's'}`;
     }
     if (ctx.elements.deleteSelectedGroups) ctx.elements.deleteSelectedGroups.hidden = selectedCount === 0;
+    if (ctx.elements.selectVisibleGroups) {
+      ctx.elements.selectVisibleGroups.hidden =
+        selectedCount === 0 || !ctx.state.visibleGroupIds.length || selectedCount === ctx.state.visibleGroupIds.length;
+    }
     ctx.elements.groupRows.innerHTML = ctx.state.groups.length
       ? ctx.state.groups
           .map(

@@ -1,7 +1,90 @@
-import { attachSource, decodeSource } from './attach.js';
+function transactionTypeLabel(type) {
+  return type === 'remove' ? 'Venta' : 'Compra';
+}
 
-const source = decodeSource('ZnVuY3Rpb24gdHJhbnNhY3Rpb25UeXBlTGFiZWwodHlwZSkgewogIHJldHVybiB0eXBlID09PSAncmVtb3ZlJyA/ICdWZW50YScgOiAnQ29tcHJhJzsKfQoKZnVuY3Rpb24gdHJhbnNhY3Rpb25PcmlnaW5MYWJlbChvcmlnaW4pIHsKICBpZiAob3JpZ2luID09PSAnYXV0bycpIHJldHVybiAnQXV0b21hdGljbyc7CiAgaWYgKG9yaWdpbiA9PT0gJ2ltcG9ydCcpIHJldHVybiAnSW1wb3J0YWRvJzsKICByZXR1cm4gJ01hbnVhbCc7Cn0KCmZ1bmN0aW9uIHJlbmRlckxlZGdlcigpIHsKICBjb25zdCBzeW1ib2xGaWx0ZXIgPSBlbGVtZW50cy5sZWRnZXJGaWx0ZXJTeW1ib2wudmFsdWUudHJpbSgpLnRvVXBwZXJDYXNlKCk7CiAgY29uc3Qgb3JpZ2luRmlsdGVyID0gZWxlbWVudHMubGVkZ2VyRmlsdGVyT3JpZ2luLnZhbHVlOwogIGNvbnN0IHR5cGVGaWx0ZXIgPSBlbGVtZW50cy5sZWRnZXJGaWx0ZXJUeXBlLnZhbHVlOwogIGNvbnN0IGZyb21EYXRlID0gZWxlbWVudHMubGVkZ2VyRmlsdGVyRnJvbS52YWx1ZTsKICBjb25zdCB0b0RhdGUgPSBlbGVtZW50cy5sZWRnZXJGaWx0ZXJUby52YWx1ZTsKICBjb25zdCByb3dzID0gKHN0YXRlLnRyYW5zYWN0aW9ucyB8fCBbXSkKICAgIC5maWx0ZXIoKGl0ZW0pID0+ICFzeW1ib2xGaWx0ZXIgfHwgaXRlbS5zeW1ib2wuaW5jbHVkZXMoc3ltYm9sRmlsdGVyKSkKICAgIC5maWx0ZXIoKGl0ZW0pID0+ICFvcmlnaW5GaWx0ZXIgfHwgaXRlbS5vcmlnaW4gPT09IG9yaWdpbkZpbHRlcikKICAgIC5maWx0ZXIoKGl0ZW0pID0+ICF0eXBlRmlsdGVyIHx8IGl0ZW0udHlwZSA9PT0gdHlwZUZpbHRlcikKICAgIC5maWx0ZXIoKGl0ZW0pID0+ICFmcm9tRGF0ZSB8fCBpdGVtLmRhdGUgPj0gZnJvbURhdGUpCiAgICAuZmlsdGVyKChpdGVtKSA9PiAhdG9EYXRlIHx8IGl0ZW0uZGF0ZSA8PSB0b0RhdGUpCiAgICAuc2xpY2UoKQogICAgLnJldmVyc2UoKTsKCiAgY29uc3QgdG90YWxzID0gcm93cy5yZWR1Y2UoCiAgICAoYWNjLCBpdGVtKSA9PiB7CiAgICAgIGNvbnN0IHZhbHVlID0gTnVtYmVyKGl0ZW0udmFsdWVFdXIgfHwgMCk7CiAgICAgIGlmIChpdGVtLnR5cGUgPT09ICdhZGQnKSBhY2MuaW52ZXN0ZWQgKz0gdmFsdWU7CiAgICAgIGlmIChpdGVtLnR5cGUgPT09ICdyZW1vdmUnKSBhY2Mud2l0aGRyYXduICs9IHZhbHVlOwogICAgICBhY2MuY29tbWlzc2lvbnMgKz0gTnVtYmVyKGl0ZW0uY29tbWlzc2lvbkV1ciB8fCAwKTsKICAgICAgYWNjLmNhc2hGbG93ICs9IE51bWJlcihpdGVtLmNhc2hGbG93RXVyIHx8IDApOwogICAgICByZXR1cm4gYWNjOwogICAgfSwKICAgIHsgaW52ZXN0ZWQ6IDAsIHdpdGhkcmF3bjogMCwgY29tbWlzc2lvbnM6IDAsIGNhc2hGbG93OiAwIH0sCiAgKTsKICBlbGVtZW50cy5sZWRnZXJUb3RhbHMuaW5uZXJIVE1MID0gYAogICAgPHNwYW4+TW92aW1pZW50b3M6IDxzdHJvbmc+JHtyb3dzLmxlbmd0aH08L3N0cm9uZz48L3NwYW4+CiAgICA8c3Bhbj5Db21wcmFzOiA8c3Ryb25nPiR7Zm9ybWF0Q3VycmVuY3kodG90YWxzLmludmVzdGVkKX08L3N0cm9uZz48L3NwYW4+CiAgICA8c3Bhbj5WZW50YXM6IDxzdHJvbmc+JHtmb3JtYXRDdXJyZW5jeSh0b3RhbHMud2l0aGRyYXduKX08L3N0cm9uZz48L3NwYW4+CiAgICA8c3Bhbj5Db21pc2lvbmVzOiA8c3Ryb25nPiR7Zm9ybWF0Q3VycmVuY3kodG90YWxzLmNvbW1pc3Npb25zKX08L3N0cm9uZz48L3NwYW4+CiAgICA8c3Bhbj5DYXNoLWZsb3c6IDxzdHJvbmc+JHtmb3JtYXRDdXJyZW5jeSh0b3RhbHMuY2FzaEZsb3cpfTwvc3Ryb25nPjwvc3Bhbj4KICBgOwoKICBlbGVtZW50cy5sZWRnZXJSb3dzLmlubmVySFRNTCA9IHJvd3MKICAgIC5tYXAoCiAgICAgIChpdGVtKSA9PiBgCiAgICAgICAgPHRyPgogICAgICAgICAgPHRkPiR7Zm9ybWF0RGF0ZShpdGVtLmRhdGUpfTwvdGQ+CiAgICAgICAgICA8dGQ+JHtpdGVtLnN5bWJvbH08L3RkPgogICAgICAgICAgPHRkPiR7dHJhbnNhY3Rpb25UeXBlTGFiZWwoaXRlbS50eXBlKX08L3RkPgogICAgICAgICAgPHRkPiR7Zm9ybWF0U2hhcmVOdW1iZXIoaXRlbS5zaGFyZXMpfTwvdGQ+CiAgICAgICAgICA8dGQ+JHtOdW1iZXIoaXRlbS5wcmljZSkudG9GaXhlZCgyKX0gJHtpdGVtLmN1cnJlbmN5fTwvdGQ+CiAgICAgICAgICA8dGQ+JHtmb3JtYXRDdXJyZW5jeShOdW1iZXIoaXRlbS52YWx1ZUV1cikpfTwvdGQ+CiAgICAgICAgICA8dGQ+JHtmb3JtYXRDdXJyZW5jeShOdW1iZXIoaXRlbS5jb21taXNzaW9uRXVyIHx8IDApKX08L3RkPgogICAgICAgICAgPHRkPiR7Zm9ybWF0Q3VycmVuY3koTnVtYmVyKGl0ZW0uY2FzaEZsb3dFdXIgfHwgMCkpfTwvdGQ+CiAgICAgICAgICA8dGQ+JHt0cmFuc2FjdGlvbk9yaWdpbkxhYmVsKGl0ZW0ub3JpZ2luKX08L3RkPgogICAgICAgICAgPHRkPgogICAgICAgICAgICA8YnV0dG9uIGNsYXNzPSJidXR0b24gYnV0dG9uLWNvbXBhY3QiIGRhdGEtZGVsZXRlLXRyYW5zYWN0aW9uPSIke2l0ZW0uaWR9IiB0eXBlPSJidXR0b24iPkJvcnJhcjwvYnV0dG9uPgogICAgICAgICAgPC90ZD4KICAgICAgICA8L3RyPgogICAgICBgLAogICAgKQogICAgLmpvaW4oJycpOwp9');
+function transactionOriginLabel(origin) {
+  if (origin === 'auto') return 'Automático';
+  if (origin === 'import') return 'Importado';
+  return 'Manual';
+}
 
 export function attach(ctx) {
-  attachSource(ctx, source, ["transactionTypeLabel","transactionOriginLabel","renderLedger"]);
+  function renderLedger() {
+    const { elements, state } = ctx;
+    const symbolFilter = elements.ledgerFilterSymbol.value.trim().toUpperCase();
+    const originFilter = elements.ledgerFilterOrigin.value;
+    const typeFilter = elements.ledgerFilterType.value;
+    const fromDate = elements.ledgerFilterFrom.value;
+    const toDate = elements.ledgerFilterTo.value;
+    const rows = (state.transactions || [])
+      .filter((item) => !symbolFilter || String(item.symbol || '').toUpperCase().includes(symbolFilter))
+      .filter((item) => !originFilter || item.origin === originFilter)
+      .filter((item) => !typeFilter || item.type === typeFilter)
+      .filter((item) => !fromDate || item.date >= fromDate)
+      .filter((item) => !toDate || item.date <= toDate)
+      .slice()
+      .reverse();
+
+    state.visibleTransactionIds = rows.map((item) => String(item.id));
+    const visibleIds = new Set(state.visibleTransactionIds);
+    state.selectedTransactionIds = (state.selectedTransactionIds || []).filter((id) => visibleIds.has(String(id)));
+    const selectedIds = new Set(state.selectedTransactionIds);
+    const selectedCount = selectedIds.size;
+
+    const totals = rows.reduce(
+      (acc, item) => {
+        const value = Number(item.valueEur || 0);
+        if (item.type === 'add') acc.invested += value;
+        if (item.type === 'remove') acc.withdrawn += value;
+        acc.commissions += Number(item.commissionEur || 0);
+        acc.cashFlow += Number(item.cashFlowEur || 0);
+        return acc;
+      },
+      { invested: 0, withdrawn: 0, commissions: 0, cashFlow: 0 },
+    );
+    elements.ledgerTotals.innerHTML = `
+      <span>Movimientos: <strong>${rows.length}</strong></span>
+      <span>Compras: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
+      <span>Ventas: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
+      <span>Comisiones: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>
+      <span>Cash-flow: <strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></span>
+    `;
+
+    if (elements.ledgerSelectionCount) {
+      elements.ledgerSelectionCount.textContent = `${selectedCount} movimiento${selectedCount === 1 ? '' : 's'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+    }
+    if (elements.deleteSelectedTransactions) elements.deleteSelectedTransactions.hidden = selectedCount === 0;
+    if (elements.selectVisibleTransactions) {
+      elements.selectVisibleTransactions.hidden =
+        selectedCount === 0 || !state.visibleTransactionIds.length || selectedCount === state.visibleTransactionIds.length;
+    }
+
+    elements.ledgerRows.innerHTML = rows.length
+      ? rows
+          .map((item) => {
+            const id = String(item.id);
+            return `
+          <tr>
+            <td data-label="Sel.">
+              <label class="row-select row-select-only">
+                <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${selectedIds.has(id) ? 'checked' : ''} aria-label="Seleccionar movimiento ${ctx.escapeHtml(item.symbol)} ${ctx.formatDate(item.date)}" />
+                <span class="sr-only">Seleccionar</span>
+              </label>
+            </td>
+            <td data-label="Fecha">${ctx.formatDate(item.date)}</td>
+            <td data-label="Ticker">${ctx.escapeHtml(item.symbol)}</td>
+            <td data-label="Tipo">${transactionTypeLabel(item.type)}</td>
+            <td data-label="Acciones">${ctx.formatShareNumber(item.shares)}</td>
+            <td data-label="Precio">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>
+            <td data-label="Valor">${ctx.formatCurrency(Number(item.valueEur))}</td>
+            <td data-label="Comisión">${ctx.formatCurrency(Number(item.commissionEur || 0))}</td>
+            <td data-label="Cash-flow"><span class="${ctx.moneyClass(Number(item.cashFlowEur || 0))}">${ctx.formatCurrency(Number(item.cashFlowEur || 0))}</span></td>
+            <td data-label="Origen">${transactionOriginLabel(item.origin)}</td>
+          </tr>`;
+          })
+          .join('')
+      : '<tr><td colspan="10"><div class="empty-action-state"><span class="subtle">Sin movimientos para este filtro.</span></div></td></tr>';
+  }
+
+  Object.assign(ctx, { transactionTypeLabel, transactionOriginLabel, renderLedger });
 }

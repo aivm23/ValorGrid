@@ -84,6 +84,9 @@ export function attach(ctx) {
   elements.wizardTransactionShares.addEventListener('input', ctx.syncWizardAmountInputs);
   document.addEventListener('click', (event) => {
     if (event.target.closest('[data-open-onboarding]')) ctx.openWizardDialog();
+    if (elements.exportMenu?.open && !event.target.closest('#export-menu')) {
+      elements.exportMenu.open = false;
+    }
     if (
       !event.target.closest('#portfolio-chart') &&
       !event.target.closest('#holdings-legend') &&
@@ -124,7 +127,9 @@ export function attach(ctx) {
   elements.ledgerFilterType.addEventListener('change', ctx.renderLedger);
   elements.ledgerFilterFrom.addEventListener('change', ctx.renderLedger);
   elements.ledgerFilterTo.addEventListener('change', ctx.renderLedger);
-  elements.ledgerRows.addEventListener('click', (event) => deleteLedgerRow(ctx, event));
+  elements.ledgerRows.addEventListener('change', ctx.updateTransactionSelection);
+  elements.selectVisibleTransactions?.addEventListener('click', ctx.selectVisibleTransactions);
+  elements.deleteSelectedTransactions?.addEventListener('click', ctx.deleteSelectedTransactions);
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
   elements.toolbarBackup?.addEventListener('click', () => createBackup(ctx));
   elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);
@@ -141,7 +146,7 @@ export function attach(ctx) {
   elements.importPreviewOutput.addEventListener('input', ctx.handleImportPreviewInteraction);
   elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
-  elements.instrumentRows.addEventListener('change', (event) => updateInstrumentSelection(ctx, event));
+  elements.instrumentRows.addEventListener('change', ctx.updateInstrumentSelection);
   elements.instrumentPositionFilter?.addEventListener('change', () => {
     state.instrumentPositionFilter = elements.instrumentPositionFilter.value || 'all';
     ctx.renderInstruments();
@@ -164,23 +169,14 @@ export function attach(ctx) {
       ctx.renderInstruments();
     });
   });
-  elements.deleteSelectedInstruments?.addEventListener('click', () => deleteSelectedInstruments(ctx));
+  elements.deleteSelectedInstruments?.addEventListener('click', ctx.deleteSelectedInstruments);
+  elements.selectVisibleInstruments?.addEventListener('click', ctx.selectVisibleInstruments);
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));
-  elements.groupRows.addEventListener('change', (event) => updateGroupSelection(ctx, event));
-  elements.deleteSelectedGroups?.addEventListener('click', () => deleteSelectedGroups(ctx));
+  elements.groupRows.addEventListener('change', ctx.updateGroupSelection);
+  elements.deleteSelectedGroups?.addEventListener('click', ctx.deleteSelectedGroups);
+  elements.selectVisibleGroups?.addEventListener('click', ctx.selectVisibleGroups);
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
-
-  async function deleteLedgerRow(localCtx, event) {
-    const button = event.target.closest('[data-delete-transaction]');
-    if (!button) return;
-    const transaction = state.transactions.find((item) => item.id === button.dataset.deleteTransaction);
-    if (!transaction || !window.confirm('Borrar ' + transaction.symbol + ' del ' + localCtx.formatDate(transaction.date) + '?')) return;
-    await fetch('/api/transactions/' + encodeURIComponent(transaction.id), { method: 'DELETE', cache: 'no-store' });
-    state.historyCache = {};
-    await localCtx.refreshDashboard();
-    await localCtx.refreshHistory({ force: true });
-  }
 
   async function createBackup(localCtx) {
     elements.createBackup.disabled = true;
@@ -224,56 +220,6 @@ async function saveInstrument(ctx, event) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   } finally {
     button.disabled = false;
-  }
-}
-
-function updateInstrumentSelection(ctx, event) {
-  const checkbox = event.target.closest('[data-select-instrument]');
-  if (!checkbox) return;
-  const selected = new Set(ctx.state.selectedInstrumentSymbols || []);
-  if (checkbox.checked) selected.add(checkbox.dataset.selectInstrument);
-  else selected.delete(checkbox.dataset.selectInstrument);
-  ctx.state.selectedInstrumentSymbols = [...selected];
-  ctx.renderInstruments();
-}
-
-function updateGroupSelection(ctx, event) {
-  const checkbox = event.target.closest('[data-select-group]');
-  if (!checkbox) return;
-  const selected = new Set(ctx.state.selectedGroupIds || []);
-  if (checkbox.checked) selected.add(checkbox.dataset.selectGroup);
-  else selected.delete(checkbox.dataset.selectGroup);
-  ctx.state.selectedGroupIds = [...selected];
-  ctx.renderGroupRows();
-}
-
-async function deleteSelectedInstruments(ctx) {
-  const symbols = ctx.state.selectedInstrumentSymbols || [];
-  if (!symbols.length) return;
-  if (!ctx.window.confirm(`Eliminar ${symbols.length} instrumento(s) seleccionado(s)?`)) return;
-  try {
-    await ctx.sendJson('/api/instruments', 'DELETE', { symbols });
-    ctx.state.selectedInstrumentSymbols = [];
-    ctx.state.historyCache = {};
-    await ctx.refreshDashboard();
-    await ctx.refreshHistory({ force: true });
-  } catch (error) {
-    ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
-  }
-}
-
-async function deleteSelectedGroups(ctx) {
-  const ids = ctx.state.selectedGroupIds || [];
-  if (!ids.length) return;
-  if (!ctx.window.confirm(`Eliminar ${ids.length} grupo(s) seleccionado(s)?`)) return;
-  try {
-    await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
-    ctx.state.selectedGroupIds = [];
-    ctx.state.historyCache = {};
-    await ctx.refreshDashboard();
-    await ctx.refreshHistory({ force: true });
-  } catch (error) {
-    ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   }
 }
 

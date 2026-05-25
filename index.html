@@ -129,6 +129,16 @@
         </div>
       </header>
 
+      <section class="panel metric-panel" aria-labelledby="operations-kpi-title">
+        <div class="panel-header">
+          <div>
+            <h2 id="operations-kpi-title">Operativa</h2>
+            <p class="subtle">Resumen financiero del ledger y evolución acumulada.</p>
+          </div>
+        </div>
+        <div id="performance-summary" class="metric-grid"></div>
+      </section>
+
       <div class="dashboard-grid dashboard-grid-overview">
         <section class="panel" aria-labelledby="distribution-title">
           <div class="panel-header">
@@ -202,16 +212,6 @@
         <div id="monthly-tracking" class="ytd-month-list"></div>
       </section>
 
-      <section class="panel metric-panel" aria-labelledby="operations-kpi-title">
-        <div class="panel-header">
-          <div>
-            <h2 id="operations-kpi-title">Operativa</h2>
-            <p class="subtle">Resumen financiero del ledger y evolución acumulada.</p>
-          </div>
-        </div>
-        <div id="performance-summary" class="metric-grid"></div>
-      </section>
-
       <section class="panel history-panel" aria-labelledby="history-title">
         <div class="panel-header">
           <div>
@@ -277,10 +277,25 @@
           </label>
         </div>
         <div id="ledger-totals" class="ledger-totals"></div>
+        <div class="bulk-toolbar ledger-bulk-toolbar">
+          <span id="ledger-selection-count" class="subtle">0 movimientos seleccionados</span>
+          <button id="select-visible-transactions" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
+          <button id="delete-selected-transactions" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar movimientos seleccionados">
+            <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 7h16"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M6 7l1 14h10l1-14"></path>
+              <path d="M9 7V4h6v3"></path>
+            </svg>
+            <span>Eliminar</span>
+          </button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
+                <th>Sel.</th>
                 <th>Fecha</th>
                 <th>Ticker</th>
                 <th>Tipo</th>
@@ -290,7 +305,6 @@
                 <th>Comisión</th>
                 <th>Cash-flow</th>
                 <th>Origen</th>
-                <th></th>
               </tr>
             </thead>
             <tbody id="ledger-rows"></tbody>
@@ -379,6 +393,7 @@
             </div>
             <div class="bulk-toolbar">
               <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
+              <button id="select-visible-groups" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
               <button id="delete-selected-groups" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar grupos seleccionados">
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
@@ -454,6 +469,7 @@
             </div>
             <div class="bulk-toolbar">
               <span id="instrument-selection-count" class="subtle">0 valores seleccionados</span>
+              <button id="select-visible-instruments" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
               <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar valores seleccionados">
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
@@ -585,6 +601,14 @@
         </div>
 
         <div class="ops-grid admin-grid">
+          <section class="admin-preferences-section">
+            <h3>Preferencias</h3>
+            <label class="switch-field admin-preference">
+              <input id="negative-red-toggle" type="checkbox" checked />
+              <span>Mostrar negativos en rojo</span>
+            </label>
+            <p class="subtle">Solo cambia la presentación; no modifica ningún dato.</p>
+          </section>
           <section>
             <h3>Backups</h3>
             <button id="create-backup" class="button button-compact" type="button">Crear backup</button>
@@ -594,14 +618,6 @@
             <h3>Importaciones recientes</h3>
             <p class="subtle">Revisa y revierte lotes importados si necesitas corregirlos.</p>
             <div id="import-batches" class="import-batches"></div>
-          </section>
-          <section>
-            <h3>Preferencias</h3>
-            <label class="switch-field admin-preference">
-              <input id="negative-red-toggle" type="checkbox" checked />
-              <span>Mostrar negativos en rojo</span>
-            </label>
-            <p class="subtle">Solo cambia la presentación; no modifica ningún dato.</p>
           </section>
         </div>
 
