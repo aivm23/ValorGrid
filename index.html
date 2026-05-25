@@ -59,14 +59,14 @@
               <span class="calendar-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Aportaciones</span>
             </button>
-            <button id="instrument-manager" class="calendar-button" type="button" aria-label="Configurar instrumentos">
+            <button id="instrument-manager" class="calendar-button" type="button" aria-label="Configurar valores">
               <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M4 7h16"></path>
-                <path d="M4 17h16"></path>
-                <circle cx="9" cy="7" r="2"></circle>
-                <circle cx="15" cy="17" r="2"></circle>
+                <path d="M5 19V9"></path>
+                <path d="M12 19V5"></path>
+                <path d="M19 19v-7"></path>
+                <path d="M3 19h18"></path>
               </svg>
-              <span class="toolbar-label">Instrumentos</span>
+              <span class="toolbar-label">Valores</span>
             </button>
             <button id="open-import-dialog-toolbar" class="calendar-button" type="button" aria-label="Importar movimientos">
               <span class="plus-icon" aria-hidden="true"></span>
@@ -75,9 +75,9 @@
             <details id="export-menu" class="toolbar-menu" hidden>
               <summary class="calendar-button" aria-label="Exportar datos">
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 3v12"></path>
-                  <path d="m7 10 5 5 5-5"></path>
-                  <path d="M5 19h14"></path>
+                  <path d="M14 3h5v5"></path>
+                  <path d="M10 13 19 4"></path>
+                  <path d="M19 13v6H5V5h6"></path>
                 </svg>
                 <span class="toolbar-label">Exportar</span>
               </summary>
@@ -363,7 +363,7 @@
       <div class="modal-panel modal-panel-wide">
         <div class="modal-header">
           <div>
-            <h2>Instrumentos y grupos</h2>
+            <h2>Valores y grupos</h2>
             <p class="subtle">Define la estructura de cartera, los grupos visibles y los desgloses.</p>
           </div>
           <button id="instrument-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
@@ -380,7 +380,13 @@
             <div class="bulk-toolbar">
               <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
               <button id="delete-selected-groups" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar grupos seleccionados">
-                <span class="trash-icon" aria-hidden="true"></span>
+                <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 7h16"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M6 7l1 14h10l1-14"></path>
+                  <path d="M9 7V4h6v3"></path>
+                </svg>
                 <span>Eliminar</span>
               </button>
             </div>
@@ -388,9 +394,32 @@
           </section>
 
           <section class="instrument-config-section">
-            <div class="instrument-section-heading">
-              <h3>Instrumentos</h3>
-            </div>
+            <h3>Valores</h3>
+              <div class="instrument-create-panel">
+                <div>
+                  <h4>Crear valor</h4>
+                  <p class="subtle">Añade un valor manualmente si no viene de una importación.</p>
+                </div>
+                <div class="instrument-create-form instrument-create-form-wide">
+                  <input id="new-instrument-symbol" placeholder="Ticker interno" />
+                  <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
+                  <input id="new-instrument-name" placeholder="Nombre" />
+                  <select id="new-instrument-type">
+                    <option value="etf">ETF</option>
+                    <option value="stock">Stock</option>
+                  </select>
+                  <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
+                  <select id="new-instrument-group"></select>
+                  <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
+                  <button id="create-instrument" class="button" type="button">Crear valor</button>
+                </div>
+              </div>
+              <div class="instrument-list-heading">
+                <div>
+                  <h4>Listado de valores</h4>
+                  <p class="subtle">Filtra, edita y selecciona valores para acciones en bloque.</p>
+                </div>
+              </div>
             <div class="instrument-filter-grid">
               <label class="field instrument-position-filter">
                 <span>Posición</span>
@@ -423,23 +452,16 @@
                 <input id="instrument-filter-currency" placeholder="Todas" />
               </label>
             </div>
-            <div class="instrument-create-form instrument-create-form-wide">
-              <input id="new-instrument-symbol" placeholder="Ticker interno" />
-              <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
-              <input id="new-instrument-name" placeholder="Nombre" />
-              <select id="new-instrument-type">
-                <option value="etf">ETF</option>
-                <option value="stock">Stock</option>
-              </select>
-              <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
-              <select id="new-instrument-group"></select>
-              <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
-              <button id="create-instrument" class="button" type="button">Crear instrumento</button>
-            </div>
             <div class="bulk-toolbar">
-              <span id="instrument-selection-count" class="subtle">0 instrumentos seleccionados</span>
-              <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar instrumentos seleccionados">
-                <span class="trash-icon" aria-hidden="true"></span>
+              <span id="instrument-selection-count" class="subtle">0 valores seleccionados</span>
+              <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar valores seleccionados">
+                <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 7h16"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M6 7l1 14h10l1-14"></path>
+                  <path d="M9 7V4h6v3"></path>
+                </svg>
                 <span>Eliminar</span>
               </button>
             </div>

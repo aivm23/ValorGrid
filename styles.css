@@ -2011,6 +2011,29 @@ td:last-child {
   margin: 0;
 }
 
+.instrument-create-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 82%, var(--bg));
+  padding: 14px;
+}
+
+.instrument-create-panel h4,
+.instrument-list-heading h4 {
+  margin: 0 0 4px;
+}
+
+.instrument-create-panel p,
+.instrument-list-heading p {
+  margin: 0;
+}
+
+.instrument-list-heading {
+  margin-top: 18px;
+}
+
 .bulk-toolbar {
   display: flex;
   gap: 10px;
@@ -2308,6 +2331,68 @@ td:last-child {
 @media (max-width: 1180px) {
   .instrument-create-form-wide {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .instrument-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .instrument-table-wrap {
+    overflow-x: visible;
+  }
+
+  .instrument-table,
+  .compact-table .instrument-table,
+  .instrument-table thead,
+  .instrument-table tbody,
+  .instrument-table tr,
+  .instrument-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .instrument-table thead {
+    display: none;
+  }
+
+  .instrument-table tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  .instrument-table tr {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 12px;
+  }
+
+  .instrument-table td {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    border-bottom: 0;
+    padding: 6px 0;
+    white-space: normal;
+  }
+
+  .instrument-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .instrument-table td[colspan] {
+    display: block;
+  }
+
+  .instrument-table td[colspan]::before {
+    content: none;
   }
 }
 
@@ -2675,8 +2760,13 @@ td:last-child {
     display: none;
   }
 
+  .instrument-table tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
   .instrument-table tr {
-    margin-bottom: 10px;
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--bg);

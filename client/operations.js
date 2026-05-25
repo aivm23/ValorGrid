@@ -60,7 +60,7 @@ export function attach(ctx) {
     const selectedInstruments = new Set(ctx.state.selectedInstrumentSymbols || []);
     const selectedCount = selectedInstruments.size;
     if (ctx.elements.instrumentSelectionCount) {
-      ctx.elements.instrumentSelectionCount.textContent = `${selectedCount} instrumento${selectedCount === 1 ? '' : 's'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+      ctx.elements.instrumentSelectionCount.textContent = `${selectedCount} valor${selectedCount === 1 ? '' : 'es'} seleccionado${selectedCount === 1 ? '' : 's'}`;
     }
     if (ctx.elements.deleteSelectedInstruments) ctx.elements.deleteSelectedInstruments.hidden = selectedCount === 0;
     const matchesText = (value, filter) =>
@@ -105,7 +105,7 @@ export function attach(ctx) {
         </tr>`,
           )
           .join('')
-      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin instrumentos para este filtro.</span><button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button></div></td></tr>';
+      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact" type="button" data-open-onboarding>Crear valor</button></div></td></tr>';
   }
 
   function renderGroupRows() {
@@ -132,7 +132,7 @@ export function attach(ctx) {
         </article>`,
           )
           .join('')
-      : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar instrumentos.</div>';
+      : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar valores.</div>';
   }
 
   Object.assign(ctx, { renderPerformance, renderBackups, renderInstruments, renderGroupRows });
