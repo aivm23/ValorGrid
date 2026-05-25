@@ -17,6 +17,21 @@ export function attach(ctx) {
     applyBalanceVisibility(ctx.localStorage.getItem('portfolio-hide-balances') === '1');
   }
 
+  function applyNegativePreference(enabled) {
+    ctx.state.negativeRed = enabled !== false;
+    ctx.document.documentElement.dataset.negativeRed = ctx.state.negativeRed ? 'true' : 'false';
+    ctx.localStorage.setItem('valorgrid-negative-red', ctx.state.negativeRed ? '1' : '0');
+    if (ctx.elements.negativeRedToggle) ctx.elements.negativeRedToggle.checked = ctx.state.negativeRed;
+  }
+
+  function initNegativePreference() {
+    applyNegativePreference(ctx.localStorage.getItem('valorgrid-negative-red') !== '0');
+  }
+
+  function toggleNegativePreference(event) {
+    applyNegativePreference(Boolean(event.target.checked));
+  }
+
   function toggleBalanceVisibility() {
     applyBalanceVisibility(!ctx.state.hideBalances);
     if (ctx.state.summary) ctx.renderDashboard();
@@ -27,5 +42,12 @@ export function attach(ctx) {
     return ctx.state.hideBalances ? maskedValue : visibleFormatter(value);
   };
 
-  Object.assign(ctx, { applyBalanceVisibility, initBalancePrivacy, toggleBalanceVisibility });
+  Object.assign(ctx, {
+    applyBalanceVisibility,
+    initBalancePrivacy,
+    toggleBalanceVisibility,
+    applyNegativePreference,
+    initNegativePreference,
+    toggleNegativePreference,
+  });
 }

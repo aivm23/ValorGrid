@@ -103,6 +103,11 @@ export function attach(ctx) {
   }
 
   function showDonutTooltip(event) {
+    const visibleGroups = (ctx.state.summary?.portfolio || []).filter((entry) => Number(entry.value || 0) > 0);
+    if (visibleGroups.length <= 1) {
+      hideDonutTooltip();
+      return;
+    }
     const item = portfolioItemFromChartPoint(event);
     if (!item) {
       hideDonutTooltip();

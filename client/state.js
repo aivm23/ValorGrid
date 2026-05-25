@@ -41,6 +41,8 @@ export function attach(ctx) {
     version: null,
     expandedGroupId: null,
     hideBalances: false,
+    negativeRed: true,
+    instrumentPositionFilter: 'all',
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

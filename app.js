@@ -27,5 +27,6 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, loca
 attachEvents(ctx);
 ctx.initTheme();
 ctx.initBalancePrivacy();
+ctx.initNegativePreference();
 ctx.refreshDashboard();
 ctx.refreshHistory();

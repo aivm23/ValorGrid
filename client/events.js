@@ -33,6 +33,18 @@ export function attach(ctx) {
     ctx.renderInstruments();
     elements.instrumentDialog.showModal();
   });
+  elements.adminManager?.addEventListener('click', () => {
+    ctx.renderBackups();
+    ctx.renderImportBatches?.();
+    elements.adminDialog.showModal();
+  });
+  elements.adminDialogClose?.addEventListener('click', () => elements.adminDialog.close());
+  elements.adminCancel?.addEventListener('click', () => elements.adminDialog.close());
+  elements.negativeRedToggle?.addEventListener('change', (event) => {
+    ctx.toggleNegativePreference(event);
+    ctx.renderDashboard();
+    ctx.renderHistory?.();
+  });
   elements.instrumentDialogClose.addEventListener('click', () => elements.instrumentDialog.close());
   elements.instrumentCancel.addEventListener('click', () => elements.instrumentDialog.close());
   elements.autoDialogClose.addEventListener('click', ctx.closeAutoDialog);
@@ -126,6 +138,10 @@ export function attach(ctx) {
   elements.importPreviewOutput.addEventListener('input', ctx.handleImportPreviewInteraction);
   elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
+  elements.instrumentPositionFilter?.addEventListener('change', () => {
+    state.instrumentPositionFilter = elements.instrumentPositionFilter.value || 'all';
+    ctx.renderInstruments();
+  });
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));

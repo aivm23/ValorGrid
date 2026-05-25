@@ -15,50 +15,14 @@ const {
 } = require('./import-reconcile');
 const { DEGIRO_SUBTYPE_LABELS, fileSubtypeWarnings } = require('./import-labels');
 const { markSkippedSaleDeficit } = require('./import-sale-rules');
-
-function normalizeMatchText(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function getRawValue(raw = {}, names = []) {
-  for (const name of names) {
-    if (raw[name] !== undefined && raw[name] !== null && String(raw[name]).trim() !== '') return raw[name];
-  }
-  return '';
-}
-
-function rebuildImportIdentity(normalized, source) {
-  delete normalized.rowHash;
-  delete normalized.transactionId;
-  normalized.rowHash = sha256(JSON.stringify(normalized));
-  normalized.transactionId = `import:${source}:${normalized.rowHash.slice(0, 24)}`;
-}
-
-function mappingKeyForIdentifier(identifier) {
-  const type = String(identifier?.identifierType || identifier?.type || '').trim().toLowerCase();
-  const value = String(identifier?.identifierValue || identifier?.value || '').trim().toUpperCase();
-  if (!type || !value) return null;
-  return `${type}:${value}`;
-}
-
-function buildInstrumentMapping(input = {}) {
-  const mappingInput = input.instrumentMappings || input.mapping || {};
-  if (!mappingInput || typeof mappingInput !== 'object') return new Map();
-  const mapping = new Map();
-  for (const [rawKey, rawValue] of Object.entries(mappingInput)) {
-    const key = String(rawKey || '').trim().toLowerCase();
-    if (!key || !rawValue) continue;
-    if (typeof rawValue === 'string') mapping.set(key, rawValue.trim().toUpperCase());
-    else if (typeof rawValue === 'object' && rawValue.symbol) mapping.set(key, String(rawValue.symbol).trim().toUpperCase());
-  }
-  return mapping;
-}
+const {
+  normalizeMatchText,
+  getRawValue,
+  rebuildImportIdentity,
+  mappingKeyForIdentifier,
+  buildInstrumentMapping,
+  canCommitRows,
+} = require('./import-preview-helpers');
 
 
 function resolveByHeuristic(ctx, normalized, raw) {
@@ -266,7 +230,7 @@ function reconcileSnapshotRows(ctx, rows, fileSubtype) {
       const nextValue = next.normalized.shares * Number(next.normalized.price || 0) * Number(next.normalized.usdToEur || 1);
       next.normalized.valueEur = Number(nextValue.toFixed(6));
       next.normalized.cashFlowEur = -(next.normalized.valueEur + Number(next.normalized.commissionEur || 0));
-      rebuildImportIdentity(next.normalized, next.normalized.source || 'degiro-csv');
+      rebuildImportIdentity(next.normalized, next.normalized.source || 'degiro-csv', sha256);
       return next;
     }
 
@@ -296,15 +260,15 @@ function previewImportFactory(ctx, input = {}) {
   const mappingsRequired = new Map();
 
   let rows = parsedPayload.parsed.rows.map((row) => {
-    const { normalized, errors } = normalizeImportRow(ctx, row, input.mapping || {}, adapter.source, adapter.profile, { fileSubtype });
+    let { normalized, errors } = normalizeImportRow(ctx, row, input.mapping || {}, adapter.source, adapter.profile, { fileSubtype });
     const rowDecision = rowDecisions.get(row.rowIndex) || {};
     const skipRequested = rowDecision.action === 'skip';
     if (rowDecision.symbol) {
       normalized.symbol = rowDecision.symbol;
-      rebuildImportIdentity(normalized, adapter.source);
+      rebuildImportIdentity(normalized, adapter.source, sha256);
     }
     if (rowDecision.edit) {
-      const edited = applyRowEdit(normalized, rowDecision.edit, adapter.source, rebuildImportIdentity);
+      const edited = applyRowEdit(normalized, rowDecision.edit, adapter.source, (next, source) => rebuildImportIdentity(next, source, sha256));
       normalized = edited.normalized;
       if (edited.errors.length) errors.push(...edited.errors);
     }
@@ -314,7 +278,7 @@ function previewImportFactory(ctx, input = {}) {
       : resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
     if (resolution.instrument && normalized.symbol !== resolution.instrument.symbol) {
       normalized.symbol = resolution.instrument.symbol;
-      rebuildImportIdentity(normalized, adapter.source);
+      rebuildImportIdentity(normalized, adapter.source, sha256);
     }
 
     const instrument = normalized.symbol ? ctx.getInstrument(normalized.symbol) || resolution.instrument : null;
@@ -452,9 +416,6 @@ function previewImportFactory(ctx, input = {}) {
   }
   rows = applyTimelineValidation(ctx, rows);
   const summary = serializeSummary(summarizeImportRows(rows));
-  const blockedCount = rows.filter((row) => row.status === 'blocked').length;
-  const needsMappingCount = rows.filter((row) => row.status === 'needs_mapping').length;
-
   const detectedInstrumentOutput = buildDetectedInstrumentOutput(detectedInstruments).map((item) => ({
     ...item,
     tickerSuggestions:
@@ -485,7 +446,7 @@ function previewImportFactory(ctx, input = {}) {
     detectedInstruments: detectedInstrumentOutput,
     instrumentMappingsRequired: Array.from(mappingsRequired.values()),
     impactPreview: buildImpactPreview(ctx, rows),
-    canCommit: summary.errorCount === 0 && needsMappingCount === 0 && blockedCount === 0,
+    canCommit: canCommitRows(rows, rowDecisions),
     sheets: parsedPayload.sheets,
     selectedSheet: parsedPayload.selectedSheet,
     sheetName: parsedPayload.selectedSheet,

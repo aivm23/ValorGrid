@@ -174,6 +174,7 @@ export function ensureDefaultRowActions(ctx, preview = ctx.state.importPreview) 
 }
 
 export function applyImportGroupAction(ctx, groupAction) {
+  if (!['import', 'skip'].includes(groupAction.value)) return;
   const wantsImport = groupAction.value === 'import';
   const rowIndexes = String(groupAction.dataset.importGroupAction || '')
     .split(',')

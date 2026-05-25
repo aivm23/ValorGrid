@@ -821,12 +821,14 @@ h3 {
   gap: 8px;
   margin-bottom: 14px;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.95rem;
+  font-weight: 650;
 }
 
 .ledger-totals strong,
 .backup-list a {
   color: var(--text);
+  font-size: 1.02rem;
 }
 
 .ops-grid {
@@ -976,6 +978,21 @@ h3 {
 
 .import-instrument-card.is-incomplete {
   border-color: color-mix(in srgb, #ef4444 60%, var(--line));
+}
+
+.import-instrument-card.is-safety-omitted {
+  border-color: color-mix(in srgb, #ef4444 58%, var(--line));
+  background: color-mix(in srgb, #7f1d1d 13%, var(--panel));
+}
+
+.import-safety-message {
+  border: 1px solid color-mix(in srgb, #ef4444 45%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, #7f1d1d 18%, transparent);
+  color: #fecaca;
+  padding: 9px 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .import-instrument-card header {
@@ -1591,6 +1608,10 @@ td:last-child {
   color: #f87171;
 }
 
+:root[data-negative-red='false'] .is-negative {
+  color: inherit;
+}
+
 .history-panel {
   display: grid;
   gap: 18px;
@@ -1852,6 +1873,37 @@ td:last-child {
 .instrument-config-section h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+.instrument-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.instrument-position-filter {
+  min-width: 210px;
+  margin: 0;
+}
+
+.admin-panel {
+  max-width: min(900px, calc(100vw - 32px));
+}
+
+.admin-grid {
+  grid-template-columns: minmax(220px, 0.85fr) minmax(280px, 1.15fr);
+}
+
+.admin-grid section:last-child {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.admin-preference {
+  width: fit-content;
 }
 
 .inline-form {

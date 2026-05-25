@@ -79,6 +79,15 @@
               </div>
             </details>
             <button
+              id="admin-manager"
+              class="balance-toggle"
+              type="button"
+              aria-label="Administración"
+              title="Administración"
+            >
+              <span class="settings-icon" aria-hidden="true"></span>
+            </button>
+            <button
               id="balance-toggle"
               class="balance-toggle"
               type="button"
@@ -214,27 +223,6 @@
           <div id="history-chart" class="history-chart" role="img" aria-label="Histórico de valor de cartera"></div>
           <div id="history-tooltip" class="history-tooltip" hidden></div>
           <div id="history-event-panel" class="history-event-panel" hidden></div>
-        </div>
-      </section>
-
-      <section class="panel operations-panel" aria-labelledby="operations-title">
-        <div class="panel-header">
-          <div>
-            <h2 id="operations-title">Administración</h2>
-            <p class="subtle">Backups e historial de importaciones.</p>
-          </div>
-        </div>
-        <div class="ops-grid">
-          <div>
-            <h3>Backups</h3>
-            <button id="create-backup" class="button button-compact" type="button">Crear backup</button>
-            <div id="backup-list" class="backup-list"></div>
-          </div>
-          <div class="import-box">
-            <h3>Importaciones</h3>
-            <p class="subtle">Importa CSV, Excel o plantillas de broker desde la modal dedicada.</p>
-            <div id="import-batches" class="import-batches"></div>
-          </div>
         </div>
       </section>
 
@@ -381,7 +369,17 @@
           </section>
 
           <section class="instrument-config-section">
-            <h3>Instrumentos</h3>
+            <div class="instrument-section-heading">
+              <h3>Instrumentos</h3>
+              <label class="field instrument-position-filter">
+                <span>Filtro</span>
+                <select id="instrument-position-filter">
+                  <option value="all">Todos</option>
+                  <option value="open">Con posición abierta</option>
+                  <option value="closed">Sin posición abierta</option>
+                </select>
+              </label>
+            </div>
             <div class="instrument-create-form instrument-create-form-wide">
               <input id="new-instrument-symbol" placeholder="Ticker interno" />
               <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
@@ -502,6 +500,43 @@
           <button id="import-cancel" class="button" type="button">Cerrar</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="admin-dialog" class="modal">
+      <div class="modal-panel modal-panel-wide admin-panel">
+        <div class="modal-header">
+          <div>
+            <h2>Administración</h2>
+            <p class="subtle">Backups, importaciones recientes y preferencias visuales.</p>
+          </div>
+          <button id="admin-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="ops-grid admin-grid">
+          <section>
+            <h3>Backups</h3>
+            <button id="create-backup" class="button button-compact" type="button">Crear backup</button>
+            <div id="backup-list" class="backup-list"></div>
+          </section>
+          <section class="import-box">
+            <h3>Importaciones recientes</h3>
+            <p class="subtle">Revisa y revierte lotes importados si necesitas corregirlos.</p>
+            <div id="import-batches" class="import-batches"></div>
+          </section>
+          <section>
+            <h3>Preferencias</h3>
+            <label class="switch-field admin-preference">
+              <input id="negative-red-toggle" type="checkbox" checked />
+              <span>Mostrar negativos en rojo</span>
+            </label>
+            <p class="subtle">Solo cambia la presentación; no modifica ningún dato.</p>
+          </section>
+        </div>
+
+        <div class="modal-actions">
+          <button id="admin-cancel" class="button" type="button">Cerrar</button>
+        </div>
+      </div>
     </dialog>
 
     <dialog id="wizard-dialog" class="modal">

@@ -92,14 +92,8 @@ module.exports = function attach(ctx) {
 
   function commitImport(input = {}) {
     const preview = previewImport(input);
-    if (!preview.canCommit || preview.summary.errorCount > 0) {
+    if (!preview.canCommit) {
       throw new Error('La importacion contiene errores y no se puede guardar');
-    }
-    if ((preview.instrumentMappingsRequired || []).length > 0) {
-      throw new Error('Faltan mapeos de instrumentos para completar la importacion');
-    }
-    if ((preview.summary.blockedCount || 0) > 0) {
-      throw new Error('Hay filas bloqueadas; revisa la preview antes de importar');
     }
 
     const duplicateOnly = preview.rows.every((row) => ['duplicate', 'ignored', 'skipped'].includes(row.status));

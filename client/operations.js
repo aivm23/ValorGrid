@@ -9,8 +9,8 @@ export function attach(ctx) {
       <article><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small>valor actual estimado</small></article>
       <article><span>Aportado neto</span><strong>${ctx.formatCurrency(performance.netContributed)}</strong><small>compras + comisiones - ventas</small></article>
       <article><span>Resultado total</span><strong>${ctx.formatCurrency(performance.totalGain)}</strong><small>${ctx.formatPercent(performance.simpleReturnPct)}</small></article>
-      <article><span>Plusvalia latente</span><strong>${ctx.formatCurrency(performance.unrealizedGain)}</strong><small>valor no realizado</small></article>
-      <article><span>Plusvalia realizada</span><strong>${ctx.formatCurrency(performance.realizedGain)}</strong><small>FIFO estimado</small></article>
+      <article><span>Plusvalía latente</span><strong>${ctx.formatCurrency(performance.unrealizedGain)}</strong><small>valor no realizado</small></article>
+      <article><span>Plusvalía realizada</span><strong>${ctx.formatCurrency(performance.realizedGain)}</strong><small>FIFO estimado</small></article>
       <article><span>Comisiones</span><strong>${ctx.formatCurrency(performance.commissions)}</strong><small>${performance.transactionCount} movimientos</small></article>
     `;
   }
@@ -35,10 +35,32 @@ export function attach(ctx) {
       .join('');
   }
 
+  function currentSharesForInstrument(instrument) {
+    const symbol = String(instrument.symbol || '').toUpperCase();
+    const baseShares = Number(instrument.baseShares || instrument.base_shares || 0);
+    return (ctx.state.transactions || [])
+      .filter((transaction) => String(transaction.symbol || '').toUpperCase() === symbol)
+      .reduce((sum, transaction) => {
+        const shares = Number(transaction.shares || 0);
+        return transaction.type === 'remove' ? sum - shares : sum + shares;
+      }, baseShares);
+  }
+
   function renderInstruments() {
     renderGroupRows();
     ctx.elements.newInstrumentGroup.innerHTML = groupOptions(ctx.state.groups[0]?.id);
-    const instruments = ctx.state.instruments.filter((instrument) => instrument.type !== 'fx');
+    if (ctx.elements.instrumentPositionFilter) {
+      ctx.elements.instrumentPositionFilter.value = ctx.state.instrumentPositionFilter || 'all';
+    }
+    const tolerance = 0.000001;
+    const instruments = ctx.state.instruments
+      .filter((instrument) => instrument.type !== 'fx')
+      .map((instrument) => ({ ...instrument, currentShares: currentSharesForInstrument(instrument) }))
+      .filter((instrument) => {
+        if (ctx.state.instrumentPositionFilter === 'open') return Math.abs(Number(instrument.currentShares || 0)) > tolerance;
+        if (ctx.state.instrumentPositionFilter === 'closed') return Math.abs(Number(instrument.currentShares || 0)) <= tolerance;
+        return true;
+      });
     ctx.elements.instrumentRows.innerHTML = instruments.length
       ? instruments
           .map(
@@ -60,7 +82,7 @@ export function attach(ctx) {
         </tr>`,
           )
           .join('')
-      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin instrumentos. Crea el primero para empezar.</span><button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button></div></td></tr>';
+      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin instrumentos para este filtro.</span><button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button></div></td></tr>';
   }
 
   function renderGroupRows() {

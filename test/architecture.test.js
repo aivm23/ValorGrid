@@ -83,6 +83,22 @@ test('import wizard uses non technical row decisions', () => {
 
   assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
+  assert.ok(renderer.includes('Mixto'), 'group action must expose a mixed state when rows are partially selected');
+  assert.ok(renderer.includes('is-safety-omitted'), 'unsafe default omissions must be visually highlighted');
   assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
   assert.ok(workflow.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
+});
+
+test('administration and instrument filtering stay toolbar driven', () => {
+  const html = read('index.html');
+  const operations = read(path.join('client', 'operations.js'));
+  const events = read(path.join('client', 'events.js'));
+
+  assert.ok(html.includes('id="admin-manager"'), 'administration must be available from the toolbar');
+  assert.ok(html.includes('id="admin-dialog"'), 'administration must render in a modal');
+  assert.equal(html.includes('aria-labelledby="operations-title"'), false, 'administration must not be a main dashboard panel');
+  assert.ok(html.includes('id="negative-red-toggle"'), 'negative color preference must be configurable');
+  assert.ok(html.includes('id="instrument-position-filter"'), 'instrument modal must include position filters');
+  assert.ok(operations.includes('currentSharesForInstrument'), 'instrument filter must use current net shares');
+  assert.ok(events.includes('toggleNegativePreference'), 'negative preference must be wired to UI events');
 });
