@@ -42,6 +42,7 @@ Yahoo Finance se usa solo como proveedor externo de precios. Los resultados se c
 
 Más detalle en [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md).
 
+
 ## Requisitos
 
 - Node.js 24 o superior, por el uso de `node:sqlite`.
@@ -167,6 +168,23 @@ POST /api/backups
 ```
 
 Los backups se guardan en `.backups/`, que no debe subirse a Git.
+
+## Capturas
+
+### Dashboard principal
+![Dashboard principal](assets/screenshots/dashboard-demo.png)
+
+### Instrumentos y grupos
+![Valores y grupos](assets/screenshots/valores-grupos-demo.png)
+
+### Distribución
+![Distribución](assets/screenshots/distribucion-demo.png)
+
+### Histórico
+![Histórico](assets/screenshots/historico-demo.png)
+
+### Movimientos
+![Movimientos](assets/screenshots/movimientos-demo.png)
 
 ## Documentación útil
 
