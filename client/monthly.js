@@ -28,11 +28,11 @@ export function attach(ctx) {
   function renderYtdSummary(summary) {
     return `
       <article><span>Valor inicial</span><strong>${ctx.formatCurrency(Number(summary.valueStart || 0))}</strong><small>inicio del año</small></article>
-      <article><span>Aportado neto</span><strong>${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small>compras + comisiones - ventas</small></article>
+      <article><span>Aportado neto</span><strong class="${ctx.moneyClass(Number(summary.netContributed || 0))}">${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small>compras + comisiones - ventas</small></article>
       <article><span>Valor actual</span><strong>${ctx.formatCurrency(Number(summary.currentValue || 0))}</strong><small>${summary.latestMonth ? ctx.escapeHtml(summary.latestMonth) : 'sin mes cerrado'}</small></article>
       <article><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small>compras del año</small></article>
-      <article><span>Retiradas</span><strong>${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small>ventas del año</small></article>
-      <article><span>Resultado YTD</span><strong>${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
+      <article><span>Retiradas</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small>ventas del año</small></article>
+      <article><span>Resultado YTD</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
     `;
   }
 
@@ -52,7 +52,7 @@ export function attach(ctx) {
           <span class="ytd-month-title">${ctx.escapeHtml(month.label)}</span>
           <span><small>Valor final</small><strong>${ctx.formatCurrency(Number(month.total || 0))}</strong></span>
           <span><small>Aportaciones</small><strong>${ctx.formatCurrency(Number(month.contributions || 0))}</strong></span>
-          <span><small>Retiradas</small><strong>${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
+          <span><small>Retiradas</small><strong class="${ctx.moneyClass(Number(month.withdrawals || 0))}">${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
           <span><small>Variación</small><strong class="${variationClass}">${variation === null ? 'Inicio' : ctx.formatCurrency(variation)}</strong></span>
           <span><small>Automáticas</small><strong>${ctx.escapeHtml(month.autoStatus || 'Sin automáticas')}</strong></span>
         </summary>
@@ -60,7 +60,7 @@ export function attach(ctx) {
           <div class="ytd-month-meta">
             <span>Fecha de valoración: ${ctx.formatDate(month.asOfDate)}</span>
             <span>Motor principal: ${topGroup}</span>
-            <span>Comisiones: ${ctx.formatCurrency(Number(month.commissions || 0))}</span>
+            <span>Comisiones: ${ctx.formatCurrencySpan(Number(month.commissions || 0))}</span>
           </div>
           ${renderGroupBreakdown(month.groups || [])}
         </div>
@@ -97,8 +97,8 @@ export function attach(ctx) {
           <small>${Number(group.pct || 0).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% del mes</small>
         </div>
         <div><small>Valor</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
-        <div><small>Aportado</small><strong>${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
-        <div><small>Neto</small><strong>${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
+        <div><small>Aportado</small><strong class="${ctx.moneyClass(Number(group.contributions || 0))}">${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
+        <div><small>Neto</small><strong class="${ctx.moneyClass(Number(group.netContribution || 0))}">${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
         <ul>${positions || '<li><span>Sin posiciones con valor</span></li>'}</ul>
       </article>
     `;

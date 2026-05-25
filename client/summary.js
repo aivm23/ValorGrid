@@ -64,12 +64,11 @@ export function attach(ctx) {
     return (ctx.state.summary?.portfolio || []).find((item) => item.groupId === groupId) || null;
   }
 
-  function portfolioItemFromChartPoint(event) {
-    const portfolio = ctx.withAssetColors(ctx.state.summary?.portfolio || []).filter((item) => Number(item.value || 0) > 0);
-    const total = portfolio.reduce((sum, item) => sum + Number(item.value || 0), 0);
-    if (!portfolio.length || total <= 0) return null;
+  function itemFromChartPoint(chart, items, event) {
+    const total = items.reduce((sum, item) => sum + Number(item.value || 0), 0);
+    if (!items.length || total <= 0) return null;
 
-    const rect = ctx.elements.chart.getBoundingClientRect();
+    const rect = chart.getBoundingClientRect();
     const x = event.clientX - rect.left - rect.width / 2;
     const y = event.clientY - rect.top - rect.height / 2;
     const radius = rect.width / 2;
@@ -79,10 +78,27 @@ export function attach(ctx) {
     const angle = (Math.atan2(y, x) * 180) / Math.PI;
     const pct = ((angle + 90 + 360) % 360) / 360;
     let accumulated = 0;
-    return portfolio.find((item) => {
+    return items.find((item) => {
       accumulated += Number(item.value || 0) / total;
       return pct <= accumulated + 0.000001;
-    }) || portfolio[portfolio.length - 1];
+    }) || items[items.length - 1];
+  }
+
+  function portfolioItemsForChart() {
+    return ctx.withAssetColors(ctx.state.summary?.portfolio || []).filter((item) => Number(item.value || 0) > 0);
+  }
+
+  function detailItemsForChart() {
+    const group = expandableGroup();
+    return group ? ctx.withAssetColors(ctx.state.summary?.groupedPositions?.[group.groupId] || []).filter((item) => Number(item.value || 0) > 0) : [];
+  }
+
+  function portfolioItemFromChartPoint(event) {
+    return itemFromChartPoint(ctx.elements.chart, portfolioItemsForChart(), event);
+  }
+
+  function detailItemFromChartPoint(event) {
+    return itemFromChartPoint(ctx.elements.stockChart, detailItemsForChart(), event);
   }
 
   function showDonutTooltipForItem(item, event, options = {}) {
@@ -150,6 +166,7 @@ export function attach(ctx) {
     ctx.elements.donutTooltip.dataset.pinned = 'false';
     ctx.elements.donutTooltip.classList.remove('is-touch');
     clearActiveDonutSegment();
+    clearActiveDonutSegment(ctx.elements.stockChart);
   }
 
   function closeDonutTooltip() {
@@ -158,17 +175,17 @@ export function attach(ctx) {
     ctx.elements.donutTooltip.dataset.pinned = 'false';
     ctx.elements.donutTooltip.classList.remove('is-touch');
     clearActiveDonutSegment();
+    clearActiveDonutSegment(ctx.elements.stockChart);
   }
 
-  function activeSegmentData(item) {
-    const portfolio = ctx.withAssetColors(ctx.state.summary?.portfolio || []).filter((entry) => Number(entry.value || 0) > 0);
-    const total = portfolio.reduce((sum, entry) => sum + Number(entry.value || 0), 0);
-    if (!item || !portfolio.length || total <= 0) return null;
+  function activeSegmentData(item, items) {
+    const total = items.reduce((sum, entry) => sum + Number(entry.value || 0), 0);
+    if (!item || !items.length || total <= 0) return null;
 
     let start = 0;
     let matchedSegment = null;
     const mutedSegments = [];
-    for (const entry of portfolio) {
+    for (const entry of items) {
       const end = start + (Number(entry.value || 0) / total) * 360;
       const matches = entry.groupId ? entry.groupId === item.groupId : entry.symbol === item.symbol;
       const color = matches ? 'var(--track)' : ctx.assetColor(entry.symbol, entry.color);
@@ -192,11 +209,10 @@ export function attach(ctx) {
     };
   }
 
-  function setActiveDonutSegment(item) {
-    const segment = activeSegmentData(item);
-    const chart = ctx.elements.chart;
+  function setActiveDonutSegment(item, chart = ctx.elements.chart, items = portfolioItemsForChart()) {
+    const segment = activeSegmentData(item, items);
     if (!segment) {
-      clearActiveDonutSegment();
+      clearActiveDonutSegment(chart);
       return;
     }
     if (!chart.dataset.baseBackground) chart.dataset.baseBackground = chart.style.background || '';
@@ -209,8 +225,7 @@ export function attach(ctx) {
     chart.style.setProperty('--donut-active-y', `${segment.dy.toFixed(2)}px`);
   }
 
-  function clearActiveDonutSegment() {
-    const chart = ctx.elements.chart;
+  function clearActiveDonutSegment(chart = ctx.elements.chart) {
     if (!chart) return;
     chart.classList.remove('donut-chart-active');
     if (chart.dataset.baseBackground) {
@@ -222,6 +237,33 @@ export function attach(ctx) {
     chart.style.removeProperty('--donut-active-end');
     chart.style.removeProperty('--donut-active-x');
     chart.style.removeProperty('--donut-active-y');
+  }
+
+  function showStockDonutTooltip(event) {
+    const items = detailItemsForChart();
+    if (items.length <= 1) {
+      clearActiveDonutSegment(ctx.elements.stockChart);
+      return;
+    }
+    const item = detailItemFromChartPoint(event);
+    if (!item) {
+      clearActiveDonutSegment(ctx.elements.stockChart);
+      return;
+    }
+    showDonutTooltipForItem(item, event);
+    setActiveDonutSegment(item, ctx.elements.stockChart, items);
+  }
+
+  function hideStockDonutTooltip() {
+    clearActiveDonutSegment(ctx.elements.stockChart);
+    hideDonutTooltip();
+  }
+
+  function pinStockDonutTooltip(event) {
+    const item = detailItemFromChartPoint(event);
+    if (!item) return;
+    showDonutTooltipForItem(item, event, { pinned: true });
+    setActiveDonutSegment(item, ctx.elements.stockChart, detailItemsForChart());
   }
 
   function renderSummary() {
@@ -272,6 +314,9 @@ export function attach(ctx) {
     renderSummary,
     showDonutTooltip,
     showDonutTooltipFromLegend,
+    showStockDonutTooltip,
+    hideStockDonutTooltip,
+    pinStockDonutTooltip,
     pinDonutTooltip,
     moveDonutTooltip,
     hideDonutTooltip,

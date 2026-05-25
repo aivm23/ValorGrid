@@ -100,6 +100,9 @@ export function attach(ctx) {
   elements.chart.addEventListener('mousemove', ctx.showDonutTooltip);
   elements.chart.addEventListener('mouseleave', ctx.hideDonutTooltip);
   elements.chart.addEventListener('click', ctx.pinDonutTooltip);
+  elements.stockChart.addEventListener('mousemove', ctx.showStockDonutTooltip);
+  elements.stockChart.addEventListener('mouseleave', ctx.hideStockDonutTooltip);
+  elements.stockChart.addEventListener('click', ctx.pinStockDonutTooltip);
   elements.legend.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     if (!event.target.closest('[data-action="toggle-stock-detail"]')) return;
@@ -138,11 +141,33 @@ export function attach(ctx) {
   elements.importPreviewOutput.addEventListener('input', ctx.handleImportPreviewInteraction);
   elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
+  elements.instrumentRows.addEventListener('change', (event) => updateInstrumentSelection(ctx, event));
   elements.instrumentPositionFilter?.addEventListener('change', () => {
     state.instrumentPositionFilter = elements.instrumentPositionFilter.value || 'all';
     ctx.renderInstruments();
   });
+  [
+    elements.instrumentFilterSymbol,
+    elements.instrumentFilterYahoo,
+    elements.instrumentFilterName,
+    elements.instrumentFilterGroup,
+    elements.instrumentFilterCurrency,
+  ].forEach((input) => {
+    input?.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => {
+      state.instrumentFilters = {
+        symbol: elements.instrumentFilterSymbol?.value || '',
+        yahoo: elements.instrumentFilterYahoo?.value || '',
+        name: elements.instrumentFilterName?.value || '',
+        group: elements.instrumentFilterGroup?.value || '',
+        currency: elements.instrumentFilterCurrency?.value || '',
+      };
+      ctx.renderInstruments();
+    });
+  });
+  elements.deleteSelectedInstruments?.addEventListener('click', () => deleteSelectedInstruments(ctx));
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));
+  elements.groupRows.addEventListener('change', (event) => updateGroupSelection(ctx, event));
+  elements.deleteSelectedGroups?.addEventListener('click', () => deleteSelectedGroups(ctx));
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
 
@@ -199,6 +224,56 @@ async function saveInstrument(ctx, event) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   } finally {
     button.disabled = false;
+  }
+}
+
+function updateInstrumentSelection(ctx, event) {
+  const checkbox = event.target.closest('[data-select-instrument]');
+  if (!checkbox) return;
+  const selected = new Set(ctx.state.selectedInstrumentSymbols || []);
+  if (checkbox.checked) selected.add(checkbox.dataset.selectInstrument);
+  else selected.delete(checkbox.dataset.selectInstrument);
+  ctx.state.selectedInstrumentSymbols = [...selected];
+  ctx.renderInstruments();
+}
+
+function updateGroupSelection(ctx, event) {
+  const checkbox = event.target.closest('[data-select-group]');
+  if (!checkbox) return;
+  const selected = new Set(ctx.state.selectedGroupIds || []);
+  if (checkbox.checked) selected.add(checkbox.dataset.selectGroup);
+  else selected.delete(checkbox.dataset.selectGroup);
+  ctx.state.selectedGroupIds = [...selected];
+  ctx.renderGroupRows();
+}
+
+async function deleteSelectedInstruments(ctx) {
+  const symbols = ctx.state.selectedInstrumentSymbols || [];
+  if (!symbols.length) return;
+  if (!ctx.window.confirm(`Eliminar ${symbols.length} instrumento(s) seleccionado(s)?`)) return;
+  try {
+    await ctx.sendJson('/api/instruments', 'DELETE', { symbols });
+    ctx.state.selectedInstrumentSymbols = [];
+    ctx.state.historyCache = {};
+    await ctx.refreshDashboard();
+    await ctx.refreshHistory({ force: true });
+  } catch (error) {
+    ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+  }
+}
+
+async function deleteSelectedGroups(ctx) {
+  const ids = ctx.state.selectedGroupIds || [];
+  if (!ids.length) return;
+  if (!ctx.window.confirm(`Eliminar ${ids.length} grupo(s) seleccionado(s)?`)) return;
+  try {
+    await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
+    ctx.state.selectedGroupIds = [];
+    ctx.state.historyCache = {};
+    await ctx.refreshDashboard();
+    await ctx.refreshHistory({ force: true });
+  } catch (error) {
+    ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   }
 }
 

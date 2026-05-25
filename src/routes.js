@@ -76,9 +76,27 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/instruments' && request.method === 'DELETE') {
+    try {
+      sendJson(response, 200, { results: deleteInstruments((await readJsonBody(request)).symbols || []) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
   const instrumentMatch = url.pathname.match(/^\/api\/instruments\/([^/]+)$/);
   if (instrumentMatch && request.method === 'PUT') {
     sendJson(response, 200, { instrument: updateInstrument(decodeURIComponent(instrumentMatch[1]), await readJsonBody(request)) });
+    return true;
+  }
+
+  if (instrumentMatch && request.method === 'DELETE') {
+    try {
+      sendJson(response, 200, { result: deleteInstrument(decodeURIComponent(instrumentMatch[1])) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
     return true;
   }
 
@@ -96,10 +114,28 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/instrument-groups' && request.method === 'DELETE') {
+    try {
+      sendJson(response, 200, { results: deleteInstrumentGroups((await readJsonBody(request)).ids || []) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
   const groupMatch = url.pathname.match(/^\/api\/instrument-groups\/([^/]+)$/);
   if (groupMatch && request.method === 'PUT') {
     try {
       sendJson(response, 200, { group: updateInstrumentGroup(decodeURIComponent(groupMatch[1]), await readJsonBody(request)) });
+    } catch (error) {
+      sendJson(response, 400, { error: error.message });
+    }
+    return true;
+  }
+
+  if (groupMatch && request.method === 'DELETE') {
+    try {
+      sendJson(response, 200, { result: deleteInstrumentGroup(decodeURIComponent(groupMatch[1])) });
     } catch (error) {
       sendJson(response, 400, { error: error.message });
     }

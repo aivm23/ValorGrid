@@ -4,6 +4,14 @@ export function attach(ctx) {
     return Number.isFinite(value) ? ctx.eurFormatter.format(value) : 'Pendiente';
   }
 
+  function moneyClass(value) {
+    return ctx.state.negativeRed !== false && Number(value) < 0 ? 'is-negative' : '';
+  }
+
+  function formatCurrencySpan(value) {
+    return `<span class="${moneyClass(value)}">${formatCurrency(Number(value || 0))}</span>`;
+  }
+
   function formatDate(value) {
     if (!value) return 'sin fecha';
     return new Intl.DateTimeFormat('es-ES', {
@@ -126,6 +134,8 @@ export function attach(ctx) {
 
   Object.assign(ctx, {
     formatCurrency,
+    moneyClass,
+    formatCurrencySpan,
     formatDate,
     formatDateTime,
     formatPlainDate,

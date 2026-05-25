@@ -1,4 +1,6 @@
-# Dashboard de cartera
+# ValorGrid
+
+![ValorGrid - dashboard privado de cartera](assets/brand/valorgrid-publicidad-completa.png)
 
 Aplicacion local de un solo usuario para gestionar una cartera privada con SQLite.
 

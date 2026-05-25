@@ -60,7 +60,12 @@
               <span class="toolbar-label">Aportaciones</span>
             </button>
             <button id="instrument-manager" class="calendar-button" type="button" aria-label="Configurar instrumentos">
-              <span class="instruments-icon" aria-hidden="true"></span>
+              <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 7h16"></path>
+                <path d="M4 17h16"></path>
+                <circle cx="9" cy="7" r="2"></circle>
+                <circle cx="15" cy="17" r="2"></circle>
+              </svg>
               <span class="toolbar-label">Instrumentos</span>
             </button>
             <button id="open-import-dialog-toolbar" class="calendar-button" type="button" aria-label="Importar movimientos">
@@ -69,7 +74,11 @@
             </button>
             <details id="export-menu" class="toolbar-menu" hidden>
               <summary class="calendar-button" aria-label="Exportar datos">
-                <span class="export-icon" aria-hidden="true"></span>
+                <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 3v12"></path>
+                  <path d="m7 10 5 5 5-5"></path>
+                  <path d="M5 19h14"></path>
+                </svg>
                 <span class="toolbar-label">Exportar</span>
               </summary>
               <div class="toolbar-menu-panel" role="menu">
@@ -85,7 +94,10 @@
               aria-label="Administración"
               title="Administración"
             >
-              <span class="admin-icon" aria-hidden="true"></span>
+              <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.03.03a2 2 0 0 1-2.83 2.83l-.03-.03A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.04a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.03.03a2 2 0 1 1-2.83-2.83l.03-.03A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.04a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.03-.03a2 2 0 1 1 2.83-2.83l.03.03A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.04a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.03-.03a2 2 0 1 1 2.83 2.83l-.03.03A1.7 1.7 0 0 0 19.4 9c.2.34.4.66.6 1H20a2 2 0 0 1 0 4h-.04a1.7 1.7 0 0 0-.56 1Z"></path>
+              </svg>
             </button>
             <button
               id="balance-toggle"
@@ -365,19 +377,50 @@
               <input id="new-group-color" type="color" value="#16a34a" aria-label="Color del grupo" />
               <button id="create-group" class="button" type="button">Crear grupo</button>
             </div>
+            <div class="bulk-toolbar">
+              <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
+              <button id="delete-selected-groups" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar grupos seleccionados">
+                <span class="trash-icon" aria-hidden="true"></span>
+                <span>Eliminar</span>
+              </button>
+            </div>
             <div id="group-rows" class="group-card-grid"></div>
           </section>
 
           <section class="instrument-config-section">
             <div class="instrument-section-heading">
               <h3>Instrumentos</h3>
+            </div>
+            <div class="instrument-filter-grid">
               <label class="field instrument-position-filter">
-                <span>Filtro</span>
+                <span>Posición</span>
                 <select id="instrument-position-filter">
                   <option value="all">Todos</option>
                   <option value="open">Con posición abierta</option>
                   <option value="closed">Sin posición abierta</option>
                 </select>
+              </label>
+              <label class="field">
+                <span>Ticker</span>
+                <input id="instrument-filter-symbol" placeholder="Todos" />
+              </label>
+              <label class="field">
+                <span>Yahoo</span>
+                <input id="instrument-filter-yahoo" placeholder="Todos" />
+              </label>
+              <label class="field">
+                <span>Nombre</span>
+                <input id="instrument-filter-name" placeholder="Todos" />
+              </label>
+              <label class="field">
+                <span>Grupo</span>
+                <select id="instrument-filter-group">
+                  <option value="">Todos</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Divisa</span>
+                <input id="instrument-filter-currency" placeholder="Todas" />
               </label>
             </div>
             <div class="instrument-create-form instrument-create-form-wide">
@@ -392,6 +435,13 @@
               <select id="new-instrument-group"></select>
               <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
               <button id="create-instrument" class="button" type="button">Crear instrumento</button>
+            </div>
+            <div class="bulk-toolbar">
+              <span id="instrument-selection-count" class="subtle">0 instrumentos seleccionados</span>
+              <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar instrumentos seleccionados">
+                <span class="trash-icon" aria-hidden="true"></span>
+                <span>Eliminar</span>
+              </button>
             </div>
             <div class="table-wrap compact-table instrument-table-wrap">
               <table class="instrument-table">

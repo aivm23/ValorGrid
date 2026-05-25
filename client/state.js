@@ -43,6 +43,15 @@ export function attach(ctx) {
     hideBalances: false,
     negativeRed: true,
     instrumentPositionFilter: 'all',
+    instrumentFilters: {
+      symbol: '',
+      yahoo: '',
+      name: '',
+      group: '',
+      currency: '',
+    },
+    selectedInstrumentSymbols: [],
+    selectedGroupIds: [],
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

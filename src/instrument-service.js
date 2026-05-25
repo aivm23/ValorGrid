@@ -256,6 +256,40 @@ function updateInstrument(symbol, input = {}) {
   return listInstruments().find((item) => item.symbol === existing.symbol);
 }
 
+function instrumentDependencyCounts(symbol) {
+  const normalized = normalizeSymbol(symbol);
+  return {
+    transactions: db.prepare('SELECT COUNT(*) AS count FROM transactions WHERE symbol = ?').get(normalized).count,
+    autoPlans: db.prepare('SELECT COUNT(*) AS count FROM auto_plans WHERE symbol = ?').get(normalized).count,
+    identifiers: db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(normalized).count,
+  };
+}
+
+function deleteInstrument(symbol) {
+  const existing = getInstrument(symbol);
+  if (!existing) return { symbol: normalizeSymbol(symbol), status: 'missing' };
+  if (existing.type === 'fx') throw new Error('Technical FX instruments cannot be deleted');
+  const deps = instrumentDependencyCounts(existing.symbol);
+  if (deps.transactions > 0 || deps.autoPlans > 0 || Math.abs(Number(existing.base_shares || 0)) > 0.000001) {
+    db.prepare(
+      `UPDATE instruments
+       SET active = 0, show_in_distribution = 0, show_in_monthly = 0
+       WHERE symbol = ?`,
+    ).run(existing.symbol);
+    invalidateLedger(getToday(), 'instrument-deactivate');
+    return { symbol: existing.symbol, status: 'deactivated', dependencies: deps };
+  }
+  db.prepare('DELETE FROM instrument_identifiers WHERE instrument_symbol = ?').run(existing.symbol);
+  db.prepare('DELETE FROM instruments WHERE symbol = ?').run(existing.symbol);
+  invalidateLedger(getToday(), 'instrument-delete');
+  return { symbol: existing.symbol, status: 'deleted', dependencies: deps };
+}
+
+function deleteInstruments(symbols = []) {
+  const unique = [...new Set((symbols || []).map((symbol) => normalizeSymbol(symbol)).filter(Boolean))];
+  return unique.map((symbol) => deleteInstrument(symbol));
+}
+
 function createInstrument(input = {}) {
   const symbol = normalizeSymbol(input.symbol || input.ticker);
   if (!symbol) throw new Error('Symbol is required');
@@ -352,6 +386,31 @@ function updateInstrumentGroup(id, input = {}) {
   return listInstrumentGroups().find((item) => item.id === existing.id);
 }
 
+function deleteInstrumentGroup(id) {
+  const groupId = String(id || '').trim();
+  const existing = db.prepare('SELECT * FROM instrument_groups WHERE id = ?').get(groupId);
+  if (!existing) return { id: groupId, status: 'missing' };
+  const activeInstruments = db
+    .prepare('SELECT COUNT(*) AS count FROM instruments WHERE group_id = ? AND active = 1')
+    .get(groupId).count;
+  if (activeInstruments > 0) {
+    return {
+      id: groupId,
+      status: 'blocked',
+      reason: 'El grupo contiene instrumentos activos. Mueve o elimina esos instrumentos antes de borrar el grupo.',
+    };
+  }
+  db.prepare('UPDATE instruments SET group_id = NULL WHERE group_id = ?').run(groupId);
+  db.prepare('DELETE FROM instrument_groups WHERE id = ?').run(groupId);
+  invalidateLedger(getToday(), 'group-delete');
+  return { id: groupId, status: 'deleted' };
+}
+
+function deleteInstrumentGroups(ids = []) {
+  const unique = [...new Set((ids || []).map((id) => String(id || '').trim()).filter(Boolean))];
+  return unique.map((id) => deleteInstrumentGroup(id));
+}
+
 function ensureInstrument(symbol, quote = null) {
   const normalized = normalizeSymbol(symbol);
   const existing = getInstrument(normalized);
@@ -404,10 +463,14 @@ function ensureInstrument(symbol, quote = null) {
       deleteInstrumentIdentifier,
       resolveInstrumentFromIdentifiers,
       updateInstrument,
+      deleteInstrument,
+      deleteInstruments,
       createInstrument,
       ensureGeneralGroup,
       createInstrumentGroup,
       updateInstrumentGroup,
+      deleteInstrumentGroup,
+      deleteInstrumentGroups,
       ensureInstrument,
     });
   }
