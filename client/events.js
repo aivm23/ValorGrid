@@ -129,6 +129,7 @@ export function attach(ctx) {
   elements.ledgerFilterTo.addEventListener('change', ctx.renderLedger);
   elements.ledgerRows.addEventListener('change', ctx.updateTransactionSelection);
   elements.selectVisibleTransactions?.addEventListener('click', ctx.selectVisibleTransactions);
+  elements.deselectAllTransactions?.addEventListener('click', ctx.deselectAllTransactions);
   elements.deleteSelectedTransactions?.addEventListener('click', ctx.deleteSelectedTransactions);
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
   elements.toolbarBackup?.addEventListener('click', () => createBackup(ctx));
@@ -171,10 +172,12 @@ export function attach(ctx) {
   });
   elements.deleteSelectedInstruments?.addEventListener('click', ctx.deleteSelectedInstruments);
   elements.selectVisibleInstruments?.addEventListener('click', ctx.selectVisibleInstruments);
+  elements.deselectAllInstruments?.addEventListener('click', ctx.deselectAllInstruments);
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));
   elements.groupRows.addEventListener('change', ctx.updateGroupSelection);
   elements.deleteSelectedGroups?.addEventListener('click', ctx.deleteSelectedGroups);
   elements.selectVisibleGroups?.addEventListener('click', ctx.selectVisibleGroups);
+  elements.deselectAllGroups?.addEventListener('click', ctx.deselectAllGroups);
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
 

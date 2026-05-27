@@ -61,6 +61,28 @@ const migrations = [
     },
   },
   {
+    id: '2026-05-27-import-rollback-log',
+    run() {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS import_rollback_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          batch_id TEXT NOT NULL,
+          source TEXT,
+          filename TEXT,
+          row_count INTEGER,
+          error_count INTEGER,
+          first_date TEXT,
+          last_date TEXT,
+          rolled_back_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_rollback_log_batch_id
+          ON import_rollback_log (batch_id);
+        CREATE INDEX IF NOT EXISTS idx_rollback_log_rolled_back_at
+          ON import_rollback_log (rolled_back_at DESC);
+      `);
+    },
+  },
+  {
     id: '2026-05-22-legacy-history-tables',
     run() {
       db.exec(`

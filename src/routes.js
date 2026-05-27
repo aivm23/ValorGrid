@@ -238,6 +238,11 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/import/rollback-log' && request.method === 'GET') {
+    sendJson(response, 200, { entries: listImportRollbackLog() });
+    return true;
+  }
+
   const deleteMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)$/);
   if (deleteMatch && request.method === 'DELETE') {
     sendJson(response, deleteTransaction(decodeURIComponent(deleteMatch[1])) ? 200 : 404, {

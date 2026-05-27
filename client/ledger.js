@@ -58,6 +58,7 @@ export function attach(ctx) {
       elements.selectVisibleTransactions.hidden =
         selectedCount === 0 || !state.visibleTransactionIds.length || selectedCount === state.visibleTransactionIds.length;
     }
+    if (elements.deselectAllTransactions) elements.deselectAllTransactions.hidden = selectedCount === 0;
 
     elements.ledgerRows.innerHTML = rows.length
       ? rows
