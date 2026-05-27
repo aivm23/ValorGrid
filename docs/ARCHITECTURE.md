@@ -15,14 +15,17 @@ ValorGrid es una aplicación local monousuario con backend Node.js, SQLite local
 
 ### `server.js`
 
-Bootstrap mínimo:
+Bootstrap mínimo (9 líneas): delega en `src/app.js` para toda la lógica. Solo arranca el listener HTTP cuando se ejecuta directamente.
 
-- carga configuración,
-- abre SQLite,
-- ejecuta schema/migraciones,
-- crea la aplicación,
-- sirve frontend estático,
-- arranca el listener.
+### `src/app.js`
+
+Orquestador del backend:
+
+- crea el objeto `ctx` compartido,
+- carga cada módulo `src/*.js` como `require(modulePath)(ctx)`,
+- cada módulo usa `with (ctx) { ... }` para leer y escribir estado compartido,
+- cada módulo exporta funciones vía `Object.assign(ctx, { ... })`,
+- llama a `ctx.initDatabase()` para ejecutar schema y migraciones idempotentes.
 
 ### `src/`
 
@@ -42,14 +45,13 @@ La lógica principal vive en módulos:
 
 ## Frontend
 
-### `app.js`
+### `index.html`
 
-Orquestador del frontend:
+Punto de entrada del frontend. Carga los módulos de `client/` como `<script type="module">`.
 
-- carga módulos cliente,
-- inicializa estado,
-- registra eventos,
-- lanza el primer `refreshDashboard()`.
+### `client/attach.js`
+
+Mecanismo de inyección de dependencias del frontend. Usa `new Function` con `with (ctx)` para cargar módulos ES y exponer sus funciones en el objeto `ctx` global, replicando el patrón del backend.
 
 ### `client/`
 
@@ -69,6 +71,10 @@ Módulos principales:
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
+- `attach.js`: mecanismo de inyección de dependencias.
+- `forms.js`: helpers de formularios.
+- `onboarding.js`: wizard de onboarding.
+- `summary.js`: resumen de cartera expandido.
 
 ## Histórico
 

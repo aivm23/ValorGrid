@@ -13,10 +13,11 @@ Campos principales:
 - `id`
 - `name`
 - `color`
-- `sort_order`
+- `display_order`
 - `show_in_distribution`
 - `show_in_monthly`
-- `is_breakdown`
+- `is_expandable`
+- `active`
 
 Se usa para distribución actual, revisión YTD, desglose del donut y organización de instrumentos.
 
@@ -128,11 +129,15 @@ Campos principales:
 
 - `id`
 - `source`
-- `file_name`
+- `filename`
 - `file_hash`
 - `status`
 - `mapping_json`
 - `summary_json`
+- `row_count`
+- `error_count`
+- `first_date`
+- `last_date`
 - `created_at`
 - `committed_at`
 - `rolled_back_at`
@@ -146,12 +151,12 @@ Representa filas de un lote.
 Campos principales:
 
 - `batch_id`
-- `row_number`
+- `row_index`
 - `raw_json`
 - `normalized_json`
-- `raw_hash`
+- `row_hash`
 - `status`
-- `errors_json`
+- `error`
 - `transaction_id`
 
 Permite auditoría, rollback y diagnóstico de importación.
@@ -203,6 +208,63 @@ Guarda desde qué fecha debe reconstruirse el histórico.
 ### `history_builds`
 
 Registra builds del histórico, duración, estado y errores.
+
+## Metadata y control de versiones
+
+### `app_meta`
+
+Almacena claves de versión interna para invalidación de cachés.
+
+Campos:
+
+- `key`: identificador (ej. `ledger_version`, `price_version`).
+- `value`: valor numérico como texto.
+- `updated_at`
+
+Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico.
+
+## Precios y FX (detalle)
+
+### `market_prices_daily`
+
+Precios diarios por símbolo interno (no Yahoo). Derivado de `daily_price_cache` tras resolución de símbolo.
+
+Campos:
+
+- `symbol`, `yahoo_symbol`, `date`, `price`, `currency`, `source`
+
+### `fx_rates_daily`
+
+Tipos de cambio diarios por par de divisas.
+
+Campos:
+
+- `pair` (ej. `USDEUR`), `date`, `rate`, `source`
+
+### `daily_price_cache_ranges`
+
+Registra qué rangos de fechas ya se consultaron al proveedor externo, evitando consultas redundantes.
+
+Campos:
+
+- `yahoo_symbol`, `from_date`, `to_date`
+
+## Rollback de importaciones
+
+### `import_rollback_log`
+
+Registra cada rollback ejecutado sobre un lote de importación.
+
+Campos:
+
+- `id`
+- `batch_id`
+- `source`, `filename`
+- `row_count`, `error_count`
+- `first_date`, `last_date`
+- `rolled_back_at`
+
+Permite auditoría y reimportación controlada tras correcciones.
 
 ## Principios
 

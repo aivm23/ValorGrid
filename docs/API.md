@@ -19,7 +19,7 @@ GET /api/diagnostics/performance
 
 - `GET /api/version`: devuelve la versión definida en `version.json`.
 - `GET /api/health`: devuelve estado local, ruta de base de datos activa, versiones internas y último build histórico.
-- `GET /api/state`: devuelve metadatos persistidos de estado.
+- `GET /api/state`: devuelve el estado completo de la aplicación: instrumentos, grupos, movimientos, planes automáticos y ruta de base de datos activa.
 - `GET /api/diagnostics/performance`: devuelve métricas de rendimiento, tamaños de caché e invalidaciones pendientes.
 
 ## Instrumentos y grupos
@@ -27,10 +27,14 @@ GET /api/diagnostics/performance
 ```text
 GET /api/instruments
 POST /api/instruments
+DELETE /api/instruments
 PUT /api/instruments/:symbol
+DELETE /api/instruments/:symbol
 GET /api/instrument-groups
 POST /api/instrument-groups
+DELETE /api/instrument-groups
 PUT /api/instrument-groups/:id
+DELETE /api/instrument-groups/:id
 GET /api/instrument-identifiers
 POST /api/instrument-identifiers
 DELETE /api/instrument-identifiers/:id
@@ -79,6 +83,7 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 ```text
 GET /api/auto-plans
 PUT /api/auto-plans
+POST /api/auto-plans/preview
 ```
 
 Los planes soportan frecuencia diaria, semanal, bisemanal y mensual. Cada plan tiene fecha de inicio y respeta skips si una operación automática se elimina manualmente.
@@ -136,6 +141,7 @@ POST /api/import/commit
 GET /api/import/batches
 GET /api/import/batches/:id
 POST /api/import/batches/:id/rollback
+GET /api/import/rollback-log
 POST /api/import/ticker-suggestions
 ```
 
