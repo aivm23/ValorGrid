@@ -86,6 +86,7 @@ function clearLoadtestTables(db) {
     DELETE FROM auto_plan_skips;
     DELETE FROM transactions;
     DELETE FROM auto_plans;
+    DELETE FROM instrument_groups;
     DELETE FROM instruments;
   `);
 }
@@ -110,8 +111,13 @@ function seedLoadtestDb(db, options = {}) {
 
   const insertInstrument = db.prepare(
     `INSERT OR REPLACE INTO instruments
-      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active)
-     VALUES (?, ?, ?, ?, ?, ?, 0, ?, 1)`,
+      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id)
+     VALUES (?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
+  );
+  const insertGroup = db.prepare(
+    `INSERT OR REPLACE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES (?, ?, ?, ?, 1, 1, ?, 1)`,
   );
   const insertDaily = db.prepare(
     `INSERT OR REPLACE INTO daily_price_cache
@@ -141,6 +147,24 @@ function seedLoadtestDb(db, options = {}) {
   clearLoadtestTables(db);
   db.exec('BEGIN');
   try {
+    const groups = [
+      { id: 'core', name: 'Core', color: '#a855f7', order: 10, expandable: 0 },
+      { id: 'stock-picking', name: 'Stock picking', color: '#16a34a', order: 20, expandable: 1 },
+      { id: 'specialized', name: 'Especializado', color: '#f59e0b', order: 30, expandable: 0 },
+      { id: 'general', name: 'General', color: '#64748b', order: 90, expandable: 0 },
+    ];
+    for (const group of groups) {
+      insertGroup.run(group.id, group.name, group.color, group.order, group.expandable);
+    }
+
+    function groupFor(symbol, type) {
+      if (['SPPW', 'ICGA'].includes(symbol)) return 'core';
+      if (['META', 'NVO'].includes(symbol) || type === 'stock') return 'stock-picking';
+      if (symbol === 'U308') return 'specialized';
+      if (type === 'etf') return 'core';
+      return 'general';
+    }
+
     for (const instrument of instruments) {
       insertInstrument.run(
         instrument.symbol,
@@ -150,6 +174,7 @@ function seedLoadtestDb(db, options = {}) {
         instrument.currency,
         instrument.color,
         instrument.base,
+        groupFor(instrument.symbol, instrument.type),
       );
       insertRange.run(instrument.yahooSymbol, cacheFrom, to);
       for (const date of dates) {
