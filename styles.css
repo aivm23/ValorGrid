@@ -6,6 +6,7 @@
   --muted: #64748b;
   --line: #e2e8f0;
   --track: #e2e8f0;
+  --accent: #2563eb;
   --table-head: #f8fafc;
   --table-head-text: #334155;
   --button-border: #cbd5e1;
@@ -20,6 +21,7 @@
   --muted: #94a3b8;
   --line: #273449;
   --track: #273449;
+  --accent: #3b82f6;
   --table-head: #172033;
   --table-head-text: #cbd5e1;
   --button-border: #334155;
@@ -959,6 +961,10 @@ h3 {
   gap: 10px;
 }
 
+.admin-grid .import-box {
+  gap: 10px;
+}
+
 .import-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 110px;
@@ -1298,6 +1304,56 @@ h3 {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px;
+}
+
+.import-batch-row.is-rolled-back {
+  opacity: 0.55;
+  background: color-mix(in srgb, var(--muted) 6%, transparent);
+}
+
+.import-batch-row.is-rolled-back strong {
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+}
+
+.import-committing-overlay {
+  display: grid;
+  place-items: center;
+  padding: 48px 24px;
+}
+
+.import-committing-card {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 32px 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.import-committing-card img {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  animation: importSpin 1.4s ease-in-out infinite;
+}
+
+.import-committing-card strong {
+  font-size: 1.05rem;
+}
+
+.import-committing-card span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@keyframes importSpin {
+  0% { transform: scale(0.92) rotate(0deg); opacity: 0.7; }
+  50% { transform: scale(1.08) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0.92) rotate(360deg); opacity: 0.7; }
 }
 
 .import-row-error td {
@@ -2083,23 +2139,58 @@ td:last-child {
   overflow-x: hidden;
 }
 
+.admin-panel .modal-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-panel .modal-header h2 {
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.admin-panel .modal-header .subtle {
+  font-size: 0.86rem;
+}
+
 .admin-grid {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   min-width: 0;
+  gap: 24px;
 }
 
 .admin-grid section {
   min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  padding: 18px;
+}
+
+.admin-grid section h3 {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .admin-preferences-section {
   grid-column: 1 / -1;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 4%, var(--bg)), var(--bg));
+  padding: 18px;
 }
 
 .admin-preference {
   width: fit-content;
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+}
+
+.admin-grid .button-compact {
+  margin-bottom: 12px;
 }
 
 .backup-list,

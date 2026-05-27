@@ -139,7 +139,7 @@ $forbiddenTextPatterns = @(
   ('C:' + '\\' + 'Users'),
   ('Lib' + 'ro1'),
   ('github' + '-preview'),
-  ('portfolio-dashboard-' + 'github' + '-preview'),
+  ('valorgrid-' + 'github' + '-preview'),
   ('preview:' + 'github'),
   ('start:' + 'github' + '-preview'),
   ('create-' + 'github' + '-preview'),

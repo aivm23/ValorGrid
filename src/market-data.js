@@ -9,7 +9,7 @@ async function fetchYahooChart(yahooSymbol, query) {
   const response = await fetch(url, {
     headers: {
       accept: 'application/json',
-      'user-agent': 'Mozilla/5.0 portfolio-dashboard',
+      'user-agent': 'Mozilla/5.0 ValorGrid',
     },
     signal: AbortSignal.timeout(12000),
   });

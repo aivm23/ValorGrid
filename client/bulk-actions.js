@@ -48,6 +48,21 @@ export function attach(ctx) {
     ctx.renderGroupRows();
   }
 
+  function deselectAllTransactions() {
+    ctx.state.selectedTransactionIds = [];
+    ctx.renderLedger();
+  }
+
+  function deselectAllInstruments() {
+    ctx.state.selectedInstrumentSymbols = [];
+    ctx.renderInstruments();
+  }
+
+  function deselectAllGroups() {
+    ctx.state.selectedGroupIds = [];
+    ctx.renderGroupRows();
+  }
+
   async function deleteSelectedTransactions() {
     const ids = ctx.state.selectedTransactionIds || [];
     if (!ids.length) return;
@@ -105,6 +120,9 @@ export function attach(ctx) {
     selectVisibleTransactions,
     selectVisibleInstruments,
     selectVisibleGroups,
+    deselectAllTransactions,
+    deselectAllInstruments,
+    deselectAllGroups,
     deleteSelectedTransactions,
     deleteSelectedInstruments,
     deleteSelectedGroups,

@@ -187,7 +187,7 @@ export function attach(ctx) {
     const mutedSegments = [];
     for (const entry of items) {
       const end = start + (Number(entry.value || 0) / total) * 360;
-      const matches = entry.groupId ? entry.groupId === item.groupId : entry.symbol === item.symbol;
+      const matches = entry.symbol ? entry.symbol === item.symbol : entry.groupId === item.groupId;
       const color = matches ? 'var(--track)' : ctx.assetColor(entry.symbol, entry.color);
       mutedSegments.push(`${color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`);
       if (matches) {

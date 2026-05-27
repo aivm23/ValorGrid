@@ -8,7 +8,7 @@ const { seedLoadtestDb } = require('../scripts/loadtest-data');
 const appInfo = require('../version.json');
 const packageInfo = require('../package.json');
 
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-dashboard-'));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-'));
 process.env.PORTFOLIO_DB_PATH = path.join(tempDir, 'portfolio.sqlite');
 process.env.PORT = '0';
 

@@ -176,7 +176,14 @@ export function attach(ctx) {
   async function commitCsvImport() {
     if (!ctx.state.importPreview?.canCommit) return;
     ctx.elements.importCommit.disabled = true;
-    ctx.elements.importFeedback.textContent = 'Guardando importación...';
+    ctx.elements.importPreviewOutput.innerHTML = `
+      <div class="import-committing-overlay">
+        <div class="import-committing-card">
+          <img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" />
+          <strong>Importando operaciones...</strong>
+          <span>Conciliando movimientos y actualizando cartera.</span>
+        </div>
+      </div>`;
     try {
       ensureDefaultRowActions(ctx);
       await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
@@ -189,6 +196,7 @@ export function attach(ctx) {
       closeImportDialog();
     } catch (error) {
       ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
+      renderImportPreview();
     } finally {
       updateCommitButton(ctx);
     }
@@ -280,19 +288,24 @@ export function attach(ctx) {
 
   function renderImportBatches() {
     const batches = ctx.state.importBatches || [];
+    const rolledBackIds = new Set((ctx.state.importRollbackLog || []).map((entry) => entry.batchId));
+    const rollbackSection = renderImportRollbackLog();
     ctx.elements.importBatches.innerHTML = batches.length
       ? `<h4>Importaciones recientes</h4>${batches
           .slice(0, 5)
           .map(
-            (batch) => `
-        <div class="import-batch-row">
-          <span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${ctx.escapeHtml(batch.status)}</span>
+            (batch) => {
+              const isRolledBack = rolledBackIds.has(batch.id);
+              return `
+        <div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}">
+          <span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span>
           <small>${ctx.escapeHtml(batch.firstDate || '')} ${ctx.escapeHtml(batch.lastDate || '')}</small>
-          <button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>
-        </div>`,
+          ${isRolledBack ? '' : `<button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>`}
+        </div>`;
+            },
           )
-          .join('')}`
-      : '<span class="subtle">Sin importaciones todavía.</span>';
+          .join('')}${rollbackSection}`
+      : rollbackSection || '<span class="subtle">Sin importaciones todavía.</span>';
   }
 
   async function loadImportBatches() {
@@ -302,7 +315,27 @@ export function attach(ctx) {
     } catch {
       ctx.state.importBatches = [];
     }
+    try {
+      const logData = await ctx.fetchJson('/api/import/rollback-log');
+      ctx.state.importRollbackLog = logData.entries || [];
+    } catch {
+      ctx.state.importRollbackLog = [];
+    }
     renderImportBatches();
+  }
+
+  function renderImportRollbackLog() {
+    const entries = ctx.state.importRollbackLog || [];
+    if (!entries.length) return '';
+    return `<h4>Reversiones</h4>${entries
+      .map(
+        (entry) => `
+      <div class="import-batch-row">
+        <span><strong>${ctx.escapeHtml(entry.filename || entry.source)}</strong> — ${entry.rowCount || 0} movimientos revertidos</span>
+        <small>${ctx.formatDateTime(entry.rolledBackAt)}</small>
+      </div>`,
+      )
+      .join('')}`;
   }
 
   async function rollbackImportBatch(event) {

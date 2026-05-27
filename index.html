@@ -280,6 +280,7 @@
         <div class="bulk-toolbar ledger-bulk-toolbar">
           <span id="ledger-selection-count" class="subtle">0 movimientos seleccionados</span>
           <button id="select-visible-transactions" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
+          <button id="deselect-all-transactions" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
           <button id="delete-selected-transactions" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar movimientos seleccionados">
             <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M4 7h16"></path>
@@ -394,6 +395,7 @@
             <div class="bulk-toolbar">
               <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
               <button id="select-visible-groups" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
+              <button id="deselect-all-groups" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
               <button id="delete-selected-groups" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar grupos seleccionados">
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
@@ -470,6 +472,7 @@
             <div class="bulk-toolbar">
               <span id="instrument-selection-count" class="subtle">0 valores seleccionados</span>
               <button id="select-visible-instruments" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
+              <button id="deselect-all-instruments" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
               <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar valores seleccionados">
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
@@ -595,7 +598,7 @@
         <div class="modal-header">
           <div>
             <h2>Administración</h2>
-            <p class="subtle">Backups, importaciones recientes y preferencias visuales.</p>
+            <p class="subtle">Backups, importaciones y preferencias de visualización.</p>
           </div>
           <button id="admin-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -615,8 +618,8 @@
             <div id="backup-list" class="backup-list"></div>
           </section>
           <section class="import-box">
-            <h3>Importaciones recientes</h3>
-            <p class="subtle">Revisa y revierte lotes importados si necesitas corregirlos.</p>
+            <h3>Importaciones</h3>
+            <p class="subtle">Revierte lotes importados si necesitas corregirlos.</p>
             <div id="import-batches" class="import-batches"></div>
           </section>
         </div>

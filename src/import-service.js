@@ -200,6 +200,10 @@ module.exports = function attach(ctx) {
 
     db.exec('BEGIN');
     try {
+      db.prepare(
+        `INSERT INTO import_rollback_log (batch_id, source, filename, row_count, error_count, first_date, last_date)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).run(id, batch.source, batch.filename, batch.rowCount, batch.errorCount, batch.firstDate, batch.lastDate);
       db.prepare("DELETE FROM transactions WHERE import_batch_id = ? AND origin = 'import'").run(id);
       db.prepare("UPDATE import_rows SET status = 'rolled_back' WHERE batch_id = ? AND status = 'committed'").run(id);
       db.prepare("UPDATE import_batches SET status = 'rolled_back', rolled_back_at = CURRENT_TIMESTAMP WHERE id = ?").run(id);
@@ -214,6 +218,18 @@ module.exports = function attach(ctx) {
     }
   }
 
+  function listImportRollbackLog() {
+    return db
+      .prepare(
+        `SELECT id, batch_id AS batchId, source, filename, row_count AS rowCount,
+                error_count AS errorCount, first_date AS firstDate, last_date AS lastDate,
+                rolled_back_at AS rolledBackAt
+         FROM import_rollback_log
+         ORDER BY rolled_back_at DESC`,
+      )
+      .all();
+  }
+
   Object.assign(ctx, {
     previewImport,
     commitImport,
@@ -221,5 +237,6 @@ module.exports = function attach(ctx) {
     getImportBatch,
     getImportRows,
     rollbackImportBatch,
+    listImportRollbackLog,
   });
 };

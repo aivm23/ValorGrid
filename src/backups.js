@@ -11,6 +11,17 @@ function safeBackupName(name) {
   return /^[\w.-]+\.sqlite$/.test(name) ? name : null;
 }
 
+function pruneOldBackups(backupDir, limit = 6) {
+  const all = fs
+    .readdirSync(backupDir)
+    .filter(safeBackupName)
+    .map((file) => ({ file, mtime: fs.statSync(path.join(backupDir, file)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime);
+  for (const old of all.slice(limit)) {
+    fs.unlinkSync(path.join(backupDir, old.file));
+  }
+}
+
 function createBackup({ db, dbPath, root }) {
   const backupDir = ensureBackupDir(root);
   db.exec('PRAGMA wal_checkpoint(FULL)');
@@ -18,6 +29,7 @@ function createBackup({ db, dbPath, root }) {
   const fileName = `portfolio-${stamp}.sqlite`;
   const targetPath = path.join(backupDir, fileName);
   fs.copyFileSync(dbPath, targetPath);
+  pruneOldBackups(backupDir);
   return {
     file: fileName,
     path: targetPath,

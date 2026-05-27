@@ -93,6 +93,7 @@ export function attach(ctx) {
       ctx.elements.selectVisibleInstruments.hidden =
         selectedCount === 0 || !ctx.state.visibleInstrumentSymbols.length || selectedCount === ctx.state.visibleInstrumentSymbols.length;
     }
+    if (ctx.elements.deselectAllInstruments) ctx.elements.deselectAllInstruments.hidden = selectedCount === 0;
     ctx.elements.instrumentRows.innerHTML = instruments.length
       ? instruments
           .map(
@@ -131,6 +132,7 @@ export function attach(ctx) {
       ctx.elements.selectVisibleGroups.hidden =
         selectedCount === 0 || !ctx.state.visibleGroupIds.length || selectedCount === ctx.state.visibleGroupIds.length;
     }
+    if (ctx.elements.deselectAllGroups) ctx.elements.deselectAllGroups.hidden = selectedCount === 0;
     ctx.elements.groupRows.innerHTML = ctx.state.groups.length
       ? ctx.state.groups
           .map(
