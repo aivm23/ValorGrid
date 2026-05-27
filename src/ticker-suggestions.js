@@ -17,9 +17,15 @@ const knownNameHints = [
   { pattern: /\bVIDRALA\b/, symbol: 'VID.MC', name: 'Vidrala, S.A.', currency: 'EUR', exchange: 'MCE' },
 ];
 
+const wseInstruments = [
+  { isin: 'PLTXTPL00011', symbol: 'TXT.WA', name: 'Ten Square Games S.A.', currency: 'PLN', exchange: 'WSE' },
+  { isin: 'PLSPRPL00012', symbol: 'SPR.WA', name: 'Sprintrade S.A.', currency: 'PLN', exchange: 'WSE' },
+];
+
 function localTickerSuggestions(identity = {}) {
   const text = normalizeSearchText(`${identity.name || identity.label || ''} ${identity.isin || ''} ${identity.exchange || ''}`);
   const currency = String(identity.currency || '').trim().toUpperCase();
+  const isin = String(identity.isin || '').trim().toUpperCase();
   const suggestions = [];
   for (const hint of knownNameHints) {
     if (!hint.pattern.test(text)) continue;
@@ -33,12 +39,29 @@ function localTickerSuggestions(identity = {}) {
       source: 'local',
     });
   }
+  if (isin) {
+    for (const wse of wseInstruments) {
+      if (wse.isin.toUpperCase() === isin) {
+        suggestions.push({
+          yahooSymbol: wse.symbol,
+          displayName: wse.name,
+          currency: wse.currency,
+          exchange: wse.exchange,
+          confidence: 'alta',
+          reason: 'Coincidencia por ISIN (WSE)',
+          source: 'local',
+        });
+      }
+    }
+  }
   return suggestions;
 }
 
 async function yahooSearchSuggestions(identity = {}) {
-  const query = String(identity.name || identity.label || identity.isin || '').trim();
-  if (!query || typeof fetch !== 'function') return [];
+  const rawQuery = String(identity.name || identity.label || identity.isin || '').trim();
+  if (!rawQuery || typeof fetch !== 'function') return [];
+  const query = rawQuery.replace(/\.[A-Z]{2,}$/, '').trim();
+  if (!query) return [];
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2500);
   try {

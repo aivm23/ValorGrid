@@ -107,9 +107,16 @@ export function ensureInstrumentChoices(ctx, preview) {
   const detected = preview?.detectedInstruments || [];
   const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
   for (const item of detected) {
-    if (ctx.state.importInstrumentChoices[item.key]) continue;
-    const resolvedSymbol = existingSymbols.has(item.symbol) ? item.symbol : '';
+    const existing = ctx.state.importInstrumentChoices[item.key];
     const omitByDefault = shouldOmitInstrumentByDefault(preview, item);
+    if (existing) {
+      if (existing.action === 'create' && existing.create) {
+        existing.create.tickerSuggestions = item.tickerSuggestions || existing.create.tickerSuggestions || [];
+        if (!existing.create.color) existing.create.color = '#2563eb';
+      }
+      continue;
+    }
+    const resolvedSymbol = existingSymbols.has(item.symbol) ? item.symbol : '';
     ctx.state.importInstrumentChoices[item.key] = {
       action: omitByDefault ? 'omit' : resolvedSymbol ? 'map' : 'create',
       symbol: resolvedSymbol,
@@ -121,6 +128,7 @@ export function ensureInstrumentChoices(ctx, preview) {
         currency: item.currency || 'EUR',
         groupId: IMPORTED_GROUP_ID,
         color: '#2563eb',
+        tickerSuggestions: item.tickerSuggestions || [],
       },
     };
   }

@@ -10,6 +10,10 @@ function insertImportBatch(ctx, preview, mapping) {
   if (existing?.status === 'committed') return { batchId, existing };
   if (existing?.status === 'rolled_back') {
     db.prepare('DELETE FROM import_rows WHERE batch_id = ?').run(batchId);
+    db.prepare(
+      `UPDATE import_batches SET status = 'previewed', rolled_back_at = NULL, committed_at = NULL WHERE id = ?`,
+    ).run(batchId);
+    return { batchId, existing: null };
   }
 
   db.prepare(
