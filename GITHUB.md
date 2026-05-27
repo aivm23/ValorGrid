@@ -16,7 +16,7 @@ Then initialize Git:
 ```powershell
 git init
 git status --short
-git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm portfolio.loadtest.sqlite .backups dist AGENTS.md
+git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm portfolio.loadtest.sqlite .backups dist
 ```
 
 Only continue if private files are ignored and `git status` shows public project files only.

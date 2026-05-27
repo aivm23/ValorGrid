@@ -5,7 +5,7 @@ Use this checklist before creating a repository or pushing code.
 1. Create a fresh local backup of the private database with `npm run backup`.
 2. Run `npm run verify:publication`.
 3. Confirm private data remains ignored:
-   `git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm portfolio.loadtest.sqlite .backups dist AGENTS.md`
+   `git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm portfolio.loadtest.sqlite .backups dist`
 4. Review `git status --short` before staging files.
 5. Stage only public source, tests, docs, CI, examples and portable scripts.
 6. Do not stage:
