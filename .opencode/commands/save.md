@@ -49,19 +49,26 @@ Instrucciones obligatorias:
 5. Antes de hacer commit:
    - Comprueba el estado con git status.
    - Revisa el diff staged con git diff --cached.
-   - Ejecuta SIEMPRE `npm test` antes de hacer commit.
-   - Si algún test falla, NO hagas commit ni push. Muestra los fallos y detente.
+   - Si no hay cambios reales para commitear, no ejecutes git add, commit ni push.
+   - Si hay conflictos de merge o rebase, detente y explica el estado.
+   - Si el proyecto tiene tests/lint evidentes y rápidos, ejecútalos.
+   - No inventes tests si no está claro cómo ejecutarlos.
+   - Si los tests fallan por los cambios actuales, no hagas push.
 
 6. Ejecuta el flujo Git cuando sea seguro:
    - git add <archivos>
    - git commit -m "<mensaje>"
    - git push
 
-7. Si la rama no tiene upstream:
+7. Control del push:
+   - Si $ARGUMENTS contiene "no push", "sin push", "solo commit" o "no hagas push", no ejecutes git push.
+   - En ese caso, crea el commit si es seguro y termina indicando que el push quedó pendiente.
+
+8. Si la rama no tiene upstream:
    - detecta la rama actual con git branch --show-current
    - usa: git push -u origin <rama-actual>
 
-8. Resultado final:
+9. Resultado final:
    - Indica el commit creado.
    - Indica la rama.
    - Indica si el push se completó.
