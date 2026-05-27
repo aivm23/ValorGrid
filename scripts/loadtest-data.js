@@ -86,7 +86,6 @@ function clearLoadtestTables(db) {
     DELETE FROM auto_plan_skips;
     DELETE FROM transactions;
     DELETE FROM auto_plans;
-    DELETE FROM migrations;
     DELETE FROM instruments;
   `);
 }
@@ -138,7 +137,6 @@ function seedLoadtestDb(db, options = {}) {
       (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
-  const insertMigration = db.prepare('INSERT OR REPLACE INTO migrations (id) VALUES (?)');
 
   clearLoadtestTables(db);
   db.exec('BEGIN');
@@ -254,7 +252,6 @@ function seedLoadtestDb(db, options = {}) {
       );
     }
 
-    insertMigration.run('historical-etf-ledger-2026-01');
     db.exec('COMMIT');
   } catch (error) {
     db.exec('ROLLBACK');

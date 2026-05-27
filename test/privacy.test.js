@@ -95,10 +95,8 @@ test('fresh install configuration does not bundle personal holdings or plans', (
   assert.equal(/baseShares:\s*[1-9]/.test(appSource), false);
   assert.match(appSource, /const defaultAutoPlans = \[\];/);
   const schemaSource = fs.readFileSync(path.join(root, 'src', 'schema.js'), 'utf8');
-  const migrationSource = fs.readFileSync(path.join(root, 'src', 'migrations', 'index.js'), 'utf8');
   const privateImportToken = ['Lib', 'ro1'].join('');
   assert.equal(schemaSource.includes(privateImportToken), false);
-  assert.equal(migrationSource.includes(privateImportToken), false);
 });
 
 test('gitignore protects local portfolio data and private imports', () => {

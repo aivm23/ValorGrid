@@ -710,9 +710,6 @@ test('database includes scalability indexes and persistent history tables', () =
     'idx_transactions_origin_auto_key',
     'idx_instruments_type_active',
     'app_meta',
-    'portfolio_history_cache',
-    'portfolio_snapshots',
-    'idx_portfolio_snapshots_range_date',
     'market_prices_daily',
     'fx_rates_daily',
     'portfolio_positions_daily',
@@ -730,7 +727,6 @@ test('database includes scalability indexes and persistent history tables', () =
     'import_rows',
     'idx_import_batches_file_hash',
     'idx_import_rows_batch_index',
-    'legacy_tables',
   ];
   const placeholders = expectedObjects.map(() => '?').join(', ');
   const objects = db

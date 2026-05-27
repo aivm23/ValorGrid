@@ -204,15 +204,6 @@ Guarda desde qué fecha debe reconstruirse el histórico.
 
 Registra builds del histórico, duración, estado y errores.
 
-## Tablas legacy
-
-Pueden existir tablas de motores históricos anteriores:
-
-- `portfolio_history_cache`
-- `portfolio_snapshots`
-
-No son la fuente contable. Si existen, deben tratarse como deuda técnica o compatibilidad, no como verdad principal.
-
 ## Principios
 
 - `transactions` es la fuente contable de compras y ventas.

@@ -57,8 +57,8 @@ const ctx = {
 };
 
 [
-  './migrations',
   './schema',
+  './schema-seed',
   './meta-state',
   './utils',
   './instrument-service',

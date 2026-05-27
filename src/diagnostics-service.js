@@ -33,8 +33,6 @@ async function buildPerformanceDiagnostics() {
       priceCache: tableCount('price_cache'),
       dailyPriceCache: tableCount('daily_price_cache'),
       dailyPriceCacheRanges: tableCount('daily_price_cache_ranges'),
-      portfolioHistoryCache: tableCount('portfolio_history_cache'),
-      portfolioSnapshots: tableCount('portfolio_snapshots'),
       marketPricesDaily: tableCount('market_prices_daily'),
       fxRatesDaily: tableCount('fx_rates_daily'),
       portfolioPositionsDaily: tableCount('portfolio_positions_daily'),
