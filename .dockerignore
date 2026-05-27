@@ -22,6 +22,5 @@ debug-*
 .env
 .env.*
 config.local.*
-AGENTS.md
 PLAN*.md
 Plan_*.md

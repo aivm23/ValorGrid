@@ -38,7 +38,6 @@ function Get-PublicFiles {
     '.cache'
   )
   $ignoredFilePatterns = @(
-    '^AGENTS\.md$',
     '^PLAN.*\.md$',
     '^Plan_.*\.md$'
   )
@@ -77,7 +76,7 @@ if ($version -ne $packageVersion) {
 }
 
 $gitignore = Get-Content (Join-Path $root '.gitignore') -Raw
-foreach ($pattern in @('*.sqlite', '*.sqlite-wal', '*.sqlite-shm', 'data/', '.backups/', 'dist/', 'AGENTS.md', '.env', 'local/', 'imports/', 'downloads/')) {
+foreach ($pattern in @('*.sqlite', '*.sqlite-wal', '*.sqlite-shm', 'data/', '.backups/', 'dist/', '.env', 'local/', 'imports/', 'downloads/')) {
   if (-not $gitignore.Contains($pattern)) {
     throw ".gitignore does not contain required pattern: $pattern"
   }

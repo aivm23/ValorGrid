@@ -31,7 +31,6 @@ temp/
 dist/
 
 # Internal planning drafts
-AGENTS.md
 PLAN*.md
 Plan_*.md
 

@@ -17,7 +17,7 @@ const ignoredDirs = new Set([
   'local',
   'node_modules',
 ]);
-const ignoredFiles = [/^AGENTS\.md$/i, /^PLAN.*\.md$/i, /^Plan_.*\.md$/i];
+const ignoredFiles = [/^PLAN.*\.md$/i, /^Plan_.*\.md$/i];
 const textExtensions = new Set([
   '',
   '.css',
@@ -101,7 +101,7 @@ test('fresh install configuration does not bundle personal holdings or plans', (
 
 test('gitignore protects local portfolio data and private imports', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env', 'AGENTS.md']) {
+  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env']) {
     assert.ok(gitignore.includes(pattern), `${pattern} is ignored`);
   }
 });

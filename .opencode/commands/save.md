@@ -49,9 +49,8 @@ Instrucciones obligatorias:
 5. Antes de hacer commit:
    - Comprueba el estado con git status.
    - Revisa el diff staged con git diff --cached.
-   - Si el proyecto tiene tests/lint evidentes y rápidos, ejecútalos.
-   - No inventes tests si no está claro cómo ejecutarlos.
-   - Si los tests fallan por los cambios actuales, no hagas push.
+   - Ejecuta SIEMPRE `npm test` antes de hacer commit.
+   - Si algún test falla, NO hagas commit ni push. Muestra los fallos y detente.
 
 6. Ejecuta el flujo Git cuando sea seguro:
    - git add <archivos>
