@@ -299,7 +299,16 @@ function autoKeyForPlan(plan, scheduledDate) {
 }
 
 function autoPlanExists(autoKey) {
-  return Boolean(db.prepare('SELECT 1 FROM transactions WHERE auto_key = ?').get(autoKey));
+  if (db.prepare('SELECT 1 FROM transactions WHERE auto_key = ?').get(autoKey)) return true;
+  const parts = autoKey.split(':');
+  if (parts.length === 3 && parts[0] === 'auto') {
+    const symbol = parts[1];
+    const date = parts[2];
+    const monthKey = date.slice(0, 7);
+    const legacyKey = `auto:${monthKey}:${symbol}`;
+    return Boolean(db.prepare('SELECT 1 FROM transactions WHERE auto_key = ?').get(legacyKey));
+  }
+  return false;
 }
 
 function previewAutoPlanExecutions(plans, toDate = getToday()) {
@@ -462,7 +471,16 @@ function deleteTransaction(id) {
 }
 
 function isAutoPlanSkipped(autoKey) {
-  return Boolean(db.prepare('SELECT auto_key FROM auto_plan_skips WHERE auto_key = ?').get(autoKey));
+  if (db.prepare('SELECT auto_key FROM auto_plan_skips WHERE auto_key = ?').get(autoKey)) return true;
+  const parts = autoKey.split(':');
+  if (parts.length === 3 && parts[0] === 'auto') {
+    const symbol = parts[1];
+    const date = parts[2];
+    const monthKey = date.slice(0, 7);
+    const legacyKey = `auto:${monthKey}:${symbol}`;
+    return Boolean(db.prepare('SELECT auto_key FROM auto_plan_skips WHERE auto_key = ?').get(legacyKey));
+  }
+  return false;
 }
     Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
   }
