@@ -1,6 +1,6 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const appInfo = require('../version.json');
+const { version } = require('../package.json');
 
 function createConfig(env = process.env, root = path.resolve(__dirname, '..')) {
   const legacyDbPath = path.join(root, 'portfolio.sqlite');
@@ -9,7 +9,7 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '..')) {
     : path.join(root, 'data', 'portfolio.sqlite');
 
   return {
-    appInfo,
+    appInfo: { version },
     root,
     port: Number(env.PORT || 5173),
     host: env.HOST || '127.0.0.1',

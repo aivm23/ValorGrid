@@ -28,8 +28,7 @@ Instrucciones obligatorias:
 
 4. Verifica versión:
    - Lee `git diff --name-only HEAD~1` o `git diff --cached --name-only` para ver archivos cambiados.
-   - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `version.json` no está entre los archivos modificados, advierte que falta el bump de versión.
-   - Verifica que `version.json` y `package.json` tienen la misma versión.
+   - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
 
 5. Verifica estado Git:
    - Ejecuta `git status --short`.

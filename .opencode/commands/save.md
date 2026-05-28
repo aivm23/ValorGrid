@@ -59,8 +59,7 @@ Instrucciones obligatorias:
      - Compara módulos en `src/` y `client/` con `docs/ARCHITECTURE.md`.
      - Si hay discrepancias, advierte pero no bloquees el commit (solo informa).
    - Verifica versión:
-     - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `version.json` no está entre los archivos modificados, advierte que falta el bump de versión.
-     - Verifica que `version.json` y `package.json` tienen la misma versión.
+      - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
      - Si falta bump o hay desincronización, advierte antes de continuar.
 
 6. Ejecuta el flujo Git cuando sea seguro:

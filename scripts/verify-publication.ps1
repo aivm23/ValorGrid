@@ -69,10 +69,9 @@ foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlit
   }
 }
 
-$version = (Get-Content (Join-Path $root 'version.json') -Raw | ConvertFrom-Json).version
-$packageVersion = (Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
-if ($version -ne $packageVersion) {
-  throw "package.json version ($packageVersion) does not match version.json ($version)"
+$version = (Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
+if (-not $version) {
+  throw "package.json does not contain a version field"
 }
 
 $gitignore = Get-Content (Join-Path $root '.gitignore') -Raw

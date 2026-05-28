@@ -11,12 +11,12 @@
 
 ## Versioning
 
-- `version.json` is the single source of truth for the application version.
+- `package.json` is the single source of truth for the application version.
 - **Every functional, technical, or UI change must bump the version before finishing.** The agent must evaluate and apply the appropriate bump:
   - **patch** (x.y.Z): small fixes, minor adjustments, bug fixes that don't change behavior significantly
   - **minor** (x.Y.0): new features, meaningful improvements, new functionality that's backward compatible
   - **major** (X.0.0): breaking changes, incompatible API changes, major refactors that change how the app works
-- When `version.json` changes, include it in the same commit as the feature/fix.
+- When the version changes, include it in the same commit as the feature/fix.
 
 ## Architecture
 

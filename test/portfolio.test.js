@@ -5,8 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 const XLSX = require('../vendor/xlsx.full.min.js');
 const { seedLoadtestDb } = require('../scripts/loadtest-data');
-const appInfo = require('../version.json');
-const packageInfo = require('../package.json');
+const appInfo = require('../package.json');
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-'));
 process.env.PORTFOLIO_DB_PATH = path.join(tempDir, 'portfolio.sqlite');
@@ -404,10 +403,9 @@ test('GET /api/version returns the app version', async () => {
   assert.match(body.version, /^\d+\.\d+\.\d+$/);
 });
 
-test('package and API versions stay synchronized with version.json', async () => {
+test('API version matches package.json', async () => {
   const { body } = await jsonRequest('/api/version');
 
-  assert.equal(packageInfo.version, appInfo.version);
   assert.equal(body.version, appInfo.version);
 });
 

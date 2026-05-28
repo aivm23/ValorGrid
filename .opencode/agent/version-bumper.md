@@ -1,5 +1,5 @@
 ---
-description: Evalúa cambios y aplica el bump de versión semver correcto en version.json y package.json.
+description: Evalúa cambios y aplica el bump de versión semver correcto en package.json.
 mode: subagent
 permission:
   edit: allow
@@ -11,8 +11,7 @@ Eres un evaluador y aplicador de versiones semver para ValorGrid.
 
 ## Contexto
 
-- `version.json` es la fuente única de verdad: `{"version": "X.Y.Z"}`
-- `package.json` debe tener la misma versión en su campo `"version"`.
+- `package.json` es la fuente única de verdad para la versión de la aplicación.
 - Cada cambio funcional, técnico o de UI requiere un bump antes de terminar.
 
 ## Reglas de bump
@@ -37,13 +36,12 @@ Eres un evaluador y aplicador de versiones semver para ValorGrid.
      - ¿Cambia múltiples cosas? → usa el bump más alto
 
 2. **Lee la versión actual**:
-   - Lee `version.json` para obtener la versión actual.
+   - Lee `package.json` para obtener la versión actual.
 
 3. **Calcula la nueva versión** aplicando las reglas semver.
 
 4. **Aplica el bump**:
-   - Actualiza `version.json`: `{"version": "X.Y.Z"}`
-   - Actualiza `package.json`: campo `"version"` con el mismo valor.
+   - Actualiza el campo `"version"` en `package.json`.
 
 5. **Informa**:
    - Versión anterior → nueva versión.
@@ -52,7 +50,7 @@ Eres un evaluador y aplicador de versiones semver para ValorGrid.
 
 ## Restricciones
 
-- No modifiques nada más que `version.json` y el campo `version` de `package.json`.
+- No modifiques nada más que el campo `version` de `package.json`.
 - No hagas commit ni push.
 - Si no hay cambios funcionales, indica que no se necesita bump.
 - Si la versión ya fue bumped en los cambios actuales, verifica que sea correcta y no la cambies de nuevo.

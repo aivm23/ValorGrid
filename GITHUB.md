@@ -24,7 +24,7 @@ Only continue if private files are ignored and `git status` shows public project
 ## First Commit
 
 ```powershell
-git add .github .env.example .gitignore GITHUB.md LICENSE README.md SECURITY.md app.js client docs index.html package.json scripts server.js src styles.css test version.json
+git add .github .env.example .gitignore GITHUB.md LICENSE README.md SECURITY.md app.js client docs index.html package.json scripts server.js src styles.css test
 git status --short
 git commit -m "Prepare public local portfolio dashboard"
 ```
