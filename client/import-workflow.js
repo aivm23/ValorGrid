@@ -198,10 +198,8 @@ export function applyImportGroupAction(ctx, groupAction) {
     .split(',')
     .map((value) => Number(value))
     .filter((value) => Number.isFinite(value));
-  const rowsByIndex = new Map((ctx.state.importPreview?.rows || []).map((row) => [row.rowIndex, row]));
   for (const rowIndex of rowIndexes) {
-    const row = rowsByIndex.get(rowIndex);
-    ctx.state.importRowActions[rowIndex] = wantsImport && row?.status === 'valid' ? 'import' : 'skip';
+    ctx.state.importRowActions[rowIndex] = wantsImport ? 'import' : 'skip';
   }
 }
 

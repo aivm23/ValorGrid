@@ -1390,6 +1390,16 @@ h3 {
   font-size: 0.82rem;
 }
 
+.import-row-control option {
+  color: #111827;
+  background: #ffffff;
+}
+
+:root[data-theme="dark"] .import-row-control option {
+  color: #e5e7eb;
+  background: #1e293b;
+}
+
 .import-auto-group {
   min-height: 38px;
   padding: 9px 10px;
