@@ -1135,6 +1135,113 @@ test('ticker suggestion API returns best-effort suggestions and tolerates provid
   assert.ok(body.suggestions.some((item) => item.yahooSymbol === 'AMD'));
 });
 
+test('DEGIRO import suggests tickers from instrument_identifiers DB after first import', () => {
+  db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'PLLVTSF00010'").run();
+  db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'PLSPRSF00011'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TXT'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'SPR'").run();
+  db.prepare(
+    `INSERT OR IGNORE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('importados', 'Importados', '#64748b', 1, 1, 1, 0, 1)`,
+  ).run();
+
+  const firstContent = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '26-06-2024,11:55,TEXT SA,PLLVTSF00010,WSE,XWAR,5,"78,8000",PLN,"-394,00",PLN,"-91,58","4,3024","-0,23","-4,90","-96,71","ord-wse-first-1",',
+    '16-05-2023,16:30,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,2,"448,0000",PLN,"-896,00",PLN,"-199,70","4,4868","-0,50",,"-200,20","ord-wse-first-2",',
+  ].join('\n');
+
+  commitImport({
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content: firstContent,
+    instrumentMappings: { 'isin:PLLVTSF00010': 'TXT', 'isin:PLSPRSF00011': 'SPR' },
+    newInstruments: [
+      { symbol: 'TXT', yahooSymbol: 'TXT.WA', name: 'TEXT SA', type: 'stock', currency: 'PLN', groupId: 'importados', color: '#ea580c' },
+      { symbol: 'SPR', yahooSymbol: 'SPR.WA', name: 'SPYROSOFT SA', type: 'stock', currency: 'PLN', groupId: 'importados', color: '#9333ea' },
+    ],
+  });
+
+  const secondContent = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '18-05-2026,10:28,TEXT SA,PLLVTSF00010,WSE,XWAR,10,"40,1800",PLN,"401,80",PLN,"94,63","4,2447","-0,43","-4,90","-89,30","ord-wse-second-1",',
+    '17-07-2025,14:32,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,3,"606,0000",PLN,"1818,00",PLN,"427,27","4,2549","-0,36",,"-426,91","ord-wse-second-2",',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'Transactions.csv', content: secondContent });
+  const textSa = preview.detectedInstruments.find((item) => item.isin === 'PLLVTSF00010');
+  const spyrosoft = preview.detectedInstruments.find((item) => item.isin === 'PLSPRSF00011');
+  assert.ok(textSa, 'TEXT SA should be detected');
+  assert.ok(spyrosoft, 'SPYROSOFT SA should be detected');
+  assert.ok(textSa.tickerSuggestions.some((item) => item.yahooSymbol === 'TXT.WA'), 'TEXT SA should suggest TXT.WA from DB');
+  assert.ok(spyrosoft.tickerSuggestions.some((item) => item.yahooSymbol === 'SPR.WA'), 'SPYROSOFT SA should suggest SPR.WA from DB');
+  const txtSuggestion = textSa.tickerSuggestions.find((item) => item.yahooSymbol === 'TXT.WA');
+  assert.equal(txtSuggestion.currency, 'PLN');
+  assert.equal(txtSuggestion.source, 'history');
+});
+
+test('DEGIRO import commits WSE instruments with correct color and identifiers persisted', () => {
+  db.prepare("DELETE FROM transactions WHERE symbol IN ('TXT', 'SPR') AND origin = 'import'").run();
+  db.prepare("DELETE FROM import_rows WHERE batch_id LIKE '%wse%'").run();
+  db.prepare("DELETE FROM import_batches WHERE id LIKE '%wse%'").run();
+  db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'PLLVTSF00010'").run();
+  db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'PLSPRSF00011'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TXT'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'SPR'").run();
+  db.prepare(
+    `INSERT OR IGNORE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('importados', 'Importados', '#64748b', 1, 1, 1, 0, 1)`,
+  ).run();
+
+  const content = [
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    '26-06-2024,11:55,TEXT SA,PLLVTSF00010,WSE,XWAR,5,"78,8000",PLN,"-394,00",PLN,"-91,58","4,3024","-0,23","-4,90","-96,71","ord-wse-commit-1",',
+    '16-05-2023,16:30,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,2,"448,0000",PLN,"-896,00",PLN,"-199,70","4,4868","-0,50",,"-200,20","ord-wse-commit-2",',
+  ].join('\n');
+
+  const payload = {
+    source: 'degiro-csv',
+    filename: 'Transactions.csv',
+    content,
+    instrumentMappings: { 'isin:PLLVTSF00010': 'TXT', 'isin:PLSPRSF00011': 'SPR' },
+    newInstruments: [
+      { symbol: 'TXT', yahooSymbol: 'TXT.WA', name: 'TEXT SA', type: 'stock', currency: 'PLN', groupId: 'importados', color: '#ea580c' },
+      { symbol: 'SPR', yahooSymbol: 'SPR.WA', name: 'SPYROSOFT SA', type: 'stock', currency: 'PLN', groupId: 'importados', color: '#9333ea' },
+    ],
+  };
+
+  const preview = previewImport(payload);
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows.every((row) => row.status === 'valid'), true);
+
+  const commit = commitImport(payload);
+  assert.equal(commit.summary.errorCount, 0);
+
+  const txtInstrument = db.prepare("SELECT * FROM instruments WHERE symbol = 'TXT'").get();
+  assert.ok(txtInstrument, 'TXT instrument should exist');
+  assert.equal(txtInstrument.color, '#ea580c');
+  assert.equal(txtInstrument.yahoo_symbol, 'TXT.WA');
+  assert.equal(txtInstrument.currency, 'PLN');
+
+  const sprInstrument = db.prepare("SELECT * FROM instruments WHERE symbol = 'SPR'").get();
+  assert.ok(sprInstrument, 'SPR instrument should exist');
+  assert.equal(sprInstrument.color, '#9333ea');
+  assert.equal(sprInstrument.yahoo_symbol, 'SPR.WA');
+
+  const txtIsin = db.prepare("SELECT * FROM instrument_identifiers WHERE instrument_symbol = 'TXT' AND identifier_type = 'isin'").get();
+  assert.ok(txtIsin, 'TXT ISIN identifier should be persisted');
+  assert.equal(txtIsin.identifier_value.toUpperCase(), 'PLLVTSF00010');
+
+  const sprIsin = db.prepare("SELECT * FROM instrument_identifiers WHERE instrument_symbol = 'SPR' AND identifier_type = 'isin'").get();
+  assert.ok(sprIsin, 'SPR ISIN identifier should be persisted');
+  assert.equal(sprIsin.identifier_value.toUpperCase(), 'PLSPRSF00011');
+
+  assert.equal(Number(getPositionShares('TXT', '2024-06-26').toFixed(2)), 5);
+  assert.equal(Number(getPositionShares('SPR', '2023-05-16').toFixed(2)), 2);
+});
+
 test('import can create instrument from confirmed instrument mapping and persist identifiers', () => {
   db.prepare(
     `INSERT OR IGNORE INTO instrument_groups

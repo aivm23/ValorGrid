@@ -17,15 +17,9 @@ const knownNameHints = [
   { pattern: /\bVIDRALA\b/, symbol: 'VID.MC', name: 'Vidrala, S.A.', currency: 'EUR', exchange: 'MCE' },
 ];
 
-const wseInstruments = [
-  { isin: 'PLTXTPL00011', symbol: 'TXT.WA', name: 'Ten Square Games S.A.', currency: 'PLN', exchange: 'WSE' },
-  { isin: 'PLSPRPL00012', symbol: 'SPR.WA', name: 'Sprintrade S.A.', currency: 'PLN', exchange: 'WSE' },
-];
-
-function localTickerSuggestions(identity = {}) {
+function nameHintSuggestions(identity = {}) {
   const text = normalizeSearchText(`${identity.name || identity.label || ''} ${identity.isin || ''} ${identity.exchange || ''}`);
   const currency = String(identity.currency || '').trim().toUpperCase();
-  const isin = String(identity.isin || '').trim().toUpperCase();
   const suggestions = [];
   for (const hint of knownNameHints) {
     if (!hint.pattern.test(text)) continue;
@@ -39,22 +33,36 @@ function localTickerSuggestions(identity = {}) {
       source: 'local',
     });
   }
-  if (isin) {
-    for (const wse of wseInstruments) {
-      if (wse.isin.toUpperCase() === isin) {
-        suggestions.push({
-          yahooSymbol: wse.symbol,
-          displayName: wse.name,
-          currency: wse.currency,
-          exchange: wse.exchange,
-          confidence: 'alta',
-          reason: 'Coincidencia por ISIN (WSE)',
-          source: 'local',
-        });
-      }
-    }
-  }
   return suggestions;
+}
+
+function dbTickerSuggestions(ctx, identity = {}) {
+  const isin = String(identity.isin || '').trim().toUpperCase();
+  if (!isin || !ctx?.db) return [];
+  try {
+    const row = ctx.db
+      .prepare(
+        `SELECT ii.instrument_symbol AS symbol, ii.display_name AS displayName,
+                ii.currency, ii.exchange, i.yahoo_symbol AS yahooSymbol, i.name, i.color
+         FROM instrument_identifiers ii
+         JOIN instruments i ON i.symbol = ii.instrument_symbol
+         WHERE ii.provider = 'global' AND ii.identifier_type = 'isin' AND ii.identifier_value = ?
+         LIMIT 1`,
+      )
+      .get(isin);
+    if (!row) return [];
+    return [{
+      yahooSymbol: row.yahooSymbol || row.symbol,
+      displayName: row.displayName || row.name || row.symbol,
+      currency: row.currency || null,
+      exchange: row.exchange || null,
+      confidence: 'alta',
+      reason: 'Coincidencia por ISIN en importaciones anteriores',
+      source: 'history',
+    }];
+  } catch {
+    return [];
+  }
 }
 
 async function yahooSearchSuggestions(identity = {}) {
@@ -104,11 +112,15 @@ function mergeSuggestions(...groups) {
 
 module.exports = function attach(ctx) {
   function suggestTickersForIdentity(identity = {}) {
-    return localTickerSuggestions(identity);
+    return mergeSuggestions(dbTickerSuggestions(ctx, identity), nameHintSuggestions(identity));
   }
 
   async function searchTickerSuggestions(identity = {}) {
-    return mergeSuggestions(localTickerSuggestions(identity), await yahooSearchSuggestions(identity));
+    return mergeSuggestions(
+      dbTickerSuggestions(ctx, identity),
+      nameHintSuggestions(identity),
+      await yahooSearchSuggestions(identity),
+    );
   }
 
   Object.assign(ctx, {

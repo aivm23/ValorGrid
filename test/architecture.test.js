@@ -80,13 +80,14 @@ test('frontend architecture stays modular', () => {
 test('import wizard uses non technical row decisions', () => {
   const renderer = read(path.join('client', 'import-preview-renderer.js'));
   const workflow = read(path.join('client', 'import-workflow.js'));
+  const workflowHelpers = read(path.join('client', 'import-workflow-helpers.js'));
 
   assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
   assert.ok(renderer.includes('Mixto'), 'group action must expose a mixed state when rows are partially selected');
   assert.ok(renderer.includes('is-safety-omitted'), 'unsafe default omissions must be visually highlighted');
   assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
-  assert.ok(workflow.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
+  assert.ok(workflowHelpers.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
 });
 
 test('administration and instrument filtering stay toolbar driven', () => {

@@ -242,7 +242,7 @@ function renderOperationGroups(ctx, rows, state) {
       const groupAction = importedRows.length === group.rows.length ? 'import' : skippedRows.length === group.rows.length ? 'skip' : '';
       const rowIndexes = group.rows.map((row) => row.rowIndex).join(',');
       return `
-        <details class="import-operation-group" open>
+        <details class="import-operation-group">
           <summary>
             <div>
               <strong>${ctx.escapeHtml(group.symbol || group.product)}</strong>

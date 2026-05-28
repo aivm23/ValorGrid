@@ -1,33 +1,16 @@
-export function toBase64(buffer) {
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-  return btoa(binary);
-}
+import {
+  IMPORTED_GROUP_ID,
+  IMPORTED_GROUP_NAME,
+  FIELD_LABELS,
+  isXlsxSource,
+  suggestSymbol,
+  parseMapping,
+  rowsForDetected,
+  shouldOmitInstrumentByDefault,
+  inferInstrumentType,
+} from './import-workflow-helpers.js';
 
-export function isXlsxSource(source) {
-  return source === 'generic-xlsx';
-}
-
-function suggestSymbol(label = '') {
-  const cleaned = String(label || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^A-Za-z0-9]+/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 3)
-    .join('')
-    .toUpperCase();
-  return cleaned.slice(0, 10) || 'NEW01';
-}
-
-const IMPORTED_GROUP_ID = 'importados';
-const IMPORTED_GROUP_NAME = 'Importados';
+export { toBase64, isXlsxSource, parseMapping } from './import-workflow-helpers.js';
 
 export function resetImportDraft(ctx) {
   ctx.state.importPreview = null;
@@ -35,6 +18,7 @@ export function resetImportDraft(ctx) {
   ctx.state.importRowMappings = {};
   ctx.state.importRowEdits = {};
   ctx.state.importInstrumentChoices = {};
+  ctx.state.importInstrumentChoicesSnapshot = null;
   ctx.state.importConfirmedSteps = {};
   ctx.state.importOperationFilter = 'all';
   ctx.state.importStep = 'file';
@@ -72,60 +56,54 @@ export function syncImportMode(ctx) {
   }
 }
 
-export function parseMapping(rawText = '') {
-  const raw = String(rawText || '').trim();
-  if (!raw) return {};
-  const value = JSON.parse(raw);
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('El mapping debe ser un JSON válido');
-  }
-  return value;
-}
 
-function rowsForDetected(preview, item) {
-  const indexes = new Set(item.rowIndexes || []);
-  return (preview.rows || []).filter((row) => indexes.has(row.rowIndex));
-}
 
-function shouldOmitInstrumentByDefault(preview, item) {
-  const rows = rowsForDetected(preview, item);
-  if (!rows.length) return false;
-  const productText = `${item.label || ''} ${item.isin || ''}`.toUpperCase();
-  const hasCorporateActionHint = /\b(RTS?|RIGHTS?|NON\s*TRADEABLE)\b/.test(productText);
-  const allIgnored = rows.every((row) => row.status === 'ignored' || row.rowKind === 'corporate_action_ignored');
-  if (hasCorporateActionHint || allIgnored) return true;
-  const unresolvedSellOnly = item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0;
-  return unresolvedSellOnly;
-}
-
-function inferInstrumentType(item) {
-  const label = String(item?.label || '').toUpperCase();
-  return /\b(ETF|ETC|ETN|UCITS|FUND|INDEX)\b/.test(label) ? 'etf' : 'stock';
+export function snapshotInstrumentChoices(ctx) {
+  ctx.state.importInstrumentChoicesSnapshot = JSON.parse(JSON.stringify(ctx.state.importInstrumentChoices || {}));
 }
 
 export function ensureInstrumentChoices(ctx, preview) {
   const detected = preview?.detectedInstruments || [];
   const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const snapshot = ctx.state.importInstrumentChoicesSnapshot;
+  if (snapshot) {
+    const snapshotByIsin = new Map();
+    for (const [key, choice] of Object.entries(snapshot)) {
+      const isin = key.startsWith('isin:') ? key.slice(5) : null;
+      if (isin) snapshotByIsin.set(isin.toUpperCase(), choice);
+    }
+    for (const item of detected) {
+      if (ctx.state.importInstrumentChoices[item.key]) continue;
+      const isin = item.isin?.toUpperCase();
+      const orphanedChoice = isin ? snapshotByIsin.get(isin) : null;
+      if (orphanedChoice) {
+        ctx.state.importInstrumentChoices[item.key] = JSON.parse(JSON.stringify(orphanedChoice));
+        if (ctx.state.importInstrumentChoices[item.key].action === 'create' && ctx.state.importInstrumentChoices[item.key].create) {
+          ctx.state.importInstrumentChoices[item.key].create.tickerSuggestions = item.tickerSuggestions || [];
+        }
+      }
+    }
+  }
   for (const item of detected) {
     const existing = ctx.state.importInstrumentChoices[item.key];
-    const omitByDefault = shouldOmitInstrumentByDefault(preview, item);
     if (existing) {
       if (existing.action === 'create' && existing.create) {
         existing.create.tickerSuggestions = item.tickerSuggestions || existing.create.tickerSuggestions || [];
-        if (!existing.create.color) existing.create.color = '#2563eb';
       }
       continue;
     }
+    const omitByDefault = shouldOmitInstrumentByDefault(preview, item);
     const resolvedSymbol = existingSymbols.has(item.symbol) ? item.symbol : '';
+    const autoSuggestion = item.tickerSuggestions?.[0]?.yahooSymbol || '';
     ctx.state.importInstrumentChoices[item.key] = {
       action: omitByDefault ? 'omit' : resolvedSymbol ? 'map' : 'create',
       symbol: resolvedSymbol,
       create: {
-        symbol: suggestSymbol(item.label),
-        yahooSymbol: item.tickerSuggestions?.[0]?.yahooSymbol || '',
-        name: item.label || '',
+        symbol: autoSuggestion ? String(autoSuggestion).replace(/\.[A-Z]+$/, '').slice(0, 10) : suggestSymbol(item.label),
+        yahooSymbol: autoSuggestion,
+        name: item.tickerSuggestions?.[0]?.displayName || item.label || '',
         type: inferInstrumentType(item),
-        currency: item.currency || 'EUR',
+        currency: item.tickerSuggestions?.[0]?.currency || item.currency || 'EUR',
         groupId: IMPORTED_GROUP_ID,
         color: '#2563eb',
         tickerSuggestions: item.tickerSuggestions || [],
@@ -161,6 +139,38 @@ export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
     return ['symbol', 'yahooSymbol', 'name', 'type', 'currency'].every((field) => String(create[field] || '').trim());
   }
   return item.resolutionStatus !== 'needs_mapping';
+}
+
+
+
+export function unresolvedInstrumentDetails(ctx, preview) {
+  const choices = ctx.state.importInstrumentChoices || {};
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const details = [];
+  for (const item of preview?.detectedInstruments || []) {
+    const choice = choices[item.key] || {};
+    if (choice.action === 'omit') continue;
+    if (choice.action === 'map') {
+      if (!choice.symbol || !existingSymbols.has(choice.symbol)) {
+        details.push({ label: item.label || item.key, missing: ['instrumento destino'] });
+      }
+      continue;
+    }
+    if (choice.action === 'create') {
+      const create = choice.create || {};
+      const missing = ['symbol', 'yahooSymbol', 'name', 'type', 'currency']
+        .filter((field) => !String(create[field] || '').trim())
+        .map((field) => FIELD_LABELS[field] || field);
+      if (missing.length) details.push({ label: item.label || item.key, missing });
+      continue;
+    }
+    const rows = rowsForDetected(preview, item);
+    const relevant = rows.filter((row) => !['ignored', 'duplicate', 'skipped'].includes(row.status));
+    if (relevant.length && item.resolutionStatus === 'needs_mapping') {
+      details.push({ label: item.label || item.key, missing: ['asignar instrumento'] });
+    }
+  }
+  return details;
 }
 
 export function canAdvanceImportStep(ctx, step) {
@@ -274,17 +284,21 @@ export function buildImportPayload(ctx) {
 export function applySuggestionToChoice(ctx, key, suggestion) {
   const choice = ctx.state.importInstrumentChoices?.[key];
   if (!choice || !suggestion) return;
+  const prev = choice.create || {};
   choice.action = 'create';
   choice.create = {
-    ...(choice.create || {}),
-    yahooSymbol: String(suggestion.yahooSymbol || '').trim().toUpperCase(),
-    symbol: String(suggestion.yahooSymbol || choice.create?.symbol || '')
+    ...prev,
+    yahooSymbol: String(suggestion.yahooSymbol || prev.yahooSymbol || '').trim().toUpperCase(),
+    symbol: String(suggestion.yahooSymbol || prev.symbol || '')
       .trim()
       .toUpperCase()
       .replace(/\.[A-Z]+$/, '')
       .slice(0, 10),
-    name: String(suggestion.displayName || choice.create?.name || '').trim(),
-    currency: String(suggestion.currency || choice.create?.currency || 'EUR').trim().toUpperCase(),
+    name: String(suggestion.displayName || prev.name || '').trim(),
+    currency: String(suggestion.currency || prev.currency || 'EUR').trim().toUpperCase(),
+    color: prev.color || '#2563eb',
+    type: prev.type || 'stock',
+    groupId: prev.groupId || IMPORTED_GROUP_ID,
   };
 }
 

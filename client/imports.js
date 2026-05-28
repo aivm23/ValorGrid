@@ -5,11 +5,13 @@ import {
   resetImportDraft,
   syncImportMode,
   ensureInstrumentChoices,
+  snapshotInstrumentChoices,
   buildImportPayload,
   canAdvanceImportStep,
   ensureDefaultRowActions,
   applyImportGroupAction,
   unresolvedInstrumentItems,
+  unresolvedInstrumentDetails,
   invalidateImportAfter,
   applySuggestionToChoice,
   updateSheetSelector,
@@ -17,6 +19,17 @@ import {
 } from './import-workflow.js';
 
 const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
+
+function resetImportState(ctx) {
+  ctx.state.importPreview = null;
+  ctx.state.importRowActions = {};
+  ctx.state.importRowMappings = {};
+  ctx.state.importInstrumentChoices = {};
+  ctx.state.importInstrumentChoicesSnapshot = null;
+  ctx.state.importConfirmedSteps = {};
+  ctx.state.importInstrumentValidationAttempted = false;
+  ctx.state.importStep = 'file';
+}
 
 export function attach(ctx) {
   function openImportDialog() {
@@ -51,18 +64,21 @@ export function attach(ctx) {
     }
     if (current === 'instruments') {
       ctx.state.importInstrumentValidationAttempted = true;
-      const unresolvedBefore = unresolvedInstrumentItems(ctx, ctx.state.importPreview);
-      if (unresolvedBefore.length) {
-        ctx.elements.importFeedback.textContent = `Confirma cada instrumento pendiente antes de continuar (${unresolvedBefore.length} pendiente${unresolvedBefore.length === 1 ? '' : 's'}).`;
+      const detailsBefore = unresolvedInstrumentDetails(ctx, ctx.state.importPreview);
+      if (detailsBefore.length) {
+        const parts = detailsBefore.map((detail) => `${detail.label}: falta ${detail.missing.join(', ')}`);
+        ctx.elements.importFeedback.textContent = `Instrumentos incompletos — ${parts.join('; ')}`;
         return renderImportPreview();
       }
       ctx.state.importWorkflowBusy = true;
+      snapshotInstrumentChoices(ctx);
       renderImportPreview();
       try {
         await previewCsvImport({ keepStep: true, preserveOnError: true, feedback: 'Confirmando instrumentos...' });
-        const unresolvedAfter = unresolvedInstrumentItems(ctx, ctx.state.importPreview);
-        if (unresolvedAfter.length) {
-          ctx.elements.importFeedback.textContent = `Confirma cada instrumento pendiente antes de continuar (${unresolvedAfter.length} pendiente${unresolvedAfter.length === 1 ? '' : 's'}).`;
+        const detailsAfter = unresolvedInstrumentDetails(ctx, ctx.state.importPreview);
+        if (detailsAfter.length) {
+          const parts = detailsAfter.map((detail) => `${detail.label}: falta ${detail.missing.join(', ')}`);
+          ctx.elements.importFeedback.textContent = `Instrumentos incompletos — ${parts.join('; ')}`;
           return renderImportPreview();
         }
         ctx.state.importConfirmedSteps.instruments = true;
@@ -108,13 +124,7 @@ export function attach(ctx) {
 
   async function handleImportSourceChange() {
     syncImportMode(ctx);
-    ctx.state.importPreview = null;
-    ctx.state.importRowActions = {};
-    ctx.state.importRowMappings = {};
-    ctx.state.importInstrumentChoices = {};
-    ctx.state.importConfirmedSteps = {};
-    ctx.state.importInstrumentValidationAttempted = false;
-    ctx.state.importStep = 'file';
+    resetImportState(ctx);
     renderImportPreview();
     ctx.elements.importFeedback.textContent = '';
     updateCommitButton(ctx);
@@ -131,13 +141,7 @@ export function attach(ctx) {
       ctx.elements.importContent.value = await file.text();
       ctx.state.importFileMeta = { name: file.name, contentBase64: null };
     }
-    ctx.state.importPreview = null;
-    ctx.state.importRowActions = {};
-    ctx.state.importRowMappings = {};
-    ctx.state.importInstrumentChoices = {};
-    ctx.state.importConfirmedSteps = {};
-    ctx.state.importInstrumentValidationAttempted = false;
-    ctx.state.importStep = 'file';
+    resetImportState(ctx);
     renderImportPreview();
     ctx.elements.importFeedback.textContent = '';
     updateCommitButton(ctx);
@@ -295,15 +299,11 @@ export function attach(ctx) {
     try {
       const data = await ctx.fetchJson('/api/import/batches');
       ctx.state.importBatches = data.batches || [];
-    } catch {
-      ctx.state.importBatches = [];
-    }
+    } catch { ctx.state.importBatches = []; }
     try {
       const logData = await ctx.fetchJson('/api/import/rollback-log');
       ctx.state.importRollbackLog = logData.entries || [];
-    } catch {
-      ctx.state.importRollbackLog = [];
-    }
+    } catch { ctx.state.importRollbackLog = []; }
     renderImportBatches();
   }
 

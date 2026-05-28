@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>ValorGrid — Product Video</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card-alt: #0f1729;
+  --text: #e5e7eb;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --line: #1e293b;
+  --line-light: #273449;
+  --accent-cyan: #06b6d4;
+  --accent-green: #22c55e;
+  --accent-violet: #8b5cf6;
+  --accent-amber: #fbbf24;
+  --accent-blue: #3b82f6;
+  --negative: #f87171;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --w: 1920px;
+  --h: 1080px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;850&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: var(--w);
+  height: var(--h);
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: var(--w);
+  height: var(--h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.scene.active { opacity: 1; pointer-events: auto; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.badge-cyan { background: rgba(6,182,212,0.12); color: var(--accent-cyan); border: 1px solid rgba(6,182,212,0.25); }
+.badge-green { background: rgba(34,197,94,0.12); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.25); }
+.badge-violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); border: 1px solid rgba(139,92,246,0.25); }
+.badge-amber { background: rgba(251,191,36,0.12); color: var(--accent-amber); border: 1px solid rgba(251,191,36,0.25); }
+.badge-blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.25); }
+
+.metric-value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.metric-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.section-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.subtitle { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes drawLine { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+@keyframes growBarX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---- SCENE 1 ---- */
+#scene1 { flex-direction: column; padding: 80px 120px; }
+.s1-grid-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(30,41,59,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,41,59,0.3) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0; animation: fadeIn 1s ease forwards 0s;
+}
+.s1-header { text-align: center; margin-bottom: 48px; }
+.s1-wordmark {
+  font-size: 64px; font-weight: 850; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  opacity: 0; animation: fadeInUp 0.7s ease forwards 0.1s;
+}
+.s1-subtitle { font-size: 20px; color: var(--text-muted); font-weight: 500; margin-top: 12px; opacity: 0; animation: fadeInUp 0.6s ease forwards 0.4s; }
+.s1-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; width: 100%; max-width: 1200px; }
+.s1-metric-card {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 28px 24px; opacity: 0; transform: translateY(20px);
+}
+.s1-metric-card:nth-child(1) { animation: fadeInUp 0.6s ease forwards 0.5s; border-left: 3px solid var(--accent-cyan); }
+.s1-metric-card:nth-child(2) { animation: fadeInUp 0.6s ease forwards 0.65s; border-left: 3px solid var(--accent-green); }
+.s1-metric-card:nth-child(3) { animation: fadeInUp 0.6s ease forwards 0.8s; border-left: 3px solid var(--accent-violet); }
+.s1-metric-card:nth-child(4) { animation: fadeInUp 0.6s ease forwards 0.95s; border-left: 3px solid var(--accent-amber); }
+.s1-metric-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+
+/* ---- SCENE 2 ---- */
+#scene2 { padding: 60px 100px; }
+.s2-layout { display: grid; grid-template-columns: 420px 1fr; gap: 36px; width: 100%; max-width: 1400px; }
+.s2-left { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.s2-donut-wrap { position: relative; width: 280px; height: 280px; opacity: 0; animation: scaleIn 0.6s ease forwards 0.2s; }
+.s2-donut {
+  width: 280px; height: 280px; border-radius: 50%;
+  background: conic-gradient(var(--accent-blue) 0deg 97.2deg, var(--accent-cyan) 97.2deg 162deg, var(--accent-green) 162deg 216deg, var(--accent-violet) 216deg 262.8deg, var(--accent-amber) 262.8deg 306deg, #475569 306deg 360deg);
+  position: relative;
+}
+.s2-donut-hole {
+  position: absolute; top: 50%; left: 50%; width: 160px; height: 160px;
+  transform: translate(-50%,-50%); background: var(--bg); border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.s2-donut-total { font-size: 22px; font-weight: 800; color: var(--text); }
+.s2-donut-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.s2-header { opacity: 0; animation: fadeIn 0.5s ease forwards 0.1s; margin-bottom: 20px; }
+.s2-legend { display: flex; flex-direction: column; }
+.s2-legend-item { display: grid; grid-template-columns: 10px 160px 1fr 60px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); opacity: 0; }
+.s2-legend-item:nth-child(1) { animation: fadeInUp 0.4s ease forwards 0.4s; }
+.s2-legend-item:nth-child(2) { animation: fadeInUp 0.4s ease forwards 0.5s; }
+.s2-legend-item:nth-child(3) { animation: fadeInUp 0.4s ease forwards 0.6s; }
+.s2-legend-item:nth-child(4) { animation: fadeInUp 0.4s ease forwards 0.7s; }
+.s2-legend-item:nth-child(5) { animation: fadeInUp 0.4s ease forwards 0.8s; }
+.s2-legend-item:nth-child(6) { animation: fadeInUp 0.4s ease forwards 0.9s; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.s2-bar-wrap { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.s2-bar-fill { height: 100%; border-radius: 3px; transform-origin: left; transform: scaleX(0); animation: growBarX 0.8s ease forwards; }
+.s2-group-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 20px; }
+.s2-group-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px; opacity: 0; }
+.s2-group-card:nth-child(1) { animation: fadeInUp 0.5s ease forwards 1.0s; }
+.s2-group-card:nth-child(2) { animation: fadeInUp 0.5s ease forwards 1.1s; }
+.s2-group-card:nth-child(3) { animation: fadeInUp 0.5s ease forwards 1.2s; }
+.s2-group-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.s2-group-pct { font-size: 24px; font-weight: 800; }
+.s2-group-val { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- SCENE 3 ---- */
+#scene3 { padding: 60px 100px; flex-direction: column; }
+.s3-layout { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 1400px; }
+.s3-header { opacity: 0; animation: fadeIn 0.5s ease forwards 0.1s; margin-bottom: 8px; }
+.s3-kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.s3-kpi { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px 20px; opacity: 0; }
+.s3-kpi:nth-child(1) { animation: fadeInUp 0.5s ease forwards 0.3s; border-top: 2px solid var(--accent-green); }
+.s3-kpi:nth-child(2) { animation: fadeInUp 0.5s ease forwards 0.4s; border-top: 2px solid var(--accent-cyan); }
+.s3-kpi:nth-child(3) { animation: fadeInUp 0.5s ease forwards 0.5s; border-top: 2px solid var(--accent-violet); }
+.s3-kpi:nth-child(4) { animation: fadeInUp 0.5s ease forwards 0.6s; border-top: 2px solid var(--accent-amber); }
+.s3-chart-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; opacity: 0; animation: fadeIn 0.6s ease forwards 0.4s; }
+.s3-chart-title { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+.s3-chart-area { width: 100%; height: 260px; }
+.s3-chart-svg { width: 100%; height: 100%; }
+.s3-line { fill: none; stroke: var(--accent-cyan); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: drawLine 2s ease forwards 0.7s; }
+.s3-area-fill { opacity: 0; animation: fadeIn 1s ease forwards 1.5s; }
+.s3-grid-line { stroke: var(--line); stroke-width: 0.5; stroke-dasharray: 4 4; }
+.s3-axis-label { font-size: 11px; fill: var(--text-dim); font-family: var(--font); }
+.s3-flow-markers { display: flex; gap: 16px; margin-top: 12px; }
+.s3-flow-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); opacity: 0; }
+.s3-flow-item:nth-child(1) { animation: fadeIn 0.4s ease forwards 1.8s; }
+.s3-flow-item:nth-child(2) { animation: fadeIn 0.4s ease forwards 1.95s; }
+.s3-flow-item:nth-child(3) { animation: fadeIn 0.4s ease forwards 2.1s; }
+.s3-flow-item:nth-child(4) { animation: fadeIn 0.4s ease forwards 2.25s; }
+.s3-flow-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ---- SCENE 4 ---- */
+#scene4 { padding: 60px 100px; flex-direction: column; }
+.s4-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; width: 100%; max-width: 1400px; }
+.s4-header { grid-column: 1 / -1; opacity: 0; animation: fadeIn 0.5s ease forwards 0.1s; margin-bottom: 4px; }
+.s4-left, .s4-right { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; opacity: 0; }
+.s4-left { animation: slideInLeft 0.6s ease forwards 0.3s; }
+.s4-right { animation: slideInRight 0.6s ease forwards 0.4s; }
+.s4-panel-title { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.s4-table { width: 100%; border-collapse: collapse; }
+.s4-table th { text-align: left; font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.s4-table td { font-size: 13px; padding: 9px 10px; border-bottom: 1px solid rgba(30,41,59,0.5); color: var(--text); }
+.s4-table tbody tr { opacity: 0; }
+.s4-table tbody tr:nth-child(1) { animation: fadeIn 0.3s ease forwards 0.6s; }
+.s4-table tbody tr:nth-child(2) { animation: fadeIn 0.3s ease forwards 0.75s; }
+.s4-table tbody tr:nth-child(3) { animation: fadeIn 0.3s ease forwards 0.9s; }
+.s4-table tbody tr:nth-child(4) { animation: fadeIn 0.3s ease forwards 1.05s; }
+.s4-table tbody tr:nth-child(5) { animation: fadeIn 0.3s ease forwards 1.2s; }
+.type-buy { color: var(--accent-green); font-weight: 700; }
+.type-sell { color: var(--negative); font-weight: 700; }
+.s4-import-area { display: flex; flex-direction: column; gap: 12px; }
+.s4-file-card { display: flex; align-items: center; gap: 12px; background: var(--bg-card-alt); border: 1px solid var(--line-light); border-radius: var(--radius-sm); padding: 14px 16px; opacity: 0; animation: slideInRight 0.5s ease forwards 0.6s; }
+.s4-file-icon { width: 36px; height: 36px; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--accent-cyan); font-weight: 800; }
+.s4-file-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.s4-file-meta { font-size: 11px; color: var(--text-muted); }
+.s4-preview-rows { display: flex; flex-direction: column; }
+.s4-preview-row { display: grid; grid-template-columns: 70px 80px 1fr 60px; gap: 8px; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid rgba(30,41,59,0.4); opacity: 0; align-items: center; }
+.s4-preview-row:nth-child(1) { animation: fadeIn 0.3s ease forwards 0.9s; }
+.s4-preview-row:nth-child(2) { animation: fadeIn 0.3s ease forwards 1.05s; }
+.s4-preview-row:nth-child(3) { animation: fadeIn 0.3s ease forwards 1.2s; }
+.s4-preview-row:nth-child(4) { animation: fadeIn 0.3s ease forwards 1.35s; }
+.s4-check { color: var(--accent-green); font-weight: 700; }
+.s4-reconcile-bar { display: flex; gap: 8px; align-items: center; margin-top: 8px; opacity: 0; animation: fadeIn 0.5s ease forwards 1.5s; }
+.s4-reconcile-dot { width: 8px; height: 8px; border-radius: 50%; }
+.s4-rollback-wrap { margin-top: 12px; opacity: 0; animation: fadeIn 0.5s ease forwards 1.8s; }
+.s4-rollback-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); border-radius: 6px; color: var(--negative); font-size: 12px; font-weight: 600; }
+
+/* ---- SCENE 5 ---- */
+#scene5 { flex-direction: column; padding: 80px 120px; }
+.s5-layout { display: flex; flex-direction: column; align-items: center; gap: 40px; max-width: 1100px; }
+.s5-wordmark {
+  font-size: 64px; font-weight: 850; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  opacity: 0; animation: fadeInUp 0.7s ease forwards 0.2s;
+}
+.s5-tagline { font-size: 20px; color: var(--text-muted); font-weight: 500; text-align: center; line-height: 1.5; opacity: 0; animation: fadeInUp 0.6s ease forwards 0.5s; }
+.s5-capabilities { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; width: 100%; max-width: 1000px; }
+.s5-cap { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 20px 16px; text-align: center; opacity: 0; }
+.s5-cap:nth-child(1) { animation: fadeInUp 0.5s ease forwards 0.6s; }
+.s5-cap:nth-child(2) { animation: fadeInUp 0.5s ease forwards 0.7s; }
+.s5-cap:nth-child(3) { animation: fadeInUp 0.5s ease forwards 0.8s; }
+.s5-cap:nth-child(4) { animation: fadeInUp 0.5s ease forwards 0.9s; }
+.s5-cap:nth-child(5) { animation: fadeInUp 0.5s ease forwards 1.0s; }
+.s5-cap-icon { margin-bottom: 8px; }
+.s5-cap-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.s5-cap-desc { font-size: 11px; color: var(--text-muted); }
+.s5-badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; opacity: 0; animation: fadeIn 0.6s ease forwards 1.2s; }
+.s5-footer { text-align: center; margin-top: 16px; opacity: 0; animation: fadeIn 0.6s ease forwards 1.5s; }
+.s5-footer-links { font-size: 13px; color: var(--text-dim); letter-spacing: 0.02em; }
+.s5-footer-disclaimer { font-size: 11px; color: var(--text-dim); margin-top: 8px; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<!-- SCENE 1: DASHBOARD 0-3s -->
+<section id="scene1" class="scene active">
+  <div class="s1-grid-bg"></div>
+  <div class="s1-header">
+    <div class="s1-wordmark">ValorGrid</div>
+    <div class="s1-subtitle">Tu cartera local, clara y bajo control</div>
+  </div>
+  <div class="s1-metrics">
+    <div class="s1-metric-card">
+      <div class="s1-metric-icon" style="background:rgba(6,182,212,0.12);color:var(--accent-cyan);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="metric-label">Valor actual</div>
+      <div class="metric-value" style="color:var(--accent-cyan);">124.680 €</div>
+    </div>
+    <div class="s1-metric-card">
+      <div class="s1-metric-icon" style="background:rgba(34,197,94,0.12);color:var(--accent-green);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="metric-label">Resultado YTD</div>
+      <div class="metric-value" style="color:var(--accent-green);">+4.820 €</div>
+    </div>
+    <div class="s1-metric-card">
+      <div class="s1-metric-icon" style="background:rgba(139,92,246,0.12);color:var(--accent-violet);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="metric-label">Flujos netos</div>
+      <div class="metric-value" style="color:var(--accent-violet);">18.250 €</div>
+    </div>
+    <div class="s1-metric-card">
+      <div class="s1-metric-icon" style="background:rgba(251,191,36,0.12);color:var(--accent-amber);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      </div>
+      <div class="metric-label">Distribución</div>
+      <div class="metric-value" style="color:var(--accent-amber);">6 activos</div>
+    </div>
+  </div>
+</section>
+
+<!-- SCENE 2: DISTRIBUTION 3-6s -->
+<section id="scene2" class="scene">
+  <div class="s2-layout">
+    <div class="s2-left">
+      <div class="s2-donut-wrap">
+        <div class="s2-donut">
+          <div class="s2-donut-hole">
+            <div class="s2-donut-total">124.680 €</div>
+            <div class="s2-donut-label">Valor total</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="s2-right">
+      <div class="s2-header">
+        <div class="section-title">Distribución actual de la cartera</div>
+        <div class="subtitle">Visualiza la distribución actual de tu cartera</div>
+      </div>
+      <div class="s2-legend">
+        <div class="s2-legend-item"><span class="dot" style="background:var(--accent-blue);"></span><span style="font-weight:600;font-size:13px;">Renta Variable EU</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:var(--accent-blue);width:100%;animation-delay:0.5s;"></div></div><span style="font-weight:700;font-size:13px;">27,0%</span></div>
+        <div class="s2-legend-item"><span class="dot" style="background:var(--accent-cyan);"></span><span style="font-weight:600;font-size:13px;">Renta Fija</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:var(--accent-cyan);width:80%;animation-delay:0.6s;"></div></div><span style="font-weight:700;font-size:13px;">18,0%</span></div>
+        <div class="s2-legend-item"><span class="dot" style="background:var(--accent-green);"></span><span style="font-weight:600;font-size:13px;">Indexados</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:var(--accent-green);width:65%;animation-delay:0.7s;"></div></div><span style="font-weight:700;font-size:13px;">15,0%</span></div>
+        <div class="s2-legend-item"><span class="dot" style="background:var(--accent-violet);"></span><span style="font-weight:600;font-size:13px;">Internacional</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:var(--accent-violet);width:55%;animation-delay:0.8s;"></div></div><span style="font-weight:700;font-size:13px;">13,0%</span></div>
+        <div class="s2-legend-item"><span class="dot" style="background:var(--accent-amber);"></span><span style="font-weight:600;font-size:13px;">Sectorial</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:var(--accent-amber);width:43%;animation-delay:0.9s;"></div></div><span style="font-weight:700;font-size:13px;">12,0%</span></div>
+        <div class="s2-legend-item"><span class="dot" style="background:#475569;"></span><span style="font-weight:600;font-size:13px;">Liquidez</span><div class="s2-bar-wrap"><div class="s2-bar-fill" style="background:#475569;width:53%;animation-delay:1.0s;"></div></div><span style="font-weight:700;font-size:13px;">15,0%</span></div>
+      </div>
+      <div class="s2-group-cards">
+        <div class="s2-group-card"><div class="s2-group-name" style="color:var(--accent-blue);">Renta Variable EU</div><div class="s2-group-pct">27,0%</div><div class="s2-group-val">33.664 €</div><div style="margin-top:8px;"><span class="badge badge-blue">3 activos</span></div></div>
+        <div class="s2-group-card"><div class="s2-group-name" style="color:var(--accent-cyan);">Renta Fija</div><div class="s2-group-pct">18,0%</div><div class="s2-group-val">22.442 €</div><div style="margin-top:8px;"><span class="badge badge-cyan">2 activos</span></div></div>
+        <div class="s2-group-card"><div class="s2-group-name" style="color:var(--accent-green);">Indexados</div><div class="s2-group-pct">15,0%</div><div class="s2-group-val">18.702 €</div><div style="margin-top:8px;"><span class="badge badge-green">2 activos</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCENE 3: HISTORICAL 6-9s -->
+<section id="scene3" class="scene">
+  <div class="s3-layout">
+    <div class="s3-header">
+      <div class="section-title">Evolución histórica</div>
+      <div class="subtitle">Revisa evolución, flujos y resultado anual</div>
+    </div>
+    <div class="s3-kpis">
+      <div class="s3-kpi"><div class="metric-label">Resultado YTD</div><div class="metric-value" style="color:var(--accent-green);font-size:24px;">+4.820 €</div><div style="font-size:12px;color:var(--accent-green);margin-top:4px;">+4,02%</div></div>
+      <div class="s3-kpi"><div class="metric-label">Aportaciones</div><div class="metric-value" style="font-size:24px;">18.250 €</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">12 movimientos</div></div>
+      <div class="s3-kpi"><div class="metric-label">Revalorización</div><div class="metric-value" style="color:var(--accent-violet);font-size:24px;">+3.980 €</div><div style="font-size:12px;color:var(--accent-violet);margin-top:4px;">+3,42%</div></div>
+      <div class="s3-kpi"><div class="metric-label">Dividendos</div><div class="metric-value" style="color:var(--accent-amber);font-size:24px;">840 €</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">6 pagos</div></div>
+    </div>
+    <div class="s3-chart-card">
+      <div class="s3-chart-title">Valor de cartera — 2024 a hoy</div>
+      <div class="s3-chart-area">
+        <svg class="s3-chart-svg" viewBox="0 0 1300 260" preserveAspectRatio="none">
+          <line x1="50" y1="20" x2="1280" y2="20" class="s3-grid-line"/>
+          <line x1="50" y1="80" x2="1280" y2="80" class="s3-grid-line"/>
+          <line x1="50" y1="140" x2="1280" y2="140" class="s3-grid-line"/>
+          <line x1="50" y1="200" x2="1280" y2="200" class="s3-grid-line"/>
+          <text x="40" y="24" class="s3-axis-label" text-anchor="end">130k</text>
+          <text x="40" y="84" class="s3-axis-label" text-anchor="end">120k</text>
+          <text x="40" y="144" class="s3-axis-label" text-anchor="end">110k</text>
+          <text x="40" y="204" class="s3-axis-label" text-anchor="end">100k</text>
+          <text x="50" y="248" class="s3-axis-label">Ene</text>
+          <text x="254" y="248" class="s3-axis-label">Mar</text>
+          <text x="458" y="248" class="s3-axis-label">May</text>
+          <text x="662" y="248" class="s3-axis-label">Jul</text>
+          <text x="866" y="248" class="s3-axis-label">Sep</text>
+          <text x="1070" y="248" class="s3-axis-label">Nov</text>
+          <text x="1230" y="248" class="s3-axis-label">2025</text>
+          <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(6,182,212,0.25)"/><stop offset="100%" stop-color="rgba(6,182,212,0)"/></linearGradient></defs>
+          <path class="s3-area-fill" d="M50,210 L152,195 L254,180 L356,188 L458,170 L560,155 L662,160 L764,140 L866,125 L968,110 L1070,95 L1172,80 L1274,60 L1274,240 L50,240 Z" fill="url(#areaGrad)"/>
+          <path class="s3-line" d="M50,210 L152,195 L254,180 L356,188 L458,170 L560,155 L662,160 L764,140 L866,125 L968,110 L1070,95 L1172,80 L1274,60"/>
+          <circle cx="254" cy="180" r="5" fill="var(--accent-violet)" class="s3-flow-marker" style="opacity:0;transition:opacity 0.4s"/>
+          <circle cx="458" cy="170" r="5" fill="var(--accent-violet)" class="s3-flow-marker" style="opacity:0;transition:opacity 0.4s"/>
+          <circle cx="764" cy="140" r="5" fill="var(--accent-violet)" class="s3-flow-marker" style="opacity:0;transition:opacity 0.4s"/>
+          <circle cx="1070" cy="95" r="5" fill="var(--accent-violet)" class="s3-flow-marker" style="opacity:0;transition:opacity 0.4s"/>
+        </svg>
+      </div>
+      <div class="s3-flow-markers">
+        <div class="s3-flow-item"><span class="s3-flow-dot" style="background:var(--accent-cyan);"></span> Valor cartera</div>
+        <div class="s3-flow-item"><span class="s3-flow-dot" style="background:var(--accent-violet);"></span> Aportaciones</div>
+        <div class="s3-flow-item"><span class="s3-flow-dot" style="background:var(--accent-green);"></span> Resultado positivo</div>
+        <div class="s3-flow-item"><span class="s3-flow-dot" style="background:var(--accent-amber);"></span> Dividendos</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCENE 4: MOVEMENTS + IMPORT 9-12s -->
+<section id="scene4" class="scene">
+  <div class="s4-layout">
+    <div class="s4-header">
+      <div class="section-title">Movimientos e importación</div>
+      <div class="subtitle">Registra movimientos e importa CSV/XLSX con control</div>
+    </div>
+    <div class="s4-left">
+      <div class="s4-panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Registro de movimientos
+      </div>
+      <table class="s4-table">
+        <thead><tr style="opacity:1;"><th>Fecha</th><th>Tipo</th><th>Valor</th><th>Unidades</th><th style="text-align:right;">Importe</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--text-muted);">28/05/2025</td><td><span class="type-buy">Compra</span></td><td style="font-weight:600;">VWCE.DE</td><td>12</td><td style="text-align:right;font-weight:600;">1.428,00 €</td></tr>
+          <tr><td style="color:var(--text-muted);">15/05/2025</td><td><span class="type-buy">Compra</span></td><td style="font-weight:600;">AGGH.MI</td><td>45</td><td style="text-align:right;font-weight:600;">2.025,00 €</td></tr>
+          <tr><td style="color:var(--text-muted);">02/05/2025</td><td><span class="type-sell">Venta</span></td><td style="font-weight:600;">AMZN</td><td>5</td><td style="text-align:right;font-weight:600;">935,00 €</td></tr>
+          <tr><td style="color:var(--text-muted);">20/04/2025</td><td><span class="type-buy">Compra</span></td><td style="font-weight:600;">CSPX.L</td><td>8</td><td style="text-align:right;font-weight:600;">4.160,00 €</td></tr>
+          <tr><td style="color:var(--text-muted);">10/04/2025</td><td><span class="type-buy">Compra</span></td><td style="font-weight:600;">IBGS.DE</td><td>20</td><td style="text-align:right;font-weight:600;">1.840,00 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="s4-right">
+      <div class="s4-panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Importación CSV/XLSX
+      </div>
+      <div class="s4-import-area">
+        <div class="s4-file-card">
+          <div class="s4-file-icon">CSV</div>
+          <div><div class="s4-file-name">movimientos_2025.csv</div><div class="s4-file-meta">48 filas · 6 columnas · 12 KB</div></div>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:8px;">Vista previa</div>
+        <div class="s4-preview-rows">
+          <div class="s4-preview-row"><span style="color:var(--text-muted);">28/05</span><span class="type-buy">Compra</span><span style="font-weight:600;">VWCE.DE</span><span class="s4-check">✓ OK</span></div>
+          <div class="s4-preview-row"><span style="color:var(--text-muted);">15/05</span><span class="type-buy">Compra</span><span style="font-weight:600;">AGGH.MI</span><span class="s4-check">✓ OK</span></div>
+          <div class="s4-preview-row"><span style="color:var(--text-muted);">02/05</span><span class="type-sell">Venta</span><span style="font-weight:600;">AMZN</span><span class="s4-check">✓ OK</span></div>
+          <div class="s4-preview-row"><span style="color:var(--text-muted);">20/04</span><span class="type-buy">Compra</span><span style="font-weight:600;">CSPX.L</span><span class="s4-check">✓ OK</span></div>
+        </div>
+        <div class="s4-reconcile-bar">
+          <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Reconciliación:</span>
+          <span class="s4-reconcile-dot" style="background:var(--accent-green);"></span>
+          <span style="font-size:12px;font-weight:600;color:var(--accent-green);">48 de 48 filas verificadas</span>
+        </div>
+        <div class="s4-rollback-wrap">
+          <div class="s4-rollback-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Revertir lote importado
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCENE 5: FINAL 12-15s -->
+<section id="scene5" class="scene">
+  <div class="s5-layout">
+    <div class="s5-wordmark">ValorGrid</div>
+    <div class="s5-tagline">Seguimiento privado de cartera.<br>Sin asesoramiento financiero.</div>
+    <div class="s5-capabilities">
+      <div class="s5-cap"><div class="s5-cap-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="s5-cap-label">Dashboard</div><div class="s5-cap-desc">Panel principal con métricas</div></div>
+      <div class="s5-cap"><div class="s5-cap-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="s5-cap-label">Histórico</div><div class="s5-cap-desc">Evolución y revisión anual</div></div>
+      <div class="s5-cap"><div class="s5-cap-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><div class="s5-cap-label">Movimientos</div><div class="s5-cap-desc">Compras, ventas e importación</div></div>
+      <div class="s5-cap"><div class="s5-cap-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div class="s5-cap-label">Backups</div><div class="s5-cap-desc">Copias locales de seguridad</div></div>
+      <div class="s5-cap"><div class="s5-cap-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="s5-cap-label">Local</div><div class="s5-cap-desc">Datos bajo tu control</div></div>
+    </div>
+    <div class="s5-badges">
+      <span class="badge badge-cyan"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SQLite local</span>
+      <span class="badge badge-green"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Backups automáticos</span>
+      <span class="badge badge-violet"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportación CSV / JSON</span>
+      <span class="badge badge-amber"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Sin nube obligatoria</span>
+      <span class="badge badge-blue"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Datos bajo tu control</span>
+    </div>
+    <div class="s5-footer">
+      <div class="s5-footer-links">Dashboard · Distribución · Histórico · Movimientos · Importación · Backups locales</div>
+      <div class="s5-footer-disclaimer">Herramienta de seguimiento personal. No constituye asesoramiento financiero ni recomendación de inversión.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+const scenes = [
+  { id: 'scene1', start: 0, end: 3000 },
+  { id: 'scene2', start: 3000, end: 6000 },
+  { id: 'scene3', start: 6000, end: 9000 },
+  { id: 'scene4', start: 9000, end: 12000 },
+  { id: 'scene5', start: 12000, end: 15000 }
+];
+
+function activateScene(id) {
+  document.querySelectorAll('.scene').forEach(function(s) { s.classList.remove('active'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function runTimeline() {
+  var startTime = performance.now();
+  function tick(now) {
+    var elapsed = now - startTime;
+    var activeId = null;
+    for (var i = 0; i < scenes.length; i++) {
+      if (elapsed >= scenes[i].start && elapsed < scenes[i].end) {
+        activeId = scenes[i].id;
+        break;
+      }
+    }
+    if (activeId) activateScene(activeId);
+    if (elapsed < 15000) {
+      requestAnimationFrame(tick);
+    } else {
+      document.querySelectorAll('.scene').forEach(function(s) {
+        s.style.transition = 'opacity 0.8s ease';
+        s.style.opacity = '0';
+      });
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function animateFlowMarkers() {
+  var markers = document.querySelectorAll('.s3-flow-marker');
+  markers.forEach(function(m, i) {
+    setTimeout(function() {
+      m.style.opacity = '1';
+    }, 7000 + i * 300);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  runTimeline();
+  animateFlowMarkers();
+});
+</script>
+</body>
+</html>
