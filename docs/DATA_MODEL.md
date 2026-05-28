@@ -34,8 +34,12 @@ Campos principales:
 - `currency`
 - `color`
 - `base_shares`
+- `fallback_price`: precio de respaldo cuando no hay datos de mercado (REAL, default 0).
 - `active`
 - `group_id`
+- `display_order`: orden de visualización (INTEGER, default 0).
+- `show_in_distribution`: si aparece en gráficos de distribución (INTEGER, default 1).
+- `show_in_monthly`: si aparece en revisión mensual (INTEGER, default 1).
 
 `fx` se usa para instrumentos técnicos internos de conversión y no debe aparecer como posición visible.
 
@@ -45,6 +49,7 @@ Guarda identificadores confirmados para resolver importaciones futuras.
 
 Campos principales:
 
+- `id`: clave primaria (TEXT).
 - `instrument_symbol`
 - `provider`
 - `identifier_type`
@@ -53,6 +58,7 @@ Campos principales:
 - `currency`
 - `exchange`
 - `metadata_json`
+- `created_at`: timestamp de creación (TEXT, default CURRENT_TIMESTAMP).
 
 Ejemplos:
 
@@ -70,6 +76,7 @@ Campos principales:
 
 - `id`
 - `symbol`
+- `name`: nombre descriptivo del instrumento en el momento de la operación (TEXT, nullable).
 - `type`: `add` o `remove`.
 - `date`
 - `market_date`
@@ -80,8 +87,12 @@ Campos principales:
 - `usd_to_eur`: nombre histórico; en importaciones se interpreta como FX de la divisa local a EUR.
 - `commission_eur`
 - `cash_flow_eur`
+- `color`: color del instrumento en el momento de la operación (TEXT, nullable).
 - `origin`: `manual`, `auto`, `import`.
 - `auto_key`
+- `import_batch_id`: FK al lote de importación que creó esta transacción (TEXT, nullable).
+- `external_id`: ID externo del broker (TEXT, nullable).
+- `raw_hash`: hash de deduplicación para importaciones (TEXT, nullable, índice único condicional).
 - `created_at`
 
 Reglas:
@@ -150,6 +161,7 @@ Representa filas de un lote.
 
 Campos principales:
 
+- `id`: clave primaria (TEXT).
 - `batch_id`
 - `row_index`
 - `raw_json`
@@ -158,6 +170,7 @@ Campos principales:
 - `status`
 - `error`
 - `transaction_id`
+- `created_at`: timestamp de creación (TEXT, default CURRENT_TIMESTAMP).
 
 Permite auditoría, rollback y diagnóstico de importación.
 
@@ -166,6 +179,16 @@ Permite auditoría, rollback y diagnóstico de importación.
 ### `price_cache`
 
 Caché puntual de precios.
+
+Campos:
+
+- `yahoo_symbol`
+- `requested_date`
+- `market_date`
+- `price`
+- `currency`
+- `source`
+- `created_at`
 
 ### `daily_price_cache`
 
@@ -178,6 +201,7 @@ Campos habituales:
 - `price`
 - `currency`
 - `source`
+- `created_at`
 
 ### FX
 
@@ -231,7 +255,7 @@ Precios diarios por símbolo interno (no Yahoo). Derivado de `daily_price_cache`
 
 Campos:
 
-- `symbol`, `yahoo_symbol`, `date`, `price`, `currency`, `source`
+- `symbol`, `yahoo_symbol`, `date`, `price`, `currency`, `source`, `created_at`
 
 ### `fx_rates_daily`
 
@@ -239,7 +263,7 @@ Tipos de cambio diarios por par de divisas.
 
 Campos:
 
-- `pair` (ej. `USDEUR`), `date`, `rate`, `source`
+- `pair` (ej. `USDEUR`), `date`, `rate`, `source`, `created_at`
 
 ### `daily_price_cache_ranges`
 
@@ -247,7 +271,7 @@ Registra qué rangos de fechas ya se consultaron al proveedor externo, evitando 
 
 Campos:
 
-- `yahoo_symbol`, `from_date`, `to_date`
+- `yahoo_symbol`, `from_date`, `to_date`, `created_at`
 
 ## Rollback de importaciones
 

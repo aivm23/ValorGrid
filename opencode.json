@@ -16,5 +16,12 @@
   "compaction": {
     "auto": true,
     "tail_turns": 15
+  },
+  "mcp": {
+    "sqlite": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sqlite", "--db-path", "data/valorgrid.sqlite"],
+      "enabled": true
+    }
   }
 }

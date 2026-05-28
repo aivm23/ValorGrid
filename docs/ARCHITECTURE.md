@@ -29,17 +29,44 @@ Orquestador del backend:
 
 ### `src/`
 
-La lógica principal vive en módulos:
+La lógica principal vive en módulos. Orden de carga en `app.js`:
 
+**Cargados vía `require()` directo (antes del bucle):**
 - `config`: host, puerto, rutas, versión y DB activa.
 - `db`: apertura SQLite, PRAGMAs, helpers y transacciones.
-- `schema`: creación y evolución idempotente de tablas.
-- `routes`: enrutado HTTP y normalización de respuestas.
-- `portfolio-service`: instrumentos, grupos, transacciones, planes, resumen y revisión mensual.
-- `history-service`: materialización diaria/semanal, eventos e invalidaciones.
-- `market-data`: precios, Yahoo, caché y FX.
-- `import-service`: preview, normalización, conciliación, commit y rollback.
-- `backup-service`: creación y listado de backups.
+- `backups`: creación, listado y descarga de backups SQLite.
+
+**Cargados en bucle `forEach` (orden secuencial):**
+1. `schema`: creación y evolución idempotente de tablas.
+2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
+3. `meta-state`: gestión de claves de versión interna (`app_meta`).
+4. `utils`: helpers compartidos (formato, validación, fechas).
+5. `instrument-service`: CRUD de instrumentos, grupos e identificadores.
+6. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+7. `market-data`: precios, Yahoo Finance, caché y FX.
+8. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
+9. `import-service`: orquestación de importaciones (preview, commit, rollback).
+10. `onboarding-service`: wizard de configuración inicial.
+11. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+12. `history-core`: motor de materialización de histórico.
+13. `history-service`: API de histórico, invalidaciones y reconstrucción.
+14. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+15. `routes`: enrutado HTTP y normalización de respuestas.
+16. `http`: servidor HTTP estático y listener.
+
+**Sub-módulos de import-service (cargados internamente):**
+- `import-parser`: parseo de CSV/XLSX a formato canónico.
+- `import-preview`: generación de preview y detección de instrumentos.
+- `import-preview-helpers`: utilidades para renderizado de preview.
+- `import-reconcile`: conciliación de filas con instrumentos existentes.
+- `import-entities`: creación de instrumentos y grupos nuevos.
+- `import-profiles`: perfiles de broker (DEGIRO, IBKR, genérico).
+- `import-labels`: generación de etiquetas y mensajes.
+- `import-hash`: cálculo de hashes para deduplicación.
+- `import-sale-rules`: reglas de validación de ventas.
+
+**Archivo adicional:**
+- `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 
@@ -67,7 +94,11 @@ Módulos principales:
 - `ledger.js`: movimientos y filtros.
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
-- `imports.js`, `import-workflow.js`, `import-preview-renderer.js`: asistente de importación.
+- `dashboard.js`: arranque de UI y boot overlay.
+- `imports.js`: orquestación del asistente de importación.
+- `import-workflow.js`: lógica de flujo y validación de importación.
+- `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
+- `import-preview-renderer.js`: renderizado de preview de importación.
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
