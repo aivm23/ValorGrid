@@ -35,7 +35,10 @@ x-casaos:
   index: /
   title:
     en_us: ValorGrid
+    es_es: ValorGrid
   tagline:
     en_us: Private local portfolio dashboard
+    es_es: Panel privado de cartera local
   description:
     en_us: ValorGrid is a private, single-user portfolio dashboard with SQLite persistence, local backups and market-price cache.
+    es_es: ValorGrid es un panel privado de cartera para un solo usuario con persistencia SQLite, backups locales y caché de precios de mercado.
