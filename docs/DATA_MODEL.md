@@ -84,7 +84,7 @@ Campos principales:
 - `value_eur`
 - `price`
 - `currency`
-- `usd_to_eur`: nombre histórico; en importaciones se interpreta como FX de la divisa local a EUR.
+- `fx_to_eur`: tipo de cambio de la divisa local a EUR (REAL). Aplica a cualquier divisa, no solo USD.
 - `commission_eur`
 - `cash_flow_eur`
 - `color`: color del instrumento en el momento de la operación (TEXT, nullable).

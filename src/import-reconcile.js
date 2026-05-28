@@ -85,16 +85,16 @@ function applyRowEdit(normalized, edit = {}, source = 'import', rebuildIdentity 
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa invalida en edicion');
     else next.currency = currency;
   }
-  if (edit.usdToEur !== undefined || edit.fxToEur !== undefined) {
-    const fx = parseEditNumber(edit.usdToEur ?? edit.fxToEur);
+  if (edit.fxToEur !== undefined) {
+    const fx = parseEditNumber(edit.fxToEur);
     if (!Number.isFinite(fx) || fx <= 0) errors.push('FX invalido en edicion');
-    else next.usdToEur = Number(fx);
+    else next.fxToEur = Number(fx);
   }
 
   if (!errors.length) {
     const commission = Number(next.commissionEur || 0);
     if (!Number.isFinite(next.valueEur) && Number.isFinite(next.shares) && Number.isFinite(next.price)) {
-      const fx = Number(next.usdToEur || 1);
+      const fx = Number(next.fxToEur || 1);
       next.valueEur = Number((next.shares * next.price * fx).toFixed(6));
     }
     next.cashFlowEur = next.type === 'remove' ? next.valueEur - commission : -(next.valueEur + commission);

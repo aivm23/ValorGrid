@@ -227,7 +227,7 @@ function reconcileSnapshotRows(ctx, rows, fileSubtype) {
       next.reconciliationStatus = 'delta_positive';
       next.importStrategy = 'delta_only';
       next.normalized.shares = Number(deltaShares.toFixed(6));
-      const nextValue = next.normalized.shares * Number(next.normalized.price || 0) * Number(next.normalized.usdToEur || 1);
+      const nextValue = next.normalized.shares * Number(next.normalized.price || 0) * Number(next.normalized.fxToEur || 1);
       next.normalized.valueEur = Number(nextValue.toFixed(6));
       next.normalized.cashFlowEur = -(next.normalized.valueEur + Number(next.normalized.commissionEur || 0));
       rebuildImportIdentity(next.normalized, next.normalized.source || 'degiro-csv', sha256);

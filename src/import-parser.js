@@ -335,7 +335,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
       ? String(degiroTransactionCell(row, 'priceCurrency') || degiroTransactionCell(row, 'localCurrency') || degiroCurrencyHint(row)).trim().toUpperCase()
       : String(mappedValue(row, mapping, profile, 'currency') || '').trim().toUpperCase();
   const currency = detectedCurrency || 'EUR';
-  const fxInput = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'fx') || mappedValue(row, mapping, profile, 'usdToEur') : mappedValue(row, mapping, profile, 'usdToEur'));
+  const fxInput = parseNumber(degiroTransactions ? degiroTransactionCell(row, 'fx') || mappedValue(row, mapping, profile, 'fxToEur') : mappedValue(row, mapping, profile, 'fxToEur'));
   const explicitLocalValue = parseNumber(rowValueByHeaders(row, ['Valor local', 'Local value', 'valor local']) || (degiroTransactions ? degiroTransactionCell(row, 'localValue') : ''));
   const localValue = Number.isFinite(explicitLocalValue)
     ? Math.abs(explicitLocalValue)
@@ -399,8 +399,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     valueEur,
     price,
     currency,
-    usdToEur: currency !== 'EUR' && Number.isFinite(fxToEur) ? fxToEur : 1,
-    fxToEur: Number.isFinite(fxToEur) ? fxToEur : null,
+    fxToEur: currency !== 'EUR' && Number.isFinite(fxToEur) ? fxToEur : 1,
     commissionEur,
     cashFlowEur: (inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
     externalId,

@@ -44,8 +44,8 @@ async function previewWizardTransaction(payload) {
   if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
   const quote = await getQuoteForYahooSymbol(payload.instrument.symbol, payload.instrument.yahooSymbol, date);
-  const usdToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
-  const priceEur = toEur(quote.price, quote.currency, usdToEur);
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
+  const priceEur = toEur(quote.price, quote.currency, fxToEur);
   const shares = hasShares ? Number(payload.transaction.shares) : Number(payload.transaction.euros) / priceEur;
   const valueEur = hasEuros ? Number(payload.transaction.euros) : shares * priceEur;
   const commissionEur = Number.isFinite(Number(payload.transaction.commissionEur ?? payload.transaction.commission))
@@ -62,7 +62,7 @@ async function previewWizardTransaction(payload) {
     price: quote.price,
     priceEur,
     currency: quote.currency,
-    usdToEur,
+    fxToEur,
     commissionEur,
     cashFlowEur: -(valueEur + commissionEur),
   };

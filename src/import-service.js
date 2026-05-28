@@ -119,8 +119,8 @@ module.exports = function attach(ctx) {
       );
       const transactionInsert = db.prepare(
         `INSERT INTO transactions
-          (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-           usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key,
+           (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
+            fx_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key,
            import_batch_id, external_id, raw_hash)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'import', NULL, ?, ?, ?)`,
       );
@@ -160,7 +160,7 @@ module.exports = function attach(ctx) {
           row.normalized.valueEur,
           row.normalized.price,
           row.normalized.currency,
-          row.normalized.usdToEur,
+          row.normalized.fxToEur,
           row.normalized.commissionEur,
           row.normalized.cashFlowEur,
           instrument.color,

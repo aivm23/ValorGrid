@@ -175,7 +175,7 @@ function seedSyntheticHistory({ symbols = 12, from = '2021-06-01', to = '2026-05
   );
   const transactionInsert = db.prepare(
     `INSERT OR REPLACE INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin, auto_key)
      VALUES (?, 'add', ?, ?, ?, ?, ?, ?, ?, 'EUR', 1, ?, 'manual', NULL)`,
   );
   const colors = ['#a855f7', '#dc2626', '#16a34a', '#f59e0b', '#0d9488', '#ea580c'];
@@ -1311,7 +1311,7 @@ test('DEGIRO portfolio snapshot CSV imports as opening position', () => {
   assert.equal(preview.rows[0].normalized.symbol, 'ACME');
   assert.equal(preview.rows[0].normalized.type, 'add');
   assert.equal(preview.rows[0].normalized.currency, 'USD');
-  assert.ok(preview.rows[0].normalized.usdToEur > 0);
+  assert.ok(preview.rows[0].normalized.fxToEur > 0);
   assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 1568.32);
 
   const commit = commitImport({ source: 'degiro-csv', filename: 'portfolio.csv', content });
@@ -1379,7 +1379,7 @@ test('DEGIRO Transactions marks ledger-matching trade as duplicate_ledger_match'
   ).run();
   db.prepare(
     `INSERT OR REPLACE INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, commission_eur, cash_flow_eur, color, origin, raw_hash)
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, commission_eur, cash_flow_eur, color, origin, raw_hash)
      VALUES
       ('meta-existing-buy', 'add', 'META', 'Meta Platforms', '2025-01-10', '2025-01-10', 1, 340, 400, 'USD', 0.85, 0, -340, '#16a34a', 'manual', 'meta-existing-buy-hash'),
       ('meta-existing-sale', 'remove', 'META', 'Meta Platforms', '2025-12-24', '2025-12-24', 1, 565.37, 666, 'USD', 0.8486036036, 3.41, 561.96, '#16a34a', 'manual', 'meta-existing-sale-hash')`,
@@ -1482,7 +1482,7 @@ test('DEGIRO imports non EUR currencies using generic FX to EUR without assuming
 
   assert.equal(preview.rows[0].status, 'valid');
   assert.equal(preview.rows[0].normalized.currency, 'PLN');
-  assert.notEqual(preview.rows[0].normalized.usdToEur, 1);
+  assert.notEqual(preview.rows[0].normalized.fxToEur, 1);
   assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 170.39);
 });
 
@@ -2070,7 +2070,7 @@ test('YTD history starts at the range axis before the first operation', async ()
   bumpTestMeta('ledger_version');
   db.prepare(
     `INSERT INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin, auto_key)
      VALUES ('axis-start-buy', 'add', 'NVO', 'Novo Nordisk', '2026-01-03', '2026-01-03', 2, 100, 50, 'EUR', 1, '#0d9488', 'manual', NULL)`,
   ).run();
 

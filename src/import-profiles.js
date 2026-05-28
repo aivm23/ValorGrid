@@ -25,7 +25,7 @@ const baseFieldAliases = {
     'comm/fee',
   ],
   currency: ['currency', 'divisa', 'moneda'],
-  usdToEur: ['usdtoeur', 'usd_to_eur', 'tipo de cambio', 'fx', 'cambio', 'exchange rate'],
+  fxToEur: ['fxtoeur', 'fx_to_eur', 'tipo de cambio', 'fx', 'cambio', 'exchange rate', 'usdtoeur', 'usd_to_eur'],
   externalId: ['externalid', 'external_id', 'id externo', 'referencia', 'order id', 'transaction id'],
 };
 
@@ -59,7 +59,7 @@ const profileOverrides = {
         'costes de transacción y/o externos eur',
       ],
       currency: ['currency', 'divisa', 'valor local'],
-      usdToEur: ['exchange rate', 'fx', 'tipo de cambio'],
+      fxToEur: ['exchange rate', 'fx', 'tipo de cambio'],
       externalId: ['id', 'order id', 'transaction id', 'symbol/isin', 'isin', 'id orden'],
     },
   },
@@ -73,7 +73,7 @@ const profileOverrides = {
       valueEur: ['valor eur', 'value eur'],
       commissionEur: ['comm/fee', 'commission', 'comision', 'comisión'],
       currency: ['currency', 'divisa'],
-      usdToEur: ['fx rate to base', 'exchange rate', 'fx'],
+      fxToEur: ['fx rate to base', 'exchange rate', 'fx'],
       externalId: ['trade id', 'execution id', 'transaction id'],
     },
   },

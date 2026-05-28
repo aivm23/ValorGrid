@@ -53,7 +53,7 @@ function initDatabase() {
       value_eur REAL NOT NULL,
       price REAL NOT NULL,
       currency TEXT NOT NULL,
-      usd_to_eur REAL NOT NULL,
+      fx_to_eur REAL NOT NULL,
       commission_eur REAL NOT NULL DEFAULT 0,
       cash_flow_eur REAL NOT NULL DEFAULT 0,
       color TEXT,

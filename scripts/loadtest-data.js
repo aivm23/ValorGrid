@@ -130,12 +130,12 @@ function seedLoadtestDb(db, options = {}) {
   );
   const insertTransaction = db.prepare(
     `INSERT OR REPLACE INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin, auto_key)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', NULL)`,
   );
   const insertAutoTransaction = db.prepare(
     `INSERT OR REPLACE INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, usd_to_eur, color, origin, auto_key)
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin, auto_key)
      VALUES (?, 'add', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'auto', ?)`,
   );
   const insertAutoPlan = db.prepare(

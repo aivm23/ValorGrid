@@ -4,7 +4,7 @@ function getTransactions() {
   return db
     .prepare(
       `SELECT id, type, symbol, name, date, market_date AS marketDate, shares,
-              value_eur AS valueEur, price, currency, usd_to_eur AS usdToEur,
+               value_eur AS valueEur, price, currency, fx_to_eur AS fxToEur,
               commission_eur AS commissionEur, cash_flow_eur AS cashFlowEur,
               color, origin, auto_key AS autoKey, import_batch_id AS importBatchId,
               external_id AS externalId, raw_hash AS rawHash, created_at AS createdAt
@@ -373,7 +373,7 @@ async function createTransaction(input, options = {}) {
   db.prepare(
     `INSERT INTO transactions
       (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-       usd_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key)
+        fx_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id,
@@ -386,7 +386,7 @@ async function createTransaction(input, options = {}) {
     preview.valueEur,
     preview.price,
     preview.currency,
-    preview.usdToEur,
+    preview.fxToEur,
     preview.commissionEur,
     preview.cashFlowEur,
     instrument.color,
@@ -409,8 +409,8 @@ async function previewTransaction(input) {
   if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
   const quote = await getQuoteForSymbol(symbolInput, date);
-  const usdToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
-  const priceEur = toEur(quote.price, quote.currency, usdToEur);
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
+  const priceEur = toEur(quote.price, quote.currency, fxToEur);
   const shares = hasShares ? Number(input.shares) : Number(input.euros) / priceEur;
   const valueEur = hasEuros ? Number(input.euros) : shares * priceEur;
   const commissionEur = Number.isFinite(Number(input.commissionEur ?? input.commission))
@@ -450,7 +450,7 @@ async function previewTransaction(input) {
     price: quote.price,
     priceEur,
     currency: quote.currency,
-    usdToEur,
+    fxToEur,
     commissionEur,
     cashFlowEur,
     instrument,
