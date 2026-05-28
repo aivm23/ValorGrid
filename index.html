@@ -630,6 +630,23 @@
       </div>
     </dialog>
 
+    <dialog id="instrument-delete-dialog" class="modal">
+      <div class="modal-panel modal-panel-wide">
+        <div class="modal-header">
+          <div>
+            <h2>Eliminar instrumentos</h2>
+            <p class="subtle">Revisa el estado de cada instrumento antes de confirmar.</p>
+          </div>
+          <button id="instrument-delete-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <div id="instrument-delete-preview" class="instrument-delete-preview"></div>
+        <div class="modal-actions">
+          <button id="instrument-delete-cancel" class="button" type="button">Cancelar</button>
+          <button id="instrument-delete-confirm" class="button button-danger" type="button">Eliminar seleccionados</button>
+        </div>
+      </div>
+    </dialog>
+
     <dialog id="wizard-dialog" class="modal">
       <form id="wizard-form" class="modal-panel modal-panel-wide" method="dialog">
         <div class="modal-header">

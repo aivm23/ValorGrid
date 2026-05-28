@@ -171,6 +171,9 @@ export function attach(ctx) {
     });
   });
   elements.deleteSelectedInstruments?.addEventListener('click', ctx.deleteSelectedInstruments);
+  elements.instrumentDeleteDialogClose?.addEventListener('click', ctx.cancelInstrumentDelete);
+  elements.instrumentDeleteCancel?.addEventListener('click', ctx.cancelInstrumentDelete);
+  elements.instrumentDeleteConfirm?.addEventListener('click', ctx.confirmInstrumentDelete);
   elements.selectVisibleInstruments?.addEventListener('click', ctx.selectVisibleInstruments);
   elements.deselectAllInstruments?.addEventListener('click', ctx.deselectAllInstruments);
   elements.groupRows.addEventListener('click', (event) => saveGroup(ctx, event));

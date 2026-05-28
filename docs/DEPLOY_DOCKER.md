@@ -39,10 +39,10 @@ Pasos:
 5. Revisa el puerto `5173`.
 6. Instala y abre la Web UI.
 
-El compose CasaOS usa:
+El compose CasaOS usa volúmenes nombrados de Docker (persistencia garantizada entre actualizaciones):
 
-- `/DATA/AppData/valorgrid/data:/data`
-- `/DATA/AppData/valorgrid/backups:/app/.backups`
+- `valorgrid-data:/data`
+- `valorgrid-backups:/app/.backups`
 - `ghcr.io/aivm23/valorgrid:latest`
 
 ## Actualizar

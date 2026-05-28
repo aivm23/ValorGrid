@@ -12,8 +12,14 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - /DATA/AppData/valorgrid/data:/data
-      - /DATA/AppData/valorgrid/backups:/app/.backups
+      - valorgrid-data:/data
+      - valorgrid-backups:/app/.backups
+
+volumes:
+  valorgrid-data:
+    driver: local
+  valorgrid-backups:
+    driver: local
 
 x-casaos:
   architectures:
@@ -23,6 +29,7 @@ x-casaos:
   author: alvarovalderramamolina
   developer: alvarovalderramamolina
   category: Finance
+  icon: https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/brand/valorgrid-logo.png
   port_map: "5173"
   scheme: http
   index: /

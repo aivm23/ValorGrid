@@ -258,19 +258,45 @@ function updateInstrument(symbol, input = {}) {
 
 function instrumentDependencyCounts(symbol) {
   const normalized = normalizeSymbol(symbol);
-  return {
-    transactions: db.prepare('SELECT COUNT(*) AS count FROM transactions WHERE symbol = ?').get(normalized).count,
-    autoPlans: db.prepare('SELECT COUNT(*) AS count FROM auto_plans WHERE symbol = ?').get(normalized).count,
-    identifiers: db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(normalized).count,
-  };
+  const transactions = db.prepare('SELECT COUNT(*) AS count FROM transactions WHERE symbol = ?').get(normalized).count;
+  const autoPlans = db.prepare('SELECT COUNT(*) AS count FROM auto_plans WHERE symbol = ?').get(normalized).count;
+  const identifiers = db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(normalized).count;
+  const currentShares = getPositionShares(normalized);
+  return { transactions, autoPlans, identifiers, currentShares };
+}
+
+function previewInstrumentDelete(symbols = []) {
+  const unique = [...new Set((symbols || []).map((symbol) => normalizeSymbol(symbol)).filter(Boolean))];
+  return unique.map((symbol) => {
+    const existing = getInstrument(symbol);
+    if (!existing) return { symbol, status: 'missing', blocked: false };
+    if (existing.type === 'fx') return { symbol: existing.symbol, status: 'fx_protected', blocked: true, reason: 'Los instrumentos técnicos de divisa no se pueden eliminar' };
+    const deps = instrumentDependencyCounts(existing.symbol);
+    if (deps.currentShares > 0.000001) {
+      return { symbol: existing.symbol, status: 'has_position', blocked: true, dependencies: deps, reason: `Tiene ${deps.currentShares.toFixed(6)} acciones en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.` };
+    }
+    if (deps.autoPlans > 0) {
+      return { symbol: existing.symbol, status: 'has_auto_plan', blocked: true, dependencies: deps, reason: 'Tiene una automatización activa. Desactívala primero desde Planes automáticos.' };
+    }
+    if (deps.transactions > 0) {
+      return { symbol: existing.symbol, status: 'has_history', blocked: false, dependencies: deps, reason: 'Tiene movimientos históricos pero posición a cero. Se desactivará en lugar de eliminarse.' };
+    }
+    return { symbol: existing.symbol, status: 'clean', blocked: false, dependencies: deps };
+  });
 }
 
 function deleteInstrument(symbol) {
   const existing = getInstrument(symbol);
   if (!existing) return { symbol: normalizeSymbol(symbol), status: 'missing' };
-  if (existing.type === 'fx') throw new Error('Technical FX instruments cannot be deleted');
+  if (existing.type === 'fx') throw new Error('Los instrumentos técnicos de divisa no se pueden eliminar');
   const deps = instrumentDependencyCounts(existing.symbol);
-  if (deps.transactions > 0 || deps.autoPlans > 0 || Math.abs(Number(existing.base_shares || 0)) > 0.000001) {
+  if (deps.currentShares > 0.000001) {
+    throw new Error(`No se puede eliminar ${existing.symbol}: tiene ${deps.currentShares.toFixed(6)} acciones en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`);
+  }
+  if (deps.autoPlans > 0) {
+    throw new Error(`No se puede eliminar ${existing.symbol}: tiene una automatización activa. Desactívala primero desde Planes automáticos.`);
+  }
+  if (deps.transactions > 0 || Math.abs(Number(existing.base_shares || 0)) > 0.000001) {
     db.prepare(
       `UPDATE instruments
        SET active = 0, show_in_distribution = 0, show_in_monthly = 0
@@ -465,6 +491,7 @@ function ensureInstrument(symbol, quote = null) {
       updateInstrument,
       deleteInstrument,
       deleteInstruments,
+      previewInstrumentDelete,
       createInstrument,
       ensureGeneralGroup,
       createInstrumentGroup,

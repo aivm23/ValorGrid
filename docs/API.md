@@ -28,8 +28,12 @@ GET /api/diagnostics/performance
 GET /api/instruments
 POST /api/instruments
 DELETE /api/instruments
+POST /api/instruments/preview-delete
 PUT /api/instruments/:symbol
 DELETE /api/instruments/:symbol
+```
+
+- `POST /api/instruments/preview-delete`: devuelve el estado de posición y dependencias de cada instrumento antes de eliminar. Bloquea instrumentos con acciones en cartera o automatizaciones activas.
 GET /api/instrument-groups
 POST /api/instrument-groups
 DELETE /api/instrument-groups

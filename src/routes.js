@@ -76,6 +76,11 @@ async function handleApi(request, response, url) {
     return true;
   }
 
+  if (url.pathname === '/api/instruments/preview-delete' && request.method === 'POST') {
+    sendJson(response, 200, { results: previewInstrumentDelete((await readJsonBody(request)).symbols || []) });
+    return true;
+  }
+
   if (url.pathname === '/api/instruments' && request.method === 'DELETE') {
     try {
       sendJson(response, 200, { results: deleteInstruments((await readJsonBody(request)).symbols || []) });

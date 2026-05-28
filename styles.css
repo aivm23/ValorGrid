@@ -3127,3 +3127,64 @@ td:last-child {
     display: none;
   }
 }
+
+.instrument-delete-preview {
+  padding: 12px 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.delete-preview-section {
+  margin-bottom: 16px;
+}
+
+.delete-preview-section h3 {
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.delete-preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.delete-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.delete-item.blocked {
+  background: color-mix(in srgb, #ef4444 10%, var(--bg));
+  border: 1px solid color-mix(in srgb, #ef4444 30%, var(--line));
+  color: #f87171;
+}
+
+.delete-item.allowed {
+  background: color-mix(in srgb, #22c55e 8%, var(--bg));
+  border: 1px solid color-mix(in srgb, #22c55e 25%, var(--line));
+  color: var(--text);
+}
+
+.button-danger {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+}
+
+.button-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.button-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

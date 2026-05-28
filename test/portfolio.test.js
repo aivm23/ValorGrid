@@ -485,6 +485,113 @@ test('PUT /api/instruments/:symbol updates editable metadata and invalidates his
   assert.ok(afterVersion > beforeVersion);
 });
 
+test('DELETE /api/instruments blocks instruments with positive position', async () => {
+  db.prepare(
+    `INSERT OR IGNORE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order)
+     VALUES ('TESTPOS', 'TESTPOS', 'Test Position', 'stock', 'EUR', '#a855f7', 0, 0, 1, (SELECT id FROM instrument_groups LIMIT 1), 0)`,
+  ).run();
+  db.prepare(
+    `INSERT INTO transactions (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin)
+     VALUES ('test-pos-buy', 'add', 'TESTPOS', 'Test Position', '2026-01-15', '2026-01-15', 10, 500, 50, 'EUR', 1, '#a855f7', 'manual')`,
+  ).run();
+
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: ['TESTPOS'] }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /acciones en cartera/);
+
+  db.prepare("DELETE FROM transactions WHERE symbol = 'TESTPOS'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TESTPOS'").run();
+});
+
+test('POST /api/instruments/preview-delete returns position status', async () => {
+  db.prepare(
+    `INSERT OR IGNORE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order)
+     VALUES ('TESTPREV', 'TESTPREV', 'Test Preview', 'stock', 'EUR', '#16a34a', 0, 0, 1, (SELECT id FROM instrument_groups LIMIT 1), 0)`,
+  ).run();
+  db.prepare(
+    `INSERT INTO transactions (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin)
+     VALUES ('test-prev-buy', 'add', 'TESTPREV', 'Test Preview', '2026-02-01', '2026-02-01', 5, 250, 50, 'EUR', 1, '#16a34a', 'manual')`,
+  ).run();
+
+  const { response, body } = await jsonRequest('/api/instruments/preview-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: ['TESTPREV'] }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.results));
+  assert.equal(body.results.length, 1);
+  assert.equal(body.results[0].symbol, 'TESTPREV');
+  assert.equal(body.results[0].blocked, true);
+  assert.equal(body.results[0].status, 'has_position');
+  assert.ok(body.results[0].dependencies.currentShares > 0);
+
+  db.prepare("DELETE FROM transactions WHERE symbol = 'TESTPREV'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TESTPREV'").run();
+});
+
+test('DELETE /api/instruments allows deletion when position is zero', async () => {
+  db.prepare(
+    `INSERT OR IGNORE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order)
+     VALUES ('TESTZERO', 'TESTZERO', 'Test Zero', 'stock', 'EUR', '#f59e0b', 0, 0, 1, (SELECT id FROM instrument_groups LIMIT 1), 0)`,
+  ).run();
+  db.prepare(
+    `INSERT INTO transactions (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin)
+     VALUES ('test-zero-buy', 'add', 'TESTZERO', 'Test Zero', '2026-03-01', '2026-03-01', 3, 150, 50, 'EUR', 1, '#f59e0b', 'manual'),
+            ('test-zero-sell', 'remove', 'TESTZERO', 'Test Zero', '2026-03-15', '2026-03-15', 3, 180, 60, 'EUR', 1, '#f59e0b', 'manual')`,
+  ).run();
+
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: ['TESTZERO'] }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.results[0].status, 'deactivated');
+
+  db.prepare("DELETE FROM transactions WHERE symbol = 'TESTZERO'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TESTZERO'").run();
+});
+
+test('DELETE /api/instruments blocks instruments with active auto-plan', async () => {
+  db.prepare(
+    `INSERT OR IGNORE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id, display_order)
+     VALUES ('TESTAUTO', 'TESTAUTO', 'Test Auto Plan', 'stock', 'EUR', '#ef4444', 0, 0, 1, (SELECT id FROM instrument_groups LIMIT 1), 0)`,
+  ).run();
+  db.prepare(
+    `INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
+     VALUES ('TESTAUTO', 50, 1, 1, '2026-06-01', 'monthly', NULL)`,
+  ).run();
+
+  const preview = await jsonRequest('/api/instruments/preview-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: ['TESTAUTO'] }),
+  });
+  assert.equal(preview.response.status, 200);
+  assert.equal(preview.body.results[0].blocked, true);
+  assert.equal(preview.body.results[0].status, 'has_auto_plan');
+
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: ['TESTAUTO'] }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /automatizaci.n activa/);
+
+  db.prepare("DELETE FROM auto_plans WHERE symbol = 'TESTAUTO'").run();
+  db.prepare("DELETE FROM instruments WHERE symbol = 'TESTAUTO'").run();
+});
+
 test('GET /api/transactions returns stored transactions', async () => {
   const { response, body } = await jsonRequest('/api/transactions');
 
