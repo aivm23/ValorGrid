@@ -33,6 +33,7 @@ dist/
 # Internal planning drafts
 PLAN*.md
 Plan_*.md
+.opencode/plans/
 
 # Dependencies and editor metadata
 node_modules/
@@ -40,3 +41,7 @@ node_modules/
 .idea/
 .DS_Store
 Thumbs.db
+
+# generated AI agent skills
+.agents/
+skills-lock.json

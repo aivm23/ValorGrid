@@ -51,9 +51,17 @@ Instrucciones obligatorias:
    - Revisa el diff staged con git diff --cached.
    - Si no hay cambios reales para commitear, no ejecutes git add, commit ni push.
    - Si hay conflictos de merge o rebase, detente y explica el estado.
-   - Si el proyecto tiene tests/lint evidentes y rápidos, ejecútalos.
-   - No inventes tests si no está claro cómo ejecutarlos.
-   - Si los tests fallan por los cambios actuales, no hagas push.
+   - Ejecuta `npm test`. Si los tests fallan, no hagas push.
+   - Ejecuta `npm run verify:publication`. Si detecta datos privados, no hagas push.
+   - Verifica sincronización de documentación:
+     - Compara endpoints en `src/routes.js` con `docs/API.md`.
+     - Compara tablas en `src/schema.js` con `docs/DATA_MODEL.md`.
+     - Compara módulos en `src/` y `client/` con `docs/ARCHITECTURE.md`.
+     - Si hay discrepancias, advierte pero no bloquees el commit (solo informa).
+   - Verifica versión:
+     - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `version.json` no está entre los archivos modificados, advierte que falta el bump de versión.
+     - Verifica que `version.json` y `package.json` tienen la misma versión.
+     - Si falta bump o hay desincronización, advierte antes de continuar.
 
 6. Ejecuta el flujo Git cuando sea seguro:
    - git add <archivos>
@@ -73,6 +81,11 @@ Instrucciones obligatorias:
    - Indica la rama.
    - Indica si el push se completó.
    - Si no se hizo commit o push, explica exactamente por qué.
+
+10. Integración con `/check`:
+    - Si el usuario ejecutó `/check` antes de `/save` y todo pasó, procede con confianza.
+    - Si no se ejecutó `/check`, las verificaciones del paso 5 cubren lo esencial.
+    - Si `/check` detectó errores y el usuario intenta `/save` igualmente, recuerda los errores pendientes y pregunta si desea continuar de todos modos.
 
 Restricciones:
 - No modifiques código salvo que sea estrictamente necesario para completar el flujo Git.
