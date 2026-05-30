@@ -30,7 +30,7 @@ Campos principales:
 - `symbol`: ticker interno.
 - `yahoo_symbol`: símbolo usado para precios.
 - `name`
-- `type`: `etf`, `stock`, `fx` u otros tipos soportados.
+- `type`: `etf`, `stock` o `fx`.
 - `currency`
 - `color`
 - `base_shares`
@@ -130,6 +130,11 @@ Frecuencias:
 
 Evita recrear una operación automática que el usuario eliminó manualmente.
 
+Campos principales:
+
+- `auto_key`
+- `skipped_at`
+
 ## Importaciones
 
 ### `import_batches`
@@ -213,25 +218,90 @@ Para EUR se usa `1`. Para USD se usa `USDEUR=X`. Otras divisas pueden apoyarse e
 
 Posición diaria por instrumento.
 
+Campos principales:
+
+- `date`
+- `symbol`
+- `shares`
+- `price_eur`
+- `value_eur`
+- `data_quality`
+- `created_at`
+
 ### `portfolio_value_daily`
 
 Valor diario total de cartera.
+
+Campos principales:
+
+- `date`
+- `value_eur`
+- `data_quality`
+- `created_at`
 
 ### `portfolio_value_weekly`
 
 Valor semanal derivado de la serie diaria. Lo usan rangos largos para mejorar latencia y legibilidad.
 
+Campos principales:
+
+- `week_start`
+- `date`
+- `value_eur`
+- `data_quality`
+- `ledger_version`
+- `price_version`
+- `created_at`
+
 ### `portfolio_events`
 
 Eventos de compras, ventas e importaciones visibles en el histórico.
+
+Campos principales:
+
+- `id`
+- `type`
+- `symbol`
+- `name`
+- `date`
+- `market_date`
+- `plot_date`
+- `shares`
+- `value_eur`
+- `price`
+- `currency`
+- `origin`
+- `color`
+- `created_at`
 
 ### `history_invalidations`
 
 Guarda desde qué fecha debe reconstruirse el histórico.
 
+Campos principales:
+
+- `id`
+- `from_date`
+- `reason`
+- `created_at`
+
 ### `history_builds`
 
 Registra builds del histórico, duración, estado y errores.
+
+Campos principales:
+
+- `build_key`
+- `from_date`
+- `to_date`
+- `ledger_version`
+- `price_version`
+- `status`
+- `error`
+- `duration_ms`
+- `points`
+- `created_at`
+- `updated_at`
 
 ## Metadata y control de versiones
 

@@ -31,9 +31,6 @@ DELETE /api/instruments
 POST /api/instruments/preview-delete
 PUT /api/instruments/:symbol
 DELETE /api/instruments/:symbol
-```
-
-- `POST /api/instruments/preview-delete`: devuelve el estado de posición y dependencias de cada instrumento antes de eliminar. Bloquea instrumentos con acciones en cartera o automatizaciones activas.
 GET /api/instrument-groups
 POST /api/instrument-groups
 DELETE /api/instrument-groups
@@ -43,6 +40,9 @@ GET /api/instrument-identifiers
 POST /api/instrument-identifiers
 DELETE /api/instrument-identifiers/:id
 ```
+
+- `POST /api/instruments/preview-delete`: devuelve estado de posición y dependencias antes de eliminar; es una previsualización y no bloquea por sí misma.
+- El bloqueo real por posición o automatizaciones activas se aplica al ejecutar `DELETE /api/instruments/:symbol` o `DELETE /api/instruments`.
 
 - `instruments` almacena valores visibles de cartera.
 - `instrument_groups` organiza distribución, revisión mensual y desglose.
