@@ -11,6 +11,22 @@ ValorGrid es una aplicación local monousuario con backend Node.js, SQLite local
 - Separar importación, validación, commit y rollback.
 - Mantener el servidor atado a `127.0.0.1` por defecto.
 
+## Dirección de arquitectura (2026)
+
+ValorGrid evoluciona de un monolito modular con `ctx` plano hacia este patrón objetivo:
+
+- **Modular Monolith** (despliegue simple, una sola app local).
+- **Clean-ish layering** (`routes` -> `services` -> `repositories`).
+- **Dependency Injection explícita** usando un `ctx` agrupado.
+- **TypeScript strict incremental** (sin migración big-bang).
+
+Principios operativos de la migración:
+
+- No romper API pública ni semántica funcional en cada fase.
+- Fases pequeñas, pruebas completas y commit por fase.
+- Convivencia temporal de capas legacy y nuevas mientras se reduce acoplamiento.
+- Documentación y skill de arquitectura actualizadas en cada cambio estructural.
+
 ## Backend
 
 ### `server.js`
@@ -26,6 +42,27 @@ Orquestador del backend:
 - cada módulo declara dependencias necesarias de `ctx` de forma explícita,
 - cada módulo exporta funciones vía `Object.assign(ctx, { ... })`,
 - llama a `ctx.initDatabase()` para ejecutar schema y migraciones idempotentes.
+
+### Namespaces objetivo de `ctx` (transición)
+
+El estado actual mantiene exports planos por compatibilidad. El estado objetivo concentra dependencias en grupos:
+
+```text
+ctx.config
+ctx.cache
+ctx.logger
+ctx.db
+ctx.repositories.<domain>
+ctx.services.<domain>
+ctx.http
+```
+
+Reglas de transición:
+
+- Se permiten aliases legacy en `ctx` mientras se migra por fases.
+- Todo módulo nuevo/refactorizado debe preferir los namespaces agrupados.
+- No se reintroduce `with (ctx)` en backend ni frontend.
+- SQL nuevo debe vivir en repositories a medida que se introduzcan.
 
 ### `src/`
 
@@ -70,6 +107,18 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
+
+### Hoja de ruta activa (resumen)
+
+1. Alinear reglas de arquitectura en docs + skill + AGENTS.
+2. Introducir quality gates graduales (lint/format/typecheck) sin reescritura masiva.
+3. Consolidar `ctx` agrupado (`services`, `repositories`, `config`, `cache`, `logger`).
+4. Extraer SQL de servicios hacia repositories por dominio (instruments, transactions, imports, history, market).
+5. Mantener `routes` finas y estables a nivel HTTP durante toda la migración.
+6. Migrar TypeScript por etapas empezando por módulos puros y capas de persistencia.
+7. Reevaluar ESM/build final solo cuando la migración TS esté estable.
+
+Cada fase se valida con pruebas enfocadas + `npm test` + `npm run verify:publication`.
 
 ## Frontend
 
