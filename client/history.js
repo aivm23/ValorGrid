@@ -1,7 +1,41 @@
-import { attachSource, decodeSource } from './attach.js';
-
-const source = decodeSource('ZnVuY3Rpb24gc2V0SGlzdG9yeVJhbmdlKHJhbmdlKSB7CiAgc3RhdGUuaGlzdG9yeVJhbmdlID0gcmFuZ2U7CiAgZWxlbWVudHMuaGlzdG9yeVJhbmdlQnV0dG9ucy5mb3JFYWNoKChidXR0b24pID0+IHsKICAgIGJ1dHRvbi5jbGFzc0xpc3QudG9nZ2xlKCdpcy1hY3RpdmUnLCBidXR0b24uZGF0YXNldC5oaXN0b3J5UmFuZ2UgPT09IHJhbmdlKTsKICB9KTsKICBpZiAoc3RhdGUuaGlzdG9yeT8ucmFuZ2UgIT09IHJhbmdlKSB7CiAgICBzdGF0ZS5oaXN0b3J5ID0gbnVsbDsKICB9CiAgcmVmcmVzaEhpc3RvcnkoKTsKfQoKZnVuY3Rpb24gc2hvd0hpc3RvcnlUb29sdGlwKGV2ZW50KSB7CiAgY29uc3QgdGFyZ2V0ID0gZXZlbnQudGFyZ2V0LmNsb3Nlc3Q/LignW2RhdGEtdG9vbHRpcF0nKTsKICBpZiAoIXRhcmdldCkgcmV0dXJuOwogIGVsZW1lbnRzLmhpc3RvcnlUb29sdGlwLnRleHRDb250ZW50ID0gdGFyZ2V0LmRhdGFzZXQudG9vbHRpcDsKICBlbGVtZW50cy5oaXN0b3J5VG9vbHRpcC5oaWRkZW4gPSBmYWxzZTsKICBlbGVtZW50cy5oaXN0b3J5RXZlbnRQYW5lbC50ZXh0Q29udGVudCA9IHRhcmdldC5kYXRhc2V0LnRvb2x0aXA7CiAgZWxlbWVudHMuaGlzdG9yeUV2ZW50UGFuZWwuaGlkZGVuID0gZmFsc2U7Cn0KCmZ1bmN0aW9uIG1vdmVIaXN0b3J5VG9vbHRpcChldmVudCkgewogIGlmIChlbGVtZW50cy5oaXN0b3J5VG9vbHRpcC5oaWRkZW4pIHJldHVybjsKICBjb25zdCBib3VuZHMgPSBlbGVtZW50cy5oaXN0b3J5Q2hhcnQuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCk7CiAgZWxlbWVudHMuaGlzdG9yeVRvb2x0aXAuc3R5bGUubGVmdCA9IGAke2V2ZW50LmNsaWVudFggLSBib3VuZHMubGVmdCArIDEyfXB4YDsKICBlbGVtZW50cy5oaXN0b3J5VG9vbHRpcC5zdHlsZS50b3AgPSBgJHtldmVudC5jbGllbnRZIC0gYm91bmRzLnRvcCArIDEyfXB4YDsKfQoKZnVuY3Rpb24gaGlkZUhpc3RvcnlUb29sdGlwKCkgewogIGVsZW1lbnRzLmhpc3RvcnlUb29sdGlwLmhpZGRlbiA9IHRydWU7Cn0=');
-
 export function attach(ctx) {
-  attachSource(ctx, source, ["setHistoryRange","showHistoryTooltip","moveHistoryTooltip","hideHistoryTooltip"]);
+  const { state, elements } = ctx;
+
+  function setHistoryRange(range) {
+    state.historyRange = range;
+    elements.historyRangeButtons.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.historyRange === range);
+    });
+    if (state.history?.range !== range) {
+      state.history = null;
+    }
+    ctx.refreshHistory();
+  }
+
+  function showHistoryTooltip(event) {
+    const target = event.target.closest?.('[data-tooltip]');
+    if (!target) return;
+    elements.historyTooltip.textContent = target.dataset.tooltip;
+    elements.historyTooltip.hidden = false;
+    elements.historyEventPanel.textContent = target.dataset.tooltip;
+    elements.historyEventPanel.hidden = false;
+  }
+
+  function moveHistoryTooltip(event) {
+    if (elements.historyTooltip.hidden) return;
+    const bounds = elements.historyChart.getBoundingClientRect();
+    elements.historyTooltip.style.left = `${event.clientX - bounds.left + 12}px`;
+    elements.historyTooltip.style.top = `${event.clientY - bounds.top + 12}px`;
+  }
+
+  function hideHistoryTooltip() {
+    elements.historyTooltip.hidden = true;
+  }
+
+  Object.assign(ctx, {
+    setHistoryRange,
+    showHistoryTooltip,
+    moveHistoryTooltip,
+    hideHistoryTooltip,
+  });
 }

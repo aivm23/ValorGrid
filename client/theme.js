@@ -1,7 +1,21 @@
-import { attachSource, decodeSource } from './attach.js';
-
-const source = decodeSource('ZnVuY3Rpb24gYXBwbHlUaGVtZSh0aGVtZSkgewogIGRvY3VtZW50LmRvY3VtZW50RWxlbWVudC5kYXRhc2V0LnRoZW1lID0gdGhlbWU7CiAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3BvcnRmb2xpby10aGVtZScsIHRoZW1lKTsKICBlbGVtZW50cy50aGVtZVRvZ2dsZS5zZXRBdHRyaWJ1dGUoJ2FyaWEtbGFiZWwnLCB0aGVtZSA9PT0gJ2RhcmsnID8gJ0FjdGl2YXIgbW9kbyBjbGFybycgOiAnQWN0aXZhciBtb2RvIG9zY3VybycpOwogIGVsZW1lbnRzLnRoZW1lVG9nZ2xlLnNldEF0dHJpYnV0ZSgndGl0bGUnLCB0aGVtZSA9PT0gJ2RhcmsnID8gJ0FjdGl2YXIgbW9kbyBjbGFybycgOiAnQWN0aXZhciBtb2RvIG9zY3VybycpOwp9CgpmdW5jdGlvbiBpbml0VGhlbWUoKSB7CiAgY29uc3Qgc2F2ZWRUaGVtZSA9IGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdwb3J0Zm9saW8tdGhlbWUnKTsKICBjb25zdCBwcmVmZXJzRGFyayA9IHdpbmRvdy5tYXRjaE1lZGlhPy4oJyhwcmVmZXJzLWNvbG9yLXNjaGVtZTogZGFyayknKS5tYXRjaGVzOwogIGFwcGx5VGhlbWUoc2F2ZWRUaGVtZSB8fCAocHJlZmVyc0RhcmsgPyAnZGFyaycgOiAnbGlnaHQnKSk7Cn0=');
-
 export function attach(ctx) {
-  attachSource(ctx, source, ["applyTheme","initTheme"]);
+  const { document, localStorage, elements, window } = ctx;
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('portfolio-theme', theme);
+    elements.themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
+    elements.themeToggle.setAttribute('title', theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('portfolio-theme');
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+  }
+
+  Object.assign(ctx, {
+    applyTheme,
+    initTheme,
+  });
 }
