@@ -33,6 +33,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     if (file !== path.join('src', 'db.js')) {
       assert.equal(read(file).includes('node:sqlite'), false, `${file} must not import node:sqlite`);
     }
+    assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
   }
 
   assert.equal(/\.prepare\(|db\./.test(read(path.join('src', 'routes.js'))), false, 'routes must not run SQL directly');
@@ -69,6 +70,8 @@ test('frontend architecture stays modular', () => {
   assert.ok(lineCount('app.js') <= 150, 'app.js must remain a small orchestrator');
   for (const file of filesUnder('client')) {
     assert.ok(lineCount(file) <= 350, `${file} must stay below 350 lines`);
+    assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
+    assert.equal(/new Function\(/.test(read(file)), false, `${file} must not use dynamic Function loaders`);
   }
 
   assert.equal(/fetch\(/.test(read(path.join('client', 'charts.js'))), false, 'charts must not fetch data');
