@@ -351,7 +351,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
   }
   const externalIdBase =
     profile === 'degiro' && fileSubtype === 'transactions_export'
-      ? String(rowValueByHeaders(row, ['ID Orden', 'Id Orden', 'ID orden']) || degiroTransactionCell(row, 'externalId') || mappedValue(row, mapping, profile, 'externalId') || '').trim()
+      ? String(rowValueByHeaders(row, ['ID Orden', 'Id Orden', 'ID orden']) || degiroTransactionCell(row, 'externalId') || '').trim() || ((row.values || []).slice(degiroTransactionColumns.totalEur + 1).find((v) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v || '').trim())) || '')
       : String(mappedValue(row, mapping, profile, 'externalId') || '').trim();
   const externalId = externalIdBase ? `${externalIdBase}:${row.rowIndex}` : null;
   const corporateReason =
@@ -365,24 +365,21 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
         })
       : null;
   const errors = [];
+  const warnings = [];
   if (!corporateReason) {
     if (!inferredType) errors.push('Tipo no reconocido');
     if (!date) errors.push('Fecha invalida');
     if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
-    if (!Number.isFinite(price) || price <= 0) errors.push('Precio debe ser mayor que 0');
+    if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
+    if (price === 0 && inferredType === 'add') warnings.push('Compra a 0€ (split/dividendo) — se importa con precio mínimo');
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
     if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   }
-  const computedValueEur =
-    Number.isFinite(shares) && Number.isFinite(price) && (currency === 'EUR' || Number.isFinite(fxToEur))
-      ? currency === 'EUR'
-        ? shares * price
-        : shares * price * fxToEur
-      : null;
+  const effectivePrice = price === 0 && inferredType === 'add' ? 0.0001 : price;
+  const computedValueEur = Number.isFinite(shares) && Number.isFinite(effectivePrice) && (currency === 'EUR' || Number.isFinite(fxToEur))
+    ? currency === 'EUR' ? shares * effectivePrice : shares * effectivePrice * fxToEur : null;
   const valueEur = Number.isFinite(valueEurInput) && valueEurInput > 0 ? valueEurInput : computedValueEur;
-  if (!corporateReason && (!Number.isFinite(valueEur) || valueEur <= 0)) {
-    errors.push('Valor EUR debe ser mayor que 0');
-  }
+  if (!corporateReason && (!Number.isFinite(valueEur) || valueEur < 0)) errors.push('Valor EUR no puede ser negativo');
   if (!corporateReason && Number.isFinite(valueEurInput) && Number.isFinite(computedValueEur)) {
     const tolerance = Math.max(0.05, Math.abs(computedValueEur) * 0.02);
     if (Math.abs(valueEurInput - computedValueEur) > tolerance) {
@@ -397,16 +394,18 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     marketDate,
     shares,
     valueEur,
-    price,
+    price: effectivePrice,
+    originalPrice: price,
     currency,
     fxToEur: currency !== 'EUR' && Number.isFinite(fxToEur) ? fxToEur : 1,
     commissionEur,
-    cashFlowEur: (inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
+    cashFlowEur: degiroTransactions && Number.isFinite(totalEur) ? totalEur : ((inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur)),
     externalId,
     source,
     externalIdentifiers: extractExternalIdentifiers(profile, row, symbol, fileSubtype),
     rowKind: corporateReason ? 'corporate_action_ignored' : 'trade',
     ignoreReason: corporateReason || null,
+    warnings,
   };
   normalized.rowHash = sha256(JSON.stringify(normalized));
   normalized.transactionId = `import:${source}:${normalized.rowHash.slice(0, 24)}`;
@@ -429,11 +428,13 @@ function summarizeImportRows(rows) {
         if (row.normalized.type === 'add') summary.buys += 1;
         if (row.normalized.type === 'remove') summary.sells += 1;
         summary.valueEur += Number(row.normalized.valueEur || 0);
-        summary.commissionEur += Number(row.normalized.commissionEur || 0);
         summary.cashFlowEur += Number(row.normalized.cashFlowEur || 0);
         summary.symbols.add(row.normalized.symbol);
         if (!summary.firstDate || row.normalized.date < summary.firstDate) summary.firstDate = row.normalized.date;
         if (!summary.lastDate || row.normalized.date > summary.lastDate) summary.lastDate = row.normalized.date;
+      }
+      if (row.rowKind !== 'corporate_action_ignored' && row.normalized) {
+        summary.commissionEur += Number(row.normalized.commissionEur || 0);
       }
       return summary;
     },

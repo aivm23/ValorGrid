@@ -178,7 +178,7 @@ export function attach(ctx) {
   }
 
   async function commitCsvImport() {
-    if (!ctx.state.importPreview?.canCommit) return;
+    if (!ctx.state.importPreview?.canCommit) { ctx.elements.importFeedback.textContent = 'No se puede importar: hay filas pendientes de resolución.'; return; }
     ctx.elements.importCommit.disabled = true;
     ctx.elements.importPreviewOutput.innerHTML = '<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>Importando operaciones...</strong><span>Conciliando movimientos y actualizando cartera.</span></div></div>';
     try {

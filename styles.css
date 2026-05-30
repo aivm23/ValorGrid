@@ -1236,6 +1236,12 @@ h3 {
   justify-items: end;
 }
 
+.import-warning-text {
+  color: #d97706;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
 .import-impact-list article {
   grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.4fr) minmax(120px, 0.5fr);
 }

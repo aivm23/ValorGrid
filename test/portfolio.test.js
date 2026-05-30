@@ -1194,8 +1194,8 @@ test('import preview returns detected instruments grouping and impact summary', 
   seedTestInstrument({ symbol: 'IGR2', yahooSymbol: 'IGR2', name: 'Import Group 2', type: 'stock', currency: 'EUR' });
   const csv = [
     'type,symbol,date,shares,price,currency,valueEur',
-    'buy,IGR1,2026-05-01,1,10,EUR,10',
-    'sell,IGR1,2026-05-03,0.5,12,EUR,6',
+    'buy,IGR1,2026-05-01,2,10,EUR,20',
+    'sell,IGR1,2026-05-03,1,12,EUR,12',
     'buy,IGR2,2026-05-04,2,8,EUR,16',
   ].join('\n');
 

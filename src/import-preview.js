@@ -88,9 +88,10 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   return { instrument: null, resolutionStatus: 'needs_mapping', mappingKey: firstKey || null };
 }
 
-function positionWithPendingRows(ctx, symbol, date, pendingRows) {
+function positionWithPendingRows(ctx, symbol, date, pendingRows, excludeRowIndex) {
   let shares = ctx.getPositionShares(symbol, date);
   for (const row of pendingRows) {
+    if (row.rowIndex === excludeRowIndex) continue;
     if (row.symbol === symbol && row.date <= date) {
       shares += ctx.transactionSign(row.type) * row.shares;
     }
@@ -162,12 +163,12 @@ function validateFuturePositions(ctx, pendingRows) {
 }
 
 function applyTimelineValidation(ctx, rows) {
-  const validRows = rows
-    .filter((row) => row.status === 'valid' && row.rowKind === 'trade')
+  const allTradeRows = rows
+    .filter((row) => row.rowKind === 'trade' && row.normalized.symbol && row.normalized.date)
     .map((row) => row.normalized);
-  if (!validRows.length) return rows;
+  if (!allTradeRows.length) return rows;
 
-  const errors = validateFuturePositions(ctx, validRows);
+  const errors = validateFuturePositions(ctx, allTradeRows);
   if (!errors.length) return rows;
 
   return rows.map((row) => {
@@ -255,6 +256,7 @@ function previewImportFactory(ctx, input = {}) {
   const scopedPayloadHash = buildScopedPayloadHash(parsedPayload, input);
   const fileSubtype = parsedPayload.fileSubtype || 'unknown';
   const accepted = [];
+  const allResolvedTrades = [];
   const seenHashes = new Set();
   const detectedInstruments = new Map();
   const mappingsRequired = new Map();
@@ -275,7 +277,9 @@ function previewImportFactory(ctx, input = {}) {
     const forcedInstrument = rowDecision.symbol ? ctx.getInstrument(rowDecision.symbol) : null;
     const resolution = forcedInstrument
       ? { instrument: forcedInstrument, resolutionStatus: 'resolved', matchedBy: 'row_mapping' }
-      : resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
+      : rowDecision.symbol && virtualSymbols.has(String(rowDecision.symbol).toUpperCase())
+        ? { instrument: { symbol: String(rowDecision.symbol).toUpperCase(), type: 'stock', name: String(rowDecision.symbol).toUpperCase(), color: '#2563eb' }, resolutionStatus: 'mapped_new', matchedBy: 'row_mapping' }
+        : resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
     if (resolution.instrument && normalized.symbol !== resolution.instrument.symbol) {
       normalized.symbol = resolution.instrument.symbol;
       rebuildImportIdentity(normalized, adapter.source, sha256);
@@ -357,7 +361,7 @@ function previewImportFactory(ctx, input = {}) {
 
     let saleDeficit = null;
     if (resolution.resolutionStatus !== 'needs_mapping' && rowKind === 'trade' && normalized.type === 'remove' && normalized.symbol && normalized.date) {
-      const available = positionWithPendingRows(ctx, normalized.symbol, normalized.date, accepted);
+      const available = positionWithPendingRows(ctx, normalized.symbol, normalized.date, allResolvedTrades, row.rowIndex);
       if (available + 0.0000001 < normalized.shares) {
         saleDeficit = {
           code: available <= 0.0000001 ? 'existing_empty_position' : 'existing_insufficient_position',
@@ -384,6 +388,9 @@ function previewImportFactory(ctx, input = {}) {
     } else if (!errors.length && (status === 'duplicate' || status === 'ignored')) {
       seenHashes.add(normalized.rowHash);
     }
+    if (rowKind === 'trade' && normalized.symbol && normalized.date && Number.isFinite(normalized.shares)) {
+      allResolvedTrades.push({ rowIndex: row.rowIndex, symbol: normalized.symbol, date: normalized.date, type: normalized.type, shares: normalized.shares });
+    }
 
     const outputRow = {
       rowIndex: row.rowIndex,
@@ -401,6 +408,18 @@ function previewImportFactory(ctx, input = {}) {
     };
     return saleDeficit ? markSkippedSaleDeficit(outputRow, saleDeficit.code, saleDeficit.available) : outputRow;
   });
+
+  rows = rows.map((row) => {
+    if (row.status !== 'skipped' || row.blockReasonCode !== 'existing_empty_position') return row;
+    if (row.normalized.type !== 'remove' || !row.normalized.symbol || !row.normalized.date) return row;
+    const available = positionWithPendingRows(ctx, row.normalized.symbol, row.normalized.date, allResolvedTrades, row.rowIndex);
+    if (available + 0.0000001 < row.normalized.shares) return row;
+    return { ...row, status: 'valid', rowKind: 'trade', blockReasonCode: null, blockReasonMessage: null };
+  });
+  accepted.length = 0;
+  for (const row of rows) {
+    if (row.status === 'valid' && row.rowKind === 'trade') accepted.push(row.normalized);
+  }
 
   const reconciliation = reconcileSnapshotRows(ctx, rows, fileSubtype);
   rows = reconciliation.rows;

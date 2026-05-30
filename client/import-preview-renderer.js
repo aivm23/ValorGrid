@@ -265,6 +265,8 @@ function renderOperationGroups(ctx, rows, state) {
 function renderOperationRow(ctx, row, state) {
   const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
   const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
+  const hasZeroPrice = row.normalized?.originalPrice === 0 && row.normalized?.type === 'add';
+  const rowWarnings = row.normalized?.warnings || [];
   return `
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
       <div>
@@ -275,17 +277,20 @@ function renderOperationRow(ctx, row, state) {
       <div class="import-operation-money">
         <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
         <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
+        ${hasZeroPrice ? '<small class="import-warning-text">Precio original 0€ (split/dividendo)</small>' : ''}
       </div>
       <select class="import-row-control" data-import-row-action="${row.rowIndex}">
         <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
         <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
       </select>
-      <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
+      <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || rowWarnings.join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
     </article>`;
 }
 
 function renderConfirmStep(ctx, preview) {
   const impact = preview.impactPreview || { instruments: [] };
+  const canCommit = preview.canCommit;
+  const fatalRows = (preview.rows || []).filter((row) => ['error', 'blocked', 'needs_mapping'].includes(row.status));
   return `
     <div class="import-confirm-grid">
       <article class="metric-card"><span>Nuevas compras</span><strong>${impact.buyCount || 0}</strong></article>
@@ -295,15 +300,20 @@ function renderConfirmStep(ctx, preview) {
       <article class="metric-card"><span>Comisiones</span><strong>${ctx.formatCurrency(impact.totalCommissionEur || 0)}</strong></article>
       <article class="metric-card"><span>Cash-flow neto</span><strong>${ctx.formatCurrency(impact.totalCashFlowEur || 0)}</strong></article>
     </div>
+    ${!canCommit && fatalRows.length ? `<div class="import-warning-banner"><div>No se puede importar: hay ${fatalRows.length} filas pendientes (${fatalRows.some((r) => r.status === 'needs_mapping') ? 'instrumentos sin asignar' : 'con errores'}). Resuélvelas en los pasos anteriores.</div></div>` : ''}
     <div class="import-impact-list">
       ${(impact.instruments || [])
         .map(
-          (item) => `
+          (item) => {
+            const liquidated = Math.abs(item.afterShares || 0) < 0.000001 && (item.beforeShares || 0) > 0;
+            return `
             <article>
               <strong>${ctx.escapeHtml(item.symbol)}</strong>
               <span>Acciones antes ${ctx.formatShareNumber(item.beforeShares || 0)} · Acciones a importar ${ctx.formatShareNumber(item.deltaShares || 0)} · Acciones después ${ctx.formatShareNumber(item.afterShares || 0)}</span>
+              ${liquidated ? '<small class="import-warning-text">Posición liquidada en la importación</small>' : ''}
               <small>${item.buys || 0} compras · ${item.sells || 0} ventas</small>
-            </article>`,
+            </article>`;
+          },
         )
         .join('') || '<div class="subtle">No hay operaciones seleccionadas para importar.</div>'}
     </div>`;
