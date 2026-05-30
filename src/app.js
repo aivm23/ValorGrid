@@ -56,7 +56,7 @@ const ctx = {
   metaKeys, historyBuildKey, historyRanges, defaultInstruments, defaultAutoPlans, contentTypes,
 };
 
-[
+const modules = [
   './schema',
   './schema-seed',
   './meta-state',
@@ -73,7 +73,16 @@ const ctx = {
   './diagnostics-service',
   './routes',
   './http',
-].forEach((modulePath) => require(modulePath)(ctx));
+];
+
+for (const modulePath of modules) {
+  try {
+    require(modulePath)(ctx);
+  } catch (error) {
+    error.message = `Error loading ${modulePath}: ${error.message}`;
+    throw error;
+  }
+}
 
 ctx.initDatabase();
 

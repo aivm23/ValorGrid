@@ -1,5 +1,11 @@
-module.exports = function attach(ctx) { with (ctx) {
-function initDatabase() {
+const { assertCtxDeps } = require('./ctx-utils');
+
+module.exports = function attach(ctx) {
+  assertCtxDeps(ctx, ['db', 'metaKeys', 'defaultInstruments', 'defaultAutoPlans'], 'schema');
+
+  const { db, metaKeys, defaultInstruments, defaultAutoPlans } = ctx;
+
+  function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS instruments (
       symbol TEXT PRIMARY KEY,
@@ -363,12 +369,11 @@ function initDatabase() {
       );
     }
   }
-}
-
-function ensureMetaKey(key, value) {
-  db.prepare('INSERT OR IGNORE INTO app_meta (key, value) VALUES (?, ?)').run(key, String(value));
-}
-
-    Object.assign(ctx, { initDatabase, ensureMetaKey });
   }
+
+  function ensureMetaKey(key, value) {
+    db.prepare('INSERT OR IGNORE INTO app_meta (key, value) VALUES (?, ?)').run(key, String(value));
+  }
+
+  Object.assign(ctx, { initDatabase, ensureMetaKey });
 };
