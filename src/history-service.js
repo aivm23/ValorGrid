@@ -1,5 +1,62 @@
+const { assertCtxDeps } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'getToday',
+      'getDataVersions',
+      'weekKey',
+      'markHistoryBuild',
+      'getHistoryInstruments',
+      'getDailyPrices',
+      'replaceMarketPrices',
+      'replaceFxRates',
+      'getHistoryEvents',
+      'pointDatesFromPriceRows',
+      'getTransactionsUntil',
+      'transactionSign',
+      'toEur',
+      'rebuildPortfolioEvents',
+      'historyBuildIsFresh',
+      'getHistoryBuild',
+      'getOldestHistoryInvalidation',
+      'addDays',
+      'getTransactions',
+      'executeDueAutoPlans',
+      'resolveHistoryWindow',
+      'firstTransactionDate',
+    ],
+    'history-service',
+  );
+
+  const {
+    db,
+    getToday,
+    getDataVersions,
+    weekKey,
+    markHistoryBuild,
+    getHistoryInstruments,
+    getDailyPrices,
+    replaceMarketPrices,
+    replaceFxRates,
+    getHistoryEvents,
+    pointDatesFromPriceRows,
+    getTransactionsUntil,
+    transactionSign,
+    toEur,
+    rebuildPortfolioEvents,
+    historyBuildIsFresh,
+    getHistoryBuild,
+    getOldestHistoryInvalidation,
+    addDays,
+    getTransactions,
+    executeDueAutoPlans,
+    resolveHistoryWindow,
+    firstTransactionDate,
+  } = ctx;
+
 function replaceMaterializedHistory(pointRows, positionRows, replaceFromDate) {
   const deleteFrom = replaceFromDate || pointRows[0]?.date || getToday();
   const positionInsert = db.prepare(
@@ -315,6 +372,6 @@ async function buildPortfolioHistory(inputRange = 'all', inputGranularity = 'aut
 function tableCount(table) {
   return db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
 }
-    Object.assign(ctx, { replaceMaterializedHistory, rebuildDailyPortfolioHistory, ensureHistoryBuilt, queryHistorySeries, queryHistoryEvents, ensureRangeStartPoint, enrichSeriesWithContributed, buildPortfolioHistory });
-  }
+
+  Object.assign(ctx, { replaceMaterializedHistory, rebuildDailyPortfolioHistory, ensureHistoryBuilt, queryHistorySeries, queryHistoryEvents, ensureRangeStartPoint, enrichSeriesWithContributed, buildPortfolioHistory });
 };

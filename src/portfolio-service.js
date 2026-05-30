@@ -1,5 +1,50 @@
+const { assertCtxDeps, getCtxDep } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'getToday',
+      'getAutoPlans',
+      'getAutoPlanScheduledDates',
+      'autoKeyForPlan',
+      'autoPlanExists',
+      'isAutoPlanSkipped',
+      'getQuoteForSymbol',
+      'createTransaction',
+      'getPositionShares',
+      'getFxToEur',
+      'toEur',
+      'listInstruments',
+      'minimumDisplayValueEur',
+      'listInstrumentGroups',
+      'buildLedgerAnalytics',
+      'getTransactions',
+    ],
+    'portfolio-service',
+  );
+
+  const {
+    db,
+    getToday,
+    getAutoPlans,
+    getAutoPlanScheduledDates,
+    autoKeyForPlan,
+    autoPlanExists,
+    isAutoPlanSkipped,
+    getQuoteForSymbol,
+    createTransaction,
+    getPositionShares,
+    getFxToEur,
+    toEur,
+    listInstruments,
+    minimumDisplayValueEur,
+    listInstrumentGroups,
+    buildLedgerAnalytics,
+    getTransactions,
+  } = ctx;
+
 function getMonthEndDate(year, month) {
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
 }
@@ -141,6 +186,7 @@ function isEffectiveValuation(item) {
 
 async function buildMonthly(year) {
   await executeDueAutoPlans();
+  const monthLabel = getCtxDep(ctx, 'monthLabel', 'portfolio-service');
 
   const today = getToday();
   const currentYearValue = Number(today.slice(0, 4));
@@ -412,6 +458,6 @@ function buildOnboardingStatus() {
     autoPlanCount,
   };
 }
-    Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
-  }
+
+  Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
 };

@@ -1,5 +1,10 @@
+const { assertCtxDeps, getCtxDep } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(ctx, ['db', 'getToday', 'normalizeSymbol', 'getInstrument', 'dateUtc', 'addDays', 'transactionSign', 'ensureInstrument', 'getQuoteForSymbol', 'getFxToEur', 'toEur', 'getInstrumentByInput', 'stockColors', 'invalidateLedger'], 'transaction-service');
+
+  const { db, getToday, normalizeSymbol, getInstrument, dateUtc, addDays, transactionSign, ensureInstrument, getQuoteForSymbol, getFxToEur, toEur, getInstrumentByInput, stockColors, invalidateLedger } = ctx;
+
 function getTransactions() {
   return db
     .prepare(
@@ -96,7 +101,7 @@ function buildLedgerAnalytics(currentValue = 0) {
 }
 
 async function buildPortfolioPerformance() {
-  const summary = await buildSummary();
+  const summary = await getCtxDep(ctx, 'buildSummary', 'transaction-service')();
   const analytics = buildLedgerAnalytics(summary.total);
   return {
     updatedAt: summary.updatedAt,
@@ -482,6 +487,6 @@ function isAutoPlanSkipped(autoKey) {
   }
   return false;
 }
-    Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
-  }
+
+  Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, getStockColorsUsed, createTransaction, previewTransaction, deleteTransaction, isAutoPlanSkipped });
 };

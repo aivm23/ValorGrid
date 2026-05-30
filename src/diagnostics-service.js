@@ -1,5 +1,38 @@
+const { assertCtxDeps } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'historyRanges',
+      'buildPortfolioHistory',
+      'getDataVersions',
+      'historyBuildIsFresh',
+      'dbPath',
+      'appInfo',
+      'host',
+      'port',
+      'getHistoryBuild',
+      'getTransactions',
+    ],
+    'diagnostics-service',
+  );
+
+  const {
+    db,
+    historyRanges,
+    buildPortfolioHistory,
+    getDataVersions,
+    historyBuildIsFresh,
+    dbPath,
+    appInfo,
+    host,
+    port,
+    getHistoryBuild,
+    getTransactions,
+  } = ctx;
+
 function tableCount(table) {
   return db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
 }
@@ -110,6 +143,6 @@ function buildTransactionsCsv() {
   }
   return `${lines.join('\n')}\n`;
 }
-    Object.assign(ctx, { tableCount, buildPerformanceDiagnostics, getDatabaseStats, buildHealth, csvCell, buildTransactionsCsv });
-  }
+
+  Object.assign(ctx, { tableCount, buildPerformanceDiagnostics, getDatabaseStats, buildHealth, csvCell, buildTransactionsCsv });
 };

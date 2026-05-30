@@ -1,5 +1,48 @@
+const { assertCtxDeps } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'normalizeSymbol',
+      'groupIdFromName',
+      'getInstrument',
+      'getToday',
+      'getQuoteForYahooSymbol',
+      'getFxToEur',
+      'toEur',
+      'autoPlanFrequency',
+      'getAutoPlanScheduledDates',
+      'createInstrumentGroup',
+      'createInstrument',
+      'createTransaction',
+      'normalizeAutoPlans',
+      'invalidateLedger',
+      'getAutoPlans',
+    ],
+    'onboarding-service',
+  );
+
+  const {
+    db,
+    normalizeSymbol,
+    groupIdFromName,
+    getInstrument,
+    getToday,
+    getQuoteForYahooSymbol,
+    getFxToEur,
+    toEur,
+    autoPlanFrequency,
+    getAutoPlanScheduledDates,
+    createInstrumentGroup,
+    createInstrument,
+    createTransaction,
+    normalizeAutoPlans,
+    invalidateLedger,
+    getAutoPlans,
+  } = ctx;
+
 function normalizeWizardPayload(input = {}) {
   const group = input.group || {};
   const instrument = input.instrument || {};
@@ -185,6 +228,5 @@ async function commitOnboardingWizard(input = {}) {
   }
 }
 
-    Object.assign(ctx, { previewOnboardingWizard, commitOnboardingWizard });
-  }
+  Object.assign(ctx, { previewOnboardingWizard, commitOnboardingWizard });
 };

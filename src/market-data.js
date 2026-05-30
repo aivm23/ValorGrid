@@ -1,5 +1,36 @@
+const { assertCtxDeps } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'getMemoryCached',
+      'setMemoryCached',
+      'getToday',
+      'toUnixSeconds',
+      'dateUtc',
+      'addDays',
+      'invalidatePrices',
+      'getInstrumentByInput',
+      'normalizeSymbol',
+    ],
+    'market-data',
+  );
+
+  const {
+    db,
+    getMemoryCached,
+    setMemoryCached,
+    getToday,
+    toUnixSeconds,
+    dateUtc,
+    addDays,
+    invalidatePrices,
+    getInstrumentByInput,
+    normalizeSymbol,
+  } = ctx;
+
 async function fetchYahooChart(yahooSymbol, query) {
   const cacheKey = `${yahooSymbol}:${query}`;
   const cached = getMemoryCached(cacheKey);
@@ -262,6 +293,6 @@ async function getFxToEur(currencyInput, requestedDate = null) {
     return null;
   }
 }
-    Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
-  }
+
+  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
 };

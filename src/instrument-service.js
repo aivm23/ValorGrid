@@ -1,5 +1,9 @@
+const { assertCtxDeps, getCtxDep } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(ctx, ['db', 'normalizeSymbol', 'stockColors', 'ensureGroup', 'groupIdFromName', 'invalidatePrices', 'invalidateLedger', 'getToday'], 'instrument-service');
+  const { db, normalizeSymbol, stockColors, ensureGroup, groupIdFromName, invalidatePrices, invalidateLedger, getToday } = ctx;
+
 function getInstrument(symbol) {
   return db.prepare('SELECT * FROM instruments WHERE symbol = ?').get(normalizeSymbol(symbol));
 }
@@ -261,7 +265,7 @@ function instrumentDependencyCounts(symbol) {
   const transactions = db.prepare('SELECT COUNT(*) AS count FROM transactions WHERE symbol = ?').get(normalized).count;
   const autoPlans = db.prepare('SELECT COUNT(*) AS count FROM auto_plans WHERE symbol = ?').get(normalized).count;
   const identifiers = db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(normalized).count;
-  const currentShares = getPositionShares(normalized);
+  const currentShares = getCtxDep(ctx, 'getPositionShares', 'instrument-service')(normalized);
   return { transactions, autoPlans, identifiers, currentShares };
 }
 
@@ -465,26 +469,25 @@ function ensureInstrument(symbol, quote = null) {
   return getInstrument(normalized);
 }
 
-    Object.assign(ctx, {
-      getInstrument,
-      getInstrumentByInput,
-      listInstruments,
-      listInstrumentGroups,
-      listInstrumentIdentifiers,
-      upsertInstrumentIdentifier,
-      deleteInstrumentIdentifier,
-      resolveInstrumentFromIdentifiers,
-      updateInstrument,
-      deleteInstrument,
-      deleteInstruments,
-      previewInstrumentDelete,
-      createInstrument,
-      ensureGeneralGroup,
-      createInstrumentGroup,
-      updateInstrumentGroup,
-      deleteInstrumentGroup,
-      deleteInstrumentGroups,
-      ensureInstrument,
-    });
-  }
+  Object.assign(ctx, {
+    getInstrument,
+    getInstrumentByInput,
+    listInstruments,
+    listInstrumentGroups,
+    listInstrumentIdentifiers,
+    upsertInstrumentIdentifier,
+    deleteInstrumentIdentifier,
+    resolveInstrumentFromIdentifiers,
+    updateInstrument,
+    deleteInstrument,
+    deleteInstruments,
+    previewInstrumentDelete,
+    createInstrument,
+    ensureGeneralGroup,
+    createInstrumentGroup,
+    updateInstrumentGroup,
+    deleteInstrumentGroup,
+    deleteInstrumentGroups,
+    ensureInstrument,
+  });
 };

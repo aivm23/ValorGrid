@@ -1,5 +1,34 @@
+const { assertCtxDeps } = require('./ctx-utils');
+
 module.exports = function attach(ctx) {
-  with (ctx) {
+  assertCtxDeps(
+    ctx,
+    [
+      'db',
+      'historyRanges',
+      'getToday',
+      'addYears',
+      'listInstruments',
+      'dateUtc',
+      'formatDateUtc',
+      'historyBuildKey',
+      'getTransactions',
+    ],
+    'history-core',
+  );
+
+  const {
+    db,
+    historyRanges,
+    getToday,
+    addYears,
+    listInstruments,
+    dateUtc,
+    formatDateUtc,
+    historyBuildKey,
+    getTransactions,
+  } = ctx;
+
 function firstTransactionDate() {
   return db.prepare('SELECT MIN(date) AS date FROM transactions').get().date;
 }
@@ -221,6 +250,6 @@ function rebuildPortfolioEvents() {
     throw error;
   }
 }
-    Object.assign(ctx, { firstTransactionDate, resolveHistoryWindow, getHistoryInstruments, getTransactionsUntil, getHistoryEvents, weekKey, reduceDatesForGranularity, pointDatesFromPriceRows, getHistoryBuild, getOldestHistoryInvalidation, historyBuildIsFresh, markHistoryBuild, replaceMarketPrices, replaceFxRates, rebuildPortfolioEvents });
-  }
+
+  Object.assign(ctx, { firstTransactionDate, resolveHistoryWindow, getHistoryInstruments, getTransactionsUntil, getHistoryEvents, weekKey, reduceDatesForGranularity, pointDatesFromPriceRows, getHistoryBuild, getOldestHistoryInvalidation, historyBuildIsFresh, markHistoryBuild, replaceMarketPrices, replaceFxRates, rebuildPortfolioEvents });
 };
