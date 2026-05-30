@@ -22,8 +22,8 @@ Bootstrap mínimo (9 líneas): delega en `src/app.js` para toda la lógica. Solo
 Orquestador del backend:
 
 - crea el objeto `ctx` compartido,
-- carga cada módulo `src/*.js` como `require(modulePath)(ctx)`,
-- cada módulo usa `with (ctx) { ... }` para leer y escribir estado compartido,
+- carga un array explícito de módulos en orden con `require(modulePath)(ctx)`,
+- cada módulo declara dependencias necesarias de `ctx` de forma explícita,
 - cada módulo exporta funciones vía `Object.assign(ctx, { ... })`,
 - llama a `ctx.initDatabase()` para ejecutar schema y migraciones idempotentes.
 
@@ -36,7 +36,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `db`: apertura SQLite, PRAGMAs, helpers y transacciones.
 - `backups`: creación, listado y descarga de backups SQLite.
 
-**Cargados en bucle `forEach` (orden secuencial):**
+**Cargados en bucle `for...of` (orden secuencial):**
 1. `schema`: creación y evolución idempotente de tablas.
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `meta-state`: gestión de claves de versión interna (`app_meta`).
@@ -67,6 +67,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Archivo adicional:**
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
+- `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 
@@ -74,11 +75,15 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 ### `index.html`
 
-Punto de entrada del frontend. Carga los módulos de `client/` como `<script type="module">`.
+Punto de entrada del frontend. Carga `app.js` como `<script type="module">`.
 
-### `client/attach.js`
+### `app.js`
 
-Mecanismo de inyección de dependencias del frontend. Usa `new Function` con `with (ctx)` para cargar módulos ES y exponer sus funciones en el objeto `ctx` global, replicando el patrón del backend.
+Orquestador del frontend:
+
+- crea `ctx` con primitivas del navegador y helpers API,
+- registra módulos `client/*.js` en orden fijo con `attach(ctx)`,
+- inicializa tema, privacidad y primer render del dashboard/histórico.
 
 ### `client/`
 
@@ -102,10 +107,11 @@ Módulos principales:
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
-- `attach.js`: mecanismo de inyección de dependencias.
 - `forms.js`: helpers de formularios.
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
+
+Los módulos de frontend ya no usan loaders dinámicos con `new Function`; cada uno exporta `attach(ctx)` y registra su API con `Object.assign(ctx, { ... })`.
 
 ## Histórico
 

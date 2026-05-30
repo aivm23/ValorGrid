@@ -1,6 +1,6 @@
 ---
 name: valorgrid-ctx-pattern
-description: Keywords src/app.js, with (ctx), Object.assign(ctx), module load order. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
+description: Keywords src/app.js, explicit ctx deps, Object.assign(ctx), module load order. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
 ---
 
 # ValorGrid ctx Pattern
@@ -31,7 +31,7 @@ Never trust docs first. Confirm with code in those files.
 
 1. `src/app.js` creates `ctx` with shared primitives (`db`, config, caches, constants, helpers).
 2. Modules are loaded in strict sequence.
-3. Each backend module receives `ctx` and usually executes under `with (ctx) { ... }`.
+3. Each backend module receives `ctx` and declares required dependencies explicitly at the top.
 4. Each module exports behavior by mutating `ctx`:
 
 ```js
@@ -50,6 +50,7 @@ This means load order is part of runtime behavior.
 - `portfolio-service` must not call Yahoo directly.
 - New backend files should stay under 500 lines.
 - New frontend files should stay under 350 lines.
+- `with (ctx)` is prohibited in backend and frontend modules.
 
 Architecture tests enforce these constraints.
 
@@ -83,15 +84,19 @@ If module B needs function from module A, A must load first.
 ## Backend module template
 
 ```js
-module.exports = function attach(ctx) {
-  with (ctx) {
-    function doSomething(input) {
-      // use db, helpers, constants from ctx
-      return input;
-    }
+const { assertCtxDeps } = require('./ctx-utils');
 
-    Object.assign(ctx, { doSomething });
+module.exports = function attach(ctx) {
+  assertCtxDeps(ctx, ['db'], 'my-module');
+
+  const { db } = ctx;
+
+  function doSomething(input) {
+    // use db, helpers, constants from ctx
+    return input;
   }
+
+  Object.assign(ctx, { doSomething });
 };
 ```
 
@@ -150,15 +155,17 @@ Checklist:
 - Confirm provider module appears earlier in `src/app.js`
 - Confirm consumer module references exact name
 
-### 2) `ReferenceError` inside module using `with (ctx)`
+### 2) `ctx.someFn is undefined` after removing `with (ctx)`
 
 Likely causes:
-- Referencing symbol not in `ctx`
+- Dependency exists but was not destructured
+- Dependency is attached later in load order and was captured too early
 - Helper exists but exported under different name
 
 Fix:
-- Add symbol to `ctx` in `src/app.js` or in earlier module export
-- Or call through correct existing helper
+- Destructure only stable dependencies available at attach time
+- For late dependencies, resolve at call time (`ctx.someFn(...)`)
+- Add symbol to `ctx` in earlier module export if ownership is correct
 
 ### 3) Circular behavior smell
 

@@ -21,9 +21,9 @@
 ## Architecture
 
 - **Node.js ≥ 24**, CommonJS, vanilla JS frontend, SQLite via `node:sqlite`
-- **Shared ctx pattern**: `src/app.js` creates a `ctx` object, loads every `src/*.js` module as `require(modulePath)(ctx)`, and each module uses `with (ctx) { ... }` to read/write shared state. New modules must follow this pattern and export via `Object.assign(ctx, { ... })`.
+- **Shared ctx pattern**: `src/app.js` creates a `ctx` object and loads backend modules in a strict sequence with `require(modulePath)(ctx)`. Modules must declare required `ctx` dependencies explicitly, avoid `with (ctx)`, and export APIs via `Object.assign(ctx, { ... })`.
 - **SQLite isolation**: all `node:sqlite` usage goes through `src/db.js`. Never import `node:sqlite` directly elsewhere.
-- **Frontend**: vanilla JS modules in `client/`, loaded via `<script>` tags in `index.html`. No bundler.
+- **Frontend**: vanilla JS modules in `client/`, orchestrated by root `app.js` loaded from `index.html`. No bundler.
 - **History materialization**: portfolio history is pre-computed and cached, not calculated on every request. Ledger changes trigger invalidation from the affected date forward.
 
 ## Testing
