@@ -75,6 +75,7 @@ schema
 schema-seed
 meta-state
 utils
+instrument-repository
 instrument-service
 ticker-suggestions
 market-data-repository

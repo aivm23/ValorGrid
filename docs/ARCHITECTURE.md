@@ -68,6 +68,12 @@ Reglas de transición:
 
 ### `src/`
 
+Archivos base fuera del bucle de módulos:
+
+- `config.js`: host, puerto, rutas, versión y DB activa.
+- `db.js`: apertura SQLite, PRAGMAs, helpers y transacciones.
+- `backups.js`: creación, listado y descarga de backups SQLite.
+
 La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Cargados vía `require()` directo (antes del bucle):**
@@ -82,19 +88,20 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `meta-state`: gestión de claves de versión interna (`app_meta`).
 4. `utils`: helpers compartidos (formato, validación, fechas).
-5. `instrument-service`: CRUD de instrumentos, grupos e identificadores.
-6. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-7. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
-8. `market-data`: precios, Yahoo Finance, caché y FX.
-9. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-10. `import-service`: orquestación de importaciones (preview, commit, rollback).
-11. `onboarding-service`: wizard de configuración inicial.
-12. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-13. `history-core`: motor de materialización de histórico.
-14. `history-service`: API de histórico, invalidaciones y reconstrucción.
-15. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-16. `routes`: enrutado HTTP y normalización de respuestas.
-17. `http`: servidor HTTP estático y listener.
+5. `instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+6. `instrument-service`: reglas de negocio y flujo de instrumentos.
+7. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+8. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
+9. `market-data`: precios, Yahoo Finance, caché y FX.
+10. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
+11. `import-service`: orquestación de importaciones (preview, commit, rollback).
+12. `onboarding-service`: wizard de configuración inicial.
+13. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+14. `history-core`: motor de materialización de histórico.
+15. `history-service`: API de histórico, invalidaciones y reconstrucción.
+16. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+17. `routes`: enrutado HTTP y normalización de respuestas.
+18. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -112,6 +119,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
+- `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
@@ -132,11 +140,13 @@ Cada fase se valida con pruebas enfocadas + `npm run lint` + `npm run format:che
 
 ### `index.html`
 
-Punto de entrada del frontend. Carga `app.js` como `<script type="module">`.
+Punto de entrada del frontend. Carga `./app.js` (archivo en la raíz del proyecto) como `<script type="module">`.
 
 ### `app.js`
 
 Orquestador del frontend:
+
+- vive en la raíz del proyecto (no en `client/`),
 
 - crea `ctx` con primitivas del navegador y helpers API,
 - registra módulos `client/*.js` en orden fijo con `attach(ctx)`,

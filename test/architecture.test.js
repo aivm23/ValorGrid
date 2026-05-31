@@ -39,6 +39,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   assert.equal(/\.prepare\(|db\./.test(read(path.join('src', 'routes.js'))), false, 'routes must not run SQL directly');
   assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('src', 'market-data.js'))), false, 'market-data must not own ledger logic');
   assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('src', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
+  assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 
@@ -55,6 +56,13 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.match(appSource, /const ctx = \{[\s\S]*\brepositories,/, 'ctx object must expose repositories');
   assert.match(appSource, /const ctx = \{[\s\S]*\bservices,/, 'ctx object must expose services');
   assert.ok(appSource.includes('bindGroupedCtxNamespaces(ctx);'), 'grouped ctx namespaces must be hydrated after module load');
+  const instrumentRepositoryIndex = appSource.indexOf("'./instrument-repository'");
+  const instrumentServiceIndex = appSource.indexOf("'./instrument-service'");
+  assert.ok(instrumentRepositoryIndex >= 0, 'src/app.js must load instrument-repository module');
+  assert.ok(
+    instrumentServiceIndex > instrumentRepositoryIndex,
+    'src/app.js must load instrument-repository before instrument-service',
+  );
   const marketRepositoryIndex = appSource.indexOf("'./market-data-repository'");
   const marketServiceIndex = appSource.indexOf("'./market-data'");
   assert.ok(marketRepositoryIndex >= 0, 'src/app.js must load market-data-repository module');
