@@ -22,6 +22,7 @@ ValorGrid uses a shared `ctx` loaded in order. The current architecture is trans
 - Backend loader: `src/app.js`
 - Backend/frontend constraints: `test/architecture.test.js`
 - Agent policies: `AGENTS.md`
+- Route service resolver: `src/route-service-bindings.js`
 - Frontend orchestrator: `app.js`
 
 Never trust docs first. Confirm with source code in these files.
@@ -52,6 +53,7 @@ ctx.services
 
 - Move SQL ownership to repositories as they are introduced.
 - Keep routes thin and business logic in services.
+- Resolve route handlers from `ctx.services.*` first, with explicit legacy fallbacks while migrating.
 - Keep `ctx.http` as Node primitive for compatibility; HTTP APIs should live in `ctx.services.http`.
 
 ## Non-negotiable rules

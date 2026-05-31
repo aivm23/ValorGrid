@@ -123,6 +123,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
+- `route-service-bindings.js`: resolución de handlers HTTP desde `ctx.services.*` con fallback legacy.
 - `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 - `transaction-repository.js`: repository de transacciones, auto planes y skips.

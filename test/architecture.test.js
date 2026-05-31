@@ -75,6 +75,10 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     false,
     'history-service must not execute SQL directly',
   );
+  assert.ok(
+    read(path.join('src', 'routes.js')).includes('resolveRouteHandlers(ctx)'),
+    'routes must resolve handlers from grouped services',
+  );
   assert.equal(
     /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),
     false,
