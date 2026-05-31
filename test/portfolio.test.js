@@ -1685,17 +1685,27 @@ test('deleting an automatic transaction prevents same month auto recreation', as
 test('automatic plans respect startDate before creating monthly transactions', async () => {
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const scheduledDate = `${monthKey}-03`;
+  const dueDay = Math.min(28, Math.max(1, now.getDate()));
+  const scheduledDate = `${monthKey}-${String(dueDay).padStart(2, '0')}`;
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const futureStartDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(
+    tomorrow.getDate(),
+  ).padStart(2, '0')}`;
   const autoKey = `auto:NVO:${scheduledDate}`;
-  db.prepare('DELETE FROM transactions WHERE auto_key = ?').run(autoKey);
-  db.prepare('DELETE FROM auto_plan_skips WHERE auto_key = ?').run(autoKey);
+  const legacyAutoKey = `auto:${monthKey}:NVO`;
+  db.prepare('DELETE FROM transactions WHERE auto_key IN (?, ?)').run(autoKey, legacyAutoKey);
+  db.prepare('DELETE FROM auto_plan_skips WHERE auto_key IN (?, ?)').run(autoKey, legacyAutoKey);
+  seedTestInstrument({ symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock' });
   cachePrice('NOV.DE', scheduledDate, 40);
 
-  await jsonRequest('/api/auto-plans', {
+  const futurePlan = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: futureStartDate }],
+    }),
   });
+  assert.equal(futurePlan.response.status, 200);
 
   const futureStart = await jsonRequest('/api/portfolio/summary');
   assert.equal(futureStart.response.status, 200);
@@ -1707,11 +1717,14 @@ test('automatic plans respect startDate before creating monthly transactions', a
     body: JSON.stringify({ autoPlans: [] }),
   });
 
-  await jsonRequest('/api/auto-plans', {
+  const activePlan = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }] }),
+    body: JSON.stringify({
+      autoPlans: [{ symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }],
+    }),
   });
+  assert.equal(activePlan.response.status, 200);
 
   const activeStart = await jsonRequest('/api/portfolio/summary');
   assert.equal(activeStart.response.status, 200);

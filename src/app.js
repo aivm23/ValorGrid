@@ -363,6 +363,7 @@ const repositories = {
   imports: {},
   history: {},
   marketData: {},
+  onboarding: {},
 };
 
 const services = {
@@ -422,8 +423,10 @@ const modules = [
   './ticker-suggestions',
   './market-data-repository',
   './market-data',
+  './transaction-repository',
   './transaction-service',
   './import-service',
+  './onboarding-repository',
   './onboarding-service',
   './portfolio-service',
   './history-core',

@@ -59,6 +59,8 @@ ctx.services
 - `node:sqlite` is allowed only in `src/db.js`.
 - `src/routes.js` must not execute SQL directly.
 - `market-data` must not own ledger logic.
+- `transaction-service` must not execute SQL directly.
+- `onboarding-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
@@ -80,8 +82,10 @@ instrument-service
 ticker-suggestions
 market-data-repository
 market-data
+transaction-repository
 transaction-service
 import-service
+onboarding-repository
 onboarding-service
 portfolio-service
 history-core

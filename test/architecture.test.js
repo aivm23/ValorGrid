@@ -40,6 +40,20 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('src', 'market-data.js'))), false, 'market-data must not own ledger logic');
   assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('src', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
   assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM transactions|INSERT INTO transactions|DELETE FROM transactions|auto_plan_skips|auto_plans/.test(
+      read(path.join('src', 'transaction-service.js')),
+    ),
+    false,
+    'transaction-service must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM instrument_groups|INSERT INTO auto_plans|DELETE FROM auto_plans/.test(
+      read(path.join('src', 'onboarding-service.js')),
+    ),
+    false,
+    'onboarding-service must not execute SQL directly',
+  );
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 
@@ -69,6 +83,20 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.ok(
     marketServiceIndex > marketRepositoryIndex,
     'src/app.js must load market-data-repository before market-data service',
+  );
+  const transactionRepositoryIndex = appSource.indexOf("'./transaction-repository'");
+  const transactionServiceIndex = appSource.indexOf("'./transaction-service'");
+  assert.ok(transactionRepositoryIndex >= 0, 'src/app.js must load transaction-repository module');
+  assert.ok(
+    transactionServiceIndex > transactionRepositoryIndex,
+    'src/app.js must load transaction-repository before transaction-service',
+  );
+  const onboardingRepositoryIndex = appSource.indexOf("'./onboarding-repository'");
+  const onboardingServiceIndex = appSource.indexOf("'./onboarding-service'");
+  assert.ok(onboardingRepositoryIndex >= 0, 'src/app.js must load onboarding-repository module');
+  assert.ok(
+    onboardingServiceIndex > onboardingRepositoryIndex,
+    'src/app.js must load onboarding-repository before onboarding-service',
   );
 });
 

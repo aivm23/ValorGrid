@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'normalizeSymbol',
       'groupIdFromName',
       'getInstrument',
@@ -25,7 +25,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     normalizeSymbol,
     groupIdFromName,
     getInstrument,
@@ -43,6 +43,12 @@ module.exports = function attach(ctx) {
     getAutoPlans,
   } = ctx;
 
+  const onboardingRepository = repositories.onboarding;
+  if (!onboardingRepository) {
+    throw new Error('onboarding-service requires ctx.repositories.onboarding');
+  }
+  const { instrumentGroupExistsById, insertAutoPlan, runInTransaction } = onboardingRepository;
+
 function normalizeWizardPayload(input = {}) {
   const group = input.group || {};
   const instrument = input.instrument || {};
@@ -53,7 +59,7 @@ function normalizeWizardPayload(input = {}) {
 
   if (!groupName) throw new Error('Group name is required');
   if (!symbol) throw new Error('Instrument symbol is required');
-  if (db.prepare('SELECT id FROM instrument_groups WHERE id = ?').get(groupIdFromName(groupName))) {
+  if (instrumentGroupExistsById(groupIdFromName(groupName))) {
     throw new Error('Group already exists');
   }
   if (getInstrument(symbol)) throw new Error('Instrument already exists');
@@ -180,8 +186,7 @@ async function commitOnboardingWizard(input = {}) {
     throw new Error('Confirm retroactive auto-plan executions before saving');
   }
 
-  db.exec('BEGIN');
-  try {
+  return runInTransaction(async () => {
     const group = createInstrumentGroup(payload.group);
     const instrument = createInstrument({ ...payload.instrument, groupId: group.id });
 
@@ -200,32 +205,11 @@ async function commitOnboardingWizard(input = {}) {
 
     if (plan) {
       const normalizedPlan = normalizeAutoPlans([{ ...plan, symbol: instrument.symbol }])[0];
-      db.prepare(
-        `INSERT INTO auto_plans
-          (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      ).run(
-        normalizedPlan.symbol,
-        normalizedPlan.amountEur,
-        normalizedPlan.frequency === 'monthly' ? normalizedPlan.day : 1,
-        normalizedPlan.enabled ? 1 : 0,
-        normalizedPlan.startDate || null,
-        normalizedPlan.frequency,
-        normalizedPlan.weekday || null,
-      );
+      insertAutoPlan(normalizedPlan);
     }
-
-    db.exec('COMMIT');
     invalidateLedger(plan?.startDate || transaction?.date || getToday(), 'onboarding-wizard');
     return { group, instrument, transaction, autoPlans: getAutoPlans() };
-  } catch (error) {
-    try {
-      db.exec('ROLLBACK');
-    } catch {
-      // Transaction may already have been closed by SQLite.
-    }
-    throw error;
-  }
+  });
 }
 
   Object.assign(ctx, { previewOnboardingWizard, commitOnboardingWizard });

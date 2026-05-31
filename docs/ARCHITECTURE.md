@@ -93,15 +93,17 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 7. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 8. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
 9. `market-data`: precios, Yahoo Finance, caché y FX.
-10. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-11. `import-service`: orquestación de importaciones (preview, commit, rollback).
-12. `onboarding-service`: wizard de configuración inicial.
-13. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-14. `history-core`: motor de materialización de histórico.
-15. `history-service`: API de histórico, invalidaciones y reconstrucción.
-16. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-17. `routes`: enrutado HTTP y normalización de respuestas.
-18. `http`: servidor HTTP estático y listener.
+10. `transaction-repository`: acceso SQL de transacciones, planes automáticos y skips.
+11. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
+12. `import-service`: orquestación de importaciones (preview, commit, rollback).
+13. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
+14. `onboarding-service`: wizard de configuración inicial.
+15. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+16. `history-core`: motor de materialización de histórico.
+17. `history-service`: API de histórico, invalidaciones y reconstrucción.
+18. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+19. `routes`: enrutado HTTP y normalización de respuestas.
+20. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -121,6 +123,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
 - `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
+- `transaction-repository.js`: repository de transacciones, auto planes y skips.
+- `onboarding-repository.js`: repository del wizard de onboarding (persistencia y transacción).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 
