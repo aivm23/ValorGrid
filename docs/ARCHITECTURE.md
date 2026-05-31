@@ -95,15 +95,16 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 9. `market-data`: precios, Yahoo Finance, caché y FX.
 10. `transaction-repository`: acceso SQL de transacciones, planes automáticos y skips.
 11. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-12. `import-service`: orquestación de importaciones (preview, commit, rollback).
-13. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
-14. `onboarding-service`: wizard de configuración inicial.
-15. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-16. `history-core`: motor de materialización de histórico.
-17. `history-service`: API de histórico, invalidaciones y reconstrucción.
-18. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-19. `routes`: enrutado HTTP y normalización de respuestas.
-20. `http`: servidor HTTP estático y listener.
+12. `import-repository`: acceso SQL de lotes importados, filas, rollback y consultas de matching.
+13. `import-service`: orquestación de importaciones (preview, commit, rollback).
+14. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
+15. `onboarding-service`: wizard de configuración inicial.
+16. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+17. `history-core`: motor de materialización de histórico.
+18. `history-service`: API de histórico, invalidaciones y reconstrucción.
+19. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+20. `routes`: enrutado HTTP y normalización de respuestas.
+21. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -124,6 +125,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 - `transaction-repository.js`: repository de transacciones, auto planes y skips.
+- `import-repository.js`: repository de importaciones (batches, rows, rollback y matching contra ledger).
 - `onboarding-repository.js`: repository del wizard de onboarding (persistencia y transacción).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.

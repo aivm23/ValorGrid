@@ -54,6 +54,18 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     false,
     'onboarding-service must not execute SQL directly',
   );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM import_batches|INSERT INTO import_rows|DELETE FROM transactions WHERE import_batch_id/.test(
+      read(path.join('src', 'import-service.js')),
+    ),
+    false,
+    'import-service must not execute SQL directly',
+  );
+  assert.equal(
+    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),
+    false,
+    'import-preview must not query SQLite directly',
+  );
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 
@@ -90,6 +102,13 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.ok(
     transactionServiceIndex > transactionRepositoryIndex,
     'src/app.js must load transaction-repository before transaction-service',
+  );
+  const importRepositoryIndex = appSource.indexOf("'./import-repository'");
+  const importServiceIndex = appSource.indexOf("'./import-service'");
+  assert.ok(importRepositoryIndex >= 0, 'src/app.js must load import-repository module');
+  assert.ok(
+    importServiceIndex > importRepositoryIndex,
+    'src/app.js must load import-repository before import-service',
   );
   const onboardingRepositoryIndex = appSource.indexOf("'./onboarding-repository'");
   const onboardingServiceIndex = appSource.indexOf("'./onboarding-service'");

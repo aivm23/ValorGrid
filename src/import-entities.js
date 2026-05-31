@@ -28,7 +28,11 @@ function normalizeNewInstruments(input = {}) {
 }
 
 function createImportEntityHelpers(ctx) {
-  const { db, getInstrument, createInstrumentGroup, createInstrument, upsertInstrumentIdentifier, groupIdFromName, ensureGeneralGroup } = ctx;
+  const { repositories, getInstrument, createInstrumentGroup, createInstrument, upsertInstrumentIdentifier, groupIdFromName, ensureGeneralGroup } = ctx;
+  const instrumentsRepository = repositories?.instruments;
+  if (!instrumentsRepository) {
+    throw new Error('import-entities requires ctx.repositories.instruments');
+  }
 
   function ensureImportEntities(input = {}) {
     const groups = normalizeNewGroups(input);
@@ -36,7 +40,7 @@ function createImportEntityHelpers(ctx) {
 
     for (const group of groups) {
       const groupId = group.id || groupIdFromName(group.name);
-      if (db.prepare('SELECT id FROM instrument_groups WHERE id = ?').get(groupId)) continue;
+      if (instrumentsRepository.groupExists(groupId)) continue;
       createInstrumentGroup({ ...group, id: groupId });
     }
 

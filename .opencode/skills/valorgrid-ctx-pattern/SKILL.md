@@ -61,6 +61,8 @@ ctx.services
 - `market-data` must not own ledger logic.
 - `transaction-service` must not execute SQL directly.
 - `onboarding-service` must not execute SQL directly.
+- `import-service` must not execute SQL directly.
+- `import-preview` must not query SQLite directly.
 - `portfolio-service` must not call Yahoo directly.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
@@ -84,6 +86,7 @@ market-data-repository
 market-data
 transaction-repository
 transaction-service
+import-repository
 import-service
 onboarding-repository
 onboarding-service

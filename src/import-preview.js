@@ -105,16 +105,13 @@ function almostEqual(a, b, relative = 0.02, absolute = 0.05) {
   return diff <= Math.max(absolute, Math.abs(b) * relative);
 }
 
-function matchExistingLedgerTransaction(ctx, normalized) {
+function matchExistingLedgerTransaction(importRepository, normalized) {
   if (!normalized.symbol || !normalized.date || !normalized.type) return null;
-  const candidates = ctx.db
-    .prepare(
-      `SELECT id, shares, price, value_eur AS valueEur, commission_eur AS commissionEur, date, type
-       FROM transactions
-       WHERE symbol = ? AND type = ? AND date = ?
-       ORDER BY created_at ASC`,
-    )
-    .all(normalized.symbol, normalized.type, normalized.date);
+  const candidates = importRepository.listLedgerTransactionsForExactMatch({
+    symbol: normalized.symbol,
+    type: normalized.type,
+    date: normalized.date,
+  });
   for (const item of candidates) {
     if (Math.abs(Number(item.shares || 0) - Number(normalized.shares || 0)) > 0.000001) continue;
     if (!almostEqual(Number(item.price || 0), Number(normalized.price || 0), 0.03, 0.1)) continue;
@@ -128,7 +125,7 @@ function matchExistingLedgerTransaction(ctx, normalized) {
   return null;
 }
 
-function validateFuturePositions(ctx, pendingRows) {
+function validateFuturePositions(ctx, importRepository, pendingRows) {
   const bySymbol = new Map();
   for (const row of pendingRows) {
     if (!bySymbol.has(row.symbol)) bySymbol.set(row.symbol, []);
@@ -139,10 +136,7 @@ function validateFuturePositions(ctx, pendingRows) {
   for (const [symbol, rows] of bySymbol) {
     const firstDate = rows.map((row) => row.date).sort()[0];
     let shares = ctx.getPositionShares(symbol, ctx.addDays(firstDate, -1));
-    const events = ctx.db
-      .prepare('SELECT date, type, shares FROM transactions WHERE symbol = ? AND date >= ? ORDER BY date ASC, created_at ASC')
-      .all(symbol, firstDate)
-      .map((row) => ({ date: row.date, type: row.type, shares: Number(row.shares || 0) }));
+    const events = importRepository.listLedgerEventsSince({ symbol, fromDate: firstDate });
     events.push(...rows.map((row) => ({ date: row.date, type: row.type, shares: row.shares })));
     events.sort((a, b) => a.date.localeCompare(b.date));
 
@@ -162,13 +156,13 @@ function validateFuturePositions(ctx, pendingRows) {
   return errors;
 }
 
-function applyTimelineValidation(ctx, rows) {
+function applyTimelineValidation(ctx, importRepository, rows) {
   const allTradeRows = rows
     .filter((row) => row.rowKind === 'trade' && row.normalized.symbol && row.normalized.date)
     .map((row) => row.normalized);
   if (!allTradeRows.length) return rows;
 
-  const errors = validateFuturePositions(ctx, allTradeRows);
+  const errors = validateFuturePositions(ctx, importRepository, allTradeRows);
   if (!errors.length) return rows;
 
   return rows.map((row) => {
@@ -248,6 +242,11 @@ function reconcileSnapshotRows(ctx, rows, fileSubtype) {
 }
 
 function previewImportFactory(ctx, input = {}) {
+  const importRepository = ctx.repositories?.imports;
+  if (!importRepository) {
+    throw new Error('import-preview requires ctx.repositories.imports');
+  }
+
   const adapter = resolveAdapter(input.source || 'csv');
   const mapping = buildInstrumentMapping(input);
   const rowDecisions = normalizeRowDecisions(input);
@@ -347,7 +346,7 @@ function previewImportFactory(ctx, input = {}) {
       };
     }
     if (rowKind === 'trade' && resolution.resolutionStatus !== 'needs_mapping' && normalized.symbol && instrument) {
-      ledgerMatch = matchExistingLedgerTransaction(ctx, normalized);
+      ledgerMatch = matchExistingLedgerTransaction(importRepository, normalized);
       if (ledgerMatch) rowKind = 'duplicate_ledger_match';
     }
     if (rowKind === 'trade' && resolution.resolutionStatus === 'needs_mapping' && mappingKey && !mappingsRequired.has(mappingKey)) {
@@ -370,7 +369,7 @@ function previewImportFactory(ctx, input = {}) {
       }
     }
 
-    const duplicateByHash = ctx.db.prepare('SELECT id FROM transactions WHERE raw_hash = ? AND origin = ?').get(normalized.rowHash, 'import');
+    const duplicateByHash = importRepository.findImportedTransactionByRawHash(normalized.rowHash);
     const repeatedInFile = seenHashes.has(normalized.rowHash);
     let status = 'valid';
     if (rowKind === 'corporate_action_ignored') status = 'ignored';
@@ -433,7 +432,7 @@ function previewImportFactory(ctx, input = {}) {
     });
     for (const key of sellOnlyUnresolvedKeys) mappingsRequired.delete(key);
   }
-  rows = applyTimelineValidation(ctx, rows);
+  rows = applyTimelineValidation(ctx, importRepository, rows);
   const summary = serializeSummary(summarizeImportRows(rows));
   const detectedInstrumentOutput = buildDetectedInstrumentOutput(detectedInstruments).map((item) => ({
     ...item,

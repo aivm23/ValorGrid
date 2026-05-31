@@ -425,6 +425,7 @@ const modules = [
   './market-data',
   './transaction-repository',
   './transaction-service',
+  './import-repository',
   './import-service',
   './onboarding-repository',
   './onboarding-service',
