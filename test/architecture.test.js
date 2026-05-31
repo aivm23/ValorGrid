@@ -41,6 +41,21 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 
+test('app composition root initializes grouped ctx namespaces', () => {
+  const appSource = read(path.join('src', 'app.js'));
+  assert.ok(appSource.includes('const config = {'), 'src/app.js must define ctx.config namespace');
+  assert.ok(appSource.includes('const cache = {'), 'src/app.js must define ctx.cache namespace');
+  assert.ok(appSource.includes('const logger = {'), 'src/app.js must define ctx.logger namespace');
+  assert.ok(appSource.includes('const repositories = {'), 'src/app.js must define ctx.repositories namespace');
+  assert.ok(appSource.includes('const services = {'), 'src/app.js must define ctx.services namespace');
+  assert.match(appSource, /const ctx = \{[\s\S]*\bconfig,/, 'ctx object must expose config');
+  assert.match(appSource, /const ctx = \{[\s\S]*\bcache,/, 'ctx object must expose cache');
+  assert.match(appSource, /const ctx = \{[\s\S]*\blogger,/, 'ctx object must expose logger');
+  assert.match(appSource, /const ctx = \{[\s\S]*\brepositories,/, 'ctx object must expose repositories');
+  assert.match(appSource, /const ctx = \{[\s\S]*\bservices,/, 'ctx object must expose services');
+  assert.ok(appSource.includes('bindGroupedCtxNamespaces(ctx);'), 'grouped ctx namespaces must be hydrated after module load');
+});
+
 test('server public exports remain stable after modularization', () => {
   process.env.PORTFOLIO_DB_PATH ||= path.join(fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'arch-db-')), 'portfolio.sqlite');
   process.env.PORT ||= '0';

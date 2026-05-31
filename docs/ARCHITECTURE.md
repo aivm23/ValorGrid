@@ -38,9 +38,11 @@ Bootstrap mínimo (9 líneas): delega en `src/app.js` para toda la lógica. Solo
 Orquestador del backend:
 
 - crea el objeto `ctx` compartido,
+- inicializa namespaces agrupados (`ctx.config`, `ctx.cache`, `ctx.logger`, `ctx.repositories`, `ctx.services`),
 - carga un array explícito de módulos en orden con `require(modulePath)(ctx)`,
 - cada módulo declara dependencias necesarias de `ctx` de forma explícita,
 - cada módulo exporta funciones vía `Object.assign(ctx, { ... })`,
+- hidrata aliases agrupados desde APIs legacy al terminar la carga de módulos,
 - llama a `ctx.initDatabase()` para ejecutar schema y migraciones idempotentes.
 
 ### Namespaces objetivo de `ctx` (transición)
@@ -54,13 +56,13 @@ ctx.logger
 ctx.db
 ctx.repositories.<domain>
 ctx.services.<domain>
-ctx.http
 ```
 
 Reglas de transición:
 
 - Se permiten aliases legacy en `ctx` mientras se migra por fases.
 - Todo módulo nuevo/refactorizado debe preferir los namespaces agrupados.
+- `ctx.http` se conserva como primitiva Node por compatibilidad; APIs HTTP se agrupan en `ctx.services.http`.
 - No se reintroduce `with (ctx)` en backend ni frontend.
 - SQL nuevo debe vivir en repositories a medida que se introduzcan.
 

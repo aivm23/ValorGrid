@@ -6,6 +6,254 @@ const { createConfig } = require('./config');
 const { openDatabase } = require('./db');
 const { createBackup, listBackups, resolveBackupPath } = require('./backups');
 
+function pickCtxFunctions(ctx, names) {
+  return names.reduce((picked, name) => {
+    if (typeof ctx[name] === 'function') picked[name] = ctx[name];
+    return picked;
+  }, {});
+}
+
+function bindGroupedCtxNamespaces(ctx) {
+  Object.assign(
+    ctx.services.shared,
+    pickCtxFunctions(ctx, [
+      'sendJson',
+      'sendText',
+      'readJsonBody',
+      'normalizeSymbol',
+      'getToday',
+      'dateUtc',
+      'formatDateUtc',
+      'addDays',
+      'addYears',
+      'toUnixSeconds',
+      'toEur',
+      'transactionSign',
+      'getMemoryCached',
+      'setMemoryCached',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.meta,
+    pickCtxFunctions(ctx, [
+      'getMetaNumber',
+      'bumpMetaVersion',
+      'getDataVersions',
+      'recordHistoryInvalidation',
+      'invalidateLedger',
+      'invalidatePrices',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.instruments,
+    pickCtxFunctions(ctx, [
+      'getInstrument',
+      'getInstrumentByInput',
+      'listInstruments',
+      'listInstrumentGroups',
+      'listInstrumentIdentifiers',
+      'upsertInstrumentIdentifier',
+      'deleteInstrumentIdentifier',
+      'resolveInstrumentFromIdentifiers',
+      'updateInstrument',
+      'deleteInstrument',
+      'deleteInstruments',
+      'previewInstrumentDelete',
+      'createInstrument',
+      'ensureGeneralGroup',
+      'createInstrumentGroup',
+      'updateInstrumentGroup',
+      'deleteInstrumentGroup',
+      'deleteInstrumentGroups',
+      'ensureInstrument',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.suggestions,
+    pickCtxFunctions(ctx, ['suggestTickersForIdentity', 'searchTickerSuggestions']),
+  );
+
+  Object.assign(
+    ctx.services.marketData,
+    pickCtxFunctions(ctx, [
+      'fetchYahooChart',
+      'fetchLatestYahooPrice',
+      'firstDailyCloseAtOrAfter',
+      'fetchDatedYahooPrice',
+      'dailyCacheHasRange',
+      'getCachedDailyPrices',
+      'parseDailyPrices',
+      'getDailyPrices',
+      'getQuoteForSymbol',
+      'getQuoteForYahooSymbol',
+      'getUsdToEur',
+      'getFxToEur',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.transactions,
+    pickCtxFunctions(ctx, [
+      'getTransactions',
+      'getAutoPlans',
+      'buildLedgerAnalytics',
+      'buildPortfolioPerformance',
+      'replaceAutoPlans',
+      'autoPlanFrequency',
+      'normalizeAutoPlans',
+      'autoPlanMateriallyChanged',
+      'applyAutoPlanEditPolicy',
+      'getAutoPlanScheduledDates',
+      'autoKeyForPlan',
+      'autoPlanExists',
+      'previewAutoPlanExecutions',
+      'getPositionShares',
+      'getStockColorsUsed',
+      'createTransaction',
+      'previewTransaction',
+      'deleteTransaction',
+      'isAutoPlanSkipped',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.imports,
+    pickCtxFunctions(ctx, [
+      'previewImport',
+      'commitImport',
+      'listImportBatches',
+      'getImportBatch',
+      'getImportRows',
+      'rollbackImportBatch',
+      'listImportRollbackLog',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.onboarding,
+    pickCtxFunctions(ctx, ['previewOnboardingWizard', 'commitOnboardingWizard']),
+  );
+
+  Object.assign(
+    ctx.services.portfolio,
+    pickCtxFunctions(ctx, [
+      'getMonthEndDate',
+      'getScheduledDate',
+      'executeDueAutoPlans',
+      'getInstrumentValuation',
+      'buildSummary',
+      'dbInstrument',
+      'withPercentages',
+      'buildMonthly',
+      'getInstrumentValuationAt',
+      'buildOnboardingStatus',
+      'isEffectiveValuation',
+      'buildPortfolioPerformance',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.history,
+    pickCtxFunctions(ctx, [
+      'firstTransactionDate',
+      'resolveHistoryWindow',
+      'getHistoryInstruments',
+      'getTransactionsUntil',
+      'getHistoryEvents',
+      'weekKey',
+      'reduceDatesForGranularity',
+      'pointDatesFromPriceRows',
+      'getHistoryBuild',
+      'getOldestHistoryInvalidation',
+      'historyBuildIsFresh',
+      'markHistoryBuild',
+      'replaceMarketPrices',
+      'replaceFxRates',
+      'rebuildPortfolioEvents',
+      'replaceMaterializedHistory',
+      'rebuildDailyPortfolioHistory',
+      'ensureHistoryBuilt',
+      'queryHistorySeries',
+      'queryHistoryEvents',
+      'ensureRangeStartPoint',
+      'enrichSeriesWithContributed',
+      'buildPortfolioHistory',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.diagnostics,
+    pickCtxFunctions(ctx, [
+      'tableCount',
+      'buildPerformanceDiagnostics',
+      'getDatabaseStats',
+      'buildHealth',
+      'csvCell',
+      'buildTransactionsCsv',
+    ]),
+  );
+
+  Object.assign(
+    ctx.services.http,
+    pickCtxFunctions(ctx, ['monthLabel', 'resolveRequestPath', 'handleApi', 'server']),
+  );
+
+  Object.assign(
+    ctx.repositories.instruments,
+    pickCtxFunctions(ctx, [
+      'getInstrument',
+      'getInstrumentByInput',
+      'listInstruments',
+      'listInstrumentGroups',
+      'listInstrumentIdentifiers',
+      'resolveInstrumentFromIdentifiers',
+    ]),
+  );
+
+  Object.assign(
+    ctx.repositories.transactions,
+    pickCtxFunctions(ctx, ['getTransactions', 'getAutoPlans', 'getPositionShares', 'isAutoPlanSkipped']),
+  );
+
+  Object.assign(
+    ctx.repositories.imports,
+    pickCtxFunctions(ctx, ['listImportBatches', 'getImportBatch', 'getImportRows', 'listImportRollbackLog']),
+  );
+
+  Object.assign(
+    ctx.repositories.history,
+    pickCtxFunctions(ctx, [
+      'getHistoryBuild',
+      'getOldestHistoryInvalidation',
+      'queryHistorySeries',
+      'queryHistoryEvents',
+      'replaceMaterializedHistory',
+      'replaceMarketPrices',
+      'replaceFxRates',
+    ]),
+  );
+
+  Object.assign(
+    ctx.repositories.marketData,
+    pickCtxFunctions(ctx, [
+      'dailyCacheHasRange',
+      'getCachedDailyPrices',
+      'getDailyPrices',
+      'parseDailyPrices',
+      'getQuoteForSymbol',
+      'getQuoteForYahooSymbol',
+    ]),
+  );
+
+  Object.assign(
+    ctx.repositories.meta,
+    pickCtxFunctions(ctx, ['getMetaNumber', 'bumpMetaVersion', 'getDataVersions', 'recordHistoryInvalidation']),
+  );
+}
+
 const { appInfo, root, dbPath, host, port } = createConfig();
 const db = openDatabase(dbPath);
 const memoryCache = new Map();
@@ -49,11 +297,88 @@ const contentTypes = {
   '.json': 'application/json; charset=utf-8',
 };
 
+const config = {
+  appInfo,
+  root,
+  dbPath,
+  host,
+  port,
+  stockColors,
+  currentYear,
+  minimumDisplayValueEur,
+  metaKeys,
+  historyBuildKey,
+  historyRanges,
+  defaultInstruments,
+  defaultAutoPlans,
+  contentTypes,
+};
+
+const cache = {
+  memory: memoryCache,
+  ttlMs: memoryCacheTtlMs,
+};
+
+const logger = {
+  info: (...args) => console.log(...args),
+  warn: (...args) => console.warn(...args),
+  error: (...args) => console.error(...args),
+};
+
+const repositories = {
+  meta: {},
+  instruments: {},
+  transactions: {},
+  imports: {},
+  history: {},
+  marketData: {},
+};
+
+const services = {
+  shared: {},
+  meta: {},
+  instruments: {},
+  suggestions: {},
+  marketData: {},
+  transactions: {},
+  imports: {},
+  onboarding: {},
+  portfolio: {},
+  history: {},
+  diagnostics: {},
+  http: {},
+};
+
 const ctx = {
-  http, fs, fsSync, path, createBackup, listBackups, resolveBackupPath,
-  appInfo, root, dbPath, host, port, db, memoryCache, memoryCacheTtlMs,
-  stockColors, currentYear, minimumDisplayValueEur,
-  metaKeys, historyBuildKey, historyRanges, defaultInstruments, defaultAutoPlans, contentTypes,
+  http,
+  fs,
+  fsSync,
+  path,
+  createBackup,
+  listBackups,
+  resolveBackupPath,
+  appInfo,
+  root,
+  dbPath,
+  host,
+  port,
+  db,
+  memoryCache,
+  memoryCacheTtlMs,
+  stockColors,
+  currentYear,
+  minimumDisplayValueEur,
+  metaKeys,
+  historyBuildKey,
+  historyRanges,
+  defaultInstruments,
+  defaultAutoPlans,
+  contentTypes,
+  config,
+  cache,
+  logger,
+  repositories,
+  services,
 };
 
 const modules = [
@@ -83,6 +408,8 @@ for (const modulePath of modules) {
     throw error;
   }
 }
+
+bindGroupedCtxNamespaces(ctx);
 
 ctx.initDatabase();
 

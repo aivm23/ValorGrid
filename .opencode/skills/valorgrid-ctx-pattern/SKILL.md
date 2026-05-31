@@ -34,7 +34,8 @@ Never trust docs first. Confirm with source code in these files.
 2. Backend modules load in strict sequence.
 3. Modules validate dependencies with `assertCtxDeps`/`getCtxDep`.
 4. Many APIs are still attached with `Object.assign(ctx, { ... })`.
-5. Load order is part of runtime behavior.
+5. `src/app.js` hydrates grouped aliases (`ctx.services.*`, `ctx.repositories.*`) from legacy APIs.
+6. Load order is part of runtime behavior.
 
 ### Target state
 
@@ -47,11 +48,11 @@ ctx.cache
 ctx.logger
 ctx.repositories
 ctx.services
-ctx.http
 ```
 
 - Move SQL ownership to repositories as they are introduced.
 - Keep routes thin and business logic in services.
+- Keep `ctx.http` as Node primitive for compatibility; HTTP APIs should live in `ctx.services.http`.
 
 ## Non-negotiable rules
 
