@@ -77,6 +77,7 @@ meta-state
 utils
 instrument-service
 ticker-suggestions
+market-data-repository
 market-data
 transaction-service
 import-service

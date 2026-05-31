@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'getMemoryCached',
       'setMemoryCached',
       'getToday',
@@ -19,7 +19,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     getMemoryCached,
     setMemoryCached,
     getToday,
@@ -30,6 +30,19 @@ module.exports = function attach(ctx) {
     getInstrumentByInput,
     normalizeSymbol,
   } = ctx;
+
+  const marketDataRepository = repositories.marketData;
+  if (!marketDataRepository) {
+    throw new Error('market-data requires ctx.repositories.marketData');
+  }
+
+  const {
+    getCachedPriceQuote,
+    upsertPriceQuote,
+    hasDailyPriceRange,
+    getDailyPricesInRange,
+    replaceDailyPricesRange,
+  } = marketDataRepository;
 
 async function fetchYahooChart(yahooSymbol, query) {
   const cacheKey = `${yahooSymbol}:${query}`;
@@ -117,13 +130,7 @@ function firstDailyCloseAtOrAfter(result, requestedDate) {
 }
 
 async function fetchDatedYahooPrice(yahooSymbol, requestedDate) {
-  const cached = db
-    .prepare(
-      `SELECT price, currency, market_date AS marketDate, source
-       FROM price_cache
-       WHERE yahoo_symbol = ? AND requested_date = ?`,
-    )
-    .get(yahooSymbol, requestedDate);
+  const cached = getCachedPriceQuote(yahooSymbol, requestedDate);
 
   if (cached) {
     return { ...cached, stale: false, cached: true };
@@ -144,37 +151,17 @@ async function fetchDatedYahooPrice(yahooSymbol, requestedDate) {
     throw new Error(`Quote not available for ${yahooSymbol} at ${requestedDate}`);
   }
 
-  db.prepare(
-    `INSERT OR REPLACE INTO price_cache
-      (yahoo_symbol, requested_date, market_date, price, currency, source)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(yahooSymbol, requestedDate, quote.marketDate, quote.price, quote.currency, quote.source);
+  upsertPriceQuote(yahooSymbol, requestedDate, quote);
 
   return quote;
 }
 
 function dailyCacheHasRange(yahooSymbol, fromDate, toDate) {
-  return Boolean(
-    db
-      .prepare(
-        `SELECT 1
-         FROM daily_price_cache_ranges
-         WHERE yahoo_symbol = ? AND from_date <= ? AND to_date >= ?
-         LIMIT 1`,
-      )
-      .get(yahooSymbol, fromDate, toDate),
-  );
+  return hasDailyPriceRange(yahooSymbol, fromDate, toDate);
 }
 
 function getCachedDailyPrices(yahooSymbol, fromDate, toDate) {
-  return db
-    .prepare(
-      `SELECT date, price, currency, source
-       FROM daily_price_cache
-       WHERE yahoo_symbol = ? AND date BETWEEN ? AND ?
-       ORDER BY date ASC`,
-    )
-    .all(yahooSymbol, fromDate, toDate);
+  return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
 }
 
 function parseDailyPrices(result) {
@@ -197,8 +184,8 @@ function parseDailyPrices(result) {
 }
 
 async function getDailyPrices(yahooSymbol, fromDate, toDate) {
-  if (dailyCacheHasRange(yahooSymbol, fromDate, toDate)) {
-    return getCachedDailyPrices(yahooSymbol, fromDate, toDate);
+  if (hasDailyPriceRange(yahooSymbol, fromDate, toDate)) {
+    return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
   }
 
   try {
@@ -211,37 +198,17 @@ async function getDailyPrices(yahooSymbol, fromDate, toDate) {
     });
     const result = await fetchYahooChart(yahooSymbol, query.toString());
     const prices = parseDailyPrices(result);
-    const insert = db.prepare(
-      `INSERT OR REPLACE INTO daily_price_cache
-        (yahoo_symbol, date, price, currency, source)
-       VALUES (?, ?, ?, ?, ?)`,
-    );
-
-    db.exec('BEGIN');
-    for (const price of prices) {
-      insert.run(yahooSymbol, price.date, price.price, price.currency, price.source);
-    }
-    db.prepare(
-      `INSERT OR REPLACE INTO daily_price_cache_ranges
-        (yahoo_symbol, from_date, to_date)
-       VALUES (?, ?, ?)`,
-    ).run(yahooSymbol, fromDate, toDate);
-    db.exec('COMMIT');
+    replaceDailyPricesRange(yahooSymbol, fromDate, toDate, prices);
     invalidatePrices(fromDate, 'daily-price-cache');
   } catch (error) {
-    try {
-      db.exec('ROLLBACK');
-    } catch {
-      // No transaction was opened if the network request failed before writing.
-    }
-    const cachedRows = getCachedDailyPrices(yahooSymbol, fromDate, toDate);
+    const cachedRows = getDailyPricesInRange(yahooSymbol, fromDate, toDate);
     if (cachedRows.length) {
       return cachedRows.map((row) => ({ ...row, source: `${row.source} cache parcial` }));
     }
     throw error;
   }
 
-  return getCachedDailyPrices(yahooSymbol, fromDate, toDate);
+  return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
 }
 
 async function getQuoteForSymbol(inputSymbol, requestedDate = null) {

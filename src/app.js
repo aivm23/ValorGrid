@@ -239,6 +239,11 @@ function bindGroupedCtxNamespaces(ctx) {
   Object.assign(
     ctx.repositories.marketData,
     pickCtxFunctions(ctx, [
+      'getCachedPriceQuote',
+      'upsertPriceQuote',
+      'hasDailyPriceRange',
+      'getDailyPricesInRange',
+      'replaceDailyPricesRange',
       'dailyCacheHasRange',
       'getCachedDailyPrices',
       'getDailyPrices',
@@ -388,6 +393,7 @@ const modules = [
   './utils',
   './instrument-service',
   './ticker-suggestions',
+  './market-data-repository',
   './market-data',
   './transaction-service',
   './import-service',

@@ -84,16 +84,17 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 4. `utils`: helpers compartidos (formato, validación, fechas).
 5. `instrument-service`: CRUD de instrumentos, grupos e identificadores.
 6. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-7. `market-data`: precios, Yahoo Finance, caché y FX.
-8. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-9. `import-service`: orquestación de importaciones (preview, commit, rollback).
-10. `onboarding-service`: wizard de configuración inicial.
-11. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-12. `history-core`: motor de materialización de histórico.
-13. `history-service`: API de histórico, invalidaciones y reconstrucción.
-14. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-15. `routes`: enrutado HTTP y normalización de respuestas.
-16. `http`: servidor HTTP estático y listener.
+7. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
+8. `market-data`: precios, Yahoo Finance, caché y FX.
+9. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
+10. `import-service`: orquestación de importaciones (preview, commit, rollback).
+11. `onboarding-service`: wizard de configuración inicial.
+12. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+13. `history-core`: motor de materialización de histórico.
+14. `history-service`: API de histórico, invalidaciones y reconstrucción.
+15. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+16. `routes`: enrutado HTTP y normalización de respuestas.
+17. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -111,6 +112,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
+- `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 
