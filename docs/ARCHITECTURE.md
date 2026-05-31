@@ -100,11 +100,12 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 14. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
 15. `onboarding-service`: wizard de configuración inicial.
 16. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-17. `history-core`: motor de materialización de histórico.
-18. `history-service`: API de histórico, invalidaciones y reconstrucción.
-19. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-20. `routes`: enrutado HTTP y normalización de respuestas.
-21. `http`: servidor HTTP estático y listener.
+17. `history-repository`: acceso SQL de builds, invalidaciones, precios materializados y eventos.
+18. `history-core`: motor de materialización de histórico.
+19. `history-service`: API de histórico, invalidaciones y reconstrucción.
+20. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+21. `routes`: enrutado HTTP y normalización de respuestas.
+22. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -127,6 +128,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `transaction-repository.js`: repository de transacciones, auto planes y skips.
 - `import-repository.js`: repository de importaciones (batches, rows, rollback y matching contra ledger).
 - `onboarding-repository.js`: repository del wizard de onboarding (persistencia y transacción).
+- `history-repository.js`: repository de histórico (materialización, builds, invalidaciones y eventos).
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 

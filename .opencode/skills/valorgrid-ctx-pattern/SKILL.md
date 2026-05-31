@@ -63,6 +63,8 @@ ctx.services
 - `onboarding-service` must not execute SQL directly.
 - `import-service` must not execute SQL directly.
 - `import-preview` must not query SQLite directly.
+- `history-core` must not execute SQL directly.
+- `history-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
@@ -91,6 +93,7 @@ import-service
 onboarding-repository
 onboarding-service
 portfolio-service
+history-repository
 history-core
 history-service
 diagnostics-service

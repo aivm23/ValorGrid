@@ -430,6 +430,7 @@ const modules = [
   './onboarding-repository',
   './onboarding-service',
   './portfolio-service',
+  './history-repository',
   './history-core',
   './history-service',
   './diagnostics-service',

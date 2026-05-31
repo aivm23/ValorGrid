@@ -62,6 +62,20 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'import-service must not execute SQL directly',
   );
   assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM history_builds|FROM transactions|INSERT INTO market_prices_daily|INSERT INTO fx_rates_daily/.test(
+      read(path.join('src', 'history-core.js')),
+    ),
+    false,
+    'history-core must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM portfolio_value_daily|FROM portfolio_value_weekly|FROM portfolio_events/.test(
+      read(path.join('src', 'history-service.js')),
+    ),
+    false,
+    'history-service must not execute SQL directly',
+  );
+  assert.equal(
     /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),
     false,
     'import-preview must not query SQLite directly',
@@ -116,6 +130,13 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.ok(
     onboardingServiceIndex > onboardingRepositoryIndex,
     'src/app.js must load onboarding-repository before onboarding-service',
+  );
+  const historyRepositoryIndex = appSource.indexOf("'./history-repository'");
+  const historyCoreIndex = appSource.indexOf("'./history-core'");
+  assert.ok(historyRepositoryIndex >= 0, 'src/app.js must load history-repository module');
+  assert.ok(
+    historyCoreIndex > historyRepositoryIndex,
+    'src/app.js must load history-repository before history-core',
   );
 });
 

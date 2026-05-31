@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'historyRanges',
       'getToday',
       'addYears',
@@ -18,7 +18,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     historyRanges,
     getToday,
     addYears,
@@ -29,8 +29,13 @@ module.exports = function attach(ctx) {
     getTransactions,
   } = ctx;
 
+  const historyRepository = repositories.history;
+  if (!historyRepository) {
+    throw new Error('history-core requires ctx.repositories.history');
+  }
+
 function firstTransactionDate() {
-  return db.prepare('SELECT MIN(date) AS date FROM transactions').get().date;
+  return historyRepository.getFirstTransactionDate();
 }
 
 function resolveHistoryWindow(inputRange) {
@@ -64,37 +69,16 @@ function getHistoryInstruments(toDate) {
     .filter((instrument) => instrument.type !== 'fx')
     .filter((instrument) => {
       if (Number(instrument.baseShares || 0) !== 0) return true;
-      return Boolean(
-        db
-          .prepare('SELECT 1 FROM transactions WHERE symbol = ? AND date <= ? LIMIT 1')
-          .get(instrument.symbol, toDate),
-      );
+      return historyRepository.hasTransactionForSymbolUntil(instrument.symbol, toDate);
     });
 }
 
 function getTransactionsUntil(toDate) {
-  return db
-    .prepare(
-      `SELECT type, symbol, date, shares
-       FROM transactions
-       WHERE date <= ?
-       ORDER BY date ASC, created_at ASC`,
-    )
-    .all(toDate);
+  return historyRepository.listTransactionsUntil(toDate);
 }
 
 function getHistoryEvents(fromDate, toDate) {
-  return db
-    .prepare(
-      `SELECT id, type, symbol, name, date, market_date AS marketDate, shares,
-              COALESCE(market_date, date) AS plotDate,
-              value_eur AS valueEur, price, currency, origin, color
-       FROM transactions
-       WHERE date BETWEEN ? AND ?
-       ORDER BY date ASC, created_at ASC`,
-    )
-    .all(fromDate, toDate)
-    .filter((event) => event.plotDate >= fromDate && event.plotDate <= toDate);
+  return historyRepository.listHistoryEventsFromTransactions(fromDate, toDate);
 }
 
 function weekKey(dateValue) {
@@ -131,17 +115,17 @@ function pointDatesFromPriceRows(priceRowsBySymbol, fromDate, toDate, granularit
 }
 
 function getHistoryBuild() {
-  return db.prepare('SELECT * FROM history_builds WHERE build_key = ?').get(historyBuildKey);
+  return historyRepository.getHistoryBuildByKey(historyBuildKey);
 }
 
 function getOldestHistoryInvalidation() {
-  return db.prepare('SELECT MIN(from_date) AS fromDate FROM history_invalidations').get().fromDate;
+  return historyRepository.getOldestHistoryInvalidationDate();
 }
 
 function historyBuildIsFresh(fromDate, toDate, versions) {
   const build = getHistoryBuild();
-  const invalidation = db.prepare('SELECT 1 FROM history_invalidations LIMIT 1').get();
-  const weeklyReady = db.prepare('SELECT 1 FROM portfolio_value_weekly LIMIT 1').get();
+  const invalidation = historyRepository.hasHistoryInvalidations();
+  const weeklyReady = historyRepository.hasWeeklyPortfolioValues();
   return Boolean(
     build &&
       !invalidation &&
@@ -155,100 +139,29 @@ function historyBuildIsFresh(fromDate, toDate, versions) {
 }
 
 function markHistoryBuild(status, fromDate, toDate, versions, details = {}) {
-  db.prepare(
-    `INSERT INTO history_builds
-      (build_key, from_date, to_date, ledger_version, price_version, status, error, duration_ms, points, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-     ON CONFLICT(build_key) DO UPDATE SET
-       from_date = excluded.from_date,
-       to_date = excluded.to_date,
-       ledger_version = excluded.ledger_version,
-       price_version = excluded.price_version,
-       status = excluded.status,
-       error = excluded.error,
-       duration_ms = excluded.duration_ms,
-       points = excluded.points,
-       updated_at = CURRENT_TIMESTAMP`,
-  ).run(
-    historyBuildKey,
+  historyRepository.upsertHistoryBuild({
+    buildKey: historyBuildKey,
     fromDate,
     toDate,
-    versions.ledgerVersion,
-    versions.priceVersion,
+    ledgerVersion: versions.ledgerVersion,
+    priceVersion: versions.priceVersion,
     status,
-    details.error || null,
-    Number(details.durationMs || 0),
-    Number(details.points || 0),
-  );
+    error: details.error || null,
+    durationMs: Number(details.durationMs || 0),
+    points: Number(details.points || 0),
+  });
 }
 
 function replaceMarketPrices(symbol, yahooSymbol, rows) {
-  const insert = db.prepare(
-    `INSERT OR REPLACE INTO market_prices_daily
-      (symbol, yahoo_symbol, date, price, currency, source)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  );
-  db.exec('BEGIN');
-  try {
-    for (const row of rows) {
-      insert.run(symbol, yahooSymbol, row.date, row.price, row.currency, row.source);
-    }
-    db.exec('COMMIT');
-  } catch (error) {
-    db.exec('ROLLBACK');
-    throw error;
-  }
+  historyRepository.replaceMarketPricesRows(symbol, yahooSymbol, rows);
 }
 
 function replaceFxRates(pair, rows) {
-  const insert = db.prepare(
-    `INSERT OR REPLACE INTO fx_rates_daily (pair, date, rate, source)
-     VALUES (?, ?, ?, ?)`,
-  );
-  db.exec('BEGIN');
-  try {
-    for (const row of rows) {
-      insert.run(pair, row.date, row.price, row.source);
-    }
-    db.exec('COMMIT');
-  } catch (error) {
-    db.exec('ROLLBACK');
-    throw error;
-  }
+  historyRepository.replaceFxRatesRows(pair, rows);
 }
 
 function rebuildPortfolioEvents() {
-  db.exec('DELETE FROM portfolio_events');
-  const insert = db.prepare(
-    `INSERT OR REPLACE INTO portfolio_events
-      (id, type, symbol, name, date, market_date, plot_date, shares, value_eur, price, currency, origin, color, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  );
-  db.exec('BEGIN');
-  try {
-    for (const event of getTransactions()) {
-      insert.run(
-        event.id,
-        event.type,
-        event.symbol,
-        event.name,
-        event.date,
-        event.marketDate || null,
-        event.marketDate || event.date,
-        event.shares,
-        event.valueEur,
-        event.price,
-        event.currency,
-        event.origin,
-        event.color,
-        event.createdAt,
-      );
-    }
-    db.exec('COMMIT');
-  } catch (error) {
-    db.exec('ROLLBACK');
-    throw error;
-  }
+  historyRepository.replacePortfolioEvents(getTransactions());
 }
 
   Object.assign(ctx, { firstTransactionDate, resolveHistoryWindow, getHistoryInstruments, getTransactionsUntil, getHistoryEvents, weekKey, reduceDatesForGranularity, pointDatesFromPriceRows, getHistoryBuild, getOldestHistoryInvalidation, historyBuildIsFresh, markHistoryBuild, replaceMarketPrices, replaceFxRates, rebuildPortfolioEvents });

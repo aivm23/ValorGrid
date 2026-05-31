@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'getToday',
       'getDataVersions',
       'weekKey',
@@ -32,7 +32,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     getToday,
     getDataVersions,
     weekKey,
@@ -57,22 +57,13 @@ module.exports = function attach(ctx) {
     firstTransactionDate,
   } = ctx;
 
+  const historyRepository = repositories.history;
+  if (!historyRepository) {
+    throw new Error('history-service requires ctx.repositories.history');
+  }
+
 function replaceMaterializedHistory(pointRows, positionRows, replaceFromDate) {
   const deleteFrom = replaceFromDate || pointRows[0]?.date || getToday();
-  const positionInsert = db.prepare(
-    `INSERT INTO portfolio_positions_daily
-      (date, symbol, shares, price_eur, value_eur, data_quality)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  );
-  const totalInsert = db.prepare(
-    `INSERT INTO portfolio_value_daily (date, value_eur, data_quality)
-     VALUES (?, ?, ?)`,
-  );
-  const weeklyInsert = db.prepare(
-    `INSERT OR REPLACE INTO portfolio_value_weekly
-      (week_start, date, value_eur, data_quality, ledger_version, price_version)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  );
   const versions = getDataVersions();
   const weeklyRows = new Map();
 
@@ -80,25 +71,14 @@ function replaceMaterializedHistory(pointRows, positionRows, replaceFromDate) {
     weeklyRows.set(weekKey(row.date), row);
   }
 
-  db.exec('BEGIN');
-  try {
-    db.prepare('DELETE FROM portfolio_positions_daily WHERE date >= ?').run(deleteFrom);
-    db.prepare('DELETE FROM portfolio_value_daily WHERE date >= ?').run(deleteFrom);
-    db.prepare('DELETE FROM portfolio_value_weekly WHERE week_start >= ?').run(weekKey(deleteFrom));
-    for (const row of positionRows) {
-      positionInsert.run(row.date, row.symbol, row.shares, row.priceEur, row.valueEur, row.dataQuality);
-    }
-    for (const row of pointRows) {
-      totalInsert.run(row.date, row.value, row.dataQuality);
-    }
-    for (const [weekStart, row] of weeklyRows) {
-      weeklyInsert.run(weekStart, row.date, row.value, row.dataQuality, versions.ledgerVersion, versions.priceVersion);
-    }
-    db.exec('COMMIT');
-  } catch (error) {
-    db.exec('ROLLBACK');
-    throw error;
-  }
+  historyRepository.replaceMaterializedHistoryData({
+    deleteFrom,
+    weekDeleteFrom: weekKey(deleteFrom),
+    positionRows,
+    pointRows,
+    weeklyRows: [...weeklyRows.entries()].map(([weekStart, row]) => ({ weekStart, ...row })),
+    versions,
+  });
 }
 
 async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, coverageFrom = fromDate) {
@@ -225,7 +205,7 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
 
     replaceMaterializedHistory(pointRows, positionRows, fromDate);
     rebuildPortfolioEvents();
-    db.prepare('DELETE FROM history_invalidations').run();
+    historyRepository.clearHistoryInvalidations();
 
     const versionsAfter = getDataVersions();
     markHistoryBuild('ready', coverageFrom, toDate, versionsAfter, {
@@ -267,47 +247,19 @@ async function ensureHistoryBuilt(fromDate, toDate) {
 
 function queryHistorySeries(window) {
   if (window.granularity === 'daily') {
-    return db
-      .prepare(
-        `SELECT date, value_eur AS value, data_quality AS dataQuality
-         FROM portfolio_value_daily
-         WHERE date BETWEEN ? AND ?
-         ORDER BY date ASC`,
-      )
-      .all(window.from, window.to);
+    return historyRepository.listDailyHistorySeries(window.from, window.to);
   }
 
-  return db
-    .prepare(
-      `SELECT date, value_eur AS value, data_quality AS dataQuality
-       FROM portfolio_value_weekly
-       WHERE date BETWEEN ? AND ?
-       ORDER BY date ASC`,
-    )
-    .all(window.from, window.to);
+  return historyRepository.listWeeklyHistorySeries(window.from, window.to);
 }
 
 function queryHistoryEvents(fromDate, toDate) {
-  return db
-    .prepare(
-      `SELECT id, type, symbol, name, date, market_date AS marketDate, plot_date AS plotDate,
-              shares, value_eur AS valueEur, price, currency, origin, color, created_at AS createdAt
-       FROM portfolio_events
-       WHERE plot_date BETWEEN ? AND ?
-       ORDER BY plot_date ASC, created_at ASC`,
-    )
-    .all(fromDate, toDate);
+  return historyRepository.listPortfolioEventsByRange(fromDate, toDate);
 }
 
 function ensureRangeStartPoint(series, fromDate) {
   if (!series.length || series[0].date === fromDate) return series;
-  const start = db
-    .prepare(
-      `SELECT date, value_eur AS value, data_quality AS dataQuality
-       FROM portfolio_value_daily
-       WHERE date = ?`,
-    )
-    .get(fromDate);
+  const start = historyRepository.getDailyValuePoint(fromDate);
   return start ? [start, ...series] : series;
 }
 
