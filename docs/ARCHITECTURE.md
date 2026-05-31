@@ -69,11 +69,13 @@ Reglas de transición:
 La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Cargados vía `require()` directo (antes del bucle):**
+
 - `config`: host, puerto, rutas, versión y DB activa.
 - `db`: apertura SQLite, PRAGMAs, helpers y transacciones.
 - `backups`: creación, listado y descarga de backups SQLite.
 
 **Cargados en bucle `for...of` (orden secuencial):**
+
 1. `schema`: creación y evolución idempotente de tablas.
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `meta-state`: gestión de claves de versión interna (`app_meta`).
@@ -92,6 +94,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 16. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
+
 - `import-parser`: parseo de CSV/XLSX a formato canónico.
 - `import-preview`: generación de preview y detección de instrumentos.
 - `import-preview-helpers`: utilidades para renderizado de preview.
@@ -103,6 +106,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `import-sale-rules`: reglas de validación de ventas.
 
 **Archivo adicional:**
+
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
 
@@ -118,7 +122,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 6. Migrar TypeScript por etapas empezando por módulos puros y capas de persistencia.
 7. Reevaluar ESM/build final solo cuando la migración TS esté estable.
 
-Cada fase se valida con pruebas enfocadas + `npm test` + `npm run verify:publication`.
+Cada fase se valida con pruebas enfocadas + `npm run lint` + `npm run format:check` + `npm test` + `npm run verify:publication`.
 
 ## Frontend
 

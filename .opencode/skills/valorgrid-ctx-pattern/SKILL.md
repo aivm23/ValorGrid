@@ -204,6 +204,8 @@ Fix by extracting pure helpers:
 ## Pre-commit checklist for ctx changes
 
 - Focused tests for touched domain pass
+- `npm run lint` passes
+- `npm run format:check` passes
 - `npm test` passes
 - `npm run verify:publication` passes
 - No direct `node:sqlite` outside `src/db.js`
@@ -214,6 +216,8 @@ Fix by extracting pure helpers:
 ## Quick commands
 
 ```bash
+npm run lint
+npm run format:check
 npm test
 node --test --test-name-pattern "architecture" test/architecture.test.js
 npm run verify:publication

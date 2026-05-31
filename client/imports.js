@@ -10,7 +10,6 @@ import {
   canAdvanceImportStep,
   ensureDefaultRowActions,
   applyImportGroupAction,
-  unresolvedInstrumentItems,
   unresolvedInstrumentDetails,
   invalidateImportAfter,
   applySuggestionToChoice,

@@ -129,7 +129,7 @@ function renderSuggestions(ctx, item) {
     </div>`;
 }
 
-function renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions) {
+function renderInstrumentCard(ctx, item, state, instrumentOptions) {
   const decision = state.importInstrumentChoices?.[item.key] || {};
   const existingSymbols = new Set(instrumentOptions.map((option) => option.symbol));
   const action = decision.action || (existingSymbols.has(item.symbol) ? 'map' : 'create');
@@ -200,7 +200,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)
   `;
 }
 
-function renderInstrumentsStep(ctx, preview, state, instrumentOptions, groupOptions) {
+function renderInstrumentsStep(ctx, preview, state, instrumentOptions) {
   const detected = preview.detectedInstruments || [];
   if (!detected.length) return '<div class="subtle">No hay instrumentos detectados.</div>';
   return `
@@ -208,11 +208,10 @@ function renderInstrumentsStep(ctx, preview, state, instrumentOptions, groupOpti
       <strong>Confirma los instrumentos una sola vez.</strong>
       <span>Las operaciones del siguiente paso usarán estas decisiones y ya no pedirán ticker por fila.</span>
     </div>
-    <div class="import-instrument-grid">${detected.map((item) => renderInstrumentCard(ctx, item, state, instrumentOptions, groupOptions)).join('')}</div>`;
+    <div class="import-instrument-grid">${detected.map((item) => renderInstrumentCard(ctx, item, state, instrumentOptions)).join('')}</div>`;
 }
 
 function renderOperationsStep(ctx, preview, state) {
-  const filter = state.importOperationFilter || 'all';
   const rows = preview.rows || [];
   if ((preview.instrumentMappingsRequired || []).length) {
     return `
@@ -324,12 +323,11 @@ export function renderImportPreviewContent(ctx, preview, workflowState, warnings
   const instrumentOptions = (ctx.state.instruments || [])
     .filter((item) => item.type !== 'fx')
     .map((item) => ({ symbol: item.symbol, label: `${item.symbol} - ${item.name}` }));
-  const groupOptions = (ctx.state.groups || []).map((item) => ({ id: item.id, name: item.name }));
   const canContinue = true;
 
   let body = '';
   if (activeStep === 'file') body = renderFileStep(ctx, preview, warnings);
-  else if (activeStep === 'instruments') body = renderInstrumentsStep(ctx, preview, workflowState, instrumentOptions, groupOptions);
+  else if (activeStep === 'instruments') body = renderInstrumentsStep(ctx, preview, workflowState, instrumentOptions);
   else if (activeStep === 'operations') body = renderOperationsStep(ctx, preview, workflowState);
   else body = renderConfirmStep(ctx, preview);
 

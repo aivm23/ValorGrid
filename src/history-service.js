@@ -369,9 +369,5 @@ async function buildPortfolioHistory(inputRange = 'all', inputGranularity = 'aut
   };
 }
 
-function tableCount(table) {
-  return db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
-}
-
   Object.assign(ctx, { replaceMaterializedHistory, rebuildDailyPortfolioHistory, ensureHistoryBuilt, queryHistorySeries, queryHistoryEvents, ensureRangeStartPoint, enrichSeriesWithContributed, buildPortfolioHistory });
 };

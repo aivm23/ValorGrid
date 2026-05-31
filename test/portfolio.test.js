@@ -105,31 +105,6 @@ function seedTestInstrument({ symbol, yahooSymbol, name = symbol, type = 'stock'
   ).run(symbol, yahooSymbol, name, type, currency, color);
 }
 
-function mockHistoricalEtfPrices() {
-  const prices = {
-    'SPPW.DE': {
-      '2026-01-03': 40,
-      '2026-02-03': 50,
-      '2026-03-03': 25,
-      '2026-04-03': 20,
-      '2026-05-03': 10,
-    },
-    'ICGA.DE': {
-      '2026-01-03': 5,
-      '2026-02-03': 4,
-      '2026-03-03': 10,
-      '2026-04-03': 8,
-      '2026-05-03': 6,
-    },
-  };
-
-  for (const [symbol, byDate] of Object.entries(prices)) {
-    for (const [date, price] of Object.entries(byDate)) {
-      mockDatedPrices.set(`${symbol}:${date}`, { price, currency: 'EUR' });
-    }
-  }
-}
-
 function dateRange(fromDate, toDate) {
   const dates = [];
   for (let date = new Date(`${fromDate}T00:00:00.000Z`); date <= new Date(`${toDate}T00:00:00.000Z`); date.setUTCDate(date.getUTCDate() + 1)) {

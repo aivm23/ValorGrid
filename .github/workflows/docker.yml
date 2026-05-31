@@ -20,9 +20,12 @@ jobs:
         with:
           node-version: '24'
 
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
       - run: node --check server.js
       - run: node --check app.js
-      - run: node --test
+      - run: npm test
       - name: Verify publication safety
         shell: pwsh
         run: ./scripts/verify-publication.ps1
