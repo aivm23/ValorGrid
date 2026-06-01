@@ -1,4 +1,4 @@
-const { assertCtxDeps, getCtxDep } = require('./ctx-utils');
+const { assertCtxDeps, getCtxDep } = require('../../ctx-utils');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(

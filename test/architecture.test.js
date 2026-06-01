@@ -42,7 +42,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'domains', 'instruments', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM transactions|INSERT INTO transactions|DELETE FROM transactions|auto_plan_skips|auto_plans/.test(
-      read(path.join('src', 'transaction-service.js')),
+      read(path.join('src', 'domains', 'transactions', 'transaction-service.js')),
     ),
     false,
     'transaction-service must not execute SQL directly',
@@ -110,7 +110,16 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     read(instrumentRoutePath).includes('sendError'),
     'route-instruments must use AppError-aware sendError helper',
   );
-  for (const file of ['route-transactions', 'route-imports', 'route-portfolio', 'route-admin']) {
+  const transactionRoutePath = path.join('src', 'domains', 'transactions', 'route-transactions.js');
+  assert.ok(
+    read(transactionRoutePath).includes('resolveRouteHandlers(ctx)'),
+    'route-transactions must resolve handlers from grouped services',
+  );
+  assert.ok(
+    read(transactionRoutePath).includes('sendError'),
+    'route-transactions must use AppError-aware sendError helper',
+  );
+  for (const file of ['route-imports', 'route-portfolio', 'route-admin']) {
     assert.ok(
       read(path.join('src', `${file}.js`)).includes('resolveRouteHandlers(ctx)'),
       `${file} must resolve handlers from grouped services`,
@@ -164,8 +173,8 @@ test('app composition root initializes grouped ctx namespaces', () => {
     marketServiceIndex > marketRepositoryIndex,
     'src/app.js must load market-data-repository before market-data service',
   );
-  const transactionRepositoryIndex = appSource.indexOf("'./transaction-repository'");
-  const transactionServiceIndex = appSource.indexOf("'./transaction-service'");
+  const transactionRepositoryIndex = appSource.indexOf("'./domains/transactions/transaction-repository'");
+  const transactionServiceIndex = appSource.indexOf("'./domains/transactions/transaction-service'");
   assert.ok(transactionRepositoryIndex >= 0, 'src/app.js must load transaction-repository module');
   assert.ok(
     transactionServiceIndex > transactionRepositoryIndex,
