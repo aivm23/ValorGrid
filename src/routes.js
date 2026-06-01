@@ -3,6 +3,7 @@ const { resolveRouteHandlers } = require('./route-service-bindings');
 const handleInstrumentRoutes = require('./route-instruments');
 const handleTransactionRoutes = require('./route-transactions');
 const handleImportRoutes = require('./route-imports');
+const handlePortfolioRoutes = require('./route-portfolio');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -27,7 +28,6 @@ module.exports = function attach(ctx) {
     path,
     root,
     appInfo,
-    currentYear,
     listBackups,
     createBackup,
     db,
@@ -63,21 +63,13 @@ function resolveRequestPath(urlPath) {
 async function handleApi(request, response, url) {
   const {
     sendJson,
-    readJsonBody,
     sendText,
     getQuoteForSymbol,
     buildHealth,
-    listInstruments,
-    listInstrumentGroups,
-    buildOnboardingStatus,
-    previewOnboardingWizard,
-    commitOnboardingWizard,
     getTransactions,
     getAutoPlans,
-    buildSummary,
-    buildPortfolioPerformance,
-    buildMonthly,
-    buildPortfolioHistory,
+    listInstruments,
+    listInstrumentGroups,
     buildPerformanceDiagnostics,
     buildTransactionsCsv,
   } = resolveRouteHandlers(ctx);
@@ -85,6 +77,7 @@ async function handleApi(request, response, url) {
   if (await handleInstrumentRoutes(ctx, request, response, url)) return true;
   if (await handleTransactionRoutes(ctx, request, response, url)) return true;
   if (await handleImportRoutes(ctx, request, response, url)) return true;
+  if (await handlePortfolioRoutes(ctx, request, response, url)) return true;
 
   if (url.pathname === '/api/version' && request.method === 'GET') {
     sendJson(response, 200, appInfo);
@@ -93,53 +86,6 @@ async function handleApi(request, response, url) {
 
   if (url.pathname === '/api/health' && request.method === 'GET') {
     sendJson(response, 200, buildHealth());
-    return true;
-  }
-
-  if (url.pathname === '/api/onboarding/status' && request.method === 'GET') {
-    sendJson(response, 200, buildOnboardingStatus());
-    return true;
-  }
-
-  if (url.pathname === '/api/onboarding/wizard/preview' && request.method === 'POST') {
-    try {
-      sendJson(response, 200, { preview: await previewOnboardingWizard(await readJsonBody(request)) });
-    } catch (error) {
-      sendJson(response, 400, { error: error.message });
-    }
-    return true;
-  }
-
-  if (url.pathname === '/api/onboarding/wizard/commit' && request.method === 'POST') {
-    try {
-      sendJson(response, 201, await commitOnboardingWizard(await readJsonBody(request)));
-    } catch (error) {
-      sendJson(response, 400, { error: error.message });
-    }
-    return true;
-  }
-
-  if (url.pathname === '/api/portfolio/summary' && request.method === 'GET') {
-    sendJson(response, 200, await buildSummary());
-    return true;
-  }
-
-  if (url.pathname === '/api/portfolio/performance' && request.method === 'GET') {
-    sendJson(response, 200, await buildPortfolioPerformance());
-    return true;
-  }
-
-  if (url.pathname === '/api/portfolio/monthly' && request.method === 'GET') {
-    sendJson(response, 200, await buildMonthly(Number(url.searchParams.get('year')) || currentYear));
-    return true;
-  }
-
-  if (url.pathname === '/api/portfolio/history' && request.method === 'GET') {
-    sendJson(
-      response,
-      200,
-      await buildPortfolioHistory(url.searchParams.get('range') || 'all', url.searchParams.get('granularity') || 'auto'),
-    );
     return true;
   }
 
