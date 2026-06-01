@@ -1,8 +1,8 @@
 # Despliegue Docker y CasaOS
 
-ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base SQLite y los backups viven fuera del contenedor en volumenes privados.
+ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base SQLite y los backups viven fuera del contenedor en volumenes persistentes.
 
-## Docker Compose local
+## Docker Compose local (build desde repositorio)
 
 Desde la raiz del repositorio:
 
@@ -10,13 +10,13 @@ Desde la raiz del repositorio:
 docker compose up -d --build
 ```
 
-Abre:
+Abrir:
 
 ```text
 http://localhost:5173
 ```
 
-El compose oficial usa:
+`docker-compose.yml` usa:
 
 - `HOST=0.0.0.0`
 - `PORT=5173`
@@ -24,42 +24,56 @@ El compose oficial usa:
 - `./data:/data`
 - `./backups:/app/.backups`
 
-`data/` y `backups/` son privados, estan ignorados por Git y deben incluirse en tu sistema de backup personal.
+`data/` y `backups/` son privados, estan ignorados por Git y deben incluirse en tu estrategia de backup.
 
-## CasaOS
+## CasaOS AppStore oficial (tag fijo)
 
-Cuando exista imagen publicada en GHCR, importa `compose.casaos.yml` como Custom App en CasaOS.
+El archivo de tienda es `compose.casaos.yml` y usa una imagen versionada:
 
-Pasos:
+- `ghcr.io/aivm23/valorgrid:v2.31.3`
 
-1. Abre CasaOS.
-2. Entra en App Store.
-3. Usa Custom Install.
-4. Pega o importa el contenido de `compose.casaos.yml`.
-5. Revisa el puerto `5173`.
-6. Instala y abre la Web UI.
+Esto evita problemas de actualizacion con `latest` en el AppStore de CasaOS.
 
-El compose CasaOS usa volúmenes nombrados de Docker (persistencia garantizada entre actualizaciones):
+Pasos de prueba previos al envio a AppStore:
+
+1. Abrir CasaOS.
+2. Entrar en App Store.
+3. Usar Custom Install.
+4. Importar `compose.casaos.yml`.
+5. Instalar y abrir la Web UI.
+6. Verificar `GET /api/health`.
+
+El compose CasaOS usa volumenes nombrados:
 
 - `valorgrid-data:/data`
 - `valorgrid-backups:/app/.backups`
+
+## Uso personal con latest (sin compose adicional)
+
+El workflow Docker publica tambien:
+
 - `ghcr.io/aivm23/valorgrid:latest`
 
-## Actualizar
+Para uso personal puedes consumir `latest` en tu propio compose, pero el compose oficial de AppStore permanece en tag fijo `vX.Y.Z`.
 
-Docker Compose local:
+## Upgrade y rollback en CasaOS
 
-```bash
-git pull
-docker compose up -d --build
-```
+Checklist de upgrade:
 
-CasaOS con GHCR:
+1. Ejecutar backup antes de actualizar:
+   - `npm run db:backup`
+   - `npm run db:doctor`
+2. Cambiar la imagen en el compose de la app CasaOS de `vX.Y.Z` a la nueva version `vA.B.C`.
+3. Actualizar el contenedor desde CasaOS.
+4. Comprobar salud en `/api/health`.
+5. Revisar que los datos siguen presentes.
 
-```bash
-docker compose pull
-docker compose up -d
-```
+Rollback:
+
+1. Detener la app en CasaOS.
+2. Volver el tag de imagen a la version anterior (`vX.Y.Z` estable).
+3. Arrancar de nuevo la app.
+4. Si hubo corrupcion o perdida de datos, restaurar backup manualmente (seccion siguiente).
 
 ## Backup y restore
 
@@ -70,15 +84,14 @@ npm run db:backup
 npm run db:doctor
 ```
 
-Los backups aparecen en `./backups` (montado como `/app/.backups`).
-
 Restore manual:
 
-1. Detén el contenedor.
-2. Sustituye `portfolio.sqlite` dentro de `./data` por el backup elegido.
-3. Levanta de nuevo el servicio.
-4. Ejecuta `npm run db:doctor` para verificar schema y metadatos.
+1. Detener la app/servicio.
+2. Seleccionar backup en `.backups/` (o en el volumen `valorgrid-backups` en CasaOS).
+3. Sustituir la DB activa `portfolio.sqlite` en `/data`.
+4. Arrancar de nuevo el servicio.
+5. Ejecutar `npm run db:doctor` y comprobar `/api/health`.
 
 ## Seguridad
 
-ValorGrid no incluye autenticacion todavia. Usalo solo en LAN privada o detras de VPN. No expongas el puerto directamente a Internet hasta que exista una capa de autenticacion.
+ValorGrid no incluye autenticacion todavia. Usar solo en LAN privada o detras de VPN. No exponer el puerto directamente a Internet hasta disponer de capa de autenticacion.

@@ -198,4 +198,61 @@ if (-not $backupScript.Contains('scripts\db-backup.js')) {
   throw 'scripts/backup-db.ps1 must route through scripts/db-backup.js'
 }
 
+$casaosComposePath = Join-Path $root 'compose.casaos.yml'
+if (-not (Test-Path $casaosComposePath)) {
+  throw 'compose.casaos.yml is required for CasaOS AppStore publication'
+}
+
+$casaosCompose = Get-Content $casaosComposePath -Raw
+if ([regex]::IsMatch($casaosCompose, '(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:latest\s*$')) {
+  throw 'compose.casaos.yml must not use :latest for CasaOS AppStore publication'
+}
+
+$expectedCasaosImage = "ghcr.io/aivm23/valorgrid:v$version"
+$expectedCasaosImagePattern = [regex]::Escape($expectedCasaosImage)
+if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*image:\s*$expectedCasaosImagePattern\s*$")) {
+  throw "compose.casaos.yml image must match package version tag: $expectedCasaosImage"
+}
+
+$requiredCasaosPatterns = @(
+  '(?m)^\s*version:\s*["'']?v[0-9]+\.[0-9]+\.[0-9]+["'']?\s*$',
+  '(?m)^\s*updateAt:\s*["'']?[0-9]{4}-[0-9]{2}-[0-9]{2}["'']?\s*$',
+  '(?m)^\s*repo:\s*https://github\.com/aivm23/ValorGrid\s*$',
+  '(?m)^\s*support:\s*https://github\.com/aivm23/ValorGrid/issues\s*$',
+  '(?m)^\s*website:\s*https://github\.com/aivm23/ValorGrid\s*$',
+  '(?m)^\s*main:\s*valorgrid\s*$',
+  '(?m)^\s*port_map:\s*["'']?5173["'']?\s*$',
+  '(?m)^\s*architectures:\s*$',
+  '(?m)^\s*-\s*amd64\s*$',
+  '(?m)^\s*-\s*arm64\s*$'
+)
+foreach ($pattern in $requiredCasaosPatterns) {
+  if (-not [regex]::IsMatch($casaosCompose, $pattern)) {
+    throw "compose.casaos.yml is missing required CasaOS metadata pattern: $pattern"
+  }
+}
+
+$expectedVersionPattern = [regex]::Escape("v$version")
+if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*version:\s*[""']?$expectedVersionPattern[""']?\s*$")) {
+  throw "compose.casaos.yml version must match package version: v$version"
+}
+
+$dockerWorkflowPath = Join-Path $root '.github\workflows\docker.yml'
+if (-not (Test-Path $dockerWorkflowPath)) {
+  throw '.github/workflows/docker.yml is required for GHCR publication'
+}
+
+$dockerWorkflow = Get-Content $dockerWorkflowPath -Raw
+if (-not $dockerWorkflow.Contains('type=semver,pattern=v{{version}}')) {
+  throw 'Docker workflow must publish semver tags with v{{version}}'
+}
+if (-not $dockerWorkflow.Contains('type=raw,value=latest')) {
+  throw 'Docker workflow must continue publishing latest tag'
+}
+foreach ($forbiddenTagPattern in @('type=semver,pattern={{version}}', 'type=semver,pattern={{major}}.{{minor}}')) {
+  if ($dockerWorkflow.Contains($forbiddenTagPattern)) {
+    throw "Docker workflow contains forbidden tag pattern: $forbiddenTagPattern"
+  }
+}
+
 Write-Output "Publication verification passed for version $version."
