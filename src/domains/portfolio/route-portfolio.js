@@ -1,4 +1,4 @@
-const { resolveRouteHandlers } = require('./route-service-bindings');
+const { resolveRouteHandlers } = require('../../route-service-bindings');
 
 function sendError(response, sendJson, error) {
   const statusCode = error.statusCode || 400;

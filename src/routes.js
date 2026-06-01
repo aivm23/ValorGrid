@@ -1,9 +1,9 @@
 const { assertCtxDeps } = require('./ctx-utils');
 const handleInstrumentRoutes = require('./domains/instruments/route-instruments');
-const handleTransactionRoutes = require('./route-transactions');
-const handleImportRoutes = require('./route-imports');
-const handlePortfolioRoutes = require('./route-portfolio');
-const handleAdminRoutes = require('./route-admin');
+const handleTransactionRoutes = require('./domains/transactions/route-transactions');
+const handleImportRoutes = require('./domains/imports/route-imports');
+const handlePortfolioRoutes = require('./domains/portfolio/route-portfolio');
+const handleAdminRoutes = require('./domains/admin/route-admin');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['path', 'root', 'services'], 'routes');

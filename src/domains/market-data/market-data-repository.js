@@ -1,5 +1,5 @@
-const { assertCtxDeps } = require('./ctx-utils');
-const { withTransaction } = require('./db');
+const { assertCtxDeps } = require('../../ctx-utils');
+const { withTransaction } = require('../../db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'market-data-repository');

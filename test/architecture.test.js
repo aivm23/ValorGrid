@@ -37,46 +37,46 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   }
 
   assert.equal(/\.prepare\(|db\./.test(read(path.join('src', 'routes.js'))), false, 'routes must not run SQL directly');
-  assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('src', 'market-data.js'))), false, 'market-data must not own ledger logic');
-  assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('src', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
+  assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('src', 'domains', 'market-data', 'market-data.js'))), false, 'market-data must not own ledger logic');
+  assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('src', 'domains', 'market-data', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
   assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'domains', 'instruments', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM transactions|INSERT INTO transactions|DELETE FROM transactions|auto_plan_skips|auto_plans/.test(
-      read(path.join('src', 'transaction-service.js')),
+      read(path.join('src', 'domains', 'transactions', 'transaction-service.js')),
     ),
     false,
     'transaction-service must not execute SQL directly',
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM instrument_groups|INSERT INTO auto_plans|DELETE FROM auto_plans/.test(
-      read(path.join('src', 'onboarding-service.js')),
+      read(path.join('src', 'domains', 'onboarding', 'onboarding-service.js')),
     ),
     false,
     'onboarding-service must not execute SQL directly',
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM import_batches|INSERT INTO import_rows|DELETE FROM transactions WHERE import_batch_id/.test(
-      read(path.join('src', 'import-service.js')),
+      read(path.join('src', 'domains', 'imports', 'import-service.js')),
     ),
     false,
     'import-service must not execute SQL directly',
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM history_builds|FROM transactions|INSERT INTO market_prices_daily|INSERT INTO fx_rates_daily/.test(
-      read(path.join('src', 'history-core.js')),
+      read(path.join('src', 'domains', 'history', 'history-core.js')),
     ),
     false,
     'history-core must not execute SQL directly',
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM portfolio_value_daily|FROM portfolio_value_weekly|FROM portfolio_events/.test(
-      read(path.join('src', 'history-service.js')),
+      read(path.join('src', 'domains', 'history', 'history-service.js')),
     ),
     false,
     'history-service must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|app_meta|history_invalidations/.test(read(path.join('src', 'meta-state.js'))),
+    /db\.prepare\(|db\.exec\(|app_meta|history_invalidations/.test(read(path.join('src', 'domains', 'meta', 'meta-state.js'))),
     false,
     'meta-state must not execute SQL directly',
   );
@@ -87,13 +87,13 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM instruments|FROM instrument_groups|FROM transactions|FROM auto_plans/.test(
-      read(path.join('src', 'portfolio-service.js')),
+      read(path.join('src', 'domains', 'portfolio', 'portfolio-service.js')),
     ),
     false,
     'portfolio-service must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|PRAGMA|FROM history_invalidations/.test(read(path.join('src', 'diagnostics-service.js'))),
+    /db\.prepare\(|db\.exec\(|PRAGMA|FROM history_invalidations/.test(read(path.join('src', 'domains', 'admin', 'diagnostics-service.js'))),
     false,
     'diagnostics-service must not execute SQL directly',
   );
@@ -101,23 +101,22 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     read(path.join('src', 'routes.js')).includes("require('./domains/instruments/route-instruments')"),
     'routes must delegate to domain route modules',
   );
-  const instrumentRoutePath = path.join('src', 'domains', 'instruments', 'route-instruments.js');
-  assert.ok(
-    read(instrumentRoutePath).includes('resolveRouteHandlers(ctx)'),
-    'route-instruments must resolve handlers from grouped services',
-  );
-  assert.ok(
-    read(instrumentRoutePath).includes('sendError'),
-    'route-instruments must use AppError-aware sendError helper',
-  );
-  for (const file of ['route-transactions', 'route-imports', 'route-portfolio', 'route-admin']) {
+  const routeFiles = [
+    { domain: 'instruments', name: 'route-instruments' },
+    { domain: 'transactions', name: 'route-transactions' },
+    { domain: 'imports', name: 'route-imports' },
+    { domain: 'portfolio', name: 'route-portfolio' },
+    { domain: 'admin', name: 'route-admin' },
+  ];
+  for (const { domain, name } of routeFiles) {
+    const routePath = path.join('src', 'domains', domain, `${name}.js`);
     assert.ok(
-      read(path.join('src', `${file}.js`)).includes('resolveRouteHandlers(ctx)'),
-      `${file} must resolve handlers from grouped services`,
+      read(routePath).includes('resolveRouteHandlers(ctx)'),
+      `${name} must resolve handlers from grouped services`,
     );
     assert.ok(
-      read(path.join('src', `${file}.js`)).includes('sendError'),
-      `${file} must use AppError-aware sendError helper`,
+      read(routePath).includes('sendError'),
+      `${name} must use AppError-aware sendError helper`,
     );
   }
   assert.equal(
@@ -126,15 +125,15 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'import-preview must not query SQLite directly',
   );
   assert.equal(
-    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('src', 'import-repository.js'))),
+    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('src', 'domains', 'imports', 'import-repository.js'))),
     false,
     'import-repository must use shared db transaction helpers, not manual begin/commit/rollback',
   );
   assert.ok(
-    read(path.join('src', 'import-repository.js')).includes('runInTransaction'),
+    read(path.join('src', 'domains', 'imports', 'import-repository.js')).includes('runInTransaction'),
     'import-repository must expose runInTransaction wrapper',
   );
-  assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
+  assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'domains', 'portfolio', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 
 test('app composition root initializes grouped ctx namespaces', () => {
@@ -157,36 +156,36 @@ test('app composition root initializes grouped ctx namespaces', () => {
     instrumentServiceIndex > instrumentRepositoryIndex,
     'src/app.js must load instrument-repository before instrument-service',
   );
-  const marketRepositoryIndex = appSource.indexOf("'./market-data-repository'");
-  const marketServiceIndex = appSource.indexOf("'./market-data'");
+  const marketRepositoryIndex = appSource.indexOf("'./domains/market-data/market-data-repository'");
+  const marketServiceIndex = appSource.indexOf("'./domains/market-data/market-data'");
   assert.ok(marketRepositoryIndex >= 0, 'src/app.js must load market-data-repository module');
   assert.ok(
     marketServiceIndex > marketRepositoryIndex,
     'src/app.js must load market-data-repository before market-data service',
   );
-  const transactionRepositoryIndex = appSource.indexOf("'./transaction-repository'");
-  const transactionServiceIndex = appSource.indexOf("'./transaction-service'");
+  const transactionRepositoryIndex = appSource.indexOf("'./domains/transactions/transaction-repository'");
+  const transactionServiceIndex = appSource.indexOf("'./domains/transactions/transaction-service'");
   assert.ok(transactionRepositoryIndex >= 0, 'src/app.js must load transaction-repository module');
   assert.ok(
     transactionServiceIndex > transactionRepositoryIndex,
     'src/app.js must load transaction-repository before transaction-service',
   );
-  const importRepositoryIndex = appSource.indexOf("'./import-repository'");
-  const importServiceIndex = appSource.indexOf("'./import-service'");
+  const importRepositoryIndex = appSource.indexOf("'./domains/imports/import-repository'");
+  const importServiceIndex = appSource.indexOf("'./domains/imports/import-service'");
   assert.ok(importRepositoryIndex >= 0, 'src/app.js must load import-repository module');
   assert.ok(
     importServiceIndex > importRepositoryIndex,
     'src/app.js must load import-repository before import-service',
   );
-  const onboardingRepositoryIndex = appSource.indexOf("'./onboarding-repository'");
-  const onboardingServiceIndex = appSource.indexOf("'./onboarding-service'");
+  const onboardingRepositoryIndex = appSource.indexOf("'./domains/onboarding/onboarding-repository'");
+  const onboardingServiceIndex = appSource.indexOf("'./domains/onboarding/onboarding-service'");
   assert.ok(onboardingRepositoryIndex >= 0, 'src/app.js must load onboarding-repository module');
   assert.ok(
     onboardingServiceIndex > onboardingRepositoryIndex,
     'src/app.js must load onboarding-repository before onboarding-service',
   );
-  const historyRepositoryIndex = appSource.indexOf("'./history-repository'");
-  const historyCoreIndex = appSource.indexOf("'./history-core'");
+  const historyRepositoryIndex = appSource.indexOf("'./domains/history/history-repository'");
+  const historyCoreIndex = appSource.indexOf("'./domains/history/history-core'");
   assert.ok(historyRepositoryIndex >= 0, 'src/app.js must load history-repository module');
   assert.ok(
     historyCoreIndex > historyRepositoryIndex,

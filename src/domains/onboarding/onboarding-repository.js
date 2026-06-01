@@ -1,6 +1,6 @@
-const { assertCtxDeps } = require('./ctx-utils');
+const { assertCtxDeps } = require('../../ctx-utils');
 /** @typedef {import('./types').AutoPlan} AutoPlan */
-const { withTransactionAsync } = require('./db');
+const { withTransactionAsync } = require('../../db');
 
 /**
  * @param {Record<string, unknown>} ctx
