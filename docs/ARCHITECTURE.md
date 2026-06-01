@@ -147,13 +147,18 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 ### Hoja de ruta activa (resumen)
 
-1. Alinear reglas de arquitectura en docs + skill + AGENTS.
-2. Introducir quality gates graduales (lint/format/typecheck) sin reescritura masiva.
-3. Consolidar `ctx` agrupado (`services`, `repositories`, `config`, `cache`, `logger`).
-4. Extraer SQL de servicios hacia repositories por dominio (instruments, transactions, imports, history, market).
-5. Mantener `routes` finas y estables a nivel HTTP durante toda la migración.
-6. Migrar TypeScript por etapas empezando por módulos puros y capas de persistencia.
-7. Reevaluar ESM/build final solo cuando la migración TS esté estable.
+La migración a monolito modular con `ctx` agrupado, repositories por dominio y TypeScript incremental está completada al nivel de la versión `2.30.27`. Hitos alcanzados:
+
+1. ✅ Reglas de arquitectura documentadas en docs + skill + AGENTS.
+2. ✅ Quality gates graduales (lint/format/typecheck) sin reescritura masiva.
+3. ✅ `ctx` agrupado (`config`, `cache`, `logger`, `services`, `repositories`).
+4. ✅ SQL extraído a repositories por dominio (instruments, transactions, imports, history, market, onboarding).
+5. ✅ `routes.js` reducido a delegador que despacha a `route-*.js` por dominio.
+6. ✅ TypeScript incremental activo (`tsconfig.json`, `types.ts`, JSDoc en helpers y repos).
+7. ✅ AppError + validadores de entrada con `sendError` en todas las rutas HTTP.
+8. ✅ Frontend documentado con `api-client.js` tipado y JSDoc en módulos clave.
+
+**Decisión ESM:** el backend se mantiene en CommonJS. El frontend ya usa ESM nativo del navegador. No se introduce `"type": "module"` ni compilación a `dist` en esta versión. La migración TS se apoya en JSDoc + `noEmit` sin cambiar el runtime. Si en el futuro se requiere compilación TS real o ESM en backend, se reevaluará como una fase independiente.
 
 Cada fase se valida con pruebas enfocadas + `npm run lint` + `npm run format:check` + `npm test` + `npm run verify:publication`.
 
