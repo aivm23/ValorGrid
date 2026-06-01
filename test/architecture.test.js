@@ -76,9 +76,15 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'history-service must not execute SQL directly',
   );
   assert.ok(
-    read(path.join('src', 'routes.js')).includes('resolveRouteHandlers(ctx)'),
-    'routes must resolve handlers from grouped services',
+    read(path.join('src', 'routes.js')).includes("require('./route-instruments')"),
+    'routes must delegate to domain route modules',
   );
+  for (const file of ['route-instruments', 'route-transactions', 'route-imports', 'route-portfolio', 'route-admin']) {
+    assert.ok(
+      read(path.join('src', `${file}.js`)).includes('resolveRouteHandlers(ctx)'),
+      `${file} must resolve handlers from grouped services`,
+    );
+  }
   assert.equal(
     /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),
     false,

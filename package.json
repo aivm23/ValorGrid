@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "2.30.14",
+  "version": "2.30.15",
   "private": true,
   "engines": {
     "node": ">=24"
