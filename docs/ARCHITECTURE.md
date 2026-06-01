@@ -178,6 +178,7 @@ Orquestador del frontend:
 Módulos principales:
 
 - `api.js`: fetch local, errores y timeouts.
+- `api-client.js`: wrapper HTTP tipado con JSDoc para cada endpoint de la API.
 - `state.js`: estado global de UI.
 - `dom.js`: referencias a nodos.
 - `charts.js`: donut e histórico SVG.

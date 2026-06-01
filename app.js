@@ -1,3 +1,8 @@
+/**
+ * ValorGrid --- orquestador del frontend.
+ * Carga todos los módulos de cliente en orden, inyecta ctx y arranca la UI.
+ */
+
 import { fetchJson, normalizeErrorMessage, sendJson } from './client/api.js';
 import { attach as attachState } from './client/state.js';
 import { attach as attachDom } from './client/dom.js';
