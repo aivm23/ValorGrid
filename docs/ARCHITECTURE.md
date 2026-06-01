@@ -32,9 +32,9 @@ Principios operativos de la migración:
 
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
 
-### Estructura física por dominio (en migración)
+### Estructura física por dominio (implementada)
 
-La migración activa agrupa módulos de `src/` plano hacia carpetas por bounded context:
+Módulos organizados en carpetas por bounded context y plataforma compartida:
 
 ```
 src/
@@ -97,13 +97,22 @@ Reglas de transición:
 - `backups.js` es la excepción técnica permitida para mantenimiento SQLite (`PRAGMA wal_checkpoint` antes de copiar backups).
 - Las transacciones SQLite deben usar los helpers de `src/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
-### `src/`
+### `src/` y `src/platform/`
 
-Archivos base fuera del bucle de módulos:
+Archivos base e infraestructura compartida:
 
 - `config.js`: host, puerto, rutas, versión y DB activa.
-- `db.js`: apertura SQLite, PRAGMAs, helpers y transacciones.
+- `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
 - `backups.js`: creación, listado y descarga de backups SQLite.
+- `types.ts`: interfaces de dominio TypeScript.
+- `ctx-utils.js`: `assertCtxDeps`, `getCtxDep`.
+- `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
+- `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
+- `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
+- `route-service-bindings.js`: resolución de handlers desde `ctx.services.*`.
+- `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
+
+**Dominios en `src/domains/`**:
 
 La lógica principal vive en módulos. Orden de carga en `app.js`:
 
@@ -117,30 +126,37 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 1. `schema`: creación y evolución idempotente de tablas.
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
-3. `meta-repository`: acceso SQL de `app_meta` e invalidaciones de histórico.
-4. `meta-state`: gestión de versiones de datos e invalidaciones desde repository.
+3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
+4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
 5. `utils`: helpers compartidos (formato, validación, fechas).
-6. `instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-7. `portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos para valoración.
+6. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+7. `portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
 8. `ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-9. `instrument-service`: reglas de negocio y flujo de instrumentos.
+9. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos.
 10. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-11. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
-12. `market-data`: precios, Yahoo Finance, caché y FX.
-13. `transaction-repository`: acceso SQL de transacciones, planes automáticos y skips.
-14. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-15. `import-repository`: acceso SQL de lotes importados, filas, rollback y consultas de matching.
-16. `import-service`: orquestación de importaciones (preview, commit, rollback).
-17. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
-18. `onboarding-service`: wizard de configuración inicial.
-19. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-20. `history-repository`: acceso SQL de builds, invalidaciones, precios materializados y eventos.
-21. `history-core`: motor de materialización de histórico.
-22. `history-service`: API de histórico, invalidaciones y reconstrucción.
+11. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
+12. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
+13. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+14. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
+15. `domains/imports/import-repository`: acceso SQL de lotes importados, filas, rollback y matching.
+16. `domains/imports/import-service`: orquestación de importaciones (preview, commit, rollback).
+17. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+18. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+19. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+20. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+21. `domains/history/history-core`: motor de materialización de histórico.
+22. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
 23. `diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-24. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+24. `domains/admin/diagnostics-service`: métricas de rendimiento y tamaños de caché.
 25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 26. `http`: servidor HTTP estático y listener.
+
+**Route modules (cargados por `routes.js`):**
+- `domains/instruments/route-instruments.js`
+- `domains/transactions/route-transactions.js`
+- `domains/imports/route-imports.js`
+- `domains/portfolio/route-portfolio.js`
+- `domains/admin/route-admin.js`
 
 **Sub-módulos de import-service (cargados internamente):**
 
