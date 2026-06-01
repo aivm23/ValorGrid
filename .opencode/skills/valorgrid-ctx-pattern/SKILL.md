@@ -107,6 +107,8 @@ Direct requires before the module loop include `config`, `db`, and `backups`.
 
 If module B depends on module A, A must load first.
 
+`routes.js` delegates internally to domain route modules (`route-instruments`, `route-transactions`, `route-imports`, `route-portfolio`, `route-admin`). Each route module resolves its own handlers from `ctx.services.*` via `resolveRouteHandlers`.
+
 ## Module templates
 
 ### Backend module (current-compatible)

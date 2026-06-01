@@ -104,7 +104,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 18. `history-core`: motor de materialización de histórico.
 19. `history-service`: API de histórico, invalidaciones y reconstrucción.
 20. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-21. `routes`: enrutado HTTP y normalización de respuestas.
+21. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 22. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
@@ -125,6 +125,10 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
 - `route-service-bindings.js`: resolución de handlers HTTP desde `ctx.services.*` con fallback legacy.
 - `route-instruments.js`: rutas HTTP de instrumentos, grupos e identificadores delegadas al dominio.
+- `route-transactions.js`: rutas HTTP de transacciones y auto-planes delegadas al dominio.
+- `route-imports.js`: rutas HTTP de importación delegadas al dominio.
+- `route-portfolio.js`: rutas HTTP de portfolio, histórico y onboarding delegadas al dominio.
+- `route-admin.js`: rutas HTTP de administración, backups, export y diagnóstico delegadas al dominio.
 - `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 - `transaction-repository.js`: repository de transacciones, auto planes y skips.
