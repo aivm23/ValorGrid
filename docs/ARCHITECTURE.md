@@ -147,7 +147,9 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 ### Hoja de ruta activa (resumen)
 
-La migración a monolito modular con `ctx` agrupado, repositories por dominio y TypeScript incremental está completada al nivel de la versión `2.30.27`. Hitos alcanzados:
+La migración a monolito modular con `ctx` agrupado, repositories por dominio y TypeScript incremental está completada al nivel de la versión `2.30.29`. Hitos alcanzados:
+
+Baseline de ejecución de esta tanda: `main` local en `HEAD` (ahead de `origin/main`) sin rebase previo.
 
 1. ✅ Reglas de arquitectura documentadas en docs + skill + AGENTS.
 2. ✅ Quality gates graduales (lint/format/typecheck) sin reescritura masiva.
