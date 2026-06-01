@@ -5,6 +5,7 @@
 - `npm test` — run all tests (`node --test`)
 - `npm run lint` — run ESLint flat config checks
 - `npm run format:check` — run Prettier checks for docs/workflows/package manifests
+- `npm run typecheck` — run TypeScript type checking (`tsc --noEmit`)
 - `npm run check` — run lint + format check + tests
 - `node --test --test-name-pattern "test name" test/portfolio.test.js` — run a single test
 - `npm start` — start server (`node server.js`)

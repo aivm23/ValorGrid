@@ -18,7 +18,7 @@ ValorGrid evoluciona de un monolito modular con `ctx` plano hacia este patrón o
 - **Modular Monolith** (despliegue simple, una sola app local).
 - **Clean-ish layering** (`routes` -> `services` -> `repositories`).
 - **Dependency Injection explícita** usando un `ctx` agrupado.
-- **TypeScript strict incremental** (sin migración big-bang).
+- **TypeScript strict incremental** (migración activa sin big-bang, `tsconfig.json` con `strict: true`, `checkJs: false`).
 
 Principios operativos de la migración:
 
@@ -26,6 +26,10 @@ Principios operativos de la migración:
 - Fases pequeñas, pruebas completas y commit por fase.
 - Convivencia temporal de capas legacy y nuevas mientras se reduce acoplamiento.
 - Documentación y skill de arquitectura actualizadas en cada cambio estructural.
+
+## Raíz del proyecto
+
+- `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
 
 ## Backend
 
