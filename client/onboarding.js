@@ -12,9 +12,9 @@ export function attach(ctx) {
     ctx.elements.wizardForm.reset();
     if (ctx.elements.wizardModeManual) ctx.elements.wizardModeManual.checked = true;
     ctx.elements.wizardGroupColor.value = '#16a34a';
-    ctx.elements.wizardGroupDistribution.checked = true;
-    ctx.elements.wizardGroupMonthly.checked = true;
-    ctx.elements.wizardGroupExpandable.checked = false;
+    if (ctx.elements.wizardGroupDistribution) ctx.elements.wizardGroupDistribution.checked = true;
+    if (ctx.elements.wizardGroupMonthly) ctx.elements.wizardGroupMonthly.checked = true;
+    if (ctx.elements.wizardGroupExpandable) ctx.elements.wizardGroupExpandable.checked = false;
     ctx.elements.wizardInstrumentColor.value = '#2563eb';
     ctx.elements.wizardInstrumentCurrency.value = 'EUR';
     ctx.elements.wizardInstrumentType.value = 'etf';
@@ -115,9 +115,9 @@ export function attach(ctx) {
       group: {
         name: ctx.elements.wizardGroupName.value.trim(),
         color: ctx.elements.wizardGroupColor.value,
-        showInDistribution: ctx.elements.wizardGroupDistribution.checked,
-        showInMonthly: ctx.elements.wizardGroupMonthly.checked,
-        isExpandable: ctx.elements.wizardGroupExpandable.checked,
+        showInDistribution: true,
+        showInMonthly: true,
+        isExpandable: false,
       },
       instrument: {
         symbol,

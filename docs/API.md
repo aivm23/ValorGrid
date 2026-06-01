@@ -45,7 +45,7 @@ DELETE /api/instrument-identifiers/:id
 - El bloqueo real por posición o automatizaciones activas se aplica al ejecutar `DELETE /api/instruments/:symbol` o `DELETE /api/instruments`.
 
 - `instruments` almacena valores visibles de cartera.
-- `instrument_groups` organiza distribución, revisión mensual y desglose.
+- `instrument_groups` organiza visibilidad por dashboard, revision YTD y desglose.
 - `instrument_identifiers` guarda identificadores confirmados por el usuario, como ISIN o alias de broker, para futuras importaciones.
 
 ## Onboarding

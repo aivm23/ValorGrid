@@ -2303,10 +2303,33 @@ td:last-child {
 }
 
 .group-card-options {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.group-visual-options {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.group-visual-options > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 9px;
+}
+
+.group-visual-options > summary::-webkit-details-marker {
+  display: none;
+}
+
+.group-visual-options .group-card-options {
+  grid-column: auto;
+  padding: 0 9px 9px;
 }
 
 .group-card [data-save-group] {
