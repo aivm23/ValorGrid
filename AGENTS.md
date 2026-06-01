@@ -43,6 +43,7 @@
 ## Testing
 
 - Test runner: `node:test` (built-in). Tests live in `test/` and run against the real app runtime.
+- **`docs/TESTING.md`** maps each test file to its domain and coverage.
 - CI runs on `windows-latest` with Node 24.
 - Tests spin up a real server with an in-memory SQLite DB — they are integration tests, not unit tests.
 - All changes to `src/` services and routes require accompanying tests.

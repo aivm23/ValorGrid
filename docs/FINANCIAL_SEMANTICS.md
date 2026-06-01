@@ -149,4 +149,3 @@ Fuentes de verdad actuales (actualizadas):
 - `src/domains/portfolio/portfolio-service.js` (`buildMonthly`, `buildSummary`, `summarizeTransactions`, `withPercentages`, `isEffectiveValuation`, `buildOnboardingStatus`)
 - `src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
 - `src/app.js` (`minimumDisplayValueEur`)
-
