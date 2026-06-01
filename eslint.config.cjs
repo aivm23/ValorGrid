@@ -43,7 +43,7 @@ module.exports = [
           paths: [
             {
               name: 'node:sqlite',
-              message: 'Use SQLite only through src/db.js.',
+              message: 'Use SQLite only through src/platform/db.js.',
             },
           ],
         },
@@ -89,7 +89,7 @@ module.exports = [
           paths: [
             {
               name: 'node:sqlite',
-              message: 'Use SQLite only through src/db.js.',
+              message: 'Use SQLite only through src/platform/db.js.',
             },
           ],
         },
@@ -97,7 +97,7 @@ module.exports = [
     },
   },
   {
-    files: ['src/db.js'],
+    files: ['src/platform/db.js'],
     rules: {
       'no-restricted-modules': 'off',
     },

@@ -1,8 +1,8 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const { version } = require('../package.json');
+const { version } = require('../../package.json');
 
-function createConfig(env = process.env, root = path.resolve(__dirname, '..')) {
+function createConfig(env = process.env, root = path.resolve(__dirname, '../..')) {
   const legacyDbPath = path.join(root, 'portfolio.sqlite');
   const defaultDbPath = fs.existsSync(legacyDbPath)
     ? legacyDbPath

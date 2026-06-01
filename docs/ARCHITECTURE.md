@@ -41,11 +41,13 @@ src/
 ├── domains/
 │   ├── instruments/    (instrument-*, route-instruments)
 │   ├── transactions/   (transaction-*, route-transactions)
-│   ├── imports/        renamed to data-ingestion/ (ingestion-*, route-data-ingestion)
+│   ├── data-ingestion/ (ingestion-*, route-data-ingestion)
 │   ├── portfolio/      (portfolio-*, route-portfolio)
-│   ├── history/        (history-*, route-portfolio históricos)
+│   ├── history/        (history-*)
 │   ├── market-data/    (market-data-*)
+│   ├── meta/           (meta-repository, meta-state)
 │   ├── onboarding/     (onboarding-*)
+│   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
 ├── platform/           (db, config, http, backups, ctx-utils, validators, app-error, utils)
 ├── types.ts
@@ -99,18 +101,26 @@ Reglas de transición:
 
 ### `src/` y `src/platform/`
 
-Archivos base e infraestructura compartida:
+**Infraestructura compartida en `src/platform/`:**
 
 - `config.js`: host, puerto, rutas, versión y DB activa.
 - `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
+- `http.js`: servidor HTTP estático y listener.
 - `backups.js`: creación, listado y descarga de backups SQLite.
-- `types.ts`: interfaces de dominio TypeScript.
 - `ctx-utils.js`: `assertCtxDeps`, `getCtxDep`.
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
+
+**Archivos raíz en `src/`:**
+
+- `types.ts`: interfaces de dominio TypeScript.
 - `route-service-bindings.js`: resolución de handlers desde `ctx.services.*`.
 - `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
+- `app.js`: composition root y orquestador de módulos.
+- `app-core.js`: re-export de `app.js`.
+- `schema.js`: creación y evolución idempotente de tablas.
+- `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
 
 **Dominios en `src/domains/`**:
 
@@ -130,10 +140,10 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
 5. `utils`: helpers compartidos (formato, validación, fechas).
 6. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-7. `portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
-8. `ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
+7. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
+8. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
 9. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos.
-10. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+10. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 11. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
 12. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
 13. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
@@ -146,7 +156,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 20. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
 21. `domains/history/history-core`: motor de materialización de histórico.
 22. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-23. `diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+23. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
 24. `domains/admin/diagnostics-service`: métricas de rendimiento y tamaños de caché.
 25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 26. `http`: servidor HTTP estático y listener.
@@ -161,40 +171,38 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Sub-módulos de import-service (cargados internamente):**
 
-- `import-parser`: parseo de CSV/XLSX a formato canónico.
-- `import-preview`: generación de preview y detección de instrumentos.
-- `import-preview-helpers`: utilidades para renderizado de preview.
-- `import-reconcile`: conciliación de filas con instrumentos existentes.
-- `import-entities`: creación de instrumentos y grupos nuevos.
-- `import-profiles`: perfiles de broker (DEGIRO, IBKR, genérico).
-- `import-labels`: generación de etiquetas y mensajes.
-- `import-hash`: cálculo de hashes para deduplicación.
-- `import-sale-rules`: reglas de validación de ventas.
+- `ingestion-parser`: parseo de CSV/XLSX a formato canónico.
+- `ingestion-preview`: generación de preview y detección de instrumentos.
+- `ingestion-preview-helpers`: utilidades para renderizado de preview.
+- `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
+- `ingestion-entities`: creación de instrumentos y grupos nuevos.
+- `ingestion-profiles`: perfiles de broker (DEGIRO, IBKR, genérico).
+- `ingestion-labels`: generación de etiquetas y mensajes.
+- `ingestion-hash`: cálculo de hashes para deduplicación.
+- `ingestion-sale-rules`: reglas de validación de ventas.
 
-**Archivo adicional:**
+**Archivos de plataforma en `src/platform/`:**
+
+- `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
+- `config.js`: host, puerto, rutas, versión y DB activa.
+- `http.js`: servidor HTTP estático y listener.
+- `backups.js`: creación, listado y descarga de backups SQLite.
+- `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
+- `validators.js`: validadores de entrada reutilizables (`assertPresent`, `assertPositiveNumber`, etc.).
+- `app-error.js`: clase `AppError` con `statusCode` y `errorCode` para errores estructurados.
+- `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
+
+**Archivos raíz en `src/`:**
 
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
-- `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
-- `app-error.js`: clase `AppError` con `statusCode` y `errorCode` para errores estructurados.
-- `validators.js`: validadores de entrada reutilizables (`assertPresent`, `assertPositiveNumber`, etc.).
+- `app.js`: composition root y orquestador de módulos.
+- `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
 - `route-service-bindings.js`: resolución de handlers HTTP desde `ctx.services.*` con fallback legacy.
-- `route-instruments.js`: rutas HTTP de instrumentos, grupos e identificadores delegadas al dominio.
-- `route-transactions.js`: rutas HTTP de transacciones y auto-planes delegadas al dominio.
-- `route-imports.js`: rutas HTTP de importación delegadas al dominio.
-- `route-portfolio.js`: rutas HTTP de portfolio, histórico y onboarding delegadas al dominio.
-- `route-admin.js`: rutas HTTP de administración, backups, export y diagnóstico delegadas al dominio.
-- `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
-- `portfolio-repository.js`: repository de lecturas de portfolio/onboarding y lookup de instrumentos.
-- `ticker-suggestions-repository.js`: repository de sugerencias ticker por identificadores históricos.
-- `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
-- `transaction-repository.js`: repository de transacciones, auto planes y skips.
-- `import-repository.js`: repository de importaciones (batches, rows, rollback y matching contra ledger).
-- `onboarding-repository.js`: repository del wizard de onboarding (persistencia y transacción).
-- `history-repository.js`: repository de histórico (materialización, builds, invalidaciones y eventos).
-- `meta-repository.js`: repository de versiones de datos (`app_meta`) e invalidaciones de histórico.
-- `diagnostics-repository.js`: repository de métricas SQL internas para endpoints de salud/diagnóstico.
+- `schema.js`: creación y evolución idempotente de tablas.
+- `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
+- `types.ts`: interfaces de dominio TypeScript.
 
-`node:sqlite` debe quedar aislado detrás de `src/db.js`.
+`node:sqlite` debe quedar aislado detrás de `src/platform/db.js`.
 
 ### Hoja de ruta activa (resumen)
 

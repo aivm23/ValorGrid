@@ -30,7 +30,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
 
   for (const file of filesUnder('src')) {
     assert.ok(lineCount(file) <= 500, `${file} must stay below 500 lines`);
-    if (file !== path.join('src', 'db.js')) {
+    if (file !== path.join('src', 'platform', 'db.js')) {
       assert.equal(read(file).includes('node:sqlite'), false, `${file} must not import node:sqlite`);
     }
     assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);

@@ -1,4 +1,4 @@
-const { assertCtxDeps } = require('./ctx-utils');
+const { assertCtxDeps } = require('./platform/ctx-utils');
 const handleInstrumentRoutes = require('./domains/instruments/route-instruments');
 const handleTransactionRoutes = require('./domains/transactions/route-transactions');
 const handleImportRoutes = require('./domains/data-ingestion/route-data-ingestion');

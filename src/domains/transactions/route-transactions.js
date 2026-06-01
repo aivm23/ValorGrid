@@ -1,5 +1,5 @@
 const { resolveRouteHandlers } = require('../../route-service-bindings');
-const { assertString, assertXor } = require('../../validators');
+const { assertString, assertXor } = require('../../platform/validators');
 
 function sendError(response, sendJson, error) {
   const statusCode = error.statusCode || 400;

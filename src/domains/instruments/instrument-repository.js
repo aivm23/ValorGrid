@@ -1,4 +1,4 @@
-const { assertCtxDeps } = require('../../ctx-utils');
+const { assertCtxDeps } = require('../../platform/ctx-utils');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'instrument-repository');

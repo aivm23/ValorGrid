@@ -1,6 +1,6 @@
 const { previewImportFactory } = require('./ingestion-preview');
 const { createImportEntityHelpers } = require('./ingestion-entities');
-const { assertCtxDeps } = require('../../ctx-utils');
+const { assertCtxDeps } = require('../../platform/ctx-utils');
 
 function insertImportBatch(importRepository, preview, mapping) {
   const requestedBatchId = `import-batch:${preview.source}:${preview.payloadHash.slice(0, 24)}`;

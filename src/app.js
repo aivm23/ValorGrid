@@ -2,9 +2,9 @@ const http = require('node:http');
 const fs = require('node:fs/promises');
 const fsSync = require('node:fs');
 const path = require('node:path');
-const { createConfig } = require('./config');
-const { openDatabase } = require('./db');
-const { createBackup, listBackups, resolveBackupPath } = require('./backups');
+const { createConfig } = require('./platform/config');
+const { openDatabase } = require('./platform/db');
+const { createBackup, listBackups, resolveBackupPath } = require('./platform/backups');
 
 function pickCtxFunctions(ctx, names) {
   return names.reduce((picked, name) => {
@@ -421,7 +421,7 @@ const modules = [
   './schema-seed',
   './domains/meta/meta-repository',
   './domains/meta/meta-state',
-  './utils',
+  './platform/utils',
   './domains/instruments/instrument-repository',
   './domains/portfolio/portfolio-repository',
   './domains/ticker-suggestions/ticker-suggestions-repository',
@@ -442,7 +442,7 @@ const modules = [
   './domains/admin/diagnostics-repository',
   './domains/admin/diagnostics-service',
   './routes',
-  './http',
+  './platform/http',
 ];
 
 for (const modulePath of modules) {
