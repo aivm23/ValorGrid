@@ -84,6 +84,10 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
       read(path.join('src', `${file}.js`)).includes('resolveRouteHandlers(ctx)'),
       `${file} must resolve handlers from grouped services`,
     );
+    assert.ok(
+      read(path.join('src', `${file}.js`)).includes('sendError'),
+      `${file} must use AppError-aware sendError helper`,
+    );
   }
   assert.equal(
     /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),

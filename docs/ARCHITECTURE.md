@@ -128,6 +128,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
 - `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
+- `app-error.js`: clase `AppError` con `statusCode` y `errorCode` para errores estructurados.
+- `validators.js`: validadores de entrada reutilizables (`assertPresent`, `assertPositiveNumber`, etc.).
 - `route-service-bindings.js`: resolución de handlers HTTP desde `ctx.services.*` con fallback legacy.
 - `route-instruments.js`: rutas HTTP de instrumentos, grupos e identificadores delegadas al dominio.
 - `route-transactions.js`: rutas HTTP de transacciones y auto-planes delegadas al dominio.
