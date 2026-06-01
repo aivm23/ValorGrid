@@ -20,7 +20,7 @@ function resolveRouteHandlers(ctx) {
   const instrumentServices = ctx.services?.instruments || {};
   const onboardingServices = ctx.services?.onboarding || {};
   const transactionServices = ctx.services?.transactions || {};
-  const importServices = ctx.services?.imports || {};
+  const importServices = ctx.services?.dataIngestion || ctx.services?.imports || {};
   const suggestionServices = ctx.services?.suggestions || {};
   const portfolioServices = ctx.services?.portfolio || {};
   const historyServices = ctx.services?.history || {};

@@ -41,7 +41,7 @@ src/
 ├── domains/
 │   ├── instruments/    (instrument-*, route-instruments)
 │   ├── transactions/   (transaction-*, route-transactions)
-│   ├── imports/        (import-*, route-imports)
+│   ├── imports/        renamed to data-ingestion/ (ingestion-*, route-data-ingestion)
 │   ├── portfolio/      (portfolio-*, route-portfolio)
 │   ├── history/        (history-*, route-portfolio históricos)
 │   ├── market-data/    (market-data-*)
@@ -138,8 +138,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 12. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
 13. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
 14. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
-15. `domains/imports/import-repository`: acceso SQL de lotes importados, filas, rollback y matching.
-16. `domains/imports/import-service`: orquestación de importaciones (preview, commit, rollback).
+15. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching.
+16. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
 17. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
 18. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
 19. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
@@ -155,7 +155,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `domains/instruments/route-instruments.js`
 - `domains/transactions/route-transactions.js`
-- `domains/imports/route-imports.js`
+- `domains/data-ingestion/route-data-ingestion.js`
 - `domains/portfolio/route-portfolio.js`
 - `domains/admin/route-admin.js`
 

@@ -11,9 +11,10 @@ backups/
 .env.*
 !.env.example
 config.local.*
-local/
-imports/
-downloads/
+/local/
+/imports/
+/downloads/
+/private-imports/
 
 # Runtime logs and launch captures
 *.log

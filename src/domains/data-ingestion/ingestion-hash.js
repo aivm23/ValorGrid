@@ -1,4 +1,4 @@
-const { sha256 } = require('./import-parser');
+const { sha256 } = require('./ingestion-parser');
 
 function stableStringify(value) {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;

@@ -5,16 +5,16 @@ const {
   normalizeImportRow,
   summarizeImportRows,
   serializeSummary,
-} = require('./import-parser');
-const { buildScopedPayloadHash } = require('./import-hash');
+} = require('./ingestion-parser');
+const { buildScopedPayloadHash } = require('./ingestion-hash');
 const {
   normalizeRowDecisions,
   applyRowEdit,
   buildDetectedInstrumentOutput,
   buildImpactPreview,
-} = require('./import-reconcile');
-const { DEGIRO_SUBTYPE_LABELS, fileSubtypeWarnings } = require('./import-labels');
-const { markSkippedSaleDeficit } = require('./import-sale-rules');
+} = require('./ingestion-reconcile');
+const { DEGIRO_SUBTYPE_LABELS, fileSubtypeWarnings } = require('./ingestion-labels');
+const { markSkippedSaleDeficit } = require('./ingestion-sale-rules');
 const {
   normalizeMatchText,
   getRawValue,
@@ -22,7 +22,7 @@ const {
   mappingKeyForIdentifier,
   buildInstrumentMapping,
   canCommitRows,
-} = require('./import-preview-helpers');
+} = require('./ingestion-preview-helpers');
 
 
 function resolveByHeuristic(ctx, normalized, raw) {

@@ -120,7 +120,7 @@ function bindGroupedCtxNamespaces(ctx) {
   );
 
   Object.assign(
-    ctx.services.imports,
+    ctx.services.dataIngestion,
     pickCtxFunctions(ctx, [
       'previewImport',
       'commitImport',
@@ -245,7 +245,7 @@ function bindGroupedCtxNamespaces(ctx) {
   );
 
   Object.assign(
-    ctx.repositories.imports,
+    ctx.repositories.dataIngestion,
     pickCtxFunctions(ctx, ['listImportBatches', 'getImportBatch', 'getImportRows', 'listImportRollbackLog']),
   );
 
@@ -363,7 +363,7 @@ const repositories = {
   diagnostics: {},
   instruments: {},
   transactions: {},
-  imports: {},
+  dataIngestion: {},
   history: {},
   marketData: {},
   onboarding: {},
@@ -376,7 +376,7 @@ const services = {
   suggestions: {},
   marketData: {},
   transactions: {},
-  imports: {},
+  dataIngestion: {},
   onboarding: {},
   portfolio: {},
   history: {},
@@ -431,8 +431,8 @@ const modules = [
   './domains/market-data/market-data',
   './domains/transactions/transaction-repository',
   './domains/transactions/transaction-service',
-  './domains/imports/import-repository',
-  './domains/imports/import-service',
+  './domains/data-ingestion/ingestion-repository',
+  './domains/data-ingestion/ingestion-service',
   './domains/onboarding/onboarding-repository',
   './domains/onboarding/onboarding-service',
   './domains/portfolio/portfolio-service',

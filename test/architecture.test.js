@@ -56,7 +56,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM import_batches|INSERT INTO import_rows|DELETE FROM transactions WHERE import_batch_id/.test(
-      read(path.join('src', 'domains', 'imports', 'import-service.js')),
+      read(path.join('src', 'domains', 'data-ingestion', 'ingestion-service.js')),
     ),
     false,
     'import-service must not execute SQL directly',
@@ -104,7 +104,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   const routeFiles = [
     { domain: 'instruments', name: 'route-instruments' },
     { domain: 'transactions', name: 'route-transactions' },
-    { domain: 'imports', name: 'route-imports' },
+    { domain: 'data-ingestion', name: 'route-data-ingestion' },
     { domain: 'portfolio', name: 'route-portfolio' },
     { domain: 'admin', name: 'route-admin' },
   ];
@@ -120,17 +120,17 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     );
   }
   assert.equal(
-    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'domains', 'imports', 'import-preview.js'))),
+    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'domains', 'data-ingestion', 'ingestion-preview.js'))),
     false,
     'import-preview must not query SQLite directly',
   );
   assert.equal(
-    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('src', 'domains', 'imports', 'import-repository.js'))),
+    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('src', 'domains', 'data-ingestion', 'ingestion-repository.js'))),
     false,
     'import-repository must use shared db transaction helpers, not manual begin/commit/rollback',
   );
   assert.ok(
-    read(path.join('src', 'domains', 'imports', 'import-repository.js')).includes('runInTransaction'),
+    read(path.join('src', 'domains', 'data-ingestion', 'ingestion-repository.js')).includes('runInTransaction'),
     'import-repository must expose runInTransaction wrapper',
   );
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'domains', 'portfolio', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
@@ -170,8 +170,8 @@ test('app composition root initializes grouped ctx namespaces', () => {
     transactionServiceIndex > transactionRepositoryIndex,
     'src/app.js must load transaction-repository before transaction-service',
   );
-  const importRepositoryIndex = appSource.indexOf("'./domains/imports/import-repository'");
-  const importServiceIndex = appSource.indexOf("'./domains/imports/import-service'");
+  const importRepositoryIndex = appSource.indexOf("'./domains/data-ingestion/ingestion-repository'");
+  const importServiceIndex = appSource.indexOf("'./domains/data-ingestion/ingestion-service'");
   assert.ok(importRepositoryIndex >= 0, 'src/app.js must load import-repository module');
   assert.ok(
     importServiceIndex > importRepositoryIndex,

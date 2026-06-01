@@ -1,13 +1,13 @@
-﻿const crypto = require('node:crypto');
+const crypto = require('node:crypto');
 const XLSX = require('../../../vendor/xlsx.full.min.js');
-const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides } = require('./import-profiles');
+const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides } = require('./ingestion-profiles');
 function sha256(value) { return crypto.createHash('sha256').update(String(value)).digest('hex'); }
 function normalizeHeader(value) {
   let text = String(value || '');
-  for (let attempt = 0; attempt < 3 && /[ÃƒÃ‚]/.test(text); attempt += 1) {
+  for (let attempt = 0; attempt < 3 && /[ÃÂ]/.test(text); attempt += 1) {
     try {
       const decoded = Buffer.from(text, 'latin1').toString('utf8');
-      if (!decoded || decoded === text || decoded.includes('ï¿½')) break;
+      if (!decoded || decoded === text || decoded.includes('�')) break;
       text = decoded;
     } catch {
       break;
@@ -36,7 +36,7 @@ function detectDegiroFileSubtype(headers = []) {
   const snapshotLike = has('producto') && (has('symbol/isin') || has('isin')) && has('cantidad') && has('valor en eur');
   const transactionLike =
     has('fecha') &&
-    (has('numero') || has('nÃºmero')) &&
+    (has('numero') || has('número')) &&
     has('precio') &&
     (has('valor eur') || has('valor en eur')) &&
     has('id orden');
@@ -129,8 +129,8 @@ function parseNumber(value) {
   let cleaned = text
     .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, '')
-    .replace(/[â‚¬$Â£%]/g, '')
-    .replace(/[âˆ’â€“â€”]/g, '-');
+    .replace(/[€$£%]/g, '')
+    .replace(/[−–—]/g, '-');
   if (/^\(.*\)$/.test(cleaned)) cleaned = `-${cleaned.slice(1, -1)}`;
   const hasComma = cleaned.includes(',');
   const hasDot = cleaned.includes('.');
@@ -171,7 +171,7 @@ function normalizeType(value) {
 function resolveAdapter(sourceInput = 'csv') {
   const source = String(sourceInput || 'csv').trim().toLowerCase();
   const adapter = adapterDefinitions[source];
-  if (!adapter) throw new Error(`Origen de importaciÃ³n no soportado: ${sourceInput}`);
+  if (!adapter) throw new Error(`Origen de importación no soportado: ${sourceInput}`);
   return { source, ...adapter };
 }
 function resolveFieldAliases(profile, field) {
@@ -254,7 +254,7 @@ function extractExternalIdentifiers(profile, row, symbol, fileSubtype = 'unknown
     identifiers.push({ provider: 'degiro', identifierType: 'broker_product', identifierValue: product.toUpperCase(), displayName: product });
   }
   const exchange = String(
-    rowValueByHeaders(row, ['Bolsa de referencia', 'Centro de ejecucion', 'Centro de ejecuciÃ³n']) || '',
+    rowValueByHeaders(row, ['Bolsa de referencia', 'Centro de ejecucion', 'Centro de ejecución']) || '',
   )
     .trim()
     .toUpperCase();
@@ -274,7 +274,7 @@ function degiroCorporateActionReason(row, fileSubtype, values) {
   if (fileSubtype !== 'transactions_export') return null;
   const product = normalizeText(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || degiroTransactionCell(row, 'product'));
   const centerRaw = String(
-    rowValueByHeaders(row, ['Centro de ejecuciÃ³n', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
+    rowValueByHeaders(row, ['Centro de ejecución', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
   ).trim();
   const hasRightsKeyword = /\b(RTS?|RIGHTS?|NON\s*TRADEABLE)\b/.test(product);
   const centerLooksEmpty = !centerRaw || centerRaw === '-' || centerRaw === '--';
@@ -319,11 +319,11 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
   const mappedCommission = parseNumber(mappedValue(row, mapping, profile, 'commissionEur'));
   const degiroAutoFx =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['Comisión AutoFX', 'Comision AutoFX', 'Comisión AutoFx', 'Comision AutoFx']) || (degiroTransactions ? degiroTransactionCell(row, 'autoFx') : ''))
+      ? parseNumber(rowValueByHeaders(row, ['Comisi�n AutoFX', 'Comision AutoFX', 'Comisi�n AutoFx', 'Comision AutoFx']) || (degiroTransactions ? degiroTransactionCell(row, 'autoFx') : ''))
       : null;
   const degiroCosts =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['Costes de transacción y/o externos EUR', 'Costes de transaccion y/o externos EUR']) || (degiroTransactions ? degiroTransactionCell(row, 'costs') : ''))
+      ? parseNumber(rowValueByHeaders(row, ['Costes de transacci�n y/o externos EUR', 'Costes de transaccion y/o externos EUR']) || (degiroTransactions ? degiroTransactionCell(row, 'costs') : ''))
       : null;
   const commissionEur = Math.abs(
     profile === 'degiro' && (Number.isFinite(degiroAutoFx) || Number.isFinite(degiroCosts))
@@ -371,7 +371,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     if (!date) errors.push('Fecha invalida');
     if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
     if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
-    if (price === 0 && inferredType === 'add') warnings.push('Compra a 0€ (split/dividendo) — se importa con precio mínimo');
+    if (price === 0 && inferredType === 'add') warnings.push('Compra a 0� (split/dividendo) � se importa con precio m�nimo');
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
     if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   }
