@@ -90,6 +90,15 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     false,
     'import-preview must not query SQLite directly',
   );
+  assert.equal(
+    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('src', 'import-repository.js'))),
+    false,
+    'import-repository must use shared db transaction helpers, not manual begin/commit/rollback',
+  );
+  assert.ok(
+    read(path.join('src', 'import-repository.js')).includes('runInTransaction'),
+    'import-repository must expose runInTransaction wrapper',
+  );
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('src', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
 });
 

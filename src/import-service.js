@@ -59,13 +59,16 @@ module.exports = function attach(ctx) {
     const duplicateOnly = preview.rows.every((row) => ['duplicate', 'ignored', 'skipped'].includes(row.status));
     const mapping = input.instrumentMappings || input.mapping || {};
 
-    importRepository.beginTransaction();
-    try {
+    const result = importRepository.runInTransaction(() => {
       ensureImportEntities(input);
       const { batchId, existing } = insertImportBatch(importRepository, preview, mapping);
       if (existing) {
-        importRepository.commitTransaction();
-        return { batch: getImportBatch(batchId), rows: getImportRows(batchId), summary: JSON.parse(existing.summary_json || '{}') };
+        return {
+          batch: getImportBatch(batchId),
+          rows: getImportRows(batchId),
+          summary: JSON.parse(existing.summary_json || '{}'),
+          usedExistingBatch: true,
+        };
       }
 
       for (const row of preview.rows) {
@@ -128,13 +131,14 @@ module.exports = function attach(ctx) {
       }
 
       importRepository.markImportBatchCommitted(batchId);
-      importRepository.commitTransaction();
-      if (!duplicateOnly) invalidateLedger(preview.summary.firstDate || getToday(), 'import-commit');
-      return { batch: getImportBatch(batchId), rows: getImportRows(batchId), summary: preview.summary };
-    } catch (error) {
-      importRepository.rollbackTransaction();
-      throw error;
+      return { batch: getImportBatch(batchId), rows: getImportRows(batchId), summary: preview.summary, usedExistingBatch: false };
+    });
+
+    if (!result.usedExistingBatch && !duplicateOnly) {
+      invalidateLedger(preview.summary.firstDate || getToday(), 'import-commit');
     }
+    delete result.usedExistingBatch;
+    return result;
   }
 
   function rollbackImportBatch(id) {
@@ -143,19 +147,14 @@ module.exports = function attach(ctx) {
     if (batch.status === 'rolled_back') return true;
     const firstDate = batch.firstDate || getToday();
 
-    importRepository.beginTransaction();
-    try {
+    importRepository.runInTransaction(() => {
       importRepository.insertImportRollbackLog({ ...batch, id });
       importRepository.deleteImportedTransactionsByBatchId(id);
       importRepository.markCommittedImportRowsRolledBack(id);
       importRepository.markImportBatchRolledBack(id);
-      importRepository.commitTransaction();
-      invalidateLedger(firstDate, 'import-rollback');
-      return true;
-    } catch (error) {
-      importRepository.rollbackTransaction();
-      throw error;
-    }
+    });
+    invalidateLedger(firstDate, 'import-rollback');
+    return true;
   }
 
   function listImportRollbackLog() {

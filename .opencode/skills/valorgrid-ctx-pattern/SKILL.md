@@ -68,6 +68,7 @@ ctx.services
 - `history-core` must not execute SQL directly.
 - `history-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
+- SQLite transactions must use `withTransaction` / `withTransactionAsync` from `src/db.js`.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
 - New frontend files should stay under 350 lines.

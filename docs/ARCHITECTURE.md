@@ -69,6 +69,7 @@ Reglas de transición:
 - `ctx.http` se conserva como primitiva Node por compatibilidad; APIs HTTP se agrupan en `ctx.services.http`.
 - No se reintroduce `with (ctx)` en backend ni frontend.
 - SQL nuevo debe vivir en repositories a medida que se introduzcan.
+- Las transacciones SQLite deben usar los helpers de `src/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
 ### `src/`
 

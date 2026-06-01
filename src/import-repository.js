@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { withTransaction } = require('./db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'import-repository');
@@ -95,20 +96,8 @@ module.exports = function attach(ctx) {
       .map((row) => row.id);
   }
 
-  function beginTransaction() {
-    db.exec('BEGIN');
-  }
-
-  function commitTransaction() {
-    db.exec('COMMIT');
-  }
-
-  function rollbackTransaction() {
-    try {
-      db.exec('ROLLBACK');
-    } catch {
-      // Transaction may already be closed by SQLite.
-    }
+  function runInTransaction(work) {
+    return withTransaction(db, work);
   }
 
   function upsertImportRow(row) {
@@ -224,9 +213,7 @@ module.exports = function attach(ctx) {
     readImportBatch,
     readImportRowsForBatch,
     listImportBatchIds,
-    beginTransaction,
-    commitTransaction,
-    rollbackTransaction,
+    runInTransaction,
     upsertImportRow,
     insertImportedTransaction,
     markImportBatchCommitted,
