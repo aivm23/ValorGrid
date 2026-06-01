@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { withTransaction } = require('./db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'market-data-repository');
@@ -54,8 +55,7 @@ module.exports = function attach(ctx) {
        VALUES (?, ?, ?, ?, ?)`,
     );
 
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       for (const price of prices) {
         insert.run(yahooSymbol, price.date, price.price, price.currency, price.source);
       }
@@ -64,15 +64,7 @@ module.exports = function attach(ctx) {
           (yahoo_symbol, from_date, to_date)
          VALUES (?, ?, ?)`,
       ).run(yahooSymbol, fromDate, toDate);
-      db.exec('COMMIT');
-    } catch (error) {
-      try {
-        db.exec('ROLLBACK');
-      } catch {
-        // The transaction may already be closed.
-      }
-      throw error;
-    }
+    });
   }
 
   repositories.marketData = {

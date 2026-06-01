@@ -13,6 +13,40 @@ function openDatabase(dbPath) {
   return db;
 }
 
+function withTransaction(db, fn) {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (error) {
+    try {
+      db.exec('ROLLBACK');
+    } catch {
+      // Transaction may already have been closed by SQLite.
+    }
+    throw error;
+  }
+}
+
+async function withTransactionAsync(db, fn) {
+  db.exec('BEGIN');
+  try {
+    const result = await fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (error) {
+    try {
+      db.exec('ROLLBACK');
+    } catch {
+      // Transaction may already have been closed by SQLite.
+    }
+    throw error;
+  }
+}
+
 module.exports = {
   openDatabase,
+  withTransaction,
+  withTransactionAsync,
 };

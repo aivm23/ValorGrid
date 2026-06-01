@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { withTransaction } = require('./db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'transaction-repository');
@@ -31,8 +32,7 @@ module.exports = function attach(ctx) {
   }
 
   function replaceAutoPlansInStorage(plans) {
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       db.exec('DELETE FROM auto_plans');
       const insert = db.prepare(
         `INSERT INTO auto_plans
@@ -50,11 +50,7 @@ module.exports = function attach(ctx) {
           plan.weekday || null,
         );
       }
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   function transactionExistsByAutoKey(autoKey) {

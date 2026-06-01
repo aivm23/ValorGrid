@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { withTransaction } = require('./db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'history-repository');
@@ -92,16 +93,11 @@ module.exports = function attach(ctx) {
         (symbol, yahoo_symbol, date, price, currency, source)
        VALUES (?, ?, ?, ?, ?, ?)`,
     );
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       for (const row of rows) {
         insert.run(symbol, yahooSymbol, row.date, row.price, row.currency, row.source);
       }
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   function replaceFxRatesRows(pair, rows) {
@@ -109,16 +105,11 @@ module.exports = function attach(ctx) {
       `INSERT OR REPLACE INTO fx_rates_daily (pair, date, rate, source)
        VALUES (?, ?, ?, ?)`,
     );
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       for (const row of rows) {
         insert.run(pair, row.date, row.price, row.source);
       }
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   function replacePortfolioEvents(transactions) {
@@ -127,8 +118,7 @@ module.exports = function attach(ctx) {
         (id, type, symbol, name, date, market_date, plot_date, shares, value_eur, price, currency, origin, color, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       db.exec('DELETE FROM portfolio_events');
       for (const event of transactions) {
         insert.run(
@@ -148,11 +138,7 @@ module.exports = function attach(ctx) {
           event.createdAt,
         );
       }
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   function replaceMaterializedHistoryData({ deleteFrom, weekDeleteFrom, positionRows, pointRows, weeklyRows, versions }) {
@@ -163,7 +149,7 @@ module.exports = function attach(ctx) {
     );
     const totalInsert = db.prepare(
       `INSERT INTO portfolio_value_daily (date, value_eur, data_quality)
-       VALUES (?, ?, ?)`,
+        VALUES (?, ?, ?)`,
     );
     const weeklyInsert = db.prepare(
       `INSERT OR REPLACE INTO portfolio_value_weekly
@@ -171,8 +157,7 @@ module.exports = function attach(ctx) {
        VALUES (?, ?, ?, ?, ?, ?)`,
     );
 
-    db.exec('BEGIN');
-    try {
+    withTransaction(db, () => {
       db.prepare('DELETE FROM portfolio_positions_daily WHERE date >= ?').run(deleteFrom);
       db.prepare('DELETE FROM portfolio_value_daily WHERE date >= ?').run(deleteFrom);
       db.prepare('DELETE FROM portfolio_value_weekly WHERE week_start >= ?').run(weekDeleteFrom || deleteFrom);
@@ -193,11 +178,7 @@ module.exports = function attach(ctx) {
           versions.priceVersion,
         );
       }
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   function clearHistoryInvalidations() {

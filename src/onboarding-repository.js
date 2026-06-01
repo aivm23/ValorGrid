@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { withTransactionAsync } = require('./db');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'repositories'], 'onboarding-repository');
@@ -26,19 +27,7 @@ module.exports = function attach(ctx) {
   }
 
   async function runInTransaction(work) {
-    db.exec('BEGIN');
-    try {
-      const result = await work();
-      db.exec('COMMIT');
-      return result;
-    } catch (error) {
-      try {
-        db.exec('ROLLBACK');
-      } catch {
-        // Transaction may already have been closed by SQLite.
-      }
-      throw error;
-    }
+    return withTransactionAsync(db, work);
   }
 
   repositories.onboarding = {
