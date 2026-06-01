@@ -29,16 +29,17 @@
 - **Node.js ≥ 24**, CommonJS, vanilla JS frontend, SQLite via `node:sqlite`
 - **Composition root + staged DI**: `src/app.js` creates `ctx` and loads backend modules in strict sequence with `require(modulePath)(ctx)`.
 - **Current compatibility rule**: legacy exports via `Object.assign(ctx, { ... })` remain valid while refactoring.
-- **Target rule for new/refactored code**: prefer grouped dependencies under `ctx.config`, `ctx.cache`, `ctx.logger`, `ctx.repositories`, and `ctx.services` instead of adding more flat top-level functions.
+- **Target rule for new/refactored code**: prefer grouped dependencies under `ctx.config`, `ctx.cache`, `ctx.logger`, `ctx.repositories`, and `ctx.services` instead of adding more flat top-level functions. Register new APIs directly in `ctx.services.<domain>` or `ctx.repositories.<domain>`.
+- **Physical domain structure (in migration)**: modules are being moved from flat `src/` to `src/domains/<domain>/` to group service + repository + routes by bounded context. Existing `src/app.js` load order and `route-*.js` delegation remain the entry points.
 - **No `with (ctx)`** in backend or frontend modules.
 - **SQLite isolation**: all `node:sqlite` usage goes through `src/db.js`. Never import `node:sqlite` directly elsewhere.
-- **SQL ownership roadmap**: SQL is currently concentrated in services and import helpers; as repositories are introduced, new SQL should land in repositories, not in routes or UI code.
+- **SQL ownership**: SQL lives exclusively in repositories under `ctx.repositories.<domain>`. Services and routes never execute SQL directly. Architecture tests enforce this.
 - **Frontend**: vanilla JS modules in `client/`, orchestrated by root `app.js` loaded from `index.html`. No bundler.
 - **History materialization**: portfolio history is pre-computed and cached, not calculated on every request. Ledger changes trigger invalidation from the affected date forward.
 
 ## Testing
 
-- Test runner: `node:test` (built-in). Three test files in `test/`.
+- Test runner: `node:test` (built-in). Seven test files in `test/`.
 - CI runs on `windows-latest` with Node 24.
 - Tests spin up a real server with an in-memory SQLite DB — they are integration tests, not unit tests.
 - All changes to `src/` services and routes require accompanying tests.
@@ -75,15 +76,21 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 ## Migration Roadmap (Active)
 
-Planned architecture direction:
+Current migration phase: **physical domain structure**. Modules are being moved from flat `src/` to `src/domains/<domain>/` and `src/platform/`.
 
-- Modular Monolith
-- Clean-ish layering (routes -> services -> repositories)
-- Explicit dependency injection through grouped `ctx`
-- Incremental TypeScript strict adoption (no full rewrite in one phase)
+Architecture achieved:
 
-Execution policy:
+- Modular Monolith with `ctx` grouped namespaces
+- Clean layering (routes -> services -> repositories)
+- SQL exclusively in `ctx.repositories.<domain>`
+- Routes split by domain (`route-*.js`)
+- `withTransaction` centralized in `src/db.js`
+- TypeScript strict incremental with JSDoc + `types.ts`
+- `AppError` + validators + `sendError` in all routes
+- `api-client.js` typed frontend wrapper
 
-- Small phases, exhaustive verification, and one commit per successful phase.
-- Preserve public API and behavior while refactoring internals.
-- Update `AGENTS.md`, `docs/ARCHITECTURE.md`, and `.opencode/skills/valorgrid-ctx-pattern/SKILL.md` whenever architectural rules change.
+Active migration goals:
+
+- Move modules to `src/domains/<domain>/` by bounded context
+- Reduce flat `ctx` aliases, prefer `ctx.services.<domain>` / `ctx.repositories.<domain>`
+- Extract pure helpers from large modules (>450 lines)

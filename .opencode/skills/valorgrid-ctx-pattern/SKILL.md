@@ -1,6 +1,6 @@
 ---
 name: valorgrid-ctx-pattern
-description: Keywords src/app.js, grouped ctx namespaces, Object.assign(ctx), module load order, repositories/services. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
+description: Keywords src/app.js, grouped ctx namespaces, Object.assign(ctx), module load order, repositories/services, src/domains/. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
 ---
 
 # ValorGrid ctx Pattern
@@ -8,6 +8,8 @@ description: Keywords src/app.js, grouped ctx namespaces, Object.assign(ctx), mo
 Use this skill to work safely with ValorGrid module architecture.
 
 ValorGrid uses a shared `ctx` loaded in order. The current architecture is transitional: legacy flat exports still exist, while new/refactored code should move toward grouped dependencies and cleaner layering.
+
+Active migration: modules are being moved from flat `src/` to `src/domains/<domain>/` by bounded context (instruments, transactions, imports, portfolio, history, market-data, onboarding, admin) and `src/platform/` for shared infrastructure.
 
 ## When to use
 

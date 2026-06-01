@@ -19,6 +19,7 @@ ValorGrid evoluciona de un monolito modular con `ctx` plano hacia este patrón o
 - **Clean-ish layering** (`routes` -> `services` -> `repositories`).
 - **Dependency Injection explícita** usando un `ctx` agrupado.
 - **TypeScript strict incremental** (migración activa sin big-bang, `tsconfig.json` con `strict: true`, `checkJs: false`).
+- **Carpetas por bounded context** (migración activa de `src/` plano a `src/domains/<domain>/` agrupando service + repository + routes por dominio, con `src/platform/` para infraestructura compartida).
 
 Principios operativos de la migración:
 
@@ -30,6 +31,30 @@ Principios operativos de la migración:
 ## Raíz del proyecto
 
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
+
+### Estructura física por dominio (en migración)
+
+La migración activa agrupa módulos de `src/` plano hacia carpetas por bounded context:
+
+```
+src/
+├── domains/
+│   ├── instruments/    (instrument-*, route-instruments)
+│   ├── transactions/   (transaction-*, route-transactions)
+│   ├── imports/        (import-*, route-imports)
+│   ├── portfolio/      (portfolio-*, route-portfolio)
+│   ├── history/        (history-*, route-portfolio históricos)
+│   ├── market-data/    (market-data-*)
+│   ├── onboarding/     (onboarding-*)
+│   └── admin/          (diagnostics-*, route-admin)
+├── platform/           (db, config, http, backups, ctx-utils, validators, app-error, utils)
+├── types.ts
+├── app.js
+├── routes.js
+└── ...
+```
+
+Cada dominio se migra completo: service + repository + routes. `src/app.js` y `route-*.js` mantienen el wiring externo.
 
 ## Backend
 
@@ -68,7 +93,7 @@ Reglas de transición:
 - Todo módulo nuevo/refactorizado debe preferir los namespaces agrupados.
 - `ctx.http` se conserva como primitiva Node por compatibilidad; APIs HTTP se agrupan en `ctx.services.http`.
 - No se reintroduce `with (ctx)` en backend ni frontend.
-- SQL nuevo debe vivir en repositories a medida que se introduzcan.
+- SQL vive exclusivamente en repositories (`ctx.repositories.<domain>`). Services y rutas no ejecutan SQL directo.
 - `backups.js` es la excepción técnica permitida para mantenimiento SQLite (`PRAGMA wal_checkpoint` antes de copiar backups).
 - Las transacciones SQLite deben usar los helpers de `src/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
