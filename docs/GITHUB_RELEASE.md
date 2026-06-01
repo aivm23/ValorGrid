@@ -2,7 +2,7 @@
 
 Use this checklist before creating a repository or pushing code.
 
-1. Create a fresh local backup of the private database with `npm run backup`.
+1. Create a fresh local backup of the private database with `npm run db:backup`.
 2. Run `npm run lint`.
 3. Run `npm run format:check`.
 4. Run `npm test`.

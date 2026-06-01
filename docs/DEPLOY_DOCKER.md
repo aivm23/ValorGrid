@@ -63,15 +63,21 @@ docker compose up -d
 
 ## Backup y restore
 
-Backup desde UI o API:
+Canal operativo recomendado: scripts locales.
 
-```bash
-curl -X POST http://localhost:5173/api/backups
+```powershell
+npm run db:backup
+npm run db:doctor
 ```
 
-Los backups apareceran en `./backups` o en `/DATA/AppData/valorgrid/backups`.
+Los backups aparecen en `./backups` (montado como `/app/.backups`).
 
-Para restaurar, deten el contenedor, sustituye `portfolio.sqlite` dentro de la carpeta `data` por el backup elegido y vuelve a levantar el servicio.
+Restore manual:
+
+1. Detén el contenedor.
+2. Sustituye `portfolio.sqlite` dentro de `./data` por el backup elegido.
+3. Levanta de nuevo el servicio.
+4. Ejecuta `npm run db:doctor` para verificar schema y metadatos.
 
 ## Seguridad
 

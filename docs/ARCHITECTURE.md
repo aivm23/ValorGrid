@@ -74,7 +74,7 @@ Orquestador del backend:
 - cada módulo declara dependencias necesarias de `ctx` de forma explícita,
 - cada módulo exporta funciones vía `Object.assign(ctx, { ... })`,
 - hidrata aliases agrupados desde APIs legacy al terminar la carga de módulos,
-- llama a `ctx.initDatabase()` para ejecutar schema y migraciones idempotentes.
+- llama a `ctx.initDatabase()` para ejecutar creación de schema idempotente (fresh-only, sin migraciones históricas runtime).
 
 ### Namespaces objetivo de `ctx` (transición)
 
@@ -97,7 +97,7 @@ Reglas de transición:
 - No se reintroduce `with (ctx)` en backend ni frontend.
 - SQL vive exclusivamente en repositories (`ctx.repositories.<domain>`). Services y rutas no ejecutan SQL directo.
 - `backups.js` es la excepción técnica permitida para mantenimiento SQLite (`PRAGMA wal_checkpoint` antes de copiar backups).
-- Las transacciones SQLite deben usar los helpers de `src/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
+- Las transacciones SQLite deben usar los helpers de `src/platform/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
 ### `src/` y `src/platform/`
 

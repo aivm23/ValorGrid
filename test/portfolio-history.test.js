@@ -12,7 +12,6 @@ const {
   seedTestInstrument,
   seedLoadtestDb,
   bumpTestMeta,
-  seedSyntheticHistory,
   jsonRequest,
   registerLifecycle,
   startTestServer,
@@ -450,8 +449,8 @@ test('GET /api/portfolio/history works for every range', async () => {
   }
 });
 
-test('portfolio history handles five years of synthetic monthly operations from SQLite cache', async () => {
-  seedSyntheticHistory({ symbols: 12 });
+test('portfolio history uses the canonical demo dataset for long-range cache performance', async () => {
+  seedLoadtestDb(db, { from: '2021-06-01', to: '2026-05-16' });
 
   const firstStarted = performance.now();
   const first = await buildPortfolioHistory('5y');
@@ -466,7 +465,7 @@ test('portfolio history handles five years of synthetic monthly operations from 
   assert.ok(first.events.length >= 180, `expected synthetic events, got ${first.events.length}`);
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
-  assert.ok(secondElapsed < 300, `warm synthetic history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
+  assert.ok(secondElapsed < 300, `warm history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
   assert.equal(all.granularity, 'weekly');
   assert.equal(ytd.granularity, 'daily');
   assert.ok(all.events.some((event) => event.date === '2021-06-12'));

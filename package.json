@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "2.30.39",
+  "version": "2.31.2",
   "private": true,
   "engines": {
     "node": ">=24"
@@ -16,9 +16,11 @@
     "format:check": "prettier --check \"AGENTS.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \"package.json\" \"package-lock.json\"",
     "check": "npm run lint && npm run format:check && npm test",
     "typecheck": "tsc --noEmit",
-    "backup": "powershell -ExecutionPolicy Bypass -File scripts/backup-db.ps1",
+    "db:backup": "powershell -ExecutionPolicy Bypass -File scripts/backup-db.ps1",
+    "db:reset": "powershell -ExecutionPolicy Bypass -File scripts/reset-db.ps1",
+    "db:doctor": "powershell -ExecutionPolicy Bypass -File scripts/db-doctor.ps1",
+    "backup": "npm run db:backup",
     "seed:demo": "node scripts/seed-loadtest-db.js",
-    "seed:loadtest": "node scripts/seed-loadtest-db.js",
     "verify:publication": "powershell -ExecutionPolicy Bypass -File scripts/verify-publication.ps1"
   },
   "devDependencies": {

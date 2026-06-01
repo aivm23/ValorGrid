@@ -8,4 +8,4 @@ if (-not (Test-Path $node)) {
 }
 
 Set-Location $root
-& $node 'scripts\db-backup.js'
+& $node 'scripts\db-doctor.js'

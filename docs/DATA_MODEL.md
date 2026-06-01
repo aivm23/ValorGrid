@@ -2,6 +2,8 @@
 
 ValorGrid usa SQLite local como base principal. El ledger contable vive en tablas persistentes; las tablas de histórico, snapshots y caché son derivadas o regenerables.
 
+Este documento describe el **schema fresh actual** de la aplicación. No documenta ni mantiene migraciones históricas en runtime.
+
 ## Tablas contables principales
 
 ### `instrument_groups`

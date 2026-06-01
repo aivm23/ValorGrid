@@ -87,7 +87,7 @@ node server.js
 
 ## Dataset demo
 
-El dataset demo es sintético y determinista. No representa una cartera real.
+El dataset demo/loadtest es sintético, determinista y canónico (una sola fuente en `scripts/loadtest-data.js`). No representa una cartera real.
 
 ```powershell
 npm run seed:demo
@@ -102,6 +102,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-loadtest.ps1
 ```
 
 `portfolio.loadtest.sqlite` es regenerable y no debe versionarse.
+
+`seed:demo` es el único comando soportado para poblar la demo.
 
 ## Importaciones de prueba
 
@@ -158,16 +160,30 @@ Antes de publicar una release, revisa [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEA
 Crear backup local:
 
 ```powershell
-npm run backup
+npm run db:backup
 ```
 
-También está disponible por API local con:
+Diagnóstico rápido de DB:
+
+```powershell
+npm run db:doctor
+```
+
+Reset fresh (destructivo, con confirmación):
+
+```powershell
+npm run db:reset
+```
+
+También sigue disponible backup por API local con:
 
 ```text
 POST /api/backups
 ```
 
 Los backups se guardan en `.backups/`, que no debe subirse a Git.
+
+Flujo completo en [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md).
 
 ## Capturas
 
@@ -192,6 +208,7 @@ Los backups se guardan en `.backups/`, que no debe subirse a Git.
 - [docs/DATA_MODEL.md](docs/DATA_MODEL.md): tablas principales y modelo SQLite.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): backend, frontend, histórico e importaciones.
 - [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md): despliegue local con Docker y CasaOS.
+- [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md): backup/reset/doctor/restore manual y política fresh-only.
 - [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md): privacidad práctica, archivos ignorados y publicación segura.
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md): checklist para publicar en GitHub sin datos privados.
 - [GITHUB.md](GITHUB.md): guía de inicialización y subida del repositorio.

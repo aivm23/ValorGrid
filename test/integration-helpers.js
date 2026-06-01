@@ -106,14 +106,6 @@ function seedTestInstrument({ symbol, yahooSymbol, name = symbol, type = 'stock'
   ).run(symbol, yahooSymbol, name, type, currency, color);
 }
 
-function dateRange(fromDate, toDate) {
-  const dates = [];
-  for (let date = new Date(`${fromDate}T00:00:00.000Z`); date <= new Date(`${toDate}T00:00:00.000Z`); date.setUTCDate(date.getUTCDate() + 1)) {
-    dates.push(date.toISOString().slice(0, 10));
-  }
-  return dates;
-}
-
 function createWorkbookBase64(sheetsByName) {
   const workbook = XLSX.utils.book_new();
   for (const [sheetName, rows] of Object.entries(sheetsByName)) {
@@ -131,76 +123,6 @@ function bumpTestMeta(key) {
      VALUES (?, ?, CURRENT_TIMESTAMP)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
   ).run(key, String(current + 1));
-}
-
-function seedSyntheticHistory({ symbols = 12, from = '2021-06-01', to = '2026-05-16' } = {}) {
-  const instrumentInsert = db.prepare(
-    `INSERT OR REPLACE INTO instruments
-      (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active)
-     VALUES (?, ?, ?, 'stock', 'EUR', ?, 0, 10, 1)`,
-  );
-  const dailyInsert = db.prepare(
-    `INSERT OR REPLACE INTO daily_price_cache
-      (yahoo_symbol, date, price, currency, source)
-     VALUES (?, ?, ?, 'EUR', 'synthetic')`,
-  );
-  const rangeInsert = db.prepare(
-    `INSERT OR REPLACE INTO daily_price_cache_ranges (yahoo_symbol, from_date, to_date)
-     VALUES (?, ?, ?)`,
-  );
-  const transactionInsert = db.prepare(
-    `INSERT OR REPLACE INTO transactions
-      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur, color, origin, auto_key)
-     VALUES (?, 'add', ?, ?, ?, ?, ?, ?, ?, 'EUR', 1, ?, 'manual', NULL)`,
-  );
-  const colors = ['#a855f7', '#dc2626', '#16a34a', '#f59e0b', '#0d9488', '#ea580c'];
-  const dates = dateRange(from, to);
-
-  db.exec('BEGIN');
-  try {
-    for (let index = 0; index < symbols; index += 1) {
-      const symbol = `SIM${String(index).padStart(2, '0')}`;
-      const yahooSymbol = `${symbol}.DE`;
-      const color = colors[index % colors.length];
-      instrumentInsert.run(symbol, yahooSymbol, `Synthetic ${index}`, color);
-      rangeInsert.run(yahooSymbol, from, to);
-
-      for (const date of dates) {
-        const days = Math.floor((new Date(`${date}T00:00:00.000Z`) - new Date(`${from}T00:00:00.000Z`)) / 86400000);
-        const price = 8 + index * 0.7 + Math.sin(days / 21 + index) * 1.4 + days * 0.004;
-        dailyInsert.run(yahooSymbol, date, Number(price.toFixed(4)));
-      }
-    }
-
-    for (let monthOffset = 0; monthOffset < 60; monthOffset += 1) {
-      const date = new Date(Date.UTC(2021, 5 + monthOffset, 12));
-      const operationDate = date.toISOString().slice(0, 10);
-      for (let slot = 0; slot < 3; slot += 1) {
-        const symbol = `SIM${String((monthOffset + slot) % symbols).padStart(2, '0')}`;
-        const price = 10 + ((monthOffset + slot) % symbols);
-        const shares = Number((100 / price).toFixed(6));
-        transactionInsert.run(
-          `synthetic-${monthOffset}-${slot}`,
-          symbol,
-          `Synthetic ${symbol}`,
-          operationDate,
-          operationDate,
-          shares,
-          100,
-          price,
-          colors[(monthOffset + slot) % colors.length],
-        );
-      }
-    }
-    db.exec('COMMIT');
-  } catch (error) {
-    db.exec('ROLLBACK');
-    throw error;
-  }
-
-  bumpTestMeta('ledger_version');
-  bumpTestMeta('price_version');
-  db.exec('DELETE FROM history_builds; DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_invalidations;');
 }
 
 let baseUrl;
@@ -269,10 +191,8 @@ module.exports = {
   rollbackImportBatch,
   cachePrice,
   seedTestInstrument,
-  dateRange,
   createWorkbookBase64,
   bumpTestMeta,
-  seedSyntheticHistory,
   startTestServer,
   stopTestServer,
   request,

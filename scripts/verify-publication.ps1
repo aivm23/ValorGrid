@@ -116,6 +116,9 @@ foreach ($file in $publicFiles) {
     $name -like '*.sqlite' -or
     $name -like '*.sqlite-wal' -or
     $name -like '*.sqlite-shm' -or
+    $name -like '*.sqlite.sql' -or
+    $name -like '*.dump' -or
+    $name -like '*.dbdump' -or
     $name -like '*.log' -or
     $name -like '*.out' -or
     $name -like '*.err' -or
@@ -160,6 +163,39 @@ foreach ($file in $publicFiles) {
 
 if ($textLeaks.Count -gt 0) {
   throw "Private or preview text patterns found:$([Environment]::NewLine)$($textLeaks -join [Environment]::NewLine)"
+}
+
+$runtimeFiles = @(
+  Get-ChildItem -Path (Join-Path $root 'src') -Recurse -File
+  Get-ChildItem -Path (Join-Path $root 'scripts') -Recurse -File
+) | Where-Object { $_.Extension -in @('.js', '.ps1', '.sh') }
+
+$alterTableOffenders = @()
+foreach ($file in $runtimeFiles) {
+  $content = Get-Content -Path $file.FullName -Raw
+  if ($content -match '\bALTER\s+TABLE\s+[A-Za-z_][A-Za-z0-9_]*\s+(ADD|RENAME|DROP|ALTER)\b') {
+    $alterTableOffenders += $file.FullName
+  }
+}
+
+if ($alterTableOffenders.Count -gt 0) {
+  throw "ALTER TABLE is forbidden in runtime/scripts for fresh-only policy:$([Environment]::NewLine)$($alterTableOffenders -join [Environment]::NewLine)"
+}
+
+$resetScriptPath = Join-Path $root 'scripts\reset-db.ps1'
+if (-not (Test-Path $resetScriptPath)) {
+  throw 'scripts/reset-db.ps1 is required for DB reset operations'
+}
+
+$resetScript = Get-Content $resetScriptPath -Raw
+if (-not $resetScript.Contains('Type YES to continue')) {
+  throw 'scripts/reset-db.ps1 must require explicit confirmation before destructive reset'
+}
+
+$backupScriptPath = Join-Path $root 'scripts\backup-db.ps1'
+$backupScript = Get-Content $backupScriptPath -Raw
+if (-not $backupScript.Contains('scripts\db-backup.js')) {
+  throw 'scripts/backup-db.ps1 must route through scripts/db-backup.js'
 }
 
 Write-Output "Publication verification passed for version $version."

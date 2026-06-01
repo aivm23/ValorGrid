@@ -9,7 +9,10 @@
 - `npm run check` — run lint + format check + tests
 - `node --test --test-name-pattern "test name" test/portfolio.test.js` — run a single test
 - `npm start` — start server (`node server.js`)
-- `npm run seed:loadtest` — seed demo database with synthetic data
+- `npm run db:backup` — create a local SQLite backup using active DB path resolution
+- `npm run db:reset` — backup + fresh reset of the active SQLite DB
+- `npm run db:doctor` — inspect active DB health, schema, WAL/SHM and backups
+- `npm run seed:demo` — seed canonical synthetic demo dataset
 - `npm run verify:publication` — check no private data leaks before publishing
 - Current baseline keeps runtime simple (CommonJS + Node test runner).
 - Typecheck/build are introduced incrementally by migration phase, never as a big-bang rewrite.
@@ -32,18 +35,19 @@
 - **Target rule for new/refactored code**: prefer grouped dependencies under `ctx.config`, `ctx.cache`, `ctx.logger`, `ctx.repositories`, and `ctx.services` instead of adding more flat top-level functions. Register new APIs directly in `ctx.services.<domain>` or `ctx.repositories.<domain>`.
 - **Physical domain structure (in migration)**: modules are being moved from flat `src/` to `src/domains/<domain>/` to group service + repository + routes by bounded context. Existing `src/app.js` load order and `route-*.js` delegation remain the entry points.
 - **No `with (ctx)`** in backend or frontend modules.
-- **SQLite isolation**: all `node:sqlite` usage goes through `src/db.js`. Never import `node:sqlite` directly elsewhere.
+- **SQLite isolation**: all `node:sqlite` usage goes through `src/platform/db.js`. Never import `node:sqlite` directly elsewhere.
 - **SQL ownership**: SQL lives exclusively in repositories under `ctx.repositories.<domain>`. Services and routes never execute SQL directly. Architecture tests enforce this.
 - **Frontend**: vanilla JS modules in `client/`, orchestrated by root `app.js` loaded from `index.html`. No bundler.
 - **History materialization**: portfolio history is pre-computed and cached, not calculated on every request. Ledger changes trigger invalidation from the affected date forward.
 
 ## Testing
 
-- Test runner: `node:test` (built-in). Seven test files in `test/`.
+- Test runner: `node:test` (built-in). Tests live in `test/` and run against the real app runtime.
 - CI runs on `windows-latest` with Node 24.
 - Tests spin up a real server with an in-memory SQLite DB — they are integration tests, not unit tests.
 - All changes to `src/` services and routes require accompanying tests.
-- Loadtest data (`scripts/loadtest-data.js`) is **demo/presentation only**. Group creation and instrument-to-group assignment live there, not in `src/schema.js`.
+- Demo/loadtest data uses one canonical synthetic dataset in `scripts/loadtest-data.js` (`seed:demo`).
+- Group creation and instrument-to-group assignment for demo/loadtest live there, not in `src/schema.js`.
 - Migration checkpoints run in this order:
   1. focused tests for touched domain(s),
   2. `npm run lint` + `npm run format:check`,
@@ -65,6 +69,13 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 **Rule**: never trust docs blindly. If in doubt, read the source (`src/schema.js`, `src/routes.js`, `src/app.js`) as the source of truth, then fix the docs to match.
 
+## DB Operations Policy
+
+- Fresh-only DB policy: schema is created from `src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
+- Before touching a real DB file, create a backup first with `npm run db:backup`.
+- For schema evolution in test/dev phases, validate with fresh reset (`npm run db:reset`) instead of historical migrations.
+- Restore remains manual and documented; do not add destructive reset endpoints in API/UI.
+
 ## Git
 
 - **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `style:`
@@ -84,7 +95,7 @@ Architecture achieved:
 - Clean layering (routes -> services -> repositories)
 - SQL exclusively in `ctx.repositories.<domain>`
 - Routes split by domain (`route-*.js`)
-- `withTransaction` centralized in `src/db.js`
+- `withTransaction` centralized in `src/platform/db.js`
 - TypeScript strict incremental with JSDoc + `types.ts`
 - `AppError` + validators + `sendError` in all routes
 - `api-client.js` typed frontend wrapper

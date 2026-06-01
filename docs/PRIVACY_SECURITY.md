@@ -54,10 +54,14 @@ Los backups se guardan localmente y no deben versionarse.
 Crear backup:
 
 ```powershell
-npm run backup
+npm run db:backup
 ```
 
-O desde la UI en Administración.
+Diagnóstico rápido:
+
+```powershell
+npm run db:doctor
+```
 
 ## Importaciones
 
