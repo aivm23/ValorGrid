@@ -60,8 +60,11 @@ ctx.services
 
 ## Non-negotiable rules
 
-- `node:sqlite` is allowed only in `src/db.js`.
+- `node:sqlite` is allowed only in `src/platform/db.js`.
 - `src/routes.js` must not execute SQL directly.
+- Fresh-only DB policy: schema is created from `src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
+- Before touching a real DB file, create a backup first with `npm run db:backup`.
+- Restore remains manual; do not add destructive reset endpoints in API/UI.
 - `market-data` must not own ledger logic.
 - `transaction-service` must not execute SQL directly.
 - `onboarding-service` must not execute SQL directly.
@@ -75,7 +78,7 @@ ctx.services
 - `diagnostics-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
 - `backups.js` may execute `PRAGMA wal_checkpoint(FULL)` as controlled backup maintenance exception.
-- SQLite transactions must use `withTransaction` / `withTransactionAsync` from `src/db.js`.
+- SQLite transactions must use `withTransaction` / `withTransactionAsync` from `src/platform/db.js`.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
 - New frontend files should stay under 350 lines.

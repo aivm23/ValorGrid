@@ -7,6 +7,10 @@ Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, 
 - `src/schema.js` es el contrato único de creación de schema.
 - No se permiten migraciones runtime con `ALTER TABLE`.
 - Si cambia el schema durante esta fase, se valida con reset fresh en dev/test.
+- Esta política se verifica en dos niveles:
+  - `test/db-operations.test.js`: escanea `src/` y `scripts/` buscando `ALTER TABLE ... ADD|RENAME|DROP|ALTER`.
+  - `scripts/verify-publication.ps1`: repite el escaneo como gate pre-push.
+- **Invariante**: antes de tocar una DB real, ejecutar `npm run db:backup`. El comando `npm run db:reset` lo hace automáticamente si la DB existe.
 
 ## Resolución de ruta activa
 

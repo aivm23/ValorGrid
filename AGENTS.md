@@ -66,6 +66,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 - **`docs/API.md`** — update when adding, removing, or modifying endpoints in `src/routes.js`. Check that every route handler has a matching entry.
 - **`docs/DATA_MODEL.md`** — update when changing `src/schema.js`. Field names in the doc must match the actual `CREATE TABLE` statements exactly. Add new tables.
 - **`docs/ARCHITECTURE.md`** — update when adding/removing `src/*.js` modules or `client/*.js` modules. The module lists must match the actual directory contents and the load order in `src/app.js`.
+- **`docs/DB_OPERATIONS.md`** — update when changing backup/reset/doctor scripts, DB path resolution, or fresh-only policy invariants.
 
 **Rule**: never trust docs blindly. If in doubt, read the source (`src/schema.js`, `src/routes.js`, `src/app.js`) as the source of truth, then fix the docs to match.
 
