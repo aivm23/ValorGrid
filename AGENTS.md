@@ -68,6 +68,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 - **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `style:`
 - `/save` command reviews changes, runs `npm test`, and pushes. Always run tests before committing.
+- Release tags must use only `v{num_version}` (example: `v2.30.32`). Do not append suffixes, phase labels, or extra text.
 - **Never commit**: `*.sqlite`, `.env`, `data/`, `.backups/`, secrets, tokens, credentials, broker exports, local paths.
 - Run `npm run verify:publication` before any push to ensure private data is not exposed.
 - Working branch is `main` (direct pushes for now).
