@@ -67,6 +67,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 - **`docs/DATA_MODEL.md`** — update when changing `src/schema.js`. Field names in the doc must match the actual `CREATE TABLE` statements exactly. Add new tables.
 - **`docs/ARCHITECTURE.md`** — update when adding/removing `src/*.js` modules or `client/*.js` modules. The module lists must match the actual directory contents and the load order in `src/app.js`.
 - **`docs/DB_OPERATIONS.md`** — update when changing backup/reset/doctor scripts, DB path resolution, or fresh-only policy invariants.
+- **`docs/FINANCIAL_SEMANTICS.md`** — update when changing financial calculations in services. Sign conventions, metric formulas, and helper semantics must match the source code exactly.
 
 **Rule**: never trust docs blindly. If in doubt, read the source (`src/schema.js`, `src/routes.js`, `src/app.js`) as the source of truth, then fix the docs to match.
 
