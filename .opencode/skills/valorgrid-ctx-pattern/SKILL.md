@@ -67,7 +67,12 @@ ctx.services
 - `import-preview` must not query SQLite directly.
 - `history-core` must not execute SQL directly.
 - `history-service` must not execute SQL directly.
+- `meta-state` must not execute SQL directly.
+- `ticker-suggestions` must not execute SQL directly.
+- `portfolio-service` must not execute SQL directly.
+- `diagnostics-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
+- `backups.js` may execute `PRAGMA wal_checkpoint(FULL)` as controlled backup maintenance exception.
 - SQLite transactions must use `withTransaction` / `withTransactionAsync` from `src/db.js`.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
@@ -82,9 +87,12 @@ From `src/app.js`:
 ```text
 schema
 schema-seed
+meta-repository
 meta-state
 utils
 instrument-repository
+portfolio-repository
+ticker-suggestions-repository
 instrument-service
 ticker-suggestions
 market-data-repository
@@ -99,6 +107,7 @@ portfolio-service
 history-repository
 history-core
 history-service
+diagnostics-repository
 diagnostics-service
 routes
 http

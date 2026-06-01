@@ -75,6 +75,28 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     false,
     'history-service must not execute SQL directly',
   );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|app_meta|history_invalidations/.test(read(path.join('src', 'meta-state.js'))),
+    false,
+    'meta-state must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|instrument_identifiers|FROM instruments/.test(read(path.join('src', 'ticker-suggestions.js'))),
+    false,
+    'ticker-suggestions must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM instruments|FROM instrument_groups|FROM transactions|FROM auto_plans/.test(
+      read(path.join('src', 'portfolio-service.js')),
+    ),
+    false,
+    'portfolio-service must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|PRAGMA|FROM history_invalidations/.test(read(path.join('src', 'diagnostics-service.js'))),
+    false,
+    'diagnostics-service must not execute SQL directly',
+  );
   assert.ok(
     read(path.join('src', 'routes.js')).includes("require('./route-instruments')"),
     'routes must delegate to domain route modules',

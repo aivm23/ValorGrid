@@ -69,6 +69,7 @@ Reglas de transición:
 - `ctx.http` se conserva como primitiva Node por compatibilidad; APIs HTTP se agrupan en `ctx.services.http`.
 - No se reintroduce `with (ctx)` en backend ni frontend.
 - SQL nuevo debe vivir en repositories a medida que se introduzcan.
+- `backups.js` es la excepción técnica permitida para mantenimiento SQLite (`PRAGMA wal_checkpoint` antes de copiar backups).
 - Las transacciones SQLite deben usar los helpers de `src/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
 ### `src/`
@@ -91,26 +92,30 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 1. `schema`: creación y evolución idempotente de tablas.
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
-3. `meta-state`: gestión de claves de versión interna (`app_meta`).
-4. `utils`: helpers compartidos (formato, validación, fechas).
-5. `instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-6. `instrument-service`: reglas de negocio y flujo de instrumentos.
-7. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-8. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
-9. `market-data`: precios, Yahoo Finance, caché y FX.
-10. `transaction-repository`: acceso SQL de transacciones, planes automáticos y skips.
-11. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
-12. `import-repository`: acceso SQL de lotes importados, filas, rollback y consultas de matching.
-13. `import-service`: orquestación de importaciones (preview, commit, rollback).
-14. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
-15. `onboarding-service`: wizard de configuración inicial.
-16. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
-17. `history-repository`: acceso SQL de builds, invalidaciones, precios materializados y eventos.
-18. `history-core`: motor de materialización de histórico.
-19. `history-service`: API de histórico, invalidaciones y reconstrucción.
-20. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
-21. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-22. `http`: servidor HTTP estático y listener.
+3. `meta-repository`: acceso SQL de `app_meta` e invalidaciones de histórico.
+4. `meta-state`: gestión de versiones de datos e invalidaciones desde repository.
+5. `utils`: helpers compartidos (formato, validación, fechas).
+6. `instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+7. `portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos para valoración.
+8. `ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
+9. `instrument-service`: reglas de negocio y flujo de instrumentos.
+10. `ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+11. `market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
+12. `market-data`: precios, Yahoo Finance, caché y FX.
+13. `transaction-repository`: acceso SQL de transacciones, planes automáticos y skips.
+14. `transaction-service`: CRUD de transacciones, preview y planes automáticos.
+15. `import-repository`: acceso SQL de lotes importados, filas, rollback y consultas de matching.
+16. `import-service`: orquestación de importaciones (preview, commit, rollback).
+17. `onboarding-repository`: acceso SQL del wizard (grupos, auto-planes y transacción atómica).
+18. `onboarding-service`: wizard de configuración inicial.
+19. `portfolio-service`: resumen de cartera, revisión mensual y métricas.
+20. `history-repository`: acceso SQL de builds, invalidaciones, precios materializados y eventos.
+21. `history-core`: motor de materialización de histórico.
+22. `history-service`: API de histórico, invalidaciones y reconstrucción.
+23. `diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+24. `diagnostics-service`: métricas de rendimiento y tamaños de caché.
+25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+26. `http`: servidor HTTP estático y listener.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -137,11 +142,15 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `route-portfolio.js`: rutas HTTP de portfolio, histórico y onboarding delegadas al dominio.
 - `route-admin.js`: rutas HTTP de administración, backups, export y diagnóstico delegadas al dominio.
 - `instrument-repository.js`: repository de instrumentos, grupos e identificadores.
+- `portfolio-repository.js`: repository de lecturas de portfolio/onboarding y lookup de instrumentos.
+- `ticker-suggestions-repository.js`: repository de sugerencias ticker por identificadores históricos.
 - `market-data-repository.js`: repository de mercado (caché de precios diarios y puntuales).
 - `transaction-repository.js`: repository de transacciones, auto planes y skips.
 - `import-repository.js`: repository de importaciones (batches, rows, rollback y matching contra ledger).
 - `onboarding-repository.js`: repository del wizard de onboarding (persistencia y transacción).
 - `history-repository.js`: repository de histórico (materialización, builds, invalidaciones y eventos).
+- `meta-repository.js`: repository de versiones de datos (`app_meta`) e invalidaciones de histórico.
+- `diagnostics-repository.js`: repository de métricas SQL internas para endpoints de salud/diagnóstico.
 
 `node:sqlite` debe quedar aislado detrás de `src/db.js`.
 
@@ -154,7 +163,7 @@ Baseline de ejecución de esta tanda: `main` local en `HEAD` (ahead de `origin/m
 1. ✅ Reglas de arquitectura documentadas en docs + skill + AGENTS.
 2. ✅ Quality gates graduales (lint/format/typecheck) sin reescritura masiva.
 3. ✅ `ctx` agrupado (`config`, `cache`, `logger`, `services`, `repositories`).
-4. ✅ SQL extraído a repositories por dominio (instruments, transactions, imports, history, market, onboarding).
+4. ✅ SQL extraído a repositories por dominio (meta, suggestions, portfolio, diagnostics, instruments, transactions, imports, history, market, onboarding).
 5. ✅ `routes.js` reducido a delegador que despacha a `route-*.js` por dominio.
 6. ✅ TypeScript incremental activo (`tsconfig.json`, `types.ts`, JSDoc en helpers y repos).
 7. ✅ AppError + validadores de entrada con `sendError` en todas las rutas HTTP.
