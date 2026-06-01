@@ -1925,6 +1925,9 @@ test('portfolio history materialized cache survives server restart and hard relo
 });
 
 test('GET /api/diagnostics/performance reports cache and timing data', async () => {
+  cachePrice('NOV.DE', '2026-05-16', 40);
+  const transaction = await createTransaction({ type: 'add', symbol: 'NVO', date: '2026-05-16', shares: 1 });
+  await buildPortfolioHistory('5y');
   const { response, body } = await jsonRequest('/api/diagnostics/performance');
 
   assert.equal(response.status, 200);
@@ -1938,6 +1941,7 @@ test('GET /api/diagnostics/performance reports cache and timing data', async () 
   assert.ok(Number.isFinite(body.invalidations.pending));
   assert.ok(body.ranges['5y'].ms < 300);
   assert.equal(body.ranges['5y'].granularity, 'weekly');
+  assert.equal(deleteTransaction(transaction.id), true);
 });
 
 test('portfolio history persists daily prices and FX cache', async () => {

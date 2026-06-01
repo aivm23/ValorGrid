@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'historyRanges',
       'buildPortfolioHistory',
       'getDataVersions',
@@ -20,7 +20,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     historyRanges,
     buildPortfolioHistory,
     getDataVersions,
@@ -32,9 +32,20 @@ module.exports = function attach(ctx) {
     getHistoryBuild,
     getTransactions,
   } = ctx;
+  const diagnosticsRepository = repositories.diagnostics || {};
+  const { countRows, getOldestHistoryInvalidationDate, getDatabasePageStats } = diagnosticsRepository;
+  if (typeof countRows !== 'function') {
+    throw new Error('diagnostics-service requires repositories.diagnostics.countRows');
+  }
+  if (typeof getOldestHistoryInvalidationDate !== 'function') {
+    throw new Error('diagnostics-service requires repositories.diagnostics.getOldestHistoryInvalidationDate');
+  }
+  if (typeof getDatabasePageStats !== 'function') {
+    throw new Error('diagnostics-service requires repositories.diagnostics.getDatabasePageStats');
+  }
 
 function tableCount(table) {
-  return db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count;
+  return countRows(table);
 }
 
 async function buildPerformanceDiagnostics() {
@@ -58,7 +69,7 @@ async function buildPerformanceDiagnostics() {
     database: getDatabaseStats(),
     invalidations: {
       pending: tableCount('history_invalidations'),
-      oldest: db.prepare('SELECT MIN(from_date) AS fromDate FROM history_invalidations').get().fromDate,
+      oldest: getOldestHistoryInvalidationDate(),
     },
     counts: {
       instruments: tableCount('instruments'),
@@ -81,9 +92,7 @@ async function buildPerformanceDiagnostics() {
 }
 
 function getDatabaseStats() {
-  const pageCount = db.prepare('PRAGMA page_count').get().page_count;
-  const pageSize = db.prepare('PRAGMA page_size').get().page_size;
-  const journalMode = db.prepare('PRAGMA journal_mode').get().journal_mode;
+  const { pageCount, pageSize, journalMode } = getDatabasePageStats();
   return {
     path: dbPath,
     bytes: pageCount * pageSize,

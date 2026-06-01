@@ -4,7 +4,7 @@ module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
     [
-      'db',
+      'repositories',
       'getToday',
       'getAutoPlans',
       'getAutoPlanScheduledDates',
@@ -26,7 +26,7 @@ module.exports = function attach(ctx) {
   );
 
   const {
-    db,
+    repositories,
     getToday,
     getAutoPlans,
     getAutoPlanScheduledDates,
@@ -44,6 +44,29 @@ module.exports = function attach(ctx) {
     buildLedgerAnalytics,
     getTransactions,
   } = ctx;
+  const portfolioRepository = repositories.portfolio || {};
+  const {
+    findInstrumentBySymbol,
+    countVisibleInstruments,
+    countActiveInstrumentGroups,
+    countTransactions,
+    countAutoPlans,
+  } = portfolioRepository;
+  if (typeof findInstrumentBySymbol !== 'function') {
+    throw new Error('portfolio-service requires repositories.portfolio.findInstrumentBySymbol');
+  }
+  if (typeof countVisibleInstruments !== 'function') {
+    throw new Error('portfolio-service requires repositories.portfolio.countVisibleInstruments');
+  }
+  if (typeof countActiveInstrumentGroups !== 'function') {
+    throw new Error('portfolio-service requires repositories.portfolio.countActiveInstrumentGroups');
+  }
+  if (typeof countTransactions !== 'function') {
+    throw new Error('portfolio-service requires repositories.portfolio.countTransactions');
+  }
+  if (typeof countAutoPlans !== 'function') {
+    throw new Error('portfolio-service requires repositories.portfolio.countAutoPlans');
+  }
 
 function getMonthEndDate(year, month) {
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
@@ -171,7 +194,7 @@ async function buildSummary() {
 }
 
 function dbInstrument(symbol) {
-  return db.prepare('SELECT * FROM instruments WHERE symbol = ?').get(symbol);
+  return findInstrumentBySymbol(symbol);
 }
 
 function withPercentages(items, total) {
@@ -440,12 +463,10 @@ async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {
 }
 
 function buildOnboardingStatus() {
-  const visibleInstrumentCount = db
-    .prepare("SELECT COUNT(*) AS count FROM instruments WHERE type != 'fx' AND active = 1")
-    .get().count;
-  const groupCount = db.prepare('SELECT COUNT(*) AS count FROM instrument_groups WHERE active = 1').get().count;
-  const transactionCount = db.prepare('SELECT COUNT(*) AS count FROM transactions').get().count;
-  const autoPlanCount = db.prepare('SELECT COUNT(*) AS count FROM auto_plans').get().count;
+  const visibleInstrumentCount = countVisibleInstruments();
+  const groupCount = countActiveInstrumentGroups();
+  const transactionCount = countTransactions();
+  const autoPlanCount = countAutoPlans();
   return {
     needsSetup: visibleInstrumentCount === 0,
     hasGroups: groupCount > 0,
