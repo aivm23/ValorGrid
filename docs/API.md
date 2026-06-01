@@ -109,6 +109,7 @@ GET /api/portfolio/history?range=all
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
 - `monthly`: revisión YTD por meses y grupos.
 - `history`: serie histórica materializada diaria/semanal y eventos.
+- Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.
 
 ## Precios
 
