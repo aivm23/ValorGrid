@@ -358,6 +358,7 @@ const logger = {
 
 const repositories = {
   meta: {},
+  suggestions: {},
   instruments: {},
   transactions: {},
   imports: {},
@@ -416,9 +417,11 @@ const ctx = {
 const modules = [
   './schema',
   './schema-seed',
+  './meta-repository',
   './meta-state',
   './utils',
   './instrument-repository',
+  './ticker-suggestions-repository',
   './instrument-service',
   './ticker-suggestions',
   './market-data-repository',

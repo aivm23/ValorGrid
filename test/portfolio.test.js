@@ -1889,6 +1889,7 @@ test('ledger writes invalidate materialized portfolio history versions', async (
   db.exec('DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM history_builds; DELETE FROM history_invalidations;');
   await buildPortfolioHistory('5y');
   const before = db.prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'").get();
+  const beforeVersion = Number(before?.version || 0);
 
   cachePrice('NOV.DE', '2026-05-16', 40);
   const transaction = await createTransaction({ type: 'add', symbol: 'NVO', date: '2026-05-16', shares: 1 });
@@ -1896,7 +1897,8 @@ test('ledger writes invalidate materialized portfolio history versions', async (
   await buildPortfolioHistory('5y');
   const after = db.prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'").get();
 
-  assert.ok(after.version > before.version);
+  assert.ok(after);
+  assert.ok(after.version > beforeVersion);
   assert.equal(db.prepare('SELECT COUNT(*) AS count FROM history_invalidations').get().count, 0);
   assert.equal(deleteTransaction(transaction.id), true);
 });

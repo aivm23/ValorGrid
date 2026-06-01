@@ -38,18 +38,11 @@ function nameHintSuggestions(identity = {}) {
 
 function dbTickerSuggestions(ctx, identity = {}) {
   const isin = String(identity.isin || '').trim().toUpperCase();
-  if (!isin || !ctx?.db) return [];
+  if (!isin) return [];
+  const repository = ctx?.repositories?.suggestions;
+  if (typeof repository?.findGlobalIsinSuggestion !== 'function') return [];
   try {
-    const row = ctx.db
-      .prepare(
-        `SELECT ii.instrument_symbol AS symbol, ii.display_name AS displayName,
-                ii.currency, ii.exchange, i.yahoo_symbol AS yahooSymbol, i.name, i.color
-         FROM instrument_identifiers ii
-         JOIN instruments i ON i.symbol = ii.instrument_symbol
-         WHERE ii.provider = 'global' AND ii.identifier_type = 'isin' AND ii.identifier_value = ?
-         LIMIT 1`,
-      )
-      .get(isin);
+    const row = repository.findGlobalIsinSuggestion(isin);
     if (!row) return [];
     return [{
       yahooSymbol: row.yahooSymbol || row.symbol,

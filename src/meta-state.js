@@ -1,22 +1,24 @@
 const { assertCtxDeps, getCtxDep } = require('./ctx-utils');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['db', 'metaKeys', 'memoryCache'], 'meta-state');
+  assertCtxDeps(ctx, ['repositories', 'metaKeys', 'memoryCache'], 'meta-state');
 
-  const { db, metaKeys, memoryCache } = ctx;
+  const { repositories, metaKeys, memoryCache } = ctx;
+  const metaRepository = repositories.meta || {};
+  const { getMetaNumberByKey, setMetaNumberByKey, insertHistoryInvalidation } = metaRepository;
+  if (typeof getMetaNumberByKey !== 'function') throw new Error('meta-state requires repositories.meta.getMetaNumberByKey');
+  if (typeof setMetaNumberByKey !== 'function') throw new Error('meta-state requires repositories.meta.setMetaNumberByKey');
+  if (typeof insertHistoryInvalidation !== 'function') {
+    throw new Error('meta-state requires repositories.meta.insertHistoryInvalidation');
+  }
 
   function getMetaNumber(key) {
-    const row = db.prepare('SELECT value FROM app_meta WHERE key = ?').get(key);
-    return Number(row?.value || 0);
+    return getMetaNumberByKey(key);
   }
 
   function bumpMetaVersion(key) {
     const nextValue = getMetaNumber(key) + 1;
-    db.prepare(
-      `INSERT INTO app_meta (key, value, updated_at)
-       VALUES (?, ?, CURRENT_TIMESTAMP)
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
-    ).run(key, String(nextValue));
+    setMetaNumberByKey(key, nextValue);
     return nextValue;
   }
 
@@ -32,7 +34,7 @@ module.exports = function attach(ctx) {
     const firstDateFn = ctx.firstTransactionDate;
     const firstDate = typeof firstDateFn === 'function' ? firstDateFn() : null;
     const date = fromDate || firstDate || today;
-    db.prepare('INSERT INTO history_invalidations (from_date, reason) VALUES (?, ?)').run(date, reason);
+    insertHistoryInvalidation(date, reason);
   }
 
   function invalidateLedger(fromDate = null, reason = 'ledger') {
