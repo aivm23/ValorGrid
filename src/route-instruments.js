@@ -1,5 +1,10 @@
 const { resolveRouteHandlers } = require('./route-service-bindings');
 
+function sendError(response, sendJson, error) {
+  const statusCode = error.statusCode || 400;
+  sendJson(response, statusCode, { error: error.message });
+}
+
 module.exports = async function handleInstrumentRoutes(ctx, request, response, url) {
   const {
     sendJson,
@@ -40,7 +45,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 201, { identifier: upsertInstrumentIdentifier(await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -56,7 +61,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 201, { instrument: createInstrument(await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -70,7 +75,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 200, { results: deleteInstruments((await readJsonBody(request)).symbols || []) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -85,7 +90,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 200, { result: deleteInstrument(decodeURIComponent(instrumentMatch[1])) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -99,7 +104,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 201, { group: createInstrumentGroup(await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -108,7 +113,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 200, { results: deleteInstrumentGroups((await readJsonBody(request)).ids || []) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -118,7 +123,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 200, { group: updateInstrumentGroup(decodeURIComponent(groupMatch[1]), await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -127,7 +132,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       sendJson(response, 200, { result: deleteInstrumentGroup(decodeURIComponent(groupMatch[1])) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }

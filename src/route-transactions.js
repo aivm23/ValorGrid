@@ -1,4 +1,10 @@
 const { resolveRouteHandlers } = require('./route-service-bindings');
+const { assertString, assertXor } = require('./validators');
+
+function sendError(response, sendJson, error) {
+  const statusCode = error.statusCode || 400;
+  sendJson(response, statusCode, { error: error.message });
+}
 
 module.exports = async function handleTransactionRoutes(ctx, request, response, url) {
   const {
@@ -20,21 +26,31 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
 
   if (url.pathname === '/api/transactions' && request.method === 'POST') {
     try {
-      const transaction = await createTransaction(await readJsonBody(request));
+      const input = await readJsonBody(request);
+      assertString(input.symbol || input.ticker, 'symbol');
+      assertXor(
+        Number.isFinite(Number(input.euros)) && Number(input.euros) > 0,
+        Number.isFinite(Number(input.shares)) && Number(input.shares) > 0,
+        'euros',
+        'shares',
+      );
+      const transaction = await createTransaction(input);
       sendJson(response, 201, { transaction });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
 
   if (url.pathname === '/api/transactions/preview' && request.method === 'POST') {
     try {
-      const preview = await previewTransaction(await readJsonBody(request));
+      const input = await readJsonBody(request);
+      assertString(input.symbol || input.ticker, 'symbol');
+      const preview = await previewTransaction(input);
       const { instrument, quote, ...payload } = preview;
       sendJson(response, 200, { preview: payload });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -56,7 +72,7 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     try {
       sendJson(response, 200, { preview: previewAutoPlanExecutions((await readJsonBody(request)).autoPlans || []) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -66,7 +82,7 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
       const result = replaceAutoPlans((await readJsonBody(request)).autoPlans || []);
       sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [] });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }

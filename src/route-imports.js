@@ -1,5 +1,10 @@
 const { resolveRouteHandlers } = require('./route-service-bindings');
 
+function sendError(response, sendJson, error) {
+  const statusCode = error.statusCode || 400;
+  sendJson(response, statusCode, { error: error.message });
+}
+
 module.exports = async function handleImportRoutes(ctx, request, response, url) {
   const {
     sendJson,
@@ -18,7 +23,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     try {
       sendJson(response, 200, { preview: previewImport(await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
@@ -27,7 +32,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     try {
       sendJson(response, 200, { suggestions: await searchTickerSuggestions(await readJsonBody(request)) });
     } catch (error) {
-      sendJson(response, 200, { suggestions: [], warning: error.message });
+      sendJson(response, 200, { suggestions: [], warning: error.message || 'suggestion not available' });
     }
     return true;
   }
@@ -36,7 +41,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     try {
       sendJson(response, 201, await commitImport(await readJsonBody(request)));
     } catch (error) {
-      sendJson(response, 400, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }

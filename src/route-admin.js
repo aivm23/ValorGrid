@@ -1,5 +1,10 @@
 const { resolveRouteHandlers } = require('./route-service-bindings');
 
+function sendError(response, sendJson, error) {
+  const statusCode = error.statusCode || 400;
+  sendJson(response, statusCode, { error: error.message });
+}
+
 module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   const {
     sendJson,
@@ -85,7 +90,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
       const quote = await getQuoteForSymbol(url.searchParams.get('symbol'), url.searchParams.get('date'));
       sendJson(response, 200, { quote });
     } catch (error) {
-      sendJson(response, 502, { error: error.message });
+      sendError(response, sendJson, error);
     }
     return true;
   }
