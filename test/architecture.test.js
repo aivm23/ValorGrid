@@ -39,10 +39,10 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
   assert.equal(/\.prepare\(|db\./.test(read(path.join('src', 'routes.js'))), false, 'routes must not run SQL directly');
   assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('src', 'market-data.js'))), false, 'market-data must not own ledger logic');
   assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('src', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
-  assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'domains', 'instruments', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
+  assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('src', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM transactions|INSERT INTO transactions|DELETE FROM transactions|auto_plan_skips|auto_plans/.test(
-      read(path.join('src', 'domains', 'transactions', 'transaction-service.js')),
+      read(path.join('src', 'transaction-service.js')),
     ),
     false,
     'transaction-service must not execute SQL directly',
@@ -98,28 +98,10 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'diagnostics-service must not execute SQL directly',
   );
   assert.ok(
-    read(path.join('src', 'routes.js')).includes("require('./domains/instruments/route-instruments')"),
+    read(path.join('src', 'routes.js')).includes("require('./route-instruments')"),
     'routes must delegate to domain route modules',
   );
-  const instrumentRoutePath = path.join('src', 'domains', 'instruments', 'route-instruments.js');
-  assert.ok(
-    read(instrumentRoutePath).includes('resolveRouteHandlers(ctx)'),
-    'route-instruments must resolve handlers from grouped services',
-  );
-  assert.ok(
-    read(instrumentRoutePath).includes('sendError'),
-    'route-instruments must use AppError-aware sendError helper',
-  );
-  const transactionRoutePath = path.join('src', 'domains', 'transactions', 'route-transactions.js');
-  assert.ok(
-    read(transactionRoutePath).includes('resolveRouteHandlers(ctx)'),
-    'route-transactions must resolve handlers from grouped services',
-  );
-  assert.ok(
-    read(transactionRoutePath).includes('sendError'),
-    'route-transactions must use AppError-aware sendError helper',
-  );
-  for (const file of ['route-imports', 'route-portfolio', 'route-admin']) {
+  for (const file of ['route-instruments', 'route-transactions', 'route-imports', 'route-portfolio', 'route-admin']) {
     assert.ok(
       read(path.join('src', `${file}.js`)).includes('resolveRouteHandlers(ctx)'),
       `${file} must resolve handlers from grouped services`,
@@ -159,8 +141,8 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.match(appSource, /const ctx = \{[\s\S]*\brepositories,/, 'ctx object must expose repositories');
   assert.match(appSource, /const ctx = \{[\s\S]*\bservices,/, 'ctx object must expose services');
   assert.ok(appSource.includes('bindGroupedCtxNamespaces(ctx);'), 'grouped ctx namespaces must be hydrated after module load');
-  const instrumentRepositoryIndex = appSource.indexOf("'./domains/instruments/instrument-repository'");
-  const instrumentServiceIndex = appSource.indexOf("'./domains/instruments/instrument-service'");
+  const instrumentRepositoryIndex = appSource.indexOf("'./instrument-repository'");
+  const instrumentServiceIndex = appSource.indexOf("'./instrument-service'");
   assert.ok(instrumentRepositoryIndex >= 0, 'src/app.js must load instrument-repository module');
   assert.ok(
     instrumentServiceIndex > instrumentRepositoryIndex,
@@ -173,8 +155,8 @@ test('app composition root initializes grouped ctx namespaces', () => {
     marketServiceIndex > marketRepositoryIndex,
     'src/app.js must load market-data-repository before market-data service',
   );
-  const transactionRepositoryIndex = appSource.indexOf("'./domains/transactions/transaction-repository'");
-  const transactionServiceIndex = appSource.indexOf("'./domains/transactions/transaction-service'");
+  const transactionRepositoryIndex = appSource.indexOf("'./transaction-repository'");
+  const transactionServiceIndex = appSource.indexOf("'./transaction-service'");
   assert.ok(transactionRepositoryIndex >= 0, 'src/app.js must load transaction-repository module');
   assert.ok(
     transactionServiceIndex > transactionRepositoryIndex,
