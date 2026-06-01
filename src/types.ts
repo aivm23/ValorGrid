@@ -186,3 +186,53 @@ export interface PriceQuote {
   marketDate: string | null;
   source: string;
 }
+
+/**
+ * Conjunto de handlers HTTP resueltos por resolveRouteHandlers.
+ * Mapa de funciones listas para consumir desde rutas por dominio.
+ */
+export interface RouteHandlers {
+  sendJson: (response: unknown, statusCode: number, payload: unknown) => void;
+  readJsonBody: (request: unknown) => Promise<Record<string, unknown>>;
+  sendText: (response: unknown, statusCode: number, text: string, contentType?: string, headers?: Record<string, string>) => void;
+  getQuoteForSymbol: (symbol: string, date?: string | null) => Promise<PriceQuote & { symbol: string; yahooSymbol: string; cached?: boolean }>;
+  buildHealth: () => unknown;
+  listInstruments: () => Instrument[];
+  listInstrumentIdentifiers: (filters?: Record<string, string | null>) => InstrumentIdentifier[];
+  upsertInstrumentIdentifier: (payload: unknown) => InstrumentIdentifier;
+  deleteInstrumentIdentifier: (id: string) => boolean;
+  createInstrument: (input: unknown) => Instrument;
+  previewInstrumentDelete: (symbols: string[]) => unknown;
+  deleteInstruments: (symbols: string[]) => unknown;
+  updateInstrument: (symbol: string, input: unknown) => Instrument;
+  deleteInstrument: (symbol: string) => unknown;
+  listInstrumentGroups: () => InstrumentGroup[];
+  createInstrumentGroup: (input: unknown) => InstrumentGroup;
+  deleteInstrumentGroups: (ids: string[]) => unknown;
+  updateInstrumentGroup: (id: string, input: unknown) => InstrumentGroup;
+  deleteInstrumentGroup: (id: string) => unknown;
+  buildOnboardingStatus: () => OnboardingStatus;
+  previewOnboardingWizard: (input: unknown) => Promise<unknown>;
+  commitOnboardingWizard: (input: unknown) => Promise<unknown>;
+  getTransactions: () => Transaction[];
+  createTransaction: (input: unknown, options?: unknown) => Promise<Transaction>;
+  previewTransaction: (input: unknown) => Promise<unknown>;
+  deleteTransaction: (id: string) => boolean;
+  getAutoPlans: () => AutoPlan[];
+  previewAutoPlanExecutions: (plans: unknown, toDate?: string) => unknown;
+  replaceAutoPlans: (plans: unknown) => unknown;
+  previewImport: (input: unknown) => unknown;
+  searchTickerSuggestions: (input: unknown) => Promise<unknown>;
+  commitImport: (input: unknown) => Promise<unknown>;
+  listImportBatches: () => ImportBatch[];
+  getImportBatch: (id: string) => ImportBatch | null;
+  getImportRows: (batchId: string) => ImportRow[];
+  rollbackImportBatch: (id: string) => boolean;
+  listImportRollbackLog: () => unknown[];
+  buildSummary: () => Promise<PortfolioSummary>;
+  buildPortfolioPerformance: () => Promise<unknown>;
+  buildMonthly: (year: number) => Promise<unknown>;
+  buildPortfolioHistory: (range: string, granularity: string) => Promise<unknown>;
+  buildPerformanceDiagnostics: () => Promise<unknown>;
+  buildTransactionsCsv: () => string;
+}

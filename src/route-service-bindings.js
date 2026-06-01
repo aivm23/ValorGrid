@@ -1,8 +1,20 @@
+/**
+ * @template T
+ * @param {Record<string, unknown>} service
+ * @param {string} fnName
+ * @param {T} fallback
+ * @returns {T}
+ */
 function pickServiceFn(service, fnName, fallback) {
   const candidate = service?.[fnName];
   return typeof candidate === 'function' ? candidate : fallback;
 }
 
+/**
+ * Resuelve todos los handlers HTTP desde ctx.services.* con fallback a ctx plano.
+ * @param {Record<string, unknown>} ctx
+ * @returns {import('./types').RouteHandlers}
+ */
 function resolveRouteHandlers(ctx) {
   const sharedServices = ctx.services?.shared || {};
   const instrumentServices = ctx.services?.instruments || {};
