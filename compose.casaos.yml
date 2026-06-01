@@ -12,8 +12,8 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - valorgrid-data:/data
-      - valorgrid-backups:/app/.backups
+      - /DATA/AppData/valorgrid/data:/data
+      - /DATA/AppData/valorgrid/backups:/app/.backups
     x-casaos:
       envs:
         - container: HOST
@@ -42,12 +42,6 @@ services:
           description:
             en_US: Persistent backup directory.
             es_ES: Directorio persistente de copias de seguridad.
-
-volumes:
-  valorgrid-data:
-    driver: local
-  valorgrid-backups:
-    driver: local
 
 x-casaos:
   architectures:

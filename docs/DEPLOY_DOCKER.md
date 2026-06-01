@@ -43,10 +43,10 @@ Pasos de prueba previos al envio a AppStore:
 5. Instalar y abrir la Web UI.
 6. Verificar `GET /api/health`.
 
-El compose CasaOS usa volumenes nombrados:
+El compose CasaOS usa bind mounts bajo `/DATA/AppData/valorgrid`, que es la ruta esperada para datos persistentes de apps en CasaOS:
 
-- `valorgrid-data:/data`
-- `valorgrid-backups:/app/.backups`
+- `/DATA/AppData/valorgrid/data:/data`
+- `/DATA/AppData/valorgrid/backups:/app/.backups`
 
 ## Uso personal con latest (sin compose adicional)
 
@@ -87,7 +87,7 @@ npm run db:doctor
 Restore manual:
 
 1. Detener la app/servicio.
-2. Seleccionar backup en `.backups/` (o en el volumen `valorgrid-backups` en CasaOS).
+2. Seleccionar backup en `.backups/` (o en `/DATA/AppData/valorgrid/backups` en CasaOS).
 3. Sustituir la DB activa `portfolio.sqlite` en `/data`.
 4. Arrancar de nuevo el servicio.
 5. Ejecutar `npm run db:doctor` y comprobar `/api/health`.

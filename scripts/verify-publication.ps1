@@ -214,6 +214,26 @@ if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*image:\s*$expectedCasaosImage
   throw "compose.casaos.yml image must match package version tag: $expectedCasaosImage"
 }
 
+$requiredCasaosMounts = @(
+  '/DATA/AppData/valorgrid/data:/data',
+  '/DATA/AppData/valorgrid/backups:/app/.backups'
+)
+foreach ($mount in $requiredCasaosMounts) {
+  if (-not $casaosCompose.Contains($mount)) {
+    throw "compose.casaos.yml must use CasaOS AppData bind mount: $mount"
+  }
+}
+
+foreach ($forbiddenMount in @('valorgrid-data:/data', 'valorgrid-backups:/app/.backups')) {
+  if ($casaosCompose.Contains($forbiddenMount)) {
+    throw "compose.casaos.yml must not use Docker named volume mount for CasaOS AppStore: $forbiddenMount"
+  }
+}
+
+if ([regex]::IsMatch($casaosCompose, "(?m)^volumes:\s*$")) {
+  throw 'compose.casaos.yml must not declare top-level Docker named volumes for CasaOS AppStore'
+}
+
 $requiredCasaosPatterns = @(
   '(?m)^\s*version:\s*["'']?v[0-9]+\.[0-9]+\.[0-9]+["'']?\s*$',
   '(?m)^\s*updateAt:\s*["'']?[0-9]{4}-[0-9]{2}-[0-9]{2}["'']?\s*$',
