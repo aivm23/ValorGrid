@@ -152,6 +152,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 26. `http`: servidor HTTP estático y listener.
 
 **Route modules (cargados por `routes.js`):**
+
 - `domains/instruments/route-instruments.js`
 - `domains/transactions/route-transactions.js`
 - `domains/imports/route-imports.js`

@@ -81,7 +81,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'meta-state must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|instrument_identifiers|FROM instruments/.test(read(path.join('src', 'ticker-suggestions.js'))),
+    /db\.prepare\(|db\.exec\(|instrument_identifiers|FROM instruments/.test(read(path.join('src', 'domains', 'ticker-suggestions', 'ticker-suggestions.js'))),
     false,
     'ticker-suggestions must not execute SQL directly',
   );
@@ -120,7 +120,7 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     );
   }
   assert.equal(
-    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'import-preview.js'))),
+    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('src', 'domains', 'imports', 'import-preview.js'))),
     false,
     'import-preview must not query SQLite directly',
   );

@@ -1,4 +1,4 @@
-const { assertCtxDeps } = require('./ctx-utils');
+const { assertCtxDeps } = require('../../ctx-utils');
 
 const ALLOWED_COUNT_TABLES = new Set([
   'history_invalidations',
