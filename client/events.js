@@ -45,6 +45,7 @@ export function attach(ctx) {
     ctx.renderDashboard();
     ctx.renderHistory?.();
   });
+  elements.ledgerPageSize?.addEventListener('change', ctx.handleLedgerPageSizeChange);
   elements.instrumentDialogClose.addEventListener('click', () => elements.instrumentDialog.close());
   elements.instrumentCancel.addEventListener('click', () => elements.instrumentDialog.close());
   elements.autoDialogClose.addEventListener('click', ctx.closeAutoDialog);
@@ -132,6 +133,10 @@ export function attach(ctx) {
   elements.selectVisibleTransactions?.addEventListener('click', ctx.selectVisibleTransactions);
   elements.deselectAllTransactions?.addEventListener('click', ctx.deselectAllTransactions);
   elements.deleteSelectedTransactions?.addEventListener('click', ctx.deleteSelectedTransactions);
+  elements.ledgerPagination?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-ledger-page]');
+    if (btn) ctx.goToLedgerPage(btn.dataset.ledgerPage);
+  });
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
   elements.toolbarBackup?.addEventListener('click', () => createBackup(ctx));
   elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);

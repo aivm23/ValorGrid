@@ -34,5 +34,6 @@ attachEvents(ctx);
 ctx.initTheme();
 ctx.initBalancePrivacy();
 ctx.initNegativePreference();
+ctx.initLedgerPageSize();
 ctx.refreshDashboard();
 ctx.refreshHistory();

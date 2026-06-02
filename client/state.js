@@ -56,6 +56,7 @@ export function attach(ctx) {
     visibleGroupIds: [],
     selectedTransactionIds: [],
     visibleTransactionIds: [],
+    ledgerPageSize: 1000,
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

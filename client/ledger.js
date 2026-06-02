@@ -17,7 +17,7 @@ export function attach(ctx) {
     const fromDate = elements.ledgerFilterFrom.value;
     const toDate = elements.ledgerFilterTo.value;
     const allTransactions = state.transactions || [];
-    const rows = allTransactions
+    const filtered = allTransactions
       .filter((item) => !symbolFilter || String(item.symbol || '').toUpperCase().includes(symbolFilter))
       .filter((item) => !originFilter || item.origin === originFilter)
       .filter((item) => !typeFilter || item.type === typeFilter)
@@ -25,6 +25,13 @@ export function attach(ctx) {
       .filter((item) => !toDate || item.date <= toDate)
       .slice()
       .reverse();
+
+    const pageSize = state.ledgerPageSize || 1000;
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    const currentPage = Math.min(state.ledgerCurrentPage || 1, totalPages || 1);
+    state.ledgerCurrentPage = currentPage;
+
+    const rows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     state.visibleTransactionIds = rows.map((item) => String(item.id));
     const visibleIds = new Set(state.visibleTransactionIds);
@@ -60,7 +67,7 @@ export function attach(ctx) {
       { invested: 0, withdrawn: 0, commissions: 0, cashFlow: 0 },
     );
     elements.ledgerTotals.innerHTML = `
-      <span>Movimientos: <strong>${rows.length}</strong></span>
+      <span>Movimientos: <strong>${filtered.length}</strong></span>
       <span>Compras: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
       <span>Ventas: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
       <span>Comisiones: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>
@@ -105,7 +112,34 @@ export function attach(ctx) {
           })
           .join('')
       : '<tr><td colspan="10"><div class="empty-action-state"><span class="subtle">Sin movimientos para este filtro.</span></div></td></tr>';
+
+    if (elements.ledgerPagination) {
+      if (totalPages > 1) {
+        elements.ledgerPagination.hidden = false;
+        elements.ledgerPagination.innerHTML = `
+          <button class="button button-compact" type="button" data-ledger-page="prev" ${currentPage === 1 ? 'disabled' : ''}>← Anterior</button>
+          <span class="ledger-page-info">Página ${currentPage} de ${totalPages}</span>
+          <button class="button button-compact" type="button" data-ledger-page="next" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente →</button>
+        `;
+      } else {
+        elements.ledgerPagination.hidden = true;
+        elements.ledgerPagination.innerHTML = '';
+      }
+    }
   }
 
-  Object.assign(ctx, { transactionTypeLabel, transactionOriginLabel, renderLedger });
+  function goToLedgerPage(direction) {
+    const { state } = ctx;
+    const pageSize = state.ledgerPageSize || 1000;
+    const allTransactions = state.transactions || [];
+    const totalPages = Math.ceil(allTransactions.length / pageSize);
+    if (direction === 'prev' && state.ledgerCurrentPage > 1) {
+      state.ledgerCurrentPage--;
+    } else if (direction === 'next' && state.ledgerCurrentPage < totalPages) {
+      state.ledgerCurrentPage++;
+    }
+    renderLedger();
+  }
+
+  Object.assign(ctx, { transactionTypeLabel, transactionOriginLabel, renderLedger, goToLedgerPage });
 }

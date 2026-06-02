@@ -38,6 +38,23 @@ export function attach(ctx) {
     if (ctx.state.history) ctx.renderHistory();
   }
 
+  function applyLedgerPageSize(size) {
+    const pageSize = Number(size) || 1000;
+    ctx.state.ledgerPageSize = pageSize;
+    ctx.localStorage.setItem('valorgrid-ledger-page-size', String(pageSize));
+    if (ctx.elements.ledgerPageSize) ctx.elements.ledgerPageSize.value = String(pageSize);
+    if (ctx.state.transactions) ctx.renderLedger();
+  }
+
+  function initLedgerPageSize() {
+    const saved = ctx.localStorage.getItem('valorgrid-ledger-page-size');
+    applyLedgerPageSize(saved || 1000);
+  }
+
+  function handleLedgerPageSizeChange(event) {
+    applyLedgerPageSize(event.target.value);
+  }
+
   ctx.formatCurrency = function formatCurrencyWithPrivacy(value) {
     return ctx.state.hideBalances ? maskedValue : visibleFormatter(value);
   };
@@ -49,5 +66,8 @@ export function attach(ctx) {
     applyNegativePreference,
     initNegativePreference,
     toggleNegativePreference,
+    applyLedgerPageSize,
+    initLedgerPageSize,
+    handleLedgerPageSizeChange,
   });
 }

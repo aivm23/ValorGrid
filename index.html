@@ -312,6 +312,7 @@
             <tbody id="ledger-rows"></tbody>
           </table>
         </div>
+        <div id="ledger-pagination" class="ledger-pagination" hidden></div>
       </section>
     </main>
 
@@ -647,10 +648,23 @@
         <div class="ops-grid admin-grid">
           <section class="admin-preferences-section">
             <h3>Preferencias</h3>
-            <label class="switch-field admin-preference">
-              <input id="negative-red-toggle" type="checkbox" checked />
-              <span>Mostrar negativos en rojo</span>
-            </label>
+            <div class="preference-row">
+              <label class="switch-field admin-preference">
+                <input id="negative-red-toggle" type="checkbox" checked />
+                <span>Mostrar negativos en rojo</span>
+              </label>
+              <label class="field preference-field">
+                <span>Límite movimientos</span>
+                <select id="ledger-page-size">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="500">500</option>
+                  <option value="1000" selected>1000</option>
+                </select>
+              </label>
+            </div>
             <p class="subtle">Solo cambia la presentación; no modifica ningún dato.</p>
           </section>
           <section>

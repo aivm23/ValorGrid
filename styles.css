@@ -2597,6 +2597,40 @@ td:last-child {
   border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
 }
 
+.preference-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-end;
+}
+
+.preference-field {
+  min-width: 140px;
+  max-width: 180px;
+}
+
+.ledger-pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 12px 0;
+}
+
+.ledger-page-info {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-pagination .button-compact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .admin-grid .button-compact {
   margin-bottom: 12px;
 }
