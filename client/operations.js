@@ -12,7 +12,7 @@ export function attach(ctx) {
       ? `${(performance.commissions / performance.transactionCount).toFixed(2)} €/movimiento`
       : 'sin comisiones';
     ctx.elements.performanceSummary.innerHTML = `
-      <article class="has-border-accent"><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small class="metric-micro">posiciones visibles</small></article>
+      <article class="has-border-accent"><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small class="metric-micro">a precios actuales</small></article>
       <article class="has-border-accent"><span>Aportado neto</span><strong class="${ctx.moneyClass(performance.netContributed)}">${ctx.formatCurrency(performance.netContributed)}</strong><small class="metric-micro">compras - ventas</small></article>
       <article class="${performance.totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado total</span><strong class="${ctx.moneyClass(performance.totalGain)}">${ctx.formatCurrency(performance.totalGain)}</strong><small>${returnCopy}</small></article>
       <article class="${performance.unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Plusvalía latente</span><strong class="${ctx.moneyClass(performance.unrealizedGain)}">${ctx.formatCurrency(performance.unrealizedGain)}</strong><small class="metric-micro">no realizada</small></article>
