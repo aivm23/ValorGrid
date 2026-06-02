@@ -65,10 +65,10 @@ Campos principales:
 Ejemplos:
 
 - `provider = global`, `identifier_type = isin`
-- `provider = degiro`, `identifier_type = product_name`
-- `provider = ibkr`, `identifier_type = contract`
+- `provider = manual`, `identifier_type = ticker`
+- `provider = private_adapter`, `identifier_type = external_reference`
 
-La resolución debe priorizar identificadores confirmados por el usuario sobre heurísticas.
+La resolución debe priorizar identificadores confirmados por el usuario sobre heurísticas. ValorGrid Community no publica adaptadores concretos de broker; los nombres de proveedores privados solo deben existir en repositorios privados Pro/Enterprise.
 
 ### `transactions`
 

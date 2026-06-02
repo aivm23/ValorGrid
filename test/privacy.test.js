@@ -16,6 +16,7 @@ const ignoredDirs = new Set([
   'imports',
   'local',
   'node_modules',
+  '.opencode',
 ]);
 const ignoredFiles = [/^PLAN.*\.md$/i, /^Plan_.*\.md$/i];
 const textExtensions = new Set([
@@ -76,6 +77,13 @@ test('publishable text does not contain local paths or personal import labels', 
     ['start', 'github', 'preview'].join('-'),
     ['SPPW', 'META'].join(', '),
     ['SPPW.DE', 'META'].join(', '),
+    ['DE', 'GIRO'].join(''),
+    ['I', 'BKR'].join(''),
+    ['degiro', 'csv'].join('-'),
+    ['ibkr', 'csv'].join('-'),
+    ['broker', 'degiro'].join('-'),
+    ['transactions', 'export'].join('_'),
+    ['portfolio', 'snapshot'].join('_'),
   ];
   const offenders = [];
 
@@ -101,14 +109,14 @@ test('fresh install configuration does not bundle personal holdings or plans', (
 
 test('gitignore protects local portfolio data and private imports', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env']) {
+  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env', '.opencode/']) {
     assert.ok(gitignore.includes(pattern), `${pattern} is ignored`);
   }
 });
 
 test('dockerignore protects private data from container build context', () => {
   const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
-  for (const pattern of ['.git', '*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups', 'backups', 'data', '.env', 'local', 'imports']) {
+  for (const pattern of ['.git', '*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups', 'backups', 'data', '.env', 'local', 'imports', '.opencode']) {
     assert.ok(dockerignore.includes(pattern), `${pattern} is ignored in Docker build context`);
   }
 });

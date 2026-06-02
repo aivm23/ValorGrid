@@ -34,7 +34,7 @@ dist/
 # Internal planning drafts
 PLAN*.md
 Plan_*.md
-.opencode/plans/
+.opencode/
 
 # Dependencies and editor metadata
 node_modules/

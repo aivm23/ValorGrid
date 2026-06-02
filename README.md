@@ -19,7 +19,7 @@ Está pensada como una herramienta de seguimiento, organización y visualizació
 - Dashboard de distribución actual de cartera.
 - Revisión YTD de evolución, flujos y resultado anual.
 - Registro de movimientos de compra y venta.
-- Importación de CSV/XLSX genéricos y formatos de broker con preview, conciliación y rollback.
+- Importación mediante plantilla Excel oficial de ValorGrid con preview, conciliación y rollback.
 - Histórico de evolución de cartera.
 - Aportaciones automáticas configurables.
 - Backups locales y exportación de movimientos.
@@ -105,17 +105,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-loadtest.ps1
 
 `seed:demo` es el único comando soportado para poblar la demo.
 
-## Importaciones de prueba
+## Importaciones
 
-Hay datasets sintéticos en `samples/` para probar el importador sin usar datos reales.
-
-Ejemplo:
+ValorGrid Community solo acepta la plantilla Excel oficial de ValorGrid. Descargala desde la app o desde:
 
 ```text
-samples/broker-degiro/degiro-transactions-synthetic.csv
+GET /api/import/template.xlsx
 ```
 
-Sirve para validar un flujo de broker con compras, ventas, comisiones, varias divisas, FX, acciones corporativas omitidas y conciliación de instrumentos.
+Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado separado. No deben publicarse en este repositorio Community.
 
 ## Docker
 
@@ -207,6 +205,7 @@ Flujo completo en [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md).
 - [docs/API.md](docs/API.md): endpoints de la API local.
 - [docs/DATA_MODEL.md](docs/DATA_MODEL.md): tablas principales y modelo SQLite.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): backend, frontend, histórico e importaciones.
+- [docs/EDITIONS.md](docs/EDITIONS.md): separacion Community / Pro-Enterprise y frontera de repositorios.
 - [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md): despliegue local con Docker y CasaOS.
 - [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md): backup/reset/doctor/restore manual y política fresh-only.
 - [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md): privacidad práctica, archivos ignorados y publicación segura.

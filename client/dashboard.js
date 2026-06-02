@@ -56,7 +56,7 @@ export function attach(ctx) {
 
   function renderDashboard() {
     const { state, elements } = ctx;
-    if (state.version) elements.appVersion.textContent = `v${state.version}`;
+    if (state.version) elements.appVersion.textContent = `v${state.version} · Community Edition`;
     elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
     if (elements.exportMenu) elements.exportMenu.hidden = Boolean(state.onboarding?.needsSetup);
     ctx.renderSummary();

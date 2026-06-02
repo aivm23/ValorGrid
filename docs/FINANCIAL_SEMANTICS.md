@@ -114,7 +114,7 @@ La plantilla Excel de ValorGrid (`valorgrid-xlsx`) usa las siguientes reglas:
 - `Tipo` (compra/venta) se infiere del signo de `Acciones` si se deja vacio.
 - `Comision EUR` es siempre opcional (por defecto 0).
 
-Estas reglas aplican solo al perfil `valorgrid`. Los perfiles de broker (DEGIRO, IBKR) mantienen sus propias reglas de derivacion de FX.
+Estas reglas aplican al perfil publico `valorgrid`. Los adaptadores privados de ValorGrid Pro/Enterprise deben normalizar sus datos a esta semantica antes de llegar al ledger.
 
 ## Calculos de posicion
 

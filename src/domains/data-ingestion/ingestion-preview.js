@@ -13,7 +13,6 @@ const {
   buildDetectedInstrumentOutput,
   buildImpactPreview,
 } = require('./ingestion-reconcile');
-const { DEGIRO_SUBTYPE_LABELS, fileSubtypeWarnings } = require('./ingestion-labels');
 const { markSkippedSaleDeficit } = require('./ingestion-sale-rules');
 const {
   normalizeMatchText,
@@ -31,7 +30,7 @@ function resolveByHeuristic(ctx, normalized, raw) {
     if (exactSymbol) return exactSymbol;
   }
   const instruments = ctx.listInstruments().filter((item) => item.type !== 'fx');
-  const product = getRawValue(raw, ['Producto', 'Product', 'producto', 'product']);
+  const product = getRawValue(raw, ['Ticker', 'ticker', 'Symbol', 'symbol']) || normalized.symbol;
   const productKey = normalizeMatchText(product);
   if (!productKey) return null;
   for (const instrument of instruments) {
@@ -181,66 +180,6 @@ function applyTimelineValidation(ctx, importRepository, rows) {
 }
 
 
-function reconcileSnapshotRows(ctx, rows, fileSubtype) {
-  if (fileSubtype !== 'portfolio_snapshot') {
-    return { rows, summary: { exactMatches: 0, deltaPositive: 0, deltaNegative: 0, newPositions: 0 } };
-  }
-
-  const summary = { exactMatches: 0, deltaPositive: 0, deltaNegative: 0, newPositions: 0 };
-  const nextRows = rows.map((row) => {
-    if (row.status !== 'valid' || row.normalized?.type !== 'add') return row;
-    const ledgerShares = Number(ctx.getPositionShares(row.normalized.symbol, row.normalized.date) || 0);
-    const snapshotShares = Number(row.normalized.shares || 0);
-    const deltaShares = snapshotShares - ledgerShares;
-    const absDelta = Math.abs(deltaShares);
-
-    const next = {
-      ...row,
-      normalized: { ...row.normalized },
-      ledgerShares,
-      snapshotShares,
-      deltaShares,
-      reconciliationStatus: 'new_position',
-      importStrategy: 'opening_position',
-    };
-
-    if (Math.abs(ledgerShares) <= 0.000001 && snapshotShares > 0) {
-      summary.newPositions += 1;
-      return next;
-    }
-    if (absDelta <= 0.000001) {
-      summary.exactMatches += 1;
-      next.reconciliationStatus = 'match_exact';
-      next.importStrategy = 'skip';
-      next.status = 'duplicate';
-      next.rowKind = 'duplicate_ledger_match';
-      next.ledgerMatch = { reason: 'Snapshot coincide exactamente con el ledger; no se importara.' };
-      return next;
-    }
-    if (deltaShares > 0) {
-      summary.deltaPositive += 1;
-      next.reconciliationStatus = 'delta_positive';
-      next.importStrategy = 'delta_only';
-      next.normalized.shares = Number(deltaShares.toFixed(6));
-      const nextValue = next.normalized.shares * Number(next.normalized.price || 0) * Number(next.normalized.fxToEur || 1);
-      next.normalized.valueEur = Number(nextValue.toFixed(6));
-      next.normalized.cashFlowEur = -(next.normalized.valueEur + Number(next.normalized.commissionEur || 0));
-      rebuildImportIdentity(next.normalized, next.normalized.source || 'degiro-csv', sha256);
-      return next;
-    }
-
-    summary.deltaNegative += 1;
-    next.reconciliationStatus = 'delta_negative';
-    next.importStrategy = 'blocked_review';
-    next.status = 'blocked';
-    next.rowKind = 'blocked';
-    next.errors = [...(next.errors || []), 'Snapshot inferior al ledger actual: revisa antes de importar'];
-    return next;
-  });
-
-  return { rows: nextRows, summary };
-}
-
 function previewImportFactory(ctx, input = {}) {
   const importRepository = ctx.repositories?.imports;
   if (!importRepository) {
@@ -287,7 +226,7 @@ function previewImportFactory(ctx, input = {}) {
     const instrument = normalized.symbol ? ctx.getInstrument(normalized.symbol) || resolution.instrument : null;
     const mappingKey =
       normalized.externalIdentifiers?.map(mappingKeyForIdentifier).find(Boolean) || (normalized.symbol ? `ticker:${normalized.symbol}` : null);
-    const detectedLabel = String(getRawValue(row.data, ['Producto', 'Product', 'producto', 'product']) || normalized.symbol || mappingKey || '').trim();
+    const detectedLabel = String(normalized.symbol || mappingKey || '').trim();
 
     if (mappingKey && !detectedInstruments.has(mappingKey)) {
       detectedInstruments.set(mappingKey, {
@@ -299,7 +238,7 @@ function previewImportFactory(ctx, input = {}) {
             ?.find((item) => String(item.identifierType || '').toLowerCase() === 'isin')
             ?.identifierValue || null,
         currency: normalized.currency || null,
-        exchange: String(getRawValue(row.data, ['Bolsa de referencia', 'Centro de ejecución', 'Centro de ejecucion']) || '').trim() || null,
+        exchange: null,
         resolutionStatus: resolution.resolutionStatus,
         resolutionSource: resolution.matchedBy || null,
         autoResolutionConfidence:
@@ -420,8 +359,6 @@ function previewImportFactory(ctx, input = {}) {
     if (row.status === 'valid' && row.rowKind === 'trade') accepted.push(row.normalized);
   }
 
-  const reconciliation = reconcileSnapshotRows(ctx, rows, fileSubtype);
-  rows = reconciliation.rows;
   const sellOnlyUnresolvedKeys = new Set(Array.from(detectedInstruments.values())
     .filter((item) => item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0)
     .map((item) => item.key));
@@ -452,9 +389,9 @@ function previewImportFactory(ctx, input = {}) {
     source: adapter.source,
     profile: adapter.profile,
     fileSubtype,
-    fileSubtypeLabel: adapter.profile === 'degiro' ? DEGIRO_SUBTYPE_LABELS[fileSubtype] || DEGIRO_SUBTYPE_LABELS.unknown : null,
-    warnings: adapter.profile === 'degiro' ? fileSubtypeWarnings(fileSubtype) : [],
-    reconciliationSummary: reconciliation.summary,
+    fileSubtypeLabel: null,
+    warnings: [],
+    reconciliationSummary: { exactMatches: 0, deltaPositive: 0, deltaNegative: 0, newPositions: 0 },
     filename: input.filename || null,
     fileHash: parsedPayload.fileHash,
     payloadHash: scopedPayloadHash,

@@ -171,13 +171,12 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Sub-módulos de import-service (cargados internamente):**
 
-- `ingestion-parser`: parseo de CSV/XLSX a formato canónico.
+- `ingestion-parser`: parseo de la plantilla XLSX oficial de ValorGrid a formato canónico.
 - `ingestion-preview`: generación de preview y detección de instrumentos.
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: perfiles de broker (DEGIRO, IBKR) y plantilla ValorGrid.
-- `ingestion-labels`: generación de etiquetas y mensajes.
+- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx`.
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
@@ -313,10 +312,10 @@ Fases:
 Fuentes:
 
 - Plantilla Excel de ValorGrid (XLSX).
-- DEGIRO CSV.
-- IBKR CSV.
 
-Los adaptadores de broker solo transforman a un formato normalizado común. La resolución de instrumentos se apoya en identificadores genéricos y confirmaciones del usuario. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
+ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
+
+ValorGrid Pro/Enterprise vive en un repositorio privado separado. Sus adaptadores deben transformar cada fuente privada al mismo formato normalizado que consume Community y no deben publicarse en GitHub publico.
 
 ## Backups
 

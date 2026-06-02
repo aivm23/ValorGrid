@@ -155,8 +155,6 @@ Fuentes soportadas:
 
 ```text
 valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado)
-degiro-csv
-ibkr-csv
 ```
 
 ### Descarga de plantilla
@@ -187,7 +185,9 @@ El flujo recomendado es:
 6. `commit`: inserta solo filas seleccionadas y válidas de forma atómica.
 7. `rollback`: revierte un lote importado si hace falta corregirlo.
 
-Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
+ValorGrid Community solo acepta la plantilla Excel oficial. Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
+
+Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado. No forman parte del contrato publico de Community.
 
 ## Errores
 

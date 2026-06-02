@@ -33,6 +33,7 @@ function Get-PublicFiles {
     'imports',
     'local',
     'node_modules',
+    '.opencode',
     'tmp',
     'temp',
     '.cache'
@@ -147,7 +148,14 @@ $forbiddenTextPatterns = @(
   ('start-' + 'github' + '-preview'),
   ([char]27 + '['),
   ('SPPW' + ', META'),
-  ('SPPW.DE' + ', META')
+  ('SPPW.DE' + ', META'),
+  ('DE' + 'GIRO'),
+  ('I' + 'BKR'),
+  ('degiro' + '-csv'),
+  ('ibkr' + '-csv'),
+  ('broker' + '-degiro'),
+  ('transactions' + '_export'),
+  ('portfolio' + '_snapshot')
 )
 $textLeaks = @()
 
