@@ -30,7 +30,7 @@ http://localhost:5173
 
 El archivo de tienda es `compose.casaos.yml` y usa una imagen versionada:
 
-- `ghcr.io/aivm23/valorgrid:v3.2.2`
+- `ghcr.io/aivm23/valorgrid:v3.2.3`
 
 Esto evita problemas de actualizacion con `latest` en el AppStore de CasaOS.
 
@@ -91,6 +91,8 @@ Restore manual:
 3. Sustituir la DB activa `portfolio.sqlite` en `/data`.
 4. Arrancar de nuevo el servicio.
 5. Ejecutar `npm run db:doctor` y comprobar `/api/health`.
+
+ValorGrid conserva automaticamente los 6 backups mas recientes en el directorio de backups montado.
 
 ## Seguridad
 

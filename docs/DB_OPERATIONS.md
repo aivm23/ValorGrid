@@ -36,6 +36,11 @@ npm run backup
 
 `backup` es alias de `db:backup`.
 
+Retencion:
+
+- Los backups creados por la app, la API o los scripts se guardan en `.backups/`.
+- La app conserva automaticamente los 6 backups mas recientes y elimina los mas antiguos al crear uno nuevo.
+
 ## Flujo recomendado antes de tocar DB real
 
 1. Ejecutar `npm run db:doctor`.

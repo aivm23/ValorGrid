@@ -26,7 +26,7 @@ Principios operativos de la migración:
 - No romper API pública ni semántica funcional en cada fase.
 - Fases pequeñas, pruebas completas y commit por fase.
 - Convivencia temporal de capas legacy y nuevas mientras se reduce acoplamiento.
-- Documentación y skill de arquitectura actualizadas en cada cambio estructural.
+- Documentación de arquitectura actualizada en cada cambio estructural.
 
 ## Raíz del proyecto
 
@@ -119,7 +119,7 @@ Reglas de transición:
 - `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
 - `app.js`: composition root y orquestador de módulos.
 - `app-core.js`: re-export de `app.js`.
-- `schema.js`: creación y evolución idempotente de tablas.
+- `schema.js`: creación fresh idempotente de tablas.
 - `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
 
 **Dominios en `src/domains/`**:
@@ -134,7 +134,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Cargados en bucle `for...of` (orden secuencial):**
 
-1. `schema`: creación y evolución idempotente de tablas.
+1. `schema`: creación fresh idempotente de tablas.
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
@@ -181,47 +181,20 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
 
-**Archivos de plataforma en `src/platform/`:**
-
-- `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
-- `config.js`: host, puerto, rutas, versión y DB activa.
-- `http.js`: servidor HTTP estático y listener.
-- `backups.js`: creación, listado y descarga de backups SQLite.
-- `ctx-utils.js`: helpers de validación de dependencias (`assertCtxDeps`, `getCtxDep`).
-- `validators.js`: validadores de entrada reutilizables (`assertPresent`, `assertPositiveNumber`, etc.).
-- `app-error.js`: clase `AppError` con `statusCode` y `errorCode` para errores estructurados.
-- `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
-
-**Archivos raíz en `src/`:**
-
-- `app-core.js`: re-export de `app.js` (`module.exports = require('./app')`).
-- `app.js`: composition root y orquestador de módulos.
-- `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
-- `route-service-bindings.js`: resolución de handlers HTTP desde `ctx.services.*` con fallback legacy.
-- `schema.js`: creación y evolución idempotente de tablas.
-- `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
-- `types.ts`: interfaces de dominio TypeScript.
-
 `node:sqlite` debe quedar aislado detrás de `src/platform/db.js`.
 
-### Hoja de ruta activa (resumen)
+### Estado actual
 
-La migración a monolito modular con `ctx` agrupado, repositories por dominio y TypeScript incremental está completada al nivel de la versión `2.30.29`. Hitos alcanzados:
+La arquitectura vigente es un monolito modular con `ctx` agrupado, repositories por dominio, rutas delegadas por bounded context, TypeScript incremental con `noEmit` y frontend ESM nativo.
 
-Baseline de ejecución de esta tanda: `main` local en `HEAD` (ahead de `origin/main`) sin rebase previo.
+Reglas que deben mantenerse en cada cambio estructural:
 
-1. ✅ Reglas de arquitectura documentadas en docs + skill + AGENTS.
-2. ✅ Quality gates graduales (lint/format/typecheck) sin reescritura masiva.
-3. ✅ `ctx` agrupado (`config`, `cache`, `logger`, `services`, `repositories`).
-4. ✅ SQL extraído a repositories por dominio (meta, suggestions, portfolio, diagnostics, instruments, transactions, imports, history, market, onboarding).
-5. ✅ `routes.js` reducido a delegador que despacha a `route-*.js` por dominio.
-6. ✅ TypeScript incremental activo (`tsconfig.json`, `types.ts`, JSDoc en helpers y repos).
-7. ✅ AppError + validadores de entrada con `sendError` en todas las rutas HTTP.
-8. ✅ Frontend documentado con `api-client.js` tipado y JSDoc en módulos clave.
+- no romper API pública ni semántica funcional;
+- mantener SQL en repositories y `node:sqlite` aislado en `src/platform/db.js`;
+- preferir `ctx.services.<domain>` y `ctx.repositories.<domain>` para código nuevo o refactorizado;
+- validar con `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` y `npm run verify:publication`.
 
-**Decisión ESM:** el backend se mantiene en CommonJS. El frontend ya usa ESM nativo del navegador. No se introduce `"type": "module"` ni compilación a `dist` en esta versión. La migración TS se apoya en JSDoc + `noEmit` sin cambiar el runtime. Si en el futuro se requiere compilación TS real o ESM en backend, se reevaluará como una fase independiente.
-
-Cada fase se valida con pruebas enfocadas + `npm run lint` + `npm run format:check` + `npm test` + `npm run verify:publication`.
+**Decisión ESM:** el backend se mantiene en CommonJS. El frontend ya usa ESM nativo del navegador. No se introduce `"type": "module"` ni compilación a `dist`. Si en el futuro se requiere compilación TypeScript real o ESM en backend, debe tratarse como fase independiente.
 
 ## Frontend
 

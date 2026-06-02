@@ -135,10 +135,13 @@ La guía completa está en [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md).
 npm test
 ```
 
-Equivalente:
+Checks completos de CI local:
 
 ```powershell
-node --test
+npm run typecheck
+npm run lint
+npm run format:check
+npm test
 ```
 
 La suite incluye comprobaciones de privacidad para evitar publicar rutas locales, bases SQLite, backups o saldos iniciales personales en código.
@@ -182,6 +185,7 @@ POST /api/backups
 ```
 
 Los backups se guardan en `.backups/`, que no debe subirse a Git.
+La app conserva automaticamente los 6 backups mas recientes.
 
 Flujo completo en [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md).
 

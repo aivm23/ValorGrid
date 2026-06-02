@@ -5,10 +5,10 @@ No cambia endpoints ni payloads; solo define como interpretar campos y signos.
 
 Fuentes de verdad actuales:
 
-- `src/transaction-service.js` (`buildLedgerAnalytics`, `buildPortfolioPerformance`)
-- `src/portfolio-service.js` (`buildMonthly`, `summarizeTransactions`)
-- `src/history-service.js` (`enrichSeriesWithContributed`)
-- `src/transaction-service.js` (`previewTransaction`, calculo de `cash_flow_eur`)
+- `src/domains/transactions/transaction-service.js` (`buildLedgerAnalytics`, `buildPortfolioPerformance`, `previewTransaction`, `getPositionShares`)
+- `src/domains/portfolio/portfolio-service.js` (`buildMonthly`, `buildSummary`, `summarizeTransactions`, `withPercentages`, `isEffectiveValuation`, `buildOnboardingStatus`)
+- `src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
+- `src/app.js` (`minimumDisplayValueEur`)
 
 ## Convencion de signos base
 
@@ -166,9 +166,3 @@ Determina si el wizard de configuracion inicial esta completo:
 - `setupComplete = true` si `instruments > 0 AND transactions > 0 AND groups > 0`.
 - Fuente: portfolio-service, se expone en `/api/onboarding/status` y dentro de `buildSummary().onboarding`.
 
-Fuentes de verdad actuales (actualizadas):
-
-- `src/domains/transactions/transaction-service.js` (`buildLedgerAnalytics`, `buildPortfolioPerformance`, `previewTransaction`, `getPositionShares`)
-- `src/domains/portfolio/portfolio-service.js` (`buildMonthly`, `buildSummary`, `summarizeTransactions`, `withPercentages`, `isEffectiveValuation`, `buildOnboardingStatus`)
-- `src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
-- `src/app.js` (`minimumDisplayValueEur`)

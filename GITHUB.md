@@ -61,6 +61,6 @@ Never commit:
 - `imports/` user import files
 - broker exports
 - generated demo databases
-- internal agent instructions
+- local agent workdirs such as `.agents/` or `.opencode/`
 
 Each user should run the app with their own private SQLite database.
