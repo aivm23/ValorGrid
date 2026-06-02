@@ -13,13 +13,15 @@ Use this checklist before creating a repository or pushing code.
 8. Review `git status --short` before staging files.
 9. Stage only public source, tests, docs, CI, examples and portable scripts.
 10. Do not stage:
-   - SQLite databases or sidecar files
-   - backups
-   - logs
-   - `.env`
-   - user import files
-   - generated demo databases
-   - local agent workdirs such as `.agents/` or `.opencode/`
+
+- SQLite databases or sidecar files
+- backups
+- logs
+- `.env`
+- user import files
+- generated demo databases
+- local agent workdirs such as `.agents/` or `.opencode/`
+
 11. Commit locally.
 12. Create the GitHub repository.
 13. Add the remote URL as `origin`.

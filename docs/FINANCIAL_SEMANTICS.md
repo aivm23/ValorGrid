@@ -165,4 +165,3 @@ Determina si el wizard de configuracion inicial esta completo:
 
 - `setupComplete = true` si `instruments > 0 AND transactions > 0 AND groups > 0`.
 - Fuente: portfolio-service, se expone en `/api/onboarding/status` y dentro de `buildSummary().onboarding`.
-

@@ -4,17 +4,17 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 
 ## Archivos de test
 
-| Archivo                            | Lineas | Tests | Dominio      | Cobertura |
-| ---------------------------------- | ------ | ----- | ------------ | --------- |
+| Archivo                            | Lineas | Tests | Dominio      | Cobertura                                                                                                                                                                                      |
+| ---------------------------------- | ------ | ----- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `test/architecture.test.js`        | 260    | 28    | Arquitectura | Reglas estructurales: sin `with(ctx)`, sin `node:sqlite` fuera de `db.js`, sin SQL en services/rutas, limites de tamano, `sendError` en rutas, orden repository -> service y exports estables. |
-| `test/db-operations.test.js`       | 157    | 8     | DB Ops       | Resolucion de path activo, reset con backup, recreacion fresh, doctor, sincronia `DATA_MODEL.md` -> `schema.js`, prohibicion `ALTER TABLE` y canonicalidad de `seed:demo`. |
-| `test/financial-semantics.test.js` | 120    | 5     | Calculos     | `buildPortfolioPerformance`, FIFO realized gain, signos de cash-flow, formulas YTD y `history.series[].contributed`. |
-| `test/frontend-renovation.test.js` | 355    | 24    | Frontend     | Checks de renderizado/markup/CSS: KPI cards, badges, animaciones, tooltips, modulos ESM y clases semanticas usadas por la UI. |
-| `test/imports.test.js`             | 414    | 26    | Importacion  | Plantilla XLSX Community, preview, commit, rollback, divisas, FX manual, seleccion de hoja, rechazo de fuentes legacy, headers de descarga y sample sintetico S&P 500. |
-| `test/portfolio.test.js`           | 634    | 32    | Core CRUD    | Transacciones, instrumentos, grupos, identifiers, auto-plans, backups, health, onboarding, state, quote, export y 404 JSON. |
-| `test/portfolio-history.test.js`   | 576    | 21    | Historico    | Materializacion daily/weekly, invalidacion, cache persistente, restart survival, daily prices/FX, summary, monthly, rangos y dataset demo/loadtest. |
-| `test/privacy.test.js`             | 166    | 8     | Privacidad   | Artefactos SQLite ignorados, paths locales, etiquetas personales, fresh install limpio, `.gitignore`, `.dockerignore` y XLSX publicos sin tokens privados. |
-| `test/integration-helpers.js`      | 201    | -     | Infra        | Helpers compartidos: mock de `fetch`, `cachePrice`, `seedTestInstrument`, `startTestServer`, `jsonRequest`, `registerLifecycle`. |
+| `test/db-operations.test.js`       | 157    | 8     | DB Ops       | Resolucion de path activo, reset con backup, recreacion fresh, doctor, sincronia `DATA_MODEL.md` -> `schema.js`, prohibicion `ALTER TABLE` y canonicalidad de `seed:demo`.                     |
+| `test/financial-semantics.test.js` | 120    | 5     | Calculos     | `buildPortfolioPerformance`, FIFO realized gain, signos de cash-flow, formulas YTD y `history.series[].contributed`.                                                                           |
+| `test/frontend-renovation.test.js` | 355    | 24    | Frontend     | Checks de renderizado/markup/CSS: KPI cards, badges, animaciones, tooltips, modulos ESM y clases semanticas usadas por la UI.                                                                  |
+| `test/imports.test.js`             | 414    | 26    | Importacion  | Plantilla XLSX Community, preview, commit, rollback, divisas, FX manual, seleccion de hoja, rechazo de fuentes legacy, headers de descarga y sample sintetico S&P 500.                         |
+| `test/portfolio.test.js`           | 634    | 32    | Core CRUD    | Transacciones, instrumentos, grupos, identifiers, auto-plans, backups, health, onboarding, state, quote, export y 404 JSON.                                                                    |
+| `test/portfolio-history.test.js`   | 576    | 21    | Historico    | Materializacion daily/weekly, invalidacion, cache persistente, restart survival, daily prices/FX, summary, monthly, rangos y dataset demo/loadtest.                                            |
+| `test/privacy.test.js`             | 166    | 8     | Privacidad   | Artefactos SQLite ignorados, paths locales, etiquetas personales, fresh install limpio, `.gitignore`, `.dockerignore` y XLSX publicos sin tokens privados.                                     |
+| `test/integration-helpers.js`      | 201    | -     | Infra        | Helpers compartidos: mock de `fetch`, `cachePrice`, `seedTestInstrument`, `startTestServer`, `jsonRequest`, `registerLifecycle`.                                                               |
 
 Los recuentos anteriores son orientativos. Si se anaden o eliminan tests, actualizar esta tabla en el mismo cambio.
 

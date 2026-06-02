@@ -200,7 +200,6 @@ test('charts.js sets history subtitle with first date', async () => {
   assert.ok(charts.includes('historySubtitle'), 'charts references historySubtitle element');
   assert.ok(charts.includes('first.date'), 'charts uses first date from series');
   assert.ok(charts.includes('formatPlainDate'), 'charts formats the date');
-  assert.ok(charts.includes('El histórico puede diferir del total visible'), 'charts includes history visibility note');
 });
 
 test('index.html and charts.js render metric info tooltips for visible totals', () => {
@@ -211,7 +210,6 @@ test('index.html and charts.js render metric info tooltips for visible totals', 
   assert.ok(index.includes('Total visible estimado'), 'distribution label updated');
   assert.ok(index.includes('aria-label="Información sobre la métrica"'), 'metric info aria label present in index');
   assert.ok(index.includes('visibles en distribución'), 'distribution tooltip explains visibility');
-  assert.ok(index.includes('El histórico puede diferir del total visible'), 'history subtitle note present in index');
   assert.ok(charts.includes('Último valor histórico'), 'history stat label updated in charts');
   assert.ok(charts.includes('cartera activa materializada en histórico'), 'history tooltip explains materialized portfolio');
   assert.ok(css.includes('.metric-info-button'), 'CSS defines metric info button');

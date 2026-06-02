@@ -190,7 +190,7 @@ export function attach(ctx) {
     if (elements.historySubtitle) {
       elements.historySubtitle.textContent = `Valor total de la cartera desde ${formatPlainDate(
         first.date,
-      )}. El histórico puede diferir del total visible porque no aplica el filtro de visibilidad de distribución.`;
+      )}.`;
     }
   }
 
