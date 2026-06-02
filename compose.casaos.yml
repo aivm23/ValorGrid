@@ -60,7 +60,9 @@ x-casaos:
   screenshot_link:
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/dashboard-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/distribucion-demo.png
+    - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/historico-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/movimientos-demo.png
+    - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/valores-grupos-demo.png
   port_map: "5173"
   scheme: http
   index: /
