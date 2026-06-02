@@ -28,11 +28,12 @@ export function attach(ctx) {
   function renderLegend(items, total, detailBuilder) {
     return [...items]
       .sort((a, b) => (b.value || 0) - (a.value || 0))
-      .map((item) => {
+      .map((item, index) => {
         const isStock = item.symbol === 'STOCK';
         const pct = total > 0 ? (item.value / total) * 100 : 0;
+        const hasSeparator = isStock && index > 0;
 
-        return `
+        return `${hasSeparator ? '<div class="legend-separator"></div>' : ''}
         <article class="legend-row ${isStock ? 'legend-row-button' : ''}" ${
           isStock ? 'role="button" tabindex="0" data-action="toggle-stock-detail"' : ''
         }>
@@ -45,8 +46,7 @@ export function attach(ctx) {
             <strong>${pct.toFixed(1)}%</strong>
             <span>${formatCurrency(item.value || 0)}</span>
           </span>
-        </article>
-      `;
+        </article>`;
       })
       .join('');
   }
@@ -158,18 +158,22 @@ export function attach(ctx) {
     renderHistorySvg(history);
 
     const last = history.series[history.series.length - 1];
+    const first = history.series[0];
     const invested = (history.events || []).reduce((sum, event) => {
       const sign = event.type === 'remove' ? -1 : 1;
       return sum + sign * Number(event.valueEur || 0) + (event.type === 'add' ? Number(event.commissionEur || 0) : 0);
     }, 0);
     elements.historyStats.innerHTML = `
-    <article><span>Valor final</span><strong>${formatCurrency(last.value)}</strong></article>
-    <article><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>
-    <article><span>Eventos visibles</span><strong>${(history.events || []).length}</strong></article>
+    <article class="has-border-accent"><span>Valor final</span><strong>${formatCurrency(last.value)}</strong></article>
+    <article class="has-border-accent"><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>
+    <article class="has-border-violet"><span>Eventos visibles</span><strong>${(history.events || []).length}</strong></article>
   `;
     const quality = history.meta?.dataQuality && history.meta.dataQuality !== 'ok' ? ` - datos ${history.meta.dataQuality}` : '';
     elements.historyStatus.textContent = `${formatCurrency(last.value)} - ${history.series.length} puntos${quality}`;
     elements.historyGranularity.textContent = history.granularity === 'weekly' ? 'Semanal' : 'Diario';
+    if (elements.historySubtitle) {
+      elements.historySubtitle.textContent = `Valor total de la cartera desde ${formatPlainDate(first.date)}.`;
+    }
   }
 
   function renderHistorySvg(history) {
@@ -221,12 +225,20 @@ export function attach(ctx) {
         const tooltip = escapeHtml(eventGroupTooltip(group));
         const eventColor = group.length > 1 ? '#f59e0b' : historyEventColor(group[0]);
         const eventType = group.some((event) => event.type === 'remove') ? 'remove' : 'add';
+        const r = group.length > 1 ? 6 : 5;
         return `
+        <circle
+          class="history-event-ring history-event-ring-${eventType}"
+          cx="${x.toFixed(2)}"
+          cy="${y.toFixed(2)}"
+          r="${r + 2}"
+          style="--event-color: ${eventColor}"
+        ></circle>
         <circle
           class="history-event history-event-${eventType}"
           cx="${x.toFixed(2)}"
           cy="${y.toFixed(2)}"
-          r="${group.length > 1 ? 6 : 5}"
+          r="${r}"
           style="--event-color: ${eventColor}"
           data-tooltip="${tooltip}"
           data-event-index="${index}"
@@ -237,6 +249,16 @@ export function attach(ctx) {
 
     elements.historyChart.innerHTML = `
     <svg class="history-svg" viewBox="0 0 ${width} ${height}" role="presentation" focusable="false">
+      <defs>
+        <linearGradient id="historyLineGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#06b6d4"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+        <linearGradient id="historyAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.01"/>
+        </linearGradient>
+      </defs>
       <line class="history-grid-line" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${
         height - padding.bottom
       }"></line>

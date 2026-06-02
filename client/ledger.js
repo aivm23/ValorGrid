@@ -16,7 +16,8 @@ export function attach(ctx) {
     const typeFilter = elements.ledgerFilterType.value;
     const fromDate = elements.ledgerFilterFrom.value;
     const toDate = elements.ledgerFilterTo.value;
-    const rows = (state.transactions || [])
+    const allTransactions = state.transactions || [];
+    const rows = allTransactions
       .filter((item) => !symbolFilter || String(item.symbol || '').toUpperCase().includes(symbolFilter))
       .filter((item) => !originFilter || item.origin === originFilter)
       .filter((item) => !typeFilter || item.type === typeFilter)
@@ -30,6 +31,22 @@ export function attach(ctx) {
     state.selectedTransactionIds = (state.selectedTransactionIds || []).filter((id) => visibleIds.has(String(id)));
     const selectedIds = new Set(state.selectedTransactionIds);
     const selectedCount = selectedIds.size;
+
+    const hasFilters = symbolFilter || originFilter || typeFilter || fromDate || toDate;
+    if (elements.ledgerFilterInfo) {
+      if (hasFilters) {
+        const parts = [];
+        if (fromDate || toDate) {
+          const fromLabel = fromDate ? ctx.formatDate(fromDate) : 'inicio';
+          const toLabel = toDate ? ctx.formatDate(toDate) : 'hoy';
+          parts.push(`Período: ${fromLabel} – ${toLabel}`);
+        }
+        elements.ledgerFilterInfo.textContent = `Mostrando ${rows.length} de ${allTransactions.length} movimientos${parts.length ? ' · ' + parts.join(' · ') : ''}`;
+        elements.ledgerFilterInfo.hidden = false;
+      } else {
+        elements.ledgerFilterInfo.hidden = true;
+      }
+    }
 
     const totals = rows.reduce(
       (acc, item) => {
@@ -64,23 +81,26 @@ export function attach(ctx) {
       ? rows
           .map((item) => {
             const id = String(item.id);
+            const typeClass = item.type === 'remove' ? 'type-sell' : 'type-buy';
+            const originClass = item.origin === 'auto' ? 'origin-auto' : item.origin === 'import' ? 'origin-import' : 'origin-manual';
+            const isSelected = selectedIds.has(id);
             return `
-          <tr>
+          <tr class="${isSelected ? 'is-selected' : ''}">
             <td data-label="Sel.">
               <label class="row-select row-select-only">
-                <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${selectedIds.has(id) ? 'checked' : ''} aria-label="Seleccionar movimiento ${ctx.escapeHtml(item.symbol)} ${ctx.formatDate(item.date)}" />
+                <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${isSelected ? 'checked' : ''} aria-label="Seleccionar movimiento ${ctx.escapeHtml(item.symbol)} ${ctx.formatDate(item.date)}" />
                 <span class="sr-only">Seleccionar</span>
               </label>
             </td>
             <td data-label="Fecha">${ctx.formatDate(item.date)}</td>
             <td data-label="Ticker">${ctx.escapeHtml(item.symbol)}</td>
-            <td data-label="Tipo">${transactionTypeLabel(item.type)}</td>
+            <td data-label="Tipo"><span class="type-badge ${typeClass}">${transactionTypeLabel(item.type)}</span></td>
             <td data-label="Acciones">${ctx.formatShareNumber(item.shares)}</td>
             <td data-label="Precio">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>
             <td data-label="Valor">${ctx.formatCurrency(Number(item.valueEur))}</td>
             <td data-label="Comisión">${ctx.formatCurrency(Number(item.commissionEur || 0))}</td>
             <td data-label="Cash-flow"><span class="${ctx.moneyClass(Number(item.cashFlowEur || 0))}">${ctx.formatCurrency(Number(item.cashFlowEur || 0))}</span></td>
-            <td data-label="Origen">${transactionOriginLabel(item.origin)}</td>
+            <td data-label="Origen"><span class="origin-badge ${originClass}">${transactionOriginLabel(item.origin)}</span></td>
           </tr>`;
           })
           .join('')

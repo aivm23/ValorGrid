@@ -196,8 +196,8 @@ export function attach(ctx) {
           color: ctx.assetColor(entry.symbol, entry.color),
           start,
           end,
-          dx: Math.cos(mid) * 15,
-          dy: Math.sin(mid) * 15,
+          dx: Math.cos(mid) * 4,
+          dy: Math.sin(mid) * 4,
         };
       }
       start = end;
@@ -250,8 +250,20 @@ export function attach(ctx) {
       clearActiveDonutSegment(ctx.elements.stockChart);
       return;
     }
-    showDonutTooltipForItem(item, event);
+    showStockDonutTooltipForItem(item, event);
     setActiveDonutSegment(item, ctx.elements.stockChart, items);
+  }
+
+  function showStockDonutTooltipForItem(item, event) {
+    const tooltip = ctx.elements.donutTooltip;
+    tooltip.innerHTML = `
+      <div class="donut-tooltip-title">${ctx.escapeHtml(item.name)}</div>
+      <div class="donut-tooltip-total">${ctx.formatCurrency(Number(item.value || 0))}</div>
+    `;
+    tooltip.hidden = false;
+    tooltip.classList.remove('is-touch');
+    tooltip.dataset.pinned = 'false';
+    moveDonutTooltip(event);
   }
 
   function hideStockDonutTooltip() {
@@ -262,7 +274,9 @@ export function attach(ctx) {
   function pinStockDonutTooltip(event) {
     const item = detailItemFromChartPoint(event);
     if (!item) return;
-    showDonutTooltipForItem(item, event, { pinned: true });
+    showStockDonutTooltipForItem(item, event);
+    ctx.elements.donutTooltip.classList.add('is-touch');
+    ctx.elements.donutTooltip.dataset.pinned = 'true';
     setActiveDonutSegment(item, ctx.elements.stockChart, detailItemsForChart());
   }
 
@@ -307,7 +321,12 @@ export function attach(ctx) {
         })
       : '<p class="subtle">Sin posiciones para desglosar.</p>';
 
-    elements.priceStatus.textContent = `Precios actualizados desde Yahoo Finance - ${ctx.formatDateTime(summary.updatedAt)}`;
+    const updated = summary.updatedAt ? new Date(summary.updatedAt) : null;
+    const now = new Date();
+    const freshness = updated ? Math.round((now - updated) / 3600000) : null;
+    const freshnessIcon = freshness === null ? '⚪' : freshness < 1 ? '🟢' : freshness < 24 ? '🟡' : '🔴';
+    const freshnessLabel = freshness === null ? '' : freshness < 1 ? 'hace <1h' : freshness < 24 ? `hace ${freshness}h` : `hace ${Math.round(freshness / 24)}d`;
+    elements.priceStatus.textContent = `${freshnessIcon} Precios actualizados desde Yahoo Finance - ${ctx.formatDateTime(summary.updatedAt)} ${freshnessLabel ? `(${freshnessLabel})` : ''}`;
   }
 
   Object.assign(ctx, {

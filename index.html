@@ -203,7 +203,7 @@
         <div class="panel-header">
           <div>
             <h2 id="tracking-title">Revisión YTD</h2>
-            <p class="subtle">
+            <p id="ytd-subtitle" class="subtle">
               Evolución del año en curso, flujos y desglose mensual por grupos.
             </p>
           </div>
@@ -216,7 +216,7 @@
         <div class="panel-header">
           <div>
             <h2 id="history-title">Histórico</h2>
-            <p class="subtle">Valor total de la cartera desde la primera inversión.</p>
+            <p id="history-subtitle" class="subtle">Valor total de la cartera desde la primera inversión.</p>
           </div>
           <div class="history-controls" aria-label="Filtro histórico">
             <button class="button history-range" type="button" data-history-range="all">Todo</button>
@@ -248,7 +248,7 @@
         <div class="ledger-filters">
           <label class="field">
             <span>Ticker</span>
-            <input id="ledger-filter-symbol" placeholder="Todos" />
+            <input id="ledger-filter-symbol" placeholder="Filtrar por símbolo..." />
           </label>
           <label class="field">
             <span>Origen</span>
@@ -276,6 +276,7 @@
             <input id="ledger-filter-to" type="date" />
           </label>
         </div>
+        <div id="ledger-filter-info" class="ledger-filter-info" hidden></div>
         <div id="ledger-totals" class="ledger-totals"></div>
         <div class="bulk-toolbar ledger-bulk-toolbar">
           <span id="ledger-selection-count" class="subtle">0 movimientos seleccionados</span>
@@ -576,12 +577,12 @@
           <span>Fuente de datos</span>
           <select id="import-source" aria-label="Formato de importación">
             <option value="valorgrid-xlsx">Plantilla Excel de ValorGrid</option>
-            <option value="degiro-csv" disabled>DEGIRO · Profesional</option>
-            <option value="ibkr-csv" disabled>Interactive Brokers · Profesional · Próximamente</option>
+            <option value="degiro-csv" disabled>DEGIRO - Profesional Edition</option>
+            <option value="ibkr-csv" disabled>Interactive Brokers - Profesional Edition - Próximamente</option>
           </select>
           <span class="import-source-teaser" aria-label="Fuentes profesionales disponibles">
-            <span class="import-source-badge import-source-badge-pro">DEGIRO · Profesional</span>
-            <span class="import-source-badge import-source-badge-soon">Interactive Brokers · Próximamente</span>
+            <span class="import-source-badge import-source-badge-pro">DEGIRO - <em>Profesional Edition</em></span>
+            <span class="import-source-badge import-source-badge-soon">Interactive Brokers - <em>Profesional Edition</em> - <em>Próximamente</em></span>
           </span>
         </label>
 

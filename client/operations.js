@@ -5,13 +5,17 @@ export function attach(ctx) {
       ctx.elements.performanceSummary.innerHTML = '<article><span>Rentabilidad</span><strong>Pendiente</strong></article>';
       return;
     }
+    const total = ctx.state.summary.total || 0;
+    const pctOfTotal = total > 0 ? ((performance.netContributed / total) * 100).toFixed(1) : '0.0';
+    const unrealizedPct = performance.netContributed !== 0 ? ((performance.unrealizedGain / Math.abs(performance.netContributed)) * 100).toFixed(1) : '0.0';
+    const avgCommission = performance.transactionCount > 0 ? (performance.commissions / performance.transactionCount).toFixed(2) : '0.00';
     ctx.elements.performanceSummary.innerHTML = `
-      <article><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small>valor actual estimado</small></article>
-      <article><span>Aportado neto</span><strong class="${ctx.moneyClass(performance.netContributed)}">${ctx.formatCurrency(performance.netContributed)}</strong><small>compras + comisiones - ventas</small></article>
-      <article><span>Resultado total</span><strong class="${ctx.moneyClass(performance.totalGain)}">${ctx.formatCurrency(performance.totalGain)}</strong><small>${ctx.formatPercent(performance.simpleReturnPct)}</small></article>
-      <article><span>Plusvalía latente</span><strong class="${ctx.moneyClass(performance.unrealizedGain)}">${ctx.formatCurrency(performance.unrealizedGain)}</strong><small>valor no realizado</small></article>
-      <article><span>Plusvalía realizada</span><strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong><small>FIFO estimado</small></article>
-      <article><span>Comisiones</span><strong>${ctx.formatCurrency(performance.commissions)}</strong><small>${performance.transactionCount} movimientos</small></article>
+      <article class="has-border-accent"><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small class="metric-micro">${pctOfTotal}% del total</small></article>
+      <article class="has-border-accent"><span>Aportado neto</span><strong class="${ctx.moneyClass(performance.netContributed)}">${ctx.formatCurrency(performance.netContributed)}</strong><small class="metric-micro">${performance.transactionCount} movimientos</small></article>
+      <article class="${performance.totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado total</span><strong class="${ctx.moneyClass(performance.totalGain)}">${ctx.formatCurrency(performance.totalGain)}</strong><small>${ctx.formatPercent(performance.simpleReturnPct)}</small></article>
+      <article class="${performance.unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Plusvalía latente</span><strong class="${ctx.moneyClass(performance.unrealizedGain)}">${ctx.formatCurrency(performance.unrealizedGain)}</strong><small class="metric-micro">${unrealizedPct}% sobre aportado</small></article>
+      <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Plusvalía realizada</span><strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong><small>FIFO estimado</small></article>
+      <article class="has-border-amber"><span>Comisiones</span><strong>${ctx.formatCurrency(performance.commissions)}</strong><small class="metric-micro">${avgCommission} €/movimiento</small></article>
     `;
   }
 

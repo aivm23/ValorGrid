@@ -9,6 +9,13 @@ export function attach(ctx) {
 
     elements.monthlySummary.innerHTML = renderYtdSummary(summary);
 
+    const monthCount = completedMonths.length;
+    if (elements.ytdSubtitle) {
+      elements.ytdSubtitle.textContent = monthCount > 0
+        ? `Evolución del año en curso, flujos y desglose mensual por grupos. ${monthCount} de 12 meses con datos.`
+        : 'A la espera del primer movimiento del año.';
+    }
+
     if (!completedMonths.length) {
       elements.monthlyTracking.innerHTML = `
         <div class="empty-action-state ytd-empty">
@@ -26,13 +33,16 @@ export function attach(ctx) {
   }
 
   function renderYtdSummary(summary) {
+    const currentValue = Number(summary.currentValue || 0);
+    const valueStart = Number(summary.valueStart || 0);
+    const ytdPct = valueStart > 0 ? ((currentValue - valueStart) / valueStart * 100).toFixed(1) : '0.0';
     return `
-      <article><span>Valor inicial</span><strong>${ctx.formatCurrency(Number(summary.valueStart || 0))}</strong><small>inicio del año</small></article>
-      <article><span>Aportado neto</span><strong class="${ctx.moneyClass(Number(summary.netContributed || 0))}">${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small>compras + comisiones - ventas</small></article>
-      <article><span>Valor actual</span><strong>${ctx.formatCurrency(Number(summary.currentValue || 0))}</strong><small>${summary.latestMonth ? ctx.escapeHtml(summary.latestMonth) : 'sin mes cerrado'}</small></article>
-      <article><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small>compras del año</small></article>
-      <article><span>Retiradas</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small>ventas del año</small></article>
-      <article><span>Resultado YTD</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
+      <article class="has-border-accent"><span>Valor inicial</span><strong>${ctx.formatCurrency(valueStart)}</strong><small class="metric-micro">inicio del año</small></article>
+      <article class="has-border-accent"><span>Aportado neto</span><strong class="${ctx.moneyClass(Number(summary.netContributed || 0))}">${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small class="metric-micro">${Number(summary.completedMonths || 0)} meses</small></article>
+      <article class="has-border-accent"><span>Valor actual</span><strong>${ctx.formatCurrency(currentValue)}</strong><small class="metric-micro">${ytdPct}% YTD</small></article>
+      <article class="has-border-positive"><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small class="metric-micro">compras del año</small></article>
+      <article class="has-border-negative"><span>Retiradas</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small class="metric-micro">ventas del año</small></article>
+      <article class="${Number(summary.resultYtd || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado YTD</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
     `;
   }
 
