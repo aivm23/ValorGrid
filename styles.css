@@ -638,6 +638,16 @@ h2 {
   color: var(--text);
   cursor: pointer;
   padding: 0;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 100ms ease;
+}
+
+.balance-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+}
+
+.balance-toggle:active {
+  transform: scale(0.97);
 }
 
 .eye-icon {
@@ -675,6 +685,15 @@ h2 {
   background: transparent;
   cursor: pointer;
   padding: 0;
+  transition: transform 100ms ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+}
+
+.theme-toggle:active {
+  transform: scale(0.97);
 }
 
 .theme-toggle-track {
