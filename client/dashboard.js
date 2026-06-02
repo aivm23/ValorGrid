@@ -30,6 +30,7 @@ export function attach(ctx) {
       state.onboarding = summary.onboarding || null;
       state.monthly = monthly;
       state.version = appInfo.version;
+      state.edition = appInfo.edition || 'community';
       state.transactions = transactionData.transactions || [];
       state.instruments = instrumentData.instruments || [];
       state.groups = groupData.groups || [];
@@ -56,7 +57,12 @@ export function attach(ctx) {
 
   function renderDashboard() {
     const { state, elements } = ctx;
-    if (state.version) elements.appVersion.textContent = `v${state.version} · Community Edition`;
+    if (state.version) {
+      const numEl = elements.appVersion.querySelector('.app-version-num');
+      const edEl = elements.appVersion.querySelector('.app-edition');
+      if (numEl) numEl.textContent = `v${state.version}`;
+      if (edEl) edEl.textContent = state.edition === 'professional' ? 'Profesional Edition' : 'Community Edition';
+    }
     elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
     if (elements.exportMenu) elements.exportMenu.hidden = Boolean(state.onboarding?.needsSetup);
     ctx.renderSummary();

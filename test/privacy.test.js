@@ -31,6 +31,12 @@ const textExtensions = new Set([
   '.txt',
   '.yml',
 ]);
+const publicBrokerTeaserTokens = new Set([
+  ['DE', 'GIRO'].join(''),
+  ['I', 'BKR'].join(''),
+  ['degiro', 'csv'].join('-'),
+  ['ibkr', 'csv'].join('-'),
+]);
 
 function publicFiles(dir = root, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -43,6 +49,10 @@ function publicFiles(dir = root, files = []) {
     files.push(path.join(dir, entry.name));
   }
   return files;
+}
+
+function allowsPublicBrokerTeaser(file) {
+  return path.relative(root, file) === 'index.html';
 }
 
 test('private database artifacts are ignored and not publishable', () => {
@@ -91,6 +101,7 @@ test('publishable text does not contain local paths or personal import labels', 
     if (!textExtensions.has(path.extname(file))) continue;
     const text = fs.readFileSync(file, 'utf8');
     for (const item of forbidden) {
+      if (allowsPublicBrokerTeaser(file) && publicBrokerTeaserTokens.has(item)) continue;
       if (text.includes(item)) offenders.push(`${path.relative(root, file)} contains ${item}`);
     }
   }
@@ -107,7 +118,7 @@ test('fresh install configuration does not bundle personal holdings or plans', (
   assert.equal(schemaSource.includes(privateImportToken), false);
 });
 
-test('gitignore protects local portfolio data and private imports', () => {
+test('gitignore protects local portfolio data and user import files', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
   for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env', '.opencode/']) {
     assert.ok(gitignore.includes(pattern), `${pattern} is ignored`);

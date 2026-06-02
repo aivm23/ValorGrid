@@ -7,9 +7,12 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '../..')
   const defaultDbPath = fs.existsSync(legacyDbPath)
     ? legacyDbPath
     : path.join(root, 'data', 'portfolio.sqlite');
+  const edition = String(env.VALORGRID_EDITION || 'community').trim().toLowerCase() === 'professional'
+    ? 'professional'
+    : 'community';
 
   return {
-    appInfo: { version },
+    appInfo: { version, edition },
     root,
     port: Number(env.PORT || 5173),
     host: env.HOST || '127.0.0.1',

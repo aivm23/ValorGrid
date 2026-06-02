@@ -27,6 +27,7 @@ Reglas:
 
 - El repositorio privado se gestiona mediante GitHub CLI cuando el entorno tenga `gh` instalado y autenticado.
 - El nombre operativo recomendado del repositorio privado es `ValorGrid-PRO`.
+- En desarrollo local debe vivir como repositorio hermano de Community, no dentro de carpetas de imports.
 - Los adaptadores privados deben convertir cada fuente al mismo payload normalizado que consume Community.
 - La semantica financiera final debe ser identica a `docs/FINANCIAL_SEMANTICS.md`.
 - Las pruebas privadas deben cubrir parseo, normalizacion, FX, deduplicacion, ventas, comisiones, rollback y errores de formato.
@@ -39,8 +40,29 @@ Community no carga codigo privado por defecto. La integracion Pro/Enterprise deb
 - Sin cambios obligatorios en endpoints HTTP Community.
 - Sin dependencias privadas en `package.json` publico.
 - Sin fixtures privados en `test/`, `samples/`, `docs/` ni `src/`.
-- Sin nombres de fuentes privadas en selects, mensajes o contratos publicos.
+- Sin nombres de fuentes privadas en parser, servicios, endpoints, fixtures, docs tecnicas o contratos publicos.
+- Se permite nombrar fuentes privadas en la UI publica como teaser comercial, siempre deshabilitadas en Community.
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
+
+## Desarrollo Local
+
+Estructura recomendada:
+
+```text
+C:\Projects\ValorGrid      # Community publico
+C:\Projects\ValorGrid-PRO  # PRO privado
+C:\Projects\ValorGrid\imports  # archivos de importacion del usuario, ignorados por Git
+```
+
+Para arrancar la app en modo profesional durante desarrollo local:
+
+```powershell
+$env:VALORGRID_EDITION = "professional"
+$env:VALORGRID_PRO_ADAPTERS_PATH = "C:\Projects\ValorGrid-PRO"
+npm start
+```
+
+`VALORGRID_PRO_ADAPTERS_PATH` apunta al repositorio privado hermano. `imports/` queda reservado a archivos del usuario y no debe usarse para clonar codigo.
 
 ## Publicacion
 

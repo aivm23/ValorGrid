@@ -224,10 +224,20 @@ p {
 }
 
 .app-version {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.2;
+  gap: 2px;
+}
+
+.app-edition {
+  font-size: 0.6rem;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .eyebrow {
@@ -975,6 +985,39 @@ h3 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.import-source-teaser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.import-source-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.import-source-badge-pro {
+  color: #0f766e;
+  border-color: color-mix(in srgb, #14b8a6 42%, var(--line));
+  background: color-mix(in srgb, #14b8a6 9%, var(--card));
+}
+
+.import-source-badge-soon {
+  color: #b45309;
+  border-color: color-mix(in srgb, #f59e0b 42%, var(--line));
+  background: color-mix(in srgb, #f59e0b 10%, var(--card));
 }
 
 .import-step-body {

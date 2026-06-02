@@ -29,7 +29,7 @@ git status --short
 git commit -m "Prepare public local portfolio dashboard"
 ```
 
-If `git status` shows SQLite databases, backups, logs, generated files or private imports, stop and fix `.gitignore` before committing.
+If `git status` shows SQLite databases, backups, logs, generated files or user import files, stop and fix `.gitignore` before committing.
 
 ## Create The Remote
 
@@ -58,7 +58,7 @@ Never commit:
 - `.env`
 - `config.local.*`
 - `local/`
-- `imports/`
+- `imports/` user import files
 - broker exports
 - generated demo databases
 - internal agent instructions

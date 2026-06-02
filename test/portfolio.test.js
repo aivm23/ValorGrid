@@ -152,6 +152,7 @@ test('GET /api/version returns the app version', async () => {
 
   assert.equal(response.status, 200);
   assert.match(body.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(body.edition, 'community');
 });
 
 test('API version matches package.json', async () => {

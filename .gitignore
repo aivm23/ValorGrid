@@ -6,7 +6,7 @@ data/
 .backups/
 backups/
 
-# Local configuration and private import scripts
+# Local configuration and user import files
 .env
 .env.*
 !.env.example
@@ -14,7 +14,6 @@ config.local.*
 /local/
 /imports/
 /downloads/
-/private-imports/
 
 # Runtime logs and launch captures
 *.log

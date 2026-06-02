@@ -50,7 +50,7 @@
               <img src="./assets/brand/valorgrid-logo.png" alt="" width="1254" height="1254" />
               <span>ValorGrid</span>
             </span>
-            <span id="app-version" class="app-version" aria-label="Versión de la aplicación"></span>
+            <span id="app-version" class="app-version" aria-label="Versión de la aplicación"><span class="app-version-num"></span><span class="app-edition"></span></span>
             <button id="onboarding-wizard" class="calendar-button" type="button" aria-label="Alta guiada">
               <span class="plus-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Empezar</span>
@@ -576,7 +576,13 @@
           <span>Fuente de datos</span>
           <select id="import-source" aria-label="Formato de importación">
             <option value="valorgrid-xlsx">Plantilla Excel de ValorGrid</option>
+            <option value="degiro-csv" disabled>DEGIRO · Profesional</option>
+            <option value="ibkr-csv" disabled>Interactive Brokers · Profesional · Próximamente</option>
           </select>
+          <span class="import-source-teaser" aria-label="Fuentes profesionales disponibles">
+            <span class="import-source-badge import-source-badge-pro">DEGIRO · Profesional</span>
+            <span class="import-source-badge import-source-badge-soon">Interactive Brokers · Próximamente</span>
+          </span>
         </label>
 
         <div class="import-file-zone" id="import-file-zone">

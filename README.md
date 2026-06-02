@@ -29,7 +29,7 @@ Está pensada como una herramienta de seguimiento, organización y visualizació
 
 ValorGrid se ejecuta en local. La app escucha por defecto en `127.0.0.1`, no requiere login y no sincroniza datos con servidores externos.
 
-El repositorio no debe contener datos reales de cartera. Las bases SQLite, backups, configuración local e importaciones privadas están ignoradas por Git.
+El repositorio no debe contener datos reales de cartera. Las bases SQLite, backups, configuración local y archivos de importación del usuario están ignorados por Git.
 
 ```text
 código del repositorio

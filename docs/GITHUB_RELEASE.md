@@ -16,7 +16,7 @@ Use this checklist before creating a repository or pushing code.
    - backups
    - logs
    - `.env`
-   - private imports
+   - user import files
    - generated demo databases
    - internal agent instructions
 10. Commit locally.

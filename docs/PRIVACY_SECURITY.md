@@ -105,7 +105,7 @@ Antes de publicar:
 
 1. Ejecuta `npm run verify:publication`.
 2. Revisa `git status --short`.
-3. Asegúrate de que no aparecen SQLite, backups, `.env`, imports privados ni logs.
+3. Asegúrate de que no aparecen SQLite, backups, `.env`, archivos de importación del usuario ni logs.
 4. Revisa [docs/GITHUB_RELEASE.md](GITHUB_RELEASE.md).
 
 ## SECURITY.md

@@ -17,7 +17,7 @@ GET /api/state
 GET /api/diagnostics/performance
 ```
 
-- `GET /api/version`: devuelve la versión definida en `package.json`.
+- `GET /api/version`: devuelve la versión definida en `package.json` y la edición (`community` o `professional`).
 - `GET /api/health`: devuelve estado local, ruta de base de datos activa, versiones internas y último build histórico.
 - `GET /api/state`: devuelve el estado completo de la aplicación: instrumentos, grupos, movimientos, planes automáticos y ruta de base de datos activa.
 - `GET /api/diagnostics/performance`: devuelve métricas de rendimiento, tamaños de caché e invalidaciones pendientes.
