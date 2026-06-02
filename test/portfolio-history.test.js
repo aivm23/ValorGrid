@@ -173,7 +173,14 @@ test('automatic plans support weekly, biweekly, monthly backfill, and stable aut
   assert.ok(autoKeys.includes('auto:BIW1:2026-05-06'));
   assert.ok(autoKeys.includes('auto:MON1:2026-01-03'));
   assert.ok(autoKeys.includes('auto:MON1:2026-05-03'));
-  assert.equal(autoKeys.filter((key) => key.startsWith('auto:MON1:')).length, 5);
+  const today = new Date();
+  const startYear = 2026;
+  const startMonth = 1;
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const totalMonths = (currentYear - startYear) * 12 + currentMonth - startMonth + 1;
+  const expectedMon1 = today.getDate() < 3 ? totalMonths - 1 : totalMonths;
+  assert.equal(autoKeys.filter((key) => key.startsWith('auto:MON1:')).length, expectedMon1);
 
   const beforeCount = autoKeys.length;
   await jsonRequest('/api/portfolio/summary');
@@ -199,10 +206,13 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZA'").get().count, 0);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Atomic'").get().count, 0);
 
+  const needsConfirmation = preview.body?.preview?.requiresRetroactiveConfirmation;
+  const commitPayload = { ...payload };
+  if (needsConfirmation) commitPayload.confirmRetroactive = true;
   const commit = await jsonRequest('/api/onboarding/wizard/commit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(commitPayload),
   });
   assert.equal(commit.response.status, 201);
   assert.equal(getPositionShares('WIZA') > 0, true);
