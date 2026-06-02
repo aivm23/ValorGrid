@@ -292,7 +292,7 @@ const memoryCache = new Map();
 const memoryCacheTtlMs = 5 * 60 * 1000;
 
 const stockColors = ['#0d9488', '#9333ea', '#ea580c', '#0891b2', '#be123c'];
-const currentYear = 2026;
+const currentYear = new Date().getFullYear();
 const minimumDisplayValueEur = 0.01;
 const metaKeys = {
   ledgerVersion: 'ledger_version',
