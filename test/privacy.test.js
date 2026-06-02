@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const XLSX = require('../vendor/xlsx.full.min.js');
 
 const root = path.resolve(__dirname, '..');
 const ignoredDirs = new Set([
@@ -104,6 +105,38 @@ test('publishable text does not contain local paths or personal import labels', 
       if (allowsPublicBrokerTeaser(file) && publicBrokerTeaserTokens.has(item)) continue;
       if (text.includes(item)) offenders.push(`${path.relative(root, file)} contains ${item}`);
     }
+  }
+
+  assert.deepEqual(offenders, []);
+});
+
+test('public XLSX sample files do not contain private broker tokens', () => {
+  const forbidden = [
+    ['DE', 'GIRO'].join(''),
+    ['I', 'BKR'].join(''),
+    ['degiro', 'csv'].join('-'),
+    ['ibkr', 'csv'].join('-'),
+    ['broker', 'degiro'].join('-'),
+    ['transactions', 'export'].join('_'),
+    ['portfolio', 'snapshot'].join('_'),
+  ];
+  const offenders = [];
+
+  for (const file of publicFiles()) {
+    if (path.extname(file) !== '.xlsx') continue;
+    const buffer = fs.readFileSync(file);
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    workbook.SheetNames.forEach((sheetName) => {
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
+      rows.forEach((row) => {
+        const text = row.map((cell) => String(cell)).join(' ');
+        for (const item of forbidden) {
+          if (text.toLowerCase().includes(item.toLowerCase())) {
+            offenders.push(`${path.relative(root, file)} sheet ${sheetName} contains ${item}`);
+          }
+        }
+      });
+    });
   }
 
   assert.deepEqual(offenders, []);

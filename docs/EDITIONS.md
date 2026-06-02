@@ -17,6 +17,7 @@ Reglas:
 - El formato publico no incluye adaptadores concretos de broker.
 - No se publican muestras de exportaciones privadas.
 - No se publican fixtures, tests, nombres de fuente ni parser logic de brokers concretos.
+- Las muestras sintéticas en `samples/valorgrid-template/` usan tickers reales del S&P 500 pero datos de movimientos ficticios; no contienen datos de broker.
 - Toda importacion termina normalizada en el ledger comun de `transactions`.
 
 ## ValorGrid Pro/Enterprise

@@ -77,6 +77,8 @@ Los CSV/XLSX reales de broker pueden contener:
 
 No deben guardarse en el repositorio. Usa `samples/` solo para fixtures sintéticos.
 
+El test de privacidad escanea los archivos `.xlsx` públicos (en `samples/`) para bloquear tokens de broker, ISIN reales y nombres de fuentes privadas.
+
 ## Yahoo Finance
 
 ValorGrid puede consultar Yahoo Finance para precios. La app no envía tu ledger completo a Yahoo, pero sí puede consultar símbolos de mercado concretos.

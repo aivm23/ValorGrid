@@ -113,6 +113,8 @@ ValorGrid Community solo acepta la plantilla Excel oficial de ValorGrid. Descarg
 GET /api/import/template.xlsx
 ```
 
+Un ejemplo sintético con tickers reales del S&P 500 está disponible en `samples/valorgrid-template/`. Los datos de movimientos son ficticios y no representan una cartera real.
+
 Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado separado. No deben publicarse en este repositorio Community.
 
 ## Docker
