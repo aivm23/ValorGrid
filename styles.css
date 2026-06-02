@@ -3067,6 +3067,27 @@ td:last-child {
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
+.field input[type='date'] {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.field input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  filter: invert(var(--icon-invert, 0));
+}
+
+:root:not(.dark) {
+  --icon-invert: 0;
+}
+
+:root.dark {
+  --icon-invert: 1;
+}
+
 .field input:focus,
 .field select:focus {
   outline: none;
