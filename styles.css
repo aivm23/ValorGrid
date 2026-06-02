@@ -1817,10 +1817,12 @@ tbody tr {
 
 tbody tr:hover {
   background: color-mix(in srgb, var(--accent) 4%, var(--card));
+  cursor: pointer;
 }
 
 tbody tr.is-selected {
   background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  cursor: pointer;
 }
 
 tbody tr:last-child td {

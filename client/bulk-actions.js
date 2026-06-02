@@ -19,6 +19,17 @@ export function attach(ctx) {
     ctx.renderLedger();
   }
 
+  function toggleTransactionRow(event) {
+    const row = event.target.closest('tr[data-transaction-id]');
+    if (!row || event.target.closest('[data-select-transaction]')) return;
+    const id = row.dataset.transactionId;
+    const selected = new Set(ctx.state.selectedTransactionIds || []);
+    if (selected.has(id)) selected.delete(id);
+    else selected.add(id);
+    ctx.state.selectedTransactionIds = [...selected];
+    ctx.renderLedger();
+  }
+
   function updateGroupSelection(event) {
     const checkbox = event.target.closest('[data-select-group]');
     if (!checkbox) return;
@@ -181,6 +192,7 @@ export function attach(ctx) {
     updateInstrumentSelection,
     updateTransactionSelection,
     updateGroupSelection,
+    toggleTransactionRow,
     selectVisibleTransactions,
     selectVisibleInstruments,
     selectVisibleGroups,

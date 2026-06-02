@@ -85,7 +85,7 @@ export function attach(ctx) {
             const originClass = item.origin === 'auto' ? 'origin-auto' : item.origin === 'import' ? 'origin-import' : 'origin-manual';
             const isSelected = selectedIds.has(id);
             return `
-          <tr class="${isSelected ? 'is-selected' : ''}">
+          <tr class="${isSelected ? 'is-selected' : ''}" data-transaction-id="${ctx.escapeHtml(id)}">
             <td data-label="Sel.">
               <label class="row-select row-select-only">
                 <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${isSelected ? 'checked' : ''} aria-label="Seleccionar movimiento ${ctx.escapeHtml(item.symbol)} ${ctx.formatDate(item.date)}" />

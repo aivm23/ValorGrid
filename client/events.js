@@ -128,6 +128,7 @@ export function attach(ctx) {
   elements.ledgerFilterFrom.addEventListener('change', ctx.renderLedger);
   elements.ledgerFilterTo.addEventListener('change', ctx.renderLedger);
   elements.ledgerRows.addEventListener('change', ctx.updateTransactionSelection);
+  elements.ledgerRows.addEventListener('click', ctx.toggleTransactionRow);
   elements.selectVisibleTransactions?.addEventListener('click', ctx.selectVisibleTransactions);
   elements.deselectAllTransactions?.addEventListener('click', ctx.deselectAllTransactions);
   elements.deleteSelectedTransactions?.addEventListener('click', ctx.deleteSelectedTransactions);
