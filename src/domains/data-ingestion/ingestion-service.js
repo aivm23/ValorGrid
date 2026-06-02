@@ -1,5 +1,6 @@
 const { previewImportFactory } = require('./ingestion-preview');
 const { createImportEntityHelpers } = require('./ingestion-entities');
+const { generateTemplateXlsx } = require('./template-generator');
 const { assertCtxDeps } = require('../../platform/ctx-utils');
 
 function insertImportBatch(importRepository, preview, mapping) {
@@ -169,5 +170,6 @@ module.exports = function attach(ctx) {
     getImportRows,
     rollbackImportBatch,
     listImportRollbackLog,
+    getImportTemplate: generateTemplateXlsx,
   });
 };

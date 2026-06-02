@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const XLSX = require('../vendor/xlsx.full.min.js');
 const {
   assert,
   db,
@@ -13,27 +14,30 @@ const {
   seedTestInstrument,
   createWorkbookBase64,
   jsonRequest,
+  request,
   registerLifecycle,
 } = require('./integration-helpers');
 
 registerLifecycle(test);
-test('CSV import preview is read-only and commit is atomic and idempotent', async () => {
+test('valorgrid-xlsx import preview is read-only and commit is atomic and idempotent', async () => {
   seedTestInstrument({ symbol: 'IMPA', yahooSymbol: 'IMPA', name: 'Import A', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'tipo;ticker;fecha;acciones;precio;divisa;valor EUR;comision',
-    'C;IMPA;01/05/2026;2;10;EUR;20;1',
-    'V;IMPA;02/05/2026;1;12;EUR;12;0.5',
-  ].join('\n');
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/05/2026', 'IMPA', '2', '10', 'EUR', '', '20', '1', ''],
+      ['venta', '02/05/2026', 'IMPA', '1', '12', 'EUR', '', '12', '0.5', ''],
+    ],
+  });
 
   const beforeTransactions = db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA'").get().count;
-  const preview = previewImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  const preview = previewImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.summary.buys, 1);
   assert.equal(preview.summary.sells, 1);
   assert.equal(preview.summary.errorCount, 0);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA'").get().count, beforeTransactions);
 
-  const committed = commitImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  const committed = commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(committed.batch.status, 'committed');
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA' AND origin = 'import'").get().count, 2);
   const imported = getTransactions().filter((item) => item.symbol === 'IMPA');
@@ -42,40 +46,44 @@ test('CSV import preview is read-only and commit is atomic and idempotent', asyn
   assert.equal(imported[1].cashFlowEur, 11.5);
   assert.equal(Number(getPositionShares('IMPA', '2026-05-03').toFixed(4)), 1);
 
-  const repeated = commitImport({ source: 'csv', filename: 'import-test.csv', content: csv });
+  const repeated = commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(repeated.batch.id, committed.batch.id);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPA' AND origin = 'import'").get().count, 2);
 });
 
-test('CSV import skips invalid sales by default with a clear existing-empty-position reason', () => {
+test('valorgrid-xlsx import skips invalid sales by default with a clear existing-empty-position reason', () => {
   seedTestInstrument({ symbol: 'IMPB', yahooSymbol: 'IMPB', name: 'Import B', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'sell,IMPB,2026-05-01,4,10,EUR,40',
-  ].join('\n');
-  const preview = previewImport({ source: 'csv', content: csv });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['venta', '01/05/2026', 'IMPB', '4', '10', 'EUR', '', '40', '', ''],
+    ],
+  });
+  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'skipped');
   assert.equal(preview.rows[0].blockReasonCode, 'existing_empty_position');
   assert.match(preview.rows[0].blockReasonMessage, /instrumento existe/i);
-  const committed = commitImport({ source: 'csv', content: csv });
+  const committed = commitImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(committed.summary.skippedCount, 1);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPB'").get().count, 0);
 });
 
-test('CSV import impact and commit use only selected rows', () => {
+test('valorgrid-xlsx import impact and commit use only selected rows', () => {
   seedTestInstrument({ symbol: 'IMPS1', yahooSymbol: 'IMPS1', name: 'Import Selected One', type: 'stock', currency: 'EUR' });
   seedTestInstrument({ symbol: 'IMPS2', yahooSymbol: 'IMPS2', name: 'Import Selected Two', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'buy,IMPS1,2026-05-01,1,10,EUR,10',
-    'buy,IMPS2,2026-05-02,3,20,EUR,60',
-  ].join('\n');
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/05/2026', 'IMPS1', '1', '10', 'EUR', '', '10', '', ''],
+      ['compra', '02/05/2026', 'IMPS2', '3', '20', 'EUR', '', '60', '', ''],
+    ],
+  });
 
   const selected = previewImport({
-    source: 'csv',
-    filename: 'selected-rows.csv',
-    content: csv,
+    source: 'valorgrid-xlsx',
+    filename: 'selected-rows.xlsx',
+    contentBase64,
     rowActions: { 2: 'import', 3: 'skip' },
   });
   assert.equal(selected.canCommit, true);
@@ -85,9 +93,9 @@ test('CSV import impact and commit use only selected rows', () => {
   assert.equal(selected.impactPreview.totalValueEur, 10);
 
   const committed = commitImport({
-    source: 'csv',
-    filename: 'selected-rows.csv',
-    content: csv,
+    source: 'valorgrid-xlsx',
+    filename: 'selected-rows.xlsx',
+    contentBase64,
     rowActions: { 2: 'import', 3: 'skip' },
   });
   assert.equal(committed.summary.buys, 1);
@@ -95,26 +103,30 @@ test('CSV import impact and commit use only selected rows', () => {
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IMPS2' AND origin = 'import'").get().count, 0);
 });
 
-test('CSV import rejects historical rows that would break future ledger positions', async () => {
+test('valorgrid-xlsx import rejects historical rows that would break future ledger positions', async () => {
   seedTestInstrument({ symbol: 'IMPD', yahooSymbol: 'IMPD', name: 'Import D', type: 'stock', currency: 'EUR' });
   await createTransaction({ type: 'add', symbol: 'IMPD', date: '2026-05-01', shares: 2 });
   await createTransaction({ type: 'remove', symbol: 'IMPD', date: '2026-05-10', shares: 1 });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'sell,IMPD,2026-05-05,2,10,EUR,20',
-  ].join('\n');
-  const preview = previewImport({ source: 'csv', content: csv });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['venta', '05/05/2026', 'IMPD', '2', '10', 'EUR', '', '20', '', ''],
+    ],
+  });
+  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, false);
   assert.match(preview.rows[0].errors.join(' '), /necesita compras anteriores/);
 });
 
-test('CSV import API exposes preview, commit, list, detail and rollback', async () => {
+test('valorgrid-xlsx import API exposes preview, commit, list, detail and rollback', async () => {
   seedTestInstrument({ symbol: 'IMPC', yahooSymbol: 'IMPC', name: 'Import C', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur,commissionEur',
-    'buy,IMPC,2026-05-03,3,5,EUR,15,0.25',
-  ].join('\n');
-  const payload = { source: 'csv', filename: 'api-import.csv', content: csv };
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '03/05/2026', 'IMPC', '3', '5', 'EUR', '', '15', '0.25', ''],
+    ],
+  });
+  const payload = { source: 'valorgrid-xlsx', filename: 'api-import.xlsx', contentBase64 };
   const preview = await jsonRequest('/api/import/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -153,16 +165,18 @@ test('CSV import API exposes preview, commit, list, detail and rollback', async 
 test('import rollback allows reimporting the same file hash with a different selected subset', () => {
   seedTestInstrument({ symbol: 'IRB1', yahooSymbol: 'IRB1', name: 'Import Rollback One', type: 'stock', currency: 'EUR' });
   seedTestInstrument({ symbol: 'IRB2', yahooSymbol: 'IRB2', name: 'Import Rollback Two', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'buy,IRB1,2026-05-01,1,10,EUR,10',
-    'buy,IRB2,2026-05-02,2,20,EUR,40',
-  ].join('\n');
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/05/2026', 'IRB1', '1', '10', 'EUR', '', '10', '', ''],
+      ['compra', '02/05/2026', 'IRB2', '2', '20', 'EUR', '', '40', '', ''],
+    ],
+  });
 
   const first = commitImport({
-    source: 'csv',
-    filename: 'rollback-reimport.csv',
-    content: csv,
+    source: 'valorgrid-xlsx',
+    filename: 'rollback-reimport.xlsx',
+    contentBase64,
     rowActions: { 2: 'import', 3: 'skip' },
   });
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IRB1' AND origin = 'import'").get().count, 1);
@@ -170,9 +184,9 @@ test('import rollback allows reimporting the same file hash with a different sel
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol IN ('IRB1', 'IRB2') AND origin = 'import'").get().count, 0);
 
   const second = commitImport({
-    source: 'csv',
-    filename: 'rollback-reimport.csv',
-    content: csv,
+    source: 'valorgrid-xlsx',
+    filename: 'rollback-reimport.xlsx',
+    contentBase64,
     rowActions: { 2: 'skip', 3: 'import' },
   });
   assert.equal(second.batch.id, first.batch.id);
@@ -180,30 +194,30 @@ test('import rollback allows reimporting the same file hash with a different sel
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'IRB2' AND origin = 'import'").get().count, 1);
 });
 
-test('XLSX generic import supports sheet selection and atomic commit', () => {
+test('valorgrid-xlsx import supports sheet selection and atomic commit', () => {
   seedTestInstrument({ symbol: 'IMXE', yahooSymbol: 'IMXE', name: 'Import XLSX', type: 'stock', currency: 'EUR' });
   const contentBase64 = createWorkbookBase64({
-    Sheet1: [
-      ['type', 'symbol', 'date', 'shares', 'price', 'currency', 'valueEur'],
-      ['buy', 'IMXE', '2026-05-05', 1, 20, 'EUR', 20],
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '05/05/2026', 'IMXE', '1', '20', 'EUR', '', '20', '', ''],
     ],
     Ops: [
-      ['tipo', 'ticker', 'fecha', 'acciones', 'precio', 'divisa', 'valor EUR', 'comision'],
-      ['C', 'IMXE', '06/05/2026', 2, 10, 'EUR', 20, 0.5],
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '06/05/2026', 'IMXE', '2', '10', 'EUR', '', '20', '0.5', ''],
     ],
   });
 
   const previewDefault = previewImport({
-    source: 'generic-xlsx',
+    source: 'valorgrid-xlsx',
     filename: 'import.xlsx',
     contentBase64,
   });
-  assert.equal(previewDefault.selectedSheet, 'Sheet1');
+  assert.equal(previewDefault.selectedSheet, 'Movimientos');
   assert.equal(previewDefault.sheets.length, 2);
   assert.equal(previewDefault.canCommit, true);
 
   const previewOps = previewImport({
-    source: 'generic-xlsx',
+    source: 'valorgrid-xlsx',
     filename: 'import.xlsx',
     contentBase64,
     sheetName: 'Ops',
@@ -213,7 +227,7 @@ test('XLSX generic import supports sheet selection and atomic commit', () => {
   assert.equal(previewOps.summary.errorCount, 0);
 
   const committed = commitImport({
-    source: 'generic-xlsx',
+    source: 'valorgrid-xlsx',
     filename: 'import.xlsx',
     contentBase64,
     sheetName: 'Ops',
@@ -223,23 +237,23 @@ test('XLSX generic import supports sheet selection and atomic commit', () => {
   assert.equal(Number(getPositionShares('IMXE', '2026-05-07').toFixed(4)), 2);
 });
 
-test('XLSX import API accepts sheetName and returns selected sheet metadata', async () => {
+test('valorgrid-xlsx import API accepts sheetName and returns selected sheet metadata', async () => {
   seedTestInstrument({ symbol: 'IMXF', yahooSymbol: 'IMXF', name: 'Import XLSX API', type: 'stock', currency: 'EUR' });
   const contentBase64 = createWorkbookBase64({
     A: [
-      ['type', 'symbol', 'date', 'shares', 'price', 'currency', 'valueEur'],
-      ['buy', 'IMXF', '2026-05-10', 1, 10, 'EUR', 10],
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '10/05/2026', 'IMXF', '1', '10', 'EUR', '', '10', '', ''],
     ],
     B: [
-      ['tipo', 'ticker', 'fecha', 'acciones', 'precio', 'divisa', 'valor EUR'],
-      ['C', 'IMXF', '11/05/2026', 2, 10, 'EUR', 20],
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '11/05/2026', 'IMXF', '2', '10', 'EUR', '', '20', '', ''],
     ],
   });
 
   const preview = await jsonRequest('/api/import/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ source: 'generic-xlsx', filename: 'api.xlsx', contentBase64, sheetName: 'B' }),
+    body: JSON.stringify({ source: 'valorgrid-xlsx', filename: 'api.xlsx', contentBase64, sheetName: 'B' }),
   });
   assert.equal(preview.response.status, 200);
   assert.equal(preview.body.preview.selectedSheet, 'B');
@@ -287,7 +301,7 @@ test('DEGIRO Transactions.csv format maps signed quantity, fees and subtype corr
   ).run();
 
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '24-12-2025,16:42,META PLATFORMS INC CLASS A,US30303M1027,NDQ,EDGX,-1,\"666,0000\",USD,\"666,00\",USD,\"565,37\",\"1,1780\",\"-1,41\",\"-2,00\",\"561,96\",,7cb1ac97-9905-4bfa-8bc1-5ba1a643cf7d',
   ].join('\n');
 
@@ -355,14 +369,16 @@ test('public DEGIRO sample dataset is importable', () => {
 test('import preview returns detected instruments grouping and impact summary', () => {
   seedTestInstrument({ symbol: 'IGR1', yahooSymbol: 'IGR1', name: 'Import Group 1', type: 'stock', currency: 'EUR' });
   seedTestInstrument({ symbol: 'IGR2', yahooSymbol: 'IGR2', name: 'Import Group 2', type: 'stock', currency: 'EUR' });
-  const csv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'buy,IGR1,2026-05-01,2,10,EUR,20',
-    'sell,IGR1,2026-05-03,1,12,EUR,12',
-    'buy,IGR2,2026-05-04,2,8,EUR,16',
-  ].join('\n');
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/05/2026', 'IGR1', '2', '10', 'EUR', '', '20', '', ''],
+      ['venta', '03/05/2026', 'IGR1', '1', '12', 'EUR', '', '12', '', ''],
+      ['compra', '04/05/2026', 'IGR2', '2', '8', 'EUR', '', '16', '', ''],
+    ],
+  });
 
-  const preview = previewImport({ source: 'csv', filename: 'grouped.csv', content: csv });
+  const preview = previewImport({ source: 'valorgrid-xlsx', filename: 'grouped.xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.ok(Array.isArray(preview.detectedInstruments));
   assert.ok(preview.detectedInstruments.length >= 2);
@@ -379,7 +395,7 @@ test('import preview returns detected instruments grouping and impact summary', 
 
 test('import preview suggests common Yahoo tickers without resolving automatically', () => {
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '06-05-2026,17:53,ADVANCED MICRO DEVICES INC,US0079031078,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-amd-suggest",',
     '07-05-2026,17:53,ALPHABET INC CLASS C,US02079K1079,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-goog-suggest",',
   ].join('\n');
@@ -415,7 +431,7 @@ test('DEGIRO import suggests tickers from instrument_identifiers DB after first 
   ).run();
 
   const firstContent = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '26-06-2024,11:55,TEXT SA,PLLVTSF00010,WSE,XWAR,5,"78,8000",PLN,"-394,00",PLN,"-91,58","4,3024","-0,23","-4,90","-96,71","ord-wse-first-1",',
     '16-05-2023,16:30,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,2,"448,0000",PLN,"-896,00",PLN,"-199,70","4,4868","-0,50",,"-200,20","ord-wse-first-2",',
   ].join('\n');
@@ -432,7 +448,7 @@ test('DEGIRO import suggests tickers from instrument_identifiers DB after first 
   });
 
   const secondContent = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '18-05-2026,10:28,TEXT SA,PLLVTSF00010,WSE,XWAR,10,"40,1800",PLN,"401,80",PLN,"94,63","4,2447","-0,43","-4,90","-89,30","ord-wse-second-1",',
     '17-07-2025,14:32,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,3,"606,0000",PLN,"1818,00",PLN,"427,27","4,2549","-0,36",,"-426,91","ord-wse-second-2",',
   ].join('\n');
@@ -464,7 +480,7 @@ test('DEGIRO import commits WSE instruments with correct color and identifiers p
   ).run();
 
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '26-06-2024,11:55,TEXT SA,PLLVTSF00010,WSE,XWAR,5,"78,8000",PLN,"-394,00",PLN,"-91,58","4,3024","-0,23","-4,90","-96,71","ord-wse-commit-1",',
     '16-05-2023,16:30,SPYROSOFT SA,PLSPRSF00011,WSE,XWAR,2,"448,0000",PLN,"-896,00",PLN,"-199,70","4,4868","-0,50",,"-200,20","ord-wse-commit-2",',
   ].join('\n');
@@ -520,7 +536,7 @@ test('import can create instrument from confirmed instrument mapping and persist
   db.prepare("DELETE FROM instrument_identifiers WHERE identifier_value = 'ZZ0079031078'").run();
   db.prepare("DELETE FROM instruments WHERE symbol = 'AMDIMP'").run();
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '06-05-2026,17:53,ADVANCED MICRO DEVICES INC,ZZ0079031078,NDQ,ARCA,1,"100,0000",USD,"100,00",USD,"85,00","1,1765","0,00","0,00","-85,00","ord-amd-create",',
   ].join('\n');
   const mappingKey = 'isin:ZZ0079031078';
@@ -654,7 +670,7 @@ test('DEGIRO Transactions marks ledger-matching trade as duplicate_ledger_match'
   ).run();
 
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '24-12-2025,16:42,META PLATFORMS INC CLASS A,US30303M1027,NDQ,EDGX,-1,"666,0000",USD,"666,00",USD,"565,37","1,1780","-1,41","-2,00","561,96","ord-meta-duplicate",',
   ].join('\n');
 
@@ -667,7 +683,7 @@ test('DEGIRO Transactions marks ledger-matching trade as duplicate_ledger_match'
 
 test('DEGIRO Transactions ignores RTS/NON TRADEABLE corporate actions without flow', () => {
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '18-05-2026,10:28,VIDRALA SA - RTS - NON TRADEABLE,ES0183746314,MAD,,2,"0,0000",EUR,"0,00",EUR,"0,00","1,0000","0,00","0,00","0,00","ord-rts-1",',
   ].join('\n');
 
@@ -685,7 +701,7 @@ test('DEGIRO Transactions ignores RTS/NON TRADEABLE corporate actions without fl
 test('DEGIRO unresolved sell-only products are skipped by default instead of blocking import', () => {
   const uniqueIsin = `ZZSELL${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     `18-05-2026,10:28,SELL ONLY UNKNOWN ${uniqueIsin},${uniqueIsin},WSE,XWAR,-3,"40,1800",PLN,"120,54",PLN,"28,39","4,2447","-0,43","-4,90","23,06","ord-sell-only-${uniqueIsin}",`,
   ].join('\n');
 
@@ -701,21 +717,25 @@ test('DEGIRO existing instrument sales distinguish empty and insufficient positi
   seedTestInstrument({ symbol: 'PART1', yahooSymbol: 'PART1', name: 'Partial Position Corp', type: 'stock', currency: 'EUR' });
   await createTransaction({ type: 'add', symbol: 'PART1', date: '2026-01-02', shares: 2 });
 
-  const emptyCsv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'sell,EMPTY1,2026-05-01,1,10,EUR,10',
-  ].join('\n');
-  const partialCsv = [
-    'type,symbol,date,shares,price,currency,valueEur',
-    'sell,PART1,2026-05-01,5,10,EUR,50',
-  ].join('\n');
+  const emptyBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['venta', '01/05/2026', 'EMPTY1', '1', '10', 'EUR', '', '10', '', ''],
+    ],
+  });
+  const partialBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['venta', '01/05/2026', 'PART1', '5', '10', 'EUR', '', '50', '', ''],
+    ],
+  });
 
-  const emptyPreview = previewImport({ source: 'csv', filename: 'empty.csv', content: emptyCsv });
+  const emptyPreview = previewImport({ source: 'valorgrid-xlsx', filename: 'empty.xlsx', contentBase64: emptyBase64 });
   assert.equal(emptyPreview.rows[0].status, 'skipped');
   assert.equal(emptyPreview.rows[0].blockReasonCode, 'existing_empty_position');
   assert.match(emptyPreview.rows[0].blockReasonMessage, /no hay acciones registradas suficientes/i);
 
-  const partialPreview = previewImport({ source: 'csv', filename: 'partial.csv', content: partialCsv });
+  const partialPreview = previewImport({ source: 'valorgrid-xlsx', filename: 'partial.xlsx', contentBase64: partialBase64 });
   assert.equal(partialPreview.rows[0].status, 'skipped');
   assert.equal(partialPreview.rows[0].blockReasonCode, 'existing_insufficient_position');
   assert.match(partialPreview.rows[0].blockReasonMessage, /disponibles 2/);
@@ -736,7 +756,7 @@ test('DEGIRO does not auto-map similar product names without confirmed identifie
 
 test('DEGIRO imports non EUR currencies using generic FX to EUR without assuming USD', () => {
   const content = [
-    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,',
+    'Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecuciï¿½n,Nï¿½mero,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisiï¿½n AutoFX,Costes de transacciï¿½n y/o externos EUR,Total EUR,ID Orden,',
     '18-05-2026,10:28,TEXT SA,PLLVTsf00010,WSE,XWAR,18,"40,1800",PLN,"723,24",PLN,"170,39","4,2447","-0,43","-4,90","-165,06","ord-pln-buy",',
   ].join('\n');
 
@@ -835,6 +855,207 @@ test('DEGIRO snapshot below ledger is blocked for manual review', async () => {
   assert.equal(preview.rows[0].status, 'blocked');
   assert.equal(preview.rows[0].reconciliationStatus, 'delta_negative');
   assert.match(preview.rows[0].errors.join(' '), /Snapshot inferior/);
+});
+
+test('template download returns correct MIME, filename and valid XLSX workbook', async () => {
+  const response = await request('/api/import/template.xlsx');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const disposition = response.headers.get('content-disposition') || '';
+  assert.match(disposition, /ValorGrid_Plantilla_Importacion\.xlsx/);
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  assert.ok(buffer.length > 100, 'template should have meaningful size');
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const names = workbook.SheetNames;
+  assert.ok(names.includes('Movimientos'), 'should have Movimientos sheet');
+  assert.ok(names.includes('Instrucciones'), 'should have Instrucciones sheet');
+  assert.ok(names.includes('Ejemplos'), 'should have Ejemplos sheet');
+  assert.equal(names[0], 'Movimientos', 'Movimientos should be the first sheet');
+});
+
+test('template Movimientos sheet has correct headers and no data rows', async () => {
+  const response = await request('/api/import/template.xlsx');
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const ws = workbook.Sheets['Movimientos'];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  assert.ok(data.length >= 1, 'should have at least header row');
+
+  const headers = data[0].map((header) => String(header).trim());
+  const expectedHeaders = ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'];
+  assert.deepEqual(headers, expectedHeaders);
+  assert.equal(data.length, 1, 'Movimientos should have only 1 row (headers, no data)');
+});
+
+test('valorgrid-xlsx import preview and commit with EUR trade (no FX needed)', () => {
+  seedTestInstrument({ symbol: 'VXE', yahooSymbol: 'VXE', name: 'ValorGrid XLSX EUR', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '15/01/2026', 'VXE', '10', '50', 'EUR', '', '500', '1.2', 'ref-eur-1'],
+      ['venta', '20/02/2026', 'VXE', '5', '52', 'EUR', '', '260', '0.5', ''],
+    ],
+  });
+
+  const preview = previewImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-template.xlsx',
+    contentBase64,
+  });
+  assert.equal(preview.selectedSheet, 'Movimientos');
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.summary.buys, 1);
+  assert.equal(preview.summary.sells, 1);
+  assert.equal(preview.summary.errorCount, 0);
+
+  const committed = commitImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-template.xlsx',
+    contentBase64,
+  });
+  assert.equal(committed.batch.status, 'committed');
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'VXE' AND origin = 'import'").get().count, 2);
+  assert.equal(Number(getPositionShares('VXE', '2026-02-21').toFixed(4)), 5);
+});
+
+test('valorgrid-xlsx import with non-EUR currency uses explicit FX to EUR', () => {
+  seedTestInstrument({ symbol: 'VXU', yahooSymbol: 'VXU', name: 'ValorGrid XLSX USD', type: 'stock', currency: 'USD' });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/03/2026', 'VXU', '20', '100', 'USD', '0.92', '', '0.5', ''],
+    ],
+  });
+
+  const preview = previewImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-usd.xlsx',
+    contentBase64,
+  });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].status, 'valid');
+  assert.equal(preview.rows[0].normalized.currency, 'USD');
+  assert.equal(preview.rows[0].normalized.fxToEur, 0.92);
+  assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 1840);
+
+  const committed = commitImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-usd.xlsx',
+    contentBase64,
+  });
+  assert.equal(committed.summary.errorCount, 0);
+});
+
+test('valorgrid-xlsx import rejects non-EUR trades without FX to EUR', () => {
+  seedTestInstrument({ symbol: 'VXNF', yahooSymbol: 'VXNF', name: 'ValorGrid No FX', type: 'stock', currency: 'USD' });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '01/03/2026', 'VXNF', '10', '100', 'USD', '', '', '0', ''],
+    ],
+  });
+
+  const preview = previewImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-nofx.xlsx',
+    contentBase64,
+  });
+  assert.equal(preview.rows[0].status, 'error');
+  assert.match(preview.rows[0].errors.join(' '), /FX a EUR/);
+});
+
+test('valorgrid-xlsx type inference from share sign works', () => {
+  seedTestInstrument({ symbol: 'VXTI', yahooSymbol: 'VXTI', name: 'ValorGrid Type Inference', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['', '01/04/2026', 'VXTI', '5', '10', 'EUR', '', '50', '0', ''],
+      ['', '02/04/2026', 'VXTI', '-3', '10', 'EUR', '', '30', '0', ''],
+    ],
+  });
+
+  const preview = previewImport({
+    source: 'valorgrid-xlsx',
+    filename: 'valorgrid-type.xlsx',
+    contentBase64,
+  });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.rows[0].normalized.type, 'add');
+  assert.equal(preview.rows[1].normalized.type, 'remove');
+  assert.equal(preview.summary.buys, 1);
+  assert.equal(preview.summary.sells, 1);
+});
+
+test('legacy generic-csv source is rejected with clear message', () => {
+  seedTestInstrument({ symbol: 'LEGC', yahooSymbol: 'LEGC', name: 'Legacy CSV', type: 'stock', currency: 'EUR' });
+  const csv = 'type,symbol,date,shares,price,currency,valueEur\nbuy,LEGC,2026-05-01,1,10,EUR,10';
+  assert.throws(
+    () => previewImport({ source: 'generic-csv', content: csv }),
+    /usa la plantilla Excel de ValorGrid/,
+  );
+});
+
+test('legacy generic-csv source is rejected via API', async () => {
+  seedTestInstrument({ symbol: 'LEGA', yahooSymbol: 'LEGA', name: 'Legacy API', type: 'stock', currency: 'EUR' });
+  const csv = 'type,symbol,date,shares,price,currency,valueEur\nbuy,LEGA,2026-05-01,1,10,EUR,10';
+  const { response, body } = await jsonRequest('/api/import/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source: 'generic-csv', filename: 'legacy.csv', content: csv }),
+  });
+  assert.equal(response.status, 400);
+  assert.match(body.error, /plantilla Excel de ValorGrid/);
+});
+
+test('legacy generic-xlsx source is rejected with clear message', () => {
+  seedTestInstrument({ symbol: 'LEGX', yahooSymbol: 'LEGX', name: 'Legacy XLSX', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    Sheet1: [['type', 'symbol', 'date', 'shares', 'price', 'currency', 'valueEur'], ['buy', 'LEGX', '2026-05-01', 1, 10, 'EUR', 10]],
+  });
+  assert.throws(
+    () => previewImport({ source: 'generic-xlsx', contentBase64 }),
+    /usa la plantilla Excel de ValorGrid/,
+  );
+});
+
+test('DEGIRO import still works as regression check', () => {
+  seedTestInstrument({ symbol: 'DGRG', yahooSymbol: 'DGRG', name: 'Degiro Regression', type: 'stock', currency: 'EUR' });
+  const content = [
+    'Date,Ticker,Quantity,Price,Currency,Total in EUR,Broker Fee',
+    '2026-05-02,DGRG,5,20,EUR,100,0.5',
+  ].join('\n');
+
+  const preview = previewImport({ source: 'degiro-csv', filename: 'degiro-reg.csv', content });
+  assert.equal(preview.canCommit, true);
+  assert.equal(preview.summary.buys, 1);
+
+  const commit = commitImport({ source: 'degiro-csv', filename: 'degiro-reg.csv', content });
+  assert.equal(commit.summary.errorCount, 0);
+  assert.equal(Number(getPositionShares('DGRG', '2026-05-03').toFixed(4)), 5);
+});
+
+test('valorgrid-xlsx import API accepts sheetName parameter', async () => {
+  seedTestInstrument({ symbol: 'VXAPI', yahooSymbol: 'VXAPI', name: 'ValorGrid API Sheet', type: 'stock', currency: 'EUR' });
+  const contentBase64 = createWorkbookBase64({
+    Hoja1: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '10/05/2026', 'VXAPI', 1, 30, 'EUR', '', 30, 0, ''],
+    ],
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '11/05/2026', 'VXAPI', 2, 30, 'EUR', '', 60, 0, ''],
+    ],
+  });
+
+  const { response, body } = await jsonRequest('/api/import/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source: 'valorgrid-xlsx', filename: 'api.xlsx', contentBase64, sheetName: 'Hoja1' }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal(body.preview.selectedSheet, 'Hoja1');
+  assert.equal(body.preview.summary.buys, 1);
 });
 
 

@@ -93,6 +93,7 @@ function resolveRouteHandlers(ctx) {
     getImportRows: pickServiceFn(importServices, 'getImportRows', ctx.getImportRows),
     rollbackImportBatch: pickServiceFn(importServices, 'rollbackImportBatch', ctx.rollbackImportBatch),
     listImportRollbackLog: pickServiceFn(importServices, 'listImportRollbackLog', ctx.listImportRollbackLog),
+    getImportTemplate: pickServiceFn(importServices, 'getImportTemplate', ctx.getImportTemplate),
     buildSummary: pickServiceFn(portfolioServices, 'buildSummary', ctx.buildSummary),
     buildPortfolioPerformance: pickServiceFn(
       portfolioServices,

@@ -537,57 +537,93 @@
         <div class="modal-header">
           <div>
             <h2>Importar movimientos</h2>
-            <p class="subtle">Asistente de conciliacion para revisar instrumentos, operaciones e impacto antes de guardar.</p>
+            <p class="subtle">Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.</p>
           </div>
-          <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+          <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">&times;</button>
         </div>
 
-        <div class="import-grid">
-          <label class="field">
-            <span>Formato</span>
-            <select id="import-source" aria-label="Formato de importación">
-              <option value="generic-csv">CSV genérico</option>
-              <option value="generic-xlsx">Excel genérico (XLSX)</option>
-              <option value="degiro-csv">DEGIRO Transacciones CSV</option>
-              <option value="ibkr-csv" disabled>Interactive Brokers CSV — Próximamente</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Archivo</span>
-            <input id="import-file" type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-          </label>
-
-          <label class="field" id="import-sheet-field" hidden>
-            <span>Hoja</span>
-            <select id="import-sheet"></select>
-          </label>
-
-          <label class="field import-wide-field" hidden>
-            <span>Pegar CSV manualmente (opcional)</span>
-            <textarea id="import-content" rows="6" placeholder="Pega aquí el CSV si no cargas fichero."></textarea>
-          </label>
-
-          <details class="import-advanced-options import-wide-field" hidden>
-            <summary>Opciones avanzadas de mapeo</summary>
-            <label class="field">
-            <span>Mapping opcional (JSON)</span>
-            <textarea id="import-mapping" rows="4" placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'></textarea>
-            </label>
-          </details>
+        <div class="import-quickstart" id="import-template-download">
+          <div class="import-quickstart-steps">
+            <div class="import-quickstep">
+              <span class="import-quickstep-num">1</span>
+              <div>
+                <strong>Descarga la plantilla</strong>
+                <small>Excel oficial de ValorGrid con instrucciones y ejemplos.</small>
+                <button id="import-download-template" class="button button-accent" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/><path d="M8 1v9"/><path d="M4 7l4 4 4-4"/></svg>
+                  Descargar plantilla
+                </button>
+              </div>
+            </div>
+            <div class="import-quickstep">
+              <span class="import-quickstep-num">2</span>
+              <div>
+                <strong>Rellena tus movimientos</strong>
+                <small>Completa la hoja <em>Movimientos</em> con tus operaciones.</small>
+              </div>
+            </div>
+            <div class="import-quickstep">
+              <span class="import-quickstep-num">3</span>
+              <div>
+                <strong>Sube el archivo</strong>
+                <small>Arrastra o selecciona tu Excel para analizarlo.</small>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <label class="field">
+          <span>Fuente de datos</span>
+          <select id="import-source" aria-label="Formato de importación">
+            <option value="valorgrid-xlsx">Plantilla Excel de ValorGrid</option>
+            <option value="degiro-csv">DEGIRO — Transacciones CSV</option>
+            <option value="ibkr-csv" disabled>Interactive Brokers CSV — Próximamente</option>
+          </select>
+        </label>
+
+        <div class="import-file-zone" id="import-file-zone">
+          <input id="import-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <div class="import-file-drop">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.45">
+              <path d="M14 4v12"/><path d="M8 11l6-7 6 7"/><path d="M4 19v3a2 2 0 002 2h16a2 2 0 002-2v-3"/>
+            </svg>
+            <strong>Arrastra tu archivo Excel aquí</strong>
+            <small>o haz clic para seleccionarlo</small>
+          </div>
+          <div class="import-file-selected" hidden>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round">
+              <path d="M3 7l4 4 3-3 7 7"/><path d="M17 5v6H3"/>
+            </svg>
+            <span></span>
+            <button type="button" class="import-file-clear" aria-label="Quitar archivo">&times;</button>
+          </div>
+        </div>
+
+        <label class="field" id="import-sheet-field" hidden>
+          <span>Hoja a importar</span>
+          <select id="import-sheet"></select>
+        </label>
+
+        <label class="field import-wide-field" hidden>
+          <span>Pegar CSV manualmente</span>
+          <textarea id="import-content" rows="5" placeholder="Pega aquí el contenido CSV…"></textarea>
+        </label>
+
+        <details class="import-advanced-options import-wide-field" hidden>
+          <summary>Mapeo avanzado de columnas</summary>
+          <label class="field">
+            <span>Mapping JSON</span>
+            <textarea id="import-mapping" rows="3" placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'></textarea>
+          </label>
+        </details>
 
         <div id="import-mapping-required" class="import-mapping-required" hidden></div>
 
-        <div class="modal-actions">
-          <button id="import-preview" class="button" type="button">Analizar archivo</button>
-          <button id="import-commit" class="button button-primary" type="button" disabled hidden>Importar operaciones seleccionadas</button>
-        </div>
-
         <p id="import-feedback" class="form-feedback" role="status"></p>
         <div id="import-preview-output" class="import-preview-output"></div>
-
         <div class="modal-actions">
+          <button id="import-preview" class="button button-primary" type="button">Analizar archivo</button>
+          <button id="import-commit" class="button button-primary" type="button" disabled hidden>Importar operaciones seleccionadas</button>
           <button id="import-cancel" class="button" type="button">Cerrar</button>
         </div>
       </form>

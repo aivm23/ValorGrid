@@ -141,6 +141,7 @@ Exportan el ledger de movimientos para auditoría o migración manual.
 ## Importaciones
 
 ```text
+GET /api/import/template.xlsx
 POST /api/import/preview
 POST /api/import/commit
 GET /api/import/batches
@@ -153,19 +154,40 @@ POST /api/import/ticker-suggestions
 Fuentes soportadas:
 
 ```text
-generic-csv
-generic-xlsx
+valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado)
 degiro-csv
 ibkr-csv
 ```
 
+### Descarga de plantilla
+
+`GET /api/import/template.xlsx` — descarga la plantilla Excel oficial de ValorGrid con tres hojas:
+
+- `Movimientos` (primera hoja, importable): encabezados `Tipo`, `Fecha`, `Ticker`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR`, `Referencia`.
+- `Instrucciones`: guía de uso.
+- `Ejemplos`: datos de ejemplo.
+
+La respuesta incluye `Content-Disposition: attachment` y MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
+
+### Semántica de importación con plantilla
+
+- `Tipo`: compra/venta, o se infiere por signo si se deja vacío.
+- `Acciones`: positivo para compra, negativo para venta si no se usa `Tipo`.
+- `Divisa` y `FX a EUR` son obligatorios para operaciones no EUR.
+- `Valor EUR` es opcional; si falta, se calcula como `abs(Acciones) * Precio * FX a EUR`.
+- No se busca FX automáticamente durante importación.
+
 El flujo recomendado es:
 
-1. `preview`: parsea, normaliza, detecta instrumentos, calcula acciones importables y muestra avisos.
-2. Resolución visual de instrumentos en frontend.
-3. Selección de filas o grupos a importar.
-4. `commit`: inserta solo filas seleccionadas y válidas de forma atómica.
-5. `rollback`: revierte un lote importado si hace falta corregirlo.
+1. Descargar la plantilla con `GET /api/import/template.xlsx`.
+2. Rellenar la hoja `Movimientos` con las operaciones.
+3. `preview`: parsea, normaliza, detecta instrumentos, calcula acciones importables y muestra avisos.
+4. Resolución visual de instrumentos en frontend.
+5. Selección de filas o grupos a importar.
+6. `commit`: inserta solo filas seleccionadas y válidas de forma atómica.
+7. `rollback`: revierte un lote importado si hace falta corregirlo.
+
+Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
 
 ## Errores
 

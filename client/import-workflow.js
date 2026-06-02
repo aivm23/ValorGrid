@@ -3,14 +3,17 @@ import {
   IMPORTED_GROUP_NAME,
   FIELD_LABELS,
   isXlsxSource,
+  canDownloadTemplate,
   suggestSymbol,
   parseMapping,
   rowsForDetected,
   shouldOmitInstrumentByDefault,
   inferInstrumentType,
 } from './import-workflow-helpers.js';
+import { updateImportFileDisplay } from './import-file-zone.js';
 
-export { toBase64, isXlsxSource, parseMapping } from './import-workflow-helpers.js';
+export { toBase64, isXlsxSource, canDownloadTemplate, parseMapping } from './import-workflow-helpers.js';
+export { updateImportFileDisplay, clearImportFile } from './import-file-zone.js';
 
 export function resetImportDraft(ctx) {
   ctx.state.importPreview = null;
@@ -25,6 +28,7 @@ export function resetImportDraft(ctx) {
   ctx.state.importInstrumentValidationAttempted = false;
   ctx.state.importFileMeta = null;
   ctx.elements.importFile.value = '';
+  if (updateImportFileDisplay) updateImportFileDisplay(ctx, null);
   ctx.elements.importSheet.innerHTML = '';
   ctx.elements.importSheetField.hidden = true;
   ctx.elements.importContent.value = '';
@@ -35,6 +39,7 @@ export function resetImportDraft(ctx) {
   ctx.elements.importMappingRequired.innerHTML = '';
   ctx.elements.importCommit.disabled = true;
   ctx.elements.importCommit.hidden = true;
+  syncImportMode(ctx);
 }
 
 export function invalidateImportAfter(ctx, step) {
@@ -46,10 +51,13 @@ export function invalidateImportAfter(ctx, step) {
 }
 
 export function syncImportMode(ctx) {
-  const source = ctx.elements.importSource.value || 'generic-csv';
+  const source = ctx.elements.importSource.value || 'valorgrid-xlsx';
   const xlsxMode = isXlsxSource(source);
+  const canDownload = canDownloadTemplate(source);
   ctx.elements.importContent.closest('.field').hidden = true;
   ctx.elements.importMapping.closest('.import-advanced-options').hidden = true;
+  ctx.elements.importTemplateDownload.hidden = !canDownload;
+  ctx.elements.importFile.accept = xlsxMode ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : '.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   if (!xlsxMode) {
     ctx.elements.importSheetField.hidden = true;
     ctx.elements.importSheet.innerHTML = '';
@@ -260,7 +268,7 @@ function applyInstrumentChoices(ctx, payload, preview) {
 }
 
 export function buildImportPayload(ctx) {
-  const source = ctx.elements.importSource.value || 'generic-csv';
+  const source = ctx.elements.importSource.value || 'valorgrid-xlsx';
   const payload = {
     source,
     filename: ctx.state.importFileMeta?.name || ctx.elements.importFile.files?.[0]?.name || null,
@@ -318,4 +326,22 @@ export function updateCommitButton(ctx) {
   ctx.elements.importCommit.disabled = true;
   ctx.elements.importCommit.hidden = true;
   ctx.elements.importCommit.textContent = 'Importar operaciones seleccionadas';
+}
+
+export async function downloadImportTemplate(ctx) {
+  try {
+    const response = await fetch('/api/import/template.xlsx');
+    if (!response.ok) throw new Error('No se pudo descargar la plantilla');
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'ValorGrid_Plantilla_Importacion.xlsx';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
+  }
 }

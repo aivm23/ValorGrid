@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const XLSX = require('../../../vendor/xlsx.full.min.js');
-const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides } = require('./ingestion-profiles');
+const { typeAliases, baseFieldAliases, adapterDefinitions, profileOverrides, LEGACY_GENERIC_SOURCES } = require('./ingestion-profiles');
 function sha256(value) { return crypto.createHash('sha256').update(String(value)).digest('hex'); }
 function normalizeHeader(value) {
   let text = String(value || '');
@@ -168,8 +168,11 @@ function normalizeType(value) {
   if (typeAliases.remove.has(key)) return 'remove';
   return null;
 }
-function resolveAdapter(sourceInput = 'csv') {
-  const source = String(sourceInput || 'csv').trim().toLowerCase();
+function resolveAdapter(sourceInput = 'valorgrid-xlsx') {
+  const source = String(sourceInput || 'valorgrid-xlsx').trim().toLowerCase();
+  if (LEGACY_GENERIC_SOURCES.has(source)) {
+    throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx) en lugar de importaci√≥n gen√©rica. Descarga la plantilla en /api/import/template.xlsx');
+  }
   const adapter = adapterDefinitions[source];
   if (!adapter) throw new Error(`Origen de importaci√≥n no soportado: ${sourceInput}`);
   return { source, ...adapter };
@@ -233,9 +236,6 @@ function inferTypeFromData(explicitType, rawShares, valueEurInput) {
   if (Number.isFinite(valueEurInput)) return valueEurInput < 0 ? 'add' : valueEurInput > 0 ? 'remove' : null;
   return null;
 }
-function looksLikeIsin(value) {
-  return /^[A-Z]{2}[A-Z0-9]{10}$/.test(String(value || '').trim().toUpperCase());
-}
 function extractExternalIdentifiers(profile, row, symbol, fileSubtype = 'unknown') {
   const identifiers = [];
   if (symbol) {
@@ -246,7 +246,7 @@ function extractExternalIdentifiers(profile, row, symbol, fileSubtype = 'unknown
   const isinRaw = String(rowValueByHeaders(row, ['Symbol/ISIN', 'symbol/isin', 'ISIN', 'isin']) || (degiroTransactions ? degiroTransactionCell(row, 'isin') : ''))
     .trim()
     .toUpperCase();
-  if (looksLikeIsin(isinRaw)) {
+  if (/^[A-Z]{2}[A-Z0-9]{10}$/.test(isinRaw)) {
     identifiers.push({ provider: 'global', identifierType: 'isin', identifierValue: isinRaw });
   }
   const product = String(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || (degiroTransactions ? degiroTransactionCell(row, 'product') : '')).trim();
@@ -263,16 +263,10 @@ function extractExternalIdentifiers(profile, row, symbol, fileSubtype = 'unknown
   }
   return identifiers;
 }
-function normalizeText(value) {
-  return String(value || '')
-    .trim()
-    .toUpperCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
 function degiroCorporateActionReason(row, fileSubtype, values) {
   if (fileSubtype !== 'transactions_export') return null;
-  const product = normalizeText(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || degiroTransactionCell(row, 'product'));
+  const product = String(rowValueByHeaders(row, ['Producto', 'Product', 'producto', 'product']) || degiroTransactionCell(row, 'product') || '')
+    .trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const centerRaw = String(
     rowValueByHeaders(row, ['Centro de ejecuci√≥n', 'Centro de ejecucion', 'Execution center', 'Execution venue']) || '',
   ).trim();
@@ -299,7 +293,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
   const explicitType = normalizeType(mappedValue(row, mapping, profile, 'type'));
   const mappedSymbolRaw = mappedValue(row, mapping, profile, 'symbol');
   let symbol = normalizeSymbol(mappedSymbolRaw);
-  if (profile === 'degiro' && fileSubtype === 'transactions_export' && looksLikeIsin(symbol)) symbol = '';
+  if (profile === 'degiro' && fileSubtype === 'transactions_export' && /^[A-Z]{2}[A-Z0-9]{10}$/.test(symbol)) symbol = '';
   const date = defaultDegiroSnapshotDate(
     ctx,
     profile,
@@ -319,11 +313,11 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
   const mappedCommission = parseNumber(mappedValue(row, mapping, profile, 'commissionEur'));
   const degiroAutoFx =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['ComisiÛn AutoFX', 'Comision AutoFX', 'ComisiÛn AutoFx', 'Comision AutoFx']) || (degiroTransactions ? degiroTransactionCell(row, 'autoFx') : ''))
+      ? parseNumber(rowValueByHeaders(row, ['ComisiÔøΩn AutoFX', 'Comision AutoFX', 'ComisiÔøΩn AutoFx', 'Comision AutoFx']) || (degiroTransactions ? degiroTransactionCell(row, 'autoFx') : ''))
       : null;
   const degiroCosts =
     profile === 'degiro'
-      ? parseNumber(rowValueByHeaders(row, ['Costes de transacciÛn y/o externos EUR', 'Costes de transaccion y/o externos EUR']) || (degiroTransactions ? degiroTransactionCell(row, 'costs') : ''))
+      ? parseNumber(rowValueByHeaders(row, ['Costes de transacciÔøΩn y/o externos EUR', 'Costes de transaccion y/o externos EUR']) || (degiroTransactions ? degiroTransactionCell(row, 'costs') : ''))
       : null;
   const commissionEur = Math.abs(
     profile === 'degiro' && (Number.isFinite(degiroAutoFx) || Number.isFinite(degiroCosts))
@@ -345,9 +339,12 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
   const derivedFxToEur = Number.isFinite(valueEurInput) && Number.isFinite(localValue) && localValue > 0 ? valueEurInput / localValue : null;
   let fxToEur = 1;
   if (currency !== 'EUR') {
-    if (Number.isFinite(derivedFxToEur) && derivedFxToEur > 0) fxToEur = derivedFxToEur;
-    else if (Number.isFinite(fxInput) && fxInput > 0) fxToEur = profile === 'degiro' ? 1 / fxInput : fxInput;
-    else fxToEur = null;
+    if (profile === 'valorgrid') {
+      fxToEur = Number.isFinite(fxInput) && fxInput > 0 ? fxInput : null;
+    } else {
+      fxToEur = Number.isFinite(derivedFxToEur) && derivedFxToEur > 0 ? derivedFxToEur
+        : Number.isFinite(fxInput) && fxInput > 0 ? (profile === 'degiro' ? 1 / fxInput : fxInput) : null;
+    }
   }
   const externalIdBase =
     profile === 'degiro' && fileSubtype === 'transactions_export'
@@ -371,7 +368,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'csv', profile = 'g
     if (!date) errors.push('Fecha invalida');
     if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
     if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
-    if (price === 0 && inferredType === 'add') warnings.push('Compra a 0Ä (split/dividendo) ó se importa con precio mÌnimo');
+    if (price === 0 && inferredType === 'add') warnings.push('Compra a 0ÔøΩ (split/dividendo) ÔøΩ se importa con precio mÔøΩnimo');
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
     if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   }
@@ -477,14 +474,14 @@ function parseImportPayload(input, adapter) {
   }
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
-  const parsed = parseXlsxRows(contentBase64, input.sheetName || null);
+  const parsed = parseXlsxRows(contentBase64, input.sheetName || adapter.defaultSheet || null);
   return {
     parsed: { headers: parsed.headers, rows: parsed.rows },
     fileHash: sha256(contentBase64),
     payloadHash: sha256(`${adapter.profile}:${parsed.selectedSheet}:${contentBase64}`),
     sheets: parsed.sheets,
     selectedSheet: parsed.selectedSheet,
-    fileSubtype: adapter.profile === 'degiro' ? detectDegiroFileSubtype(parsed.headers) : 'unknown',
+    fileSubtype: 'unknown',
   };
 }
 module.exports = {

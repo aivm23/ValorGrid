@@ -129,6 +129,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'getImportRows',
       'rollbackImportBatch',
       'listImportRollbackLog',
+      'getImportTemplate',
     ]),
   );
 

@@ -1,8 +1,23 @@
 const { resolveRouteHandlers } = require('../../route-service-bindings');
+const { LEGACY_GENERIC_SOURCES } = require('./ingestion-profiles');
 
 function sendError(response, sendJson, error) {
   const statusCode = error.statusCode || 400;
   sendJson(response, statusCode, { error: error.message });
+}
+
+const TEMPLATE_FILENAME = 'ValorGrid_Plantilla_Importacion.xlsx';
+const TEMPLATE_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+function rejectLegacySource(sendJson, response, body) {
+  const source = String(body?.source || '').trim().toLowerCase();
+  if (LEGACY_GENERIC_SOURCES.has(source)) {
+    sendJson(response, 400, {
+      error: 'Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx). Descárgala en GET /api/import/template.xlsx',
+    });
+    return true;
+  }
+  return false;
 }
 
 module.exports = async function handleImportRoutes(ctx, request, response, url) {
@@ -17,11 +32,30 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     getImportRows,
     rollbackImportBatch,
     listImportRollbackLog,
+    getImportTemplate,
   } = resolveRouteHandlers(ctx);
+
+  if (url.pathname === '/api/import/template.xlsx' && request.method === 'GET') {
+    try {
+      const buffer = getImportTemplate();
+      response.writeHead(200, {
+        'Content-Type': TEMPLATE_MIME,
+        'Content-Disposition': `attachment; filename="${TEMPLATE_FILENAME}"`,
+        'Content-Length': buffer.length,
+        'Cache-Control': 'no-store',
+      });
+      response.end(buffer);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
 
   if (url.pathname === '/api/import/preview' && request.method === 'POST') {
     try {
-      sendJson(response, 200, { preview: previewImport(await readJsonBody(request)) });
+      const body = await readJsonBody(request);
+      if (rejectLegacySource(sendJson, response, body)) return true;
+      sendJson(response, 200, { preview: previewImport(body) });
     } catch (error) {
       sendError(response, sendJson, error);
     }
@@ -39,7 +73,9 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
 
   if (url.pathname === '/api/import/commit' && request.method === 'POST') {
     try {
-      sendJson(response, 201, await commitImport(await readJsonBody(request)));
+      const body = await readJsonBody(request);
+      if (rejectLegacySource(sendJson, response, body)) return true;
+      sendJson(response, 201, await commitImport(body));
     } catch (error) {
       sendError(response, sendJson, error);
     }

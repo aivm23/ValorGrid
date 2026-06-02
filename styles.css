@@ -3227,3 +3227,481 @@ td:last-child {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── Import dialog refined styles (scoped to #import-dialog) ── */
+
+#import-dialog .modal-panel {
+  gap: 20px;
+  padding: 28px;
+}
+
+.import-quickstart {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, var(--bg)), color-mix(in srgb, var(--accent) 2%, var(--card)));
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.import-quickstart-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.import-quickstep {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 0 12px;
+  align-items: start;
+}
+
+.import-quickstep-num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  grid-row: 1 / -1;
+}
+
+.import-quickstep strong {
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.import-quickstep small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.import-quickstep .button {
+  display: inline-flex;
+  margin-top: 8px;
+  height: 34px;
+}
+
+.button-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--button-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  padding: 7px 14px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.button-accent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 68%, var(--button-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.import-file-zone {
+  position: relative;
+}
+
+.import-file-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.import-file-drop {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 14px;
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 85%, var(--card));
+  color: var(--muted);
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.import-file-drop strong {
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: color-mix(in srgb, var(--text) 75%, var(--muted));
+}
+
+.import-file-drop small {
+  font-size: 0.74rem;
+}
+
+.import-file-zone:hover .import-file-drop,
+.import-file-zone:focus-within .import-file-drop {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.import-file-zone.drag-over .import-file-drop {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.import-file-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 14px 16px;
+  border: 2px solid color-mix(in srgb, #16a34a 40%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, #16a34a 6%, var(--bg));
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.import-file-selected span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-file-clear {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--button-border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.import-file-clear:hover {
+  color: #ef4444;
+  border-color: color-mix(in srgb, #ef4444 45%, var(--line));
+}
+
+/* ── Refined progress steps ── */
+
+#import-dialog .import-progress {
+  gap: 0;
+  margin: 4px 0 16px;
+  position: relative;
+}
+
+#import-dialog .import-progress::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: calc(12.5% + 12px);
+  right: calc(12.5% + 12px);
+  height: 2px;
+  background: var(--line);
+  border-radius: 999px;
+  z-index: 0;
+}
+
+#import-dialog .import-progress-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+  min-height: auto;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
+#import-dialog .import-progress-item span {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 850;
+  transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+}
+
+#import-dialog .import-progress-item strong {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  transition: color 200ms ease;
+}
+
+#import-dialog .import-progress-item.is-active span {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+#import-dialog .import-progress-item.is-active strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+#import-dialog .import-progress-item.is-done span {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+#import-dialog .import-progress-item.is-done strong {
+  color: #16a34a;
+}
+
+/* ── Refined workflow actions ── */
+
+#import-dialog .import-workflow-actions {
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+#import-dialog .import-workflow-actions .button {
+  min-width: 110px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+#import-dialog .import-workflow-actions .button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+#import-dialog .import-workflow-actions .button-primary:not(:disabled) {
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+/* ── Refined step bodies ── */
+
+#import-dialog .import-step-body {
+  gap: 14px;
+}
+
+#import-dialog .import-empty-step {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 85%, var(--card));
+  padding: 28px 20px;
+}
+
+#import-dialog .import-empty-step strong {
+  font-size: 1rem;
+  font-weight: 750;
+  color: color-mix(in srgb, var(--text) 80%, var(--muted));
+}
+
+#import-dialog .import-step-intro {
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--bg));
+}
+
+/* ── Refined instrument cards ── */
+
+#import-dialog .import-instrument-card {
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--card);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+#import-dialog .import-instrument-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--line));
+}
+
+#import-dialog .import-instrument-card.is-confirmed {
+  border-color: color-mix(in srgb, #16a34a 30%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, #16a34a 16%, transparent);
+}
+
+#import-dialog .import-instrument-card.is-incomplete {
+  border-color: color-mix(in srgb, #ef4444 50%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ef4444 20%, transparent);
+}
+
+/* ── Refined summary cards ── */
+
+#import-dialog .import-summary-cards article {
+  border-radius: 10px;
+  background: var(--card);
+  padding: 12px 14px;
+  transition: border-color 140ms ease;
+}
+
+#import-dialog .import-summary-cards article span {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+#import-dialog .import-summary-cards article strong {
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Refined confirm grid ── */
+
+#import-dialog .import-confirm-grid {
+  gap: 8px;
+}
+
+#import-dialog .import-confirm-grid .metric-card {
+  border-radius: 10px;
+}
+
+#import-dialog .import-confirm-grid .metric-card span {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+#import-dialog .import-confirm-grid .metric-card strong {
+  font-size: 1.08rem;
+}
+
+/* ── Refined operation groups ── */
+
+#import-dialog .import-operation-group {
+  border-radius: 10px;
+  transition: border-color 160ms ease;
+}
+
+#import-dialog .import-operation-group[open] {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+
+#import-dialog .import-operation-group > summary {
+  padding: 14px 16px;
+  gap: 16px;
+}
+
+#import-dialog .import-operation-group-details {
+  padding: 12px;
+  gap: 8px;
+}
+
+#import-dialog .import-operation-row {
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: background 140ms ease;
+}
+
+#import-dialog .import-operation-row:hover {
+  background: color-mix(in srgb, var(--accent) 3%, var(--bg));
+}
+
+/* ── Refined commit overlay ── */
+
+#import-dialog .import-committing-card {
+  gap: 16px;
+  padding: 36px 48px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  border-radius: 16px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 4%, var(--card)), var(--card));
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.10), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+#import-dialog .import-committing-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  animation: importSpinRefined 1.3s ease-in-out infinite;
+}
+
+@keyframes importSpinRefined {
+  0% { transform: scale(0.9) rotate(0deg); opacity: 0.65; }
+  50% { transform: scale(1.06) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0.9) rotate(360deg); opacity: 0.65; }
+}
+
+/* ── Refined kind pill ── */
+
+#import-dialog .import-kind-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+/* ── Refined warning banner ── */
+
+#import-dialog .import-warning-banner {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #f59e0b 35%, var(--line));
+  border-radius: 10px;
+  color: color-mix(in srgb, #d97706 80%, var(--text));
+  background: color-mix(in srgb, #f59e0b 8%, transparent);
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+/* ── Refined suggestions ── */
+
+#import-dialog .import-suggestions .button {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: transform 120ms ease;
+}
+
+#import-dialog .import-suggestions .button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* ── Mobile adjustments for new import layout ── */
+
+@media (max-width: 980px) {
+  .import-quickstart-steps {
+    grid-template-columns: 1fr;
+  }
+
+  #import-dialog .import-progress::before {
+    display: none;
+  }
+}

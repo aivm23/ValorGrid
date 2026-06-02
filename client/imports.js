@@ -15,10 +15,12 @@ import {
   applySuggestionToChoice,
   updateSheetSelector,
   updateCommitButton,
+  downloadImportTemplate,
+  updateImportFileDisplay,
+  clearImportFile,
 } from './import-workflow.js';
 
 const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
-
 function resetImportState(ctx) {
   ctx.state.importPreview = null;
   ctx.state.importRowActions = {};
@@ -35,9 +37,7 @@ export function attach(ctx) {
     resetImportDraft(ctx);
     syncImportMode(ctx);
     ctx.elements.importDialog.showModal();
-    renderImportPreview();
   }
-
   function closeImportDialog() {
     ctx.elements.importDialog.close();
   }
@@ -51,7 +51,6 @@ export function attach(ctx) {
     ctx.state.importStep = step;
     renderImportPreview();
   }
-
   async function advanceImportStep() {
     if (ctx.state.importWorkflowBusy) return;
     const current = ctx.state.importStep || 'file';
@@ -96,14 +95,12 @@ export function attach(ctx) {
     }
     if (current === 'confirm') return commitCsvImport();
   }
-
   function retreatImportStep() {
     const currentIndex = STEP_ORDER.indexOf(ctx.state.importStep || 'file');
     if (currentIndex <= 0) return;
     ctx.state.importStep = STEP_ORDER[currentIndex - 1];
     renderImportPreview();
   }
-
   function renderImportPreview() {
     const preview = ctx.state.importPreview;
     if (!preview) {
@@ -130,7 +127,7 @@ export function attach(ctx) {
   }
 
   async function handleImportFile() {
-    const source = ctx.elements.importSource.value || 'generic-csv';
+    const source = ctx.elements.importSource.value || 'valorgrid-xlsx';
     const file = ctx.elements.importFile.files?.[0];
     if (!file) return;
     if (isXlsxSource(source)) {
@@ -140,6 +137,7 @@ export function attach(ctx) {
       ctx.elements.importContent.value = await file.text();
       ctx.state.importFileMeta = { name: file.name, contentBase64: null };
     }
+    updateImportFileDisplay(ctx, file.name);
     resetImportState(ctx);
     renderImportPreview();
     ctx.elements.importFeedback.textContent = '';
@@ -339,6 +337,9 @@ export function attach(ctx) {
     handleImportSheetChange,
     previewCsvImport,
     commitCsvImport,
+    downloadImportTemplate,
+    updateImportFileDisplay,
+    clearImportFile,
     renderImportPreview,
     renderImportBatches,
     rollbackImportBatch,

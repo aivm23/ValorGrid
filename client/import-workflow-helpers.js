@@ -21,7 +21,11 @@ export function toBase64(buffer) {
 }
 
 export function isXlsxSource(source) {
-  return source === 'generic-xlsx';
+  return source === 'valorgrid-xlsx';
+}
+
+export function canDownloadTemplate(source) {
+  return source === 'valorgrid-xlsx';
 }
 
 export function suggestSymbol(label = '') {

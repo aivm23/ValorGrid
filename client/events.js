@@ -146,6 +146,23 @@ export function attach(ctx) {
   elements.importPreviewOutput.addEventListener('change', ctx.handleImportPreviewInteraction);
   elements.importPreviewOutput.addEventListener('input', ctx.handleImportPreviewInteraction);
   elements.importBatches.addEventListener('click', ctx.rollbackImportBatch);
+  elements.importDownloadTemplate?.addEventListener('click', ctx.downloadImportTemplate);
+  elements.importFileZone?.addEventListener('click', (event) => {
+    if (event.target.closest('.import-file-clear')) {
+      event.preventDefault();
+      ctx.clearImportFile();
+    }
+  });
+  elements.importFileZone?.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    elements.importFileZone.classList.add('drag-over');
+  });
+  elements.importFileZone?.addEventListener('dragleave', () => {
+    elements.importFileZone.classList.remove('drag-over');
+  });
+  elements.importFileZone?.addEventListener('drop', () => {
+    elements.importFileZone.classList.remove('drag-over');
+  });
   elements.instrumentRows.addEventListener('click', (event) => saveInstrument(ctx, event));
   elements.instrumentRows.addEventListener('change', ctx.updateInstrumentSelection);
   elements.instrumentPositionFilter?.addEventListener('change', () => {

@@ -104,6 +104,18 @@ Conteo de transacciones con `origin = 'auto'` en un periodo. Fuente: `summarizeT
 
 Grupo con mayor `variation` en valor absoluto para un mes dado. Calculado en `topMonthlyGroup` comparando `abs(variation)` entre grupos.
 
+## Calculos de importacion con plantilla
+
+La plantilla Excel de ValorGrid (`valorgrid-xlsx`) usa las siguientes reglas:
+
+- `Valor EUR` opcional: si se omite, se calcula como `abs(Acciones) * Precio * FX a EUR`.
+- `Divisa` y `FX a EUR` son obligatorios para operaciones no EUR.
+- No se busca FX automaticamente durante la importacion: el usuario debe proporcionarlo.
+- `Tipo` (compra/venta) se infiere del signo de `Acciones` si se deja vacio.
+- `Comision EUR` es siempre opcional (por defecto 0).
+
+Estas reglas aplican solo al perfil `valorgrid`. Los perfiles de broker (DEGIRO, IBKR) mantienen sus propias reglas de derivacion de FX.
+
 ## Calculos de posicion
 
 ### `getPositionShares(symbol, asOfDate)`

@@ -53,9 +53,11 @@ function renderWorkflowActions(activeStep, preview, canContinue = true, state = 
   else if (activeStep === 'instruments') nextLabel = 'Confirmar instrumentos';
   else if (activeStep === 'operations') nextLabel = 'Revisar impacto';
   const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
+  const showClose = activeStep === 'file' || activeStep === 'confirm';
   return `
     <div class="import-workflow-actions">
       <button type="button" class="button" data-import-back${backDisabled}>Atrás</button>
+      ${showClose ? '<span></span>' : ''}
       <button type="button" class="button button-primary" data-import-next${nextDisabled}>${nextLabel}</button>
     </div>`;
 }
@@ -78,12 +80,12 @@ function renderFileStep(ctx, preview, warnings = []) {
   if (!preview) {
     return `
       <div class="import-empty-step">
-        <strong>Selecciona un archivo y pulsa Analizar archivo.</strong>
-        <span>Después revisaremos instrumentos, operaciones e impacto antes de guardar nada.</span>
+        <strong>Preparado para analizar</strong>
+        <span>Selecciona un archivo Excel y pulsa <em>Analizar archivo</em>. Después revisaremos instrumentos, operaciones e impacto antes de guardar nada.</span>
       </div>`;
   }
   return `
-    ${preview.fileSubtype ? `<div class="import-kind-pill">Formato detectado: <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>` : ''}
+    ${preview.fileSubtype ? `<div class="import-kind-pill"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v10l4-3 4 3V2a1 1 0 00-1-1H4a1 1 0 00-1 1z"/></svg> Formato detectado: <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>` : ''}
     ${warnings.length ? `<div class="import-warning-banner">${warnings.map((item) => `<div>${ctx.escapeHtml(item)}</div>`).join('')}</div>` : ''}
     ${renderSummary(ctx, preview)}
   `;

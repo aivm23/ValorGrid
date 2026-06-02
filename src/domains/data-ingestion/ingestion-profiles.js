@@ -29,11 +29,10 @@ const baseFieldAliases = {
   externalId: ['externalid', 'external_id', 'id externo', 'referencia', 'order id', 'transaction id'],
 };
 
+const LEGACY_GENERIC_SOURCES = new Set(['csv', 'xlsx', 'generic-csv', 'generic-xlsx']);
+
 const adapterDefinitions = {
-  csv: { parser: 'csv', profile: 'generic' },
-  xlsx: { parser: 'xlsx', profile: 'generic' },
-  'generic-csv': { parser: 'csv', profile: 'generic' },
-  'generic-xlsx': { parser: 'xlsx', profile: 'generic' },
+  'valorgrid-xlsx': { parser: 'xlsx', profile: 'valorgrid', defaultSheet: 'Movimientos' },
   'degiro-csv': { parser: 'csv', profile: 'degiro' },
   'ibkr-csv': { parser: 'csv', profile: 'ibkr' },
 };
@@ -79,9 +78,26 @@ const profileOverrides = {
   },
 };
 
+const valorgridProfile = {
+  fieldAliases: {
+    type: ['Tipo'],
+    symbol: ['Ticker'],
+    date: ['Fecha'],
+    shares: ['Acciones'],
+    price: ['Precio'],
+    valueEur: ['Valor EUR'],
+    commissionEur: ['Comision EUR'],
+    currency: ['Divisa'],
+    fxToEur: ['FX a EUR'],
+    externalId: ['Referencia'],
+  },
+};
+profileOverrides.valorgrid = valorgridProfile;
+
 module.exports = {
   typeAliases,
   baseFieldAliases,
   adapterDefinitions,
   profileOverrides,
+  LEGACY_GENERIC_SOURCES,
 };

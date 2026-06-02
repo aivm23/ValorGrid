@@ -176,10 +176,11 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: perfiles de broker (DEGIRO, IBKR, genérico).
+- `ingestion-profiles`: perfiles de broker (DEGIRO, IBKR) y plantilla ValorGrid.
 - `ingestion-labels`: generación de etiquetas y mensajes.
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
+- `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
 
 **Archivos de plataforma en `src/platform/`:**
 
@@ -259,6 +260,7 @@ Módulos principales:
 - `import-workflow.js`: lógica de flujo y validación de importación.
 - `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
 - `import-preview-renderer.js`: renderizado de preview de importación.
+- `import-file-zone.js`: zona de arrastre y selección de archivo para importación.
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
@@ -310,12 +312,11 @@ Fases:
 
 Fuentes:
 
-- CSV genérico.
-- XLSX genérico.
+- Plantilla Excel de ValorGrid (XLSX).
 - DEGIRO CSV.
 - IBKR CSV.
 
-Los adaptadores de broker solo transforman a un formato normalizado común. La resolución de instrumentos se apoya en identificadores genéricos y confirmaciones del usuario.
+Los adaptadores de broker solo transforman a un formato normalizado común. La resolución de instrumentos se apoya en identificadores genéricos y confirmaciones del usuario. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
 
 ## Backups
 
