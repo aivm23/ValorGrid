@@ -146,6 +146,18 @@ export function attach(ctx) {
     ].join('\n');
   }
 
+  function metricInfo(label, tooltip, id) {
+    const escapedLabel = escapeHtml(label);
+    const escapedTooltip = escapeHtml(tooltip);
+    return `
+      <div class="metric-label">
+        <span>${escapedLabel}</span>
+        <button type="button" class="metric-info-button" aria-label="Información sobre la métrica" aria-describedby="${id}">i</button>
+        <span id="${id}" class="sr-only">${escapedTooltip}</span>
+        <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">${escapedTooltip}</div>
+      </div>`;
+  }
+
   function renderHistory() {
     const history = state.history;
     if (!history || history.range !== state.historyRange || !history.series?.length) {
@@ -164,7 +176,11 @@ export function attach(ctx) {
       return sum + sign * Number(event.valueEur || 0) + (event.type === 'add' ? Number(event.commissionEur || 0) : 0);
     }, 0);
     elements.historyStats.innerHTML = `
-    <article class="has-border-accent"><span>Valor final</span><strong>${formatCurrency(last.value)}</strong></article>
+    <article class="has-border-accent">${metricInfo(
+      'Último valor histórico',
+      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribución actual.',
+      'history-last-value-info',
+    )}<strong>${formatCurrency(last.value)}</strong></article>
     <article class="has-border-accent"><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>
     <article class="has-border-violet"><span>Eventos visibles</span><strong>${(history.events || []).length}</strong></article>
   `;
@@ -172,7 +188,9 @@ export function attach(ctx) {
     elements.historyStatus.textContent = `${formatCurrency(last.value)} - ${history.series.length} puntos${quality}`;
     elements.historyGranularity.textContent = history.granularity === 'weekly' ? 'Semanal' : 'Diario';
     if (elements.historySubtitle) {
-      elements.historySubtitle.textContent = `Valor total de la cartera desde ${formatPlainDate(first.date)}.`;
+      elements.historySubtitle.textContent = `Valor total de la cartera desde ${formatPlainDate(
+        first.date,
+      )}. El histórico puede diferir del total visible porque no aplica el filtro de visibilidad de distribución.`;
     }
   }
 

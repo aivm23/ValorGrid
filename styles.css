@@ -405,6 +405,89 @@ h2 {
   font-size: 1.35rem;
 }
 
+.metric-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.metric-info-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--muted) 26%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 92%, var(--bg));
+  color: var(--muted);
+  cursor: help;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1;
+  appearance: none;
+}
+
+.metric-info-button:hover,
+.metric-info-button:focus-visible {
+  border-color: var(--accent);
+  color: var(--text);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.metric-info-tooltip {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: calc(100% + 8px);
+  display: block;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  padding: 8px 10px;
+  pointer-events: none;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  opacity: 0;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.metric-info-button:hover + .sr-only + .metric-info-tooltip,
+.metric-label:focus-within .metric-info-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.total-box .metric-info-tooltip {
+  left: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%) translateX(4px);
+}
+
+.total-box .metric-label {
+  justify-content: flex-end;
+}
+
+.history-stats .metric-label {
+  align-items: center;
+}
+
 .source-row {
   display: flex;
   flex-wrap: wrap;
@@ -3529,6 +3612,23 @@ td:last-child {
 
   .total-box {
     text-align: left;
+  }
+
+  .metric-info-tooltip {
+    top: calc(100% + 8px);
+    left: 0;
+    right: auto;
+    transform: translateY(-4px);
+  }
+
+  .metric-info-button:hover + .sr-only + .metric-info-tooltip,
+  .metric-label:focus-within .metric-info-tooltip {
+    transform: translateY(0);
+  }
+
+  .total-box .metric-info-tooltip {
+    left: 0;
+    right: auto;
   }
 }
 

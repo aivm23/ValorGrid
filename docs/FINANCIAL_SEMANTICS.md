@@ -82,6 +82,17 @@ Consecuencia directa:
 - Ventas netas: `contributed` decrece.
 - Si ventas netas superan compras historicas, `contributed` puede ser negativo.
 
+## Relacion entre distribucion actual e historico
+
+- `Distribucion actual`:
+  - `buildSummary().total` suma solo las posiciones con `showInDistribution = true` y `value >= minimumDisplayValueEur`.
+  - Los grupos y posiciones ocultos no entran en ese total visible.
+- `Historico`:
+  - La serie materializa la cartera activa sobre el tiempo y no aplica `showInDistribution`.
+  - Por eso puede incluir instrumentos que hoy estan ocultos en la distribucion actual.
+- Consecuencia:
+  - Ambos totales pueden diferir y seguir siendo correctos porque responden a reglas distintas.
+
 ## Metricas auxiliares
 
 ### `transactionCount`

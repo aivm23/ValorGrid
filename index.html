@@ -147,7 +147,23 @@
               <p class="subtle">Peso de cada posición sobre el total.</p>
             </div>
             <div class="total-box">
-              <span>Total actual estimado</span>
+              <div class="metric-label">
+                <span>Total visible estimado</span>
+                <button
+                  type="button"
+                  class="metric-info-button"
+                  aria-label="Información sobre la métrica"
+                  aria-describedby="distribution-total-info"
+                >
+                  i
+                </button>
+                <span id="distribution-total-info" class="sr-only">
+                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.
+                </span>
+                <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">
+                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.
+                </div>
+              </div>
               <strong id="portfolio-total"></strong>
             </div>
           </div>
@@ -213,11 +229,13 @@
       </section>
 
       <section class="panel history-panel" aria-labelledby="history-title">
-        <div class="panel-header">
-          <div>
-            <h2 id="history-title">Histórico</h2>
-            <p id="history-subtitle" class="subtle">Valor total de la cartera desde la primera inversión.</p>
-          </div>
+          <div class="panel-header">
+            <div>
+              <h2 id="history-title">Histórico</h2>
+              <p id="history-subtitle" class="subtle">
+                Valor total de la cartera desde la primera inversión. El histórico puede diferir del total visible porque no aplica el filtro de visibilidad de distribución.
+              </p>
+            </div>
           <div class="history-controls" aria-label="Filtro histórico">
             <button class="button history-range" type="button" data-history-range="all">Todo</button>
             <button class="button history-range" type="button" data-history-range="5y">5 años</button>
