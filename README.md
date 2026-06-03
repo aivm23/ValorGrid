@@ -115,7 +115,7 @@ GET /api/import/template.xlsx
 
 Un ejemplo sintético con tickers reales del S&P 500 está disponible en `samples/valorgrid-template/`. Los datos de movimientos son ficticios y no representan una cartera real.
 
-Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado separado. No deben publicarse en este repositorio Community.
+Los conectores avanzados de broker pertenecen a ValorGrid Pro/Enterprise. ValorGrid Community no publica código, contratos operativos ni muestras privadas de esas integraciones.
 
 ## Docker
 

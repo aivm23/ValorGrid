@@ -162,10 +162,9 @@ Respuesta:
 {
   "sources": [
     { "key": "valorgrid-xlsx", "label": "Plantilla Excel de ValorGrid", "edition": "community", "available": true },
-    { "key": "degiro-csv", "label": "DEGIRO", "edition": "professional", "available": false },
     {
-      "key": "ibkr-csv",
-      "label": "Interactive Brokers",
+      "key": "<fuente-profesional>",
+      "label": "<Fuente profesional>",
       "edition": "professional",
       "available": false,
       "comingSoon": true
@@ -182,11 +181,9 @@ Respuesta:
 
 ```text
 valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado, siempre disponible)
-degiro-csv      (adaptador DEGIRO — Profesional Edition)
-ibkr-csv        (adaptador Interactive Brokers — Profesional Edition)
 ```
 
-ValorGrid Community carga dinámicamente los adaptadores PRO cuando se define `VALORGRID_PRO_ADAPTERS_PATH`. Sin esta variable, las fuentes PRO aparecen como no disponibles (`available: false`).
+Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración, contratos de adaptación y detalles operativos se documentan solo en materiales privados de ValorGrid Pro/Enterprise.
 
 ### Descarga de plantilla
 
@@ -218,7 +215,6 @@ El flujo recomendado es:
 
 ValorGrid Community acepta la plantilla Excel oficial como fuente predeterminada. Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
 
-Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado. Community los carga dinámicamente cuando `VALORGRID_PRO_ADAPTERS_PATH` apunta al módulo de adaptadores.
 
 ## Errores
 

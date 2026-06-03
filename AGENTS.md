@@ -72,6 +72,14 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 **Rule**: never trust docs blindly. If in doubt, read the source (`src/schema.js`, `src/routes.js`, `src/app.js`) as the source of truth, then fix the docs to match.
 
+## Public / Private Boundary
+
+- Community documentation may mention that ValorGrid Pro/Enterprise exists, but must not expose professional connector internals.
+- Public docs must not include private adapter ids, broker-specific parser contracts, operational environment variable names, dynamic loading mechanics, restricted workspace details, broker export fixture names, or proprietary source mapping details.
+- Exact Pro setup, adapter contracts, broker-specific import semantics, connector environment variables, and restricted-workspace workflows belong only in private ValorGrid Pro/Enterprise documentation.
+- If a public API response can include professional sources, document the generic shape and edition semantics with placeholders instead of concrete broker identifiers.
+- Any change touching docs, publication checks, source catalog text, or import-source UI must run `npm run verify:publication` before commit.
+
 ## DB Operations Policy
 
 - Fresh-only DB policy: schema is created from `src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.

@@ -176,7 +176,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx`, catálogo de fuentes PRO conocidas (`knownProAdapters`), carga dinámica de adaptadores PRO vía `VALORGRID_PRO_ADAPTERS_PATH` (`loadProAdapters()`), y listado de fuentes disponibles por edición (`listImportSources()`).
+- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx` y listado de fuentes disponibles por edición (`listImportSources()`), sin documentar detalles operativos de conectores profesionales en la documentación pública.
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
@@ -228,7 +228,7 @@ Módulos principales:
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `dashboard.js`: arranque de UI y boot overlay.
-- `imports.js`: orquestación del asistente de importación, carga dinámica de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
+- `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
 - `import-workflow.js`: lógica de flujo y validación de importación.
 - `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
 - `import-preview-renderer.js`: renderizado de preview de importación.
@@ -289,7 +289,7 @@ Fuentes:
 
 ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
 
-ValorGrid Pro/Enterprise vive en un repositorio privado separado. Sus adaptadores deben transformar cada fuente privada al mismo formato normalizado que consume Community y no deben publicarse en GitHub publico.
+Los conectores avanzados de ValorGrid Pro/Enterprise se tratan como superficie privada. Community solo documenta el contrato público de importación y no publica contratos operativos, código ni muestras privadas de esas integraciones.
 
 ## Backups
 

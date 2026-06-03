@@ -54,7 +54,14 @@ function publicFiles(dir = root, files = []) {
 
 function allowsPublicBrokerTeaser(file) {
   const relative = path.relative(root, file);
-  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'docs\\API.md' || relative === 'docs/API.md';
+  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js';
+}
+
+function publicDocumentationFiles() {
+  return publicFiles().filter((file) => {
+    const relative = path.relative(root, file).replace(/\\/g, '/');
+    return relative === 'README.md' || relative === 'AGENTS.md' || relative.startsWith('docs/');
+  });
 }
 
 test('private database artifacts are ignored and not publishable', () => {
@@ -105,6 +112,35 @@ test('publishable text does not contain local paths or personal import labels', 
     for (const item of forbidden) {
       if (allowsPublicBrokerTeaser(file) && publicBrokerTeaserTokens.has(item)) continue;
       if (text.includes(item)) offenders.push(`${path.relative(root, file)} contains ${item}`);
+    }
+  }
+
+  assert.deepEqual(offenders, []);
+});
+
+test('public documentation does not expose professional connector internals', () => {
+  const forbidden = [
+    ['VALORGRID', 'PRO', 'ADAPTERS', 'PATH'].join('_'),
+    ['degiro', 'csv'].join('-'),
+    ['ibkr', 'csv'].join('-'),
+    ['DE', 'GIRO'].join(''),
+    ['I', 'BKR'].join(''),
+    'knownProAdapters',
+    'loadProAdapters',
+    'repositorio privado',
+    'private repo',
+    ['transactions', 'export'].join('_'),
+    ['broker', 'degiro'].join('-'),
+  ];
+  const offenders = [];
+
+  for (const file of publicDocumentationFiles()) {
+    if (!textExtensions.has(path.extname(file))) continue;
+    const text = fs.readFileSync(file, 'utf8');
+    for (const item of forbidden) {
+      if (text.toLowerCase().includes(item.toLowerCase())) {
+        offenders.push(`${path.relative(root, file)} contains ${item}`);
+      }
     }
   }
 

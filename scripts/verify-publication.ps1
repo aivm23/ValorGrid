@@ -166,7 +166,6 @@ $publicBrokerTeaserPatterns = @(
 )
 $publicBrokerTeaserFiles = @(
   'index.html',
-  'docs\API.md',
   'src\domains\data-ingestion\ingestion-profiles.js',
   'test\imports.test.js'
 )
