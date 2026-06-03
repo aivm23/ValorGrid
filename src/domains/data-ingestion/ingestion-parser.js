@@ -142,6 +142,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   const valueEur = Number.isFinite(valueEurInput) && valueEurInput > 0 ? valueEurInput : computedValueEur;
   const externalIdBase = String(mappedValue(row, mapping, profile, 'externalId') || '').trim();
   const externalId = externalIdBase ? `${externalIdBase}:${row.rowIndex}` : null;
+  const rowKind = row.rowKind || 'trade';
   const errors = [];
   const warnings = [];
 
@@ -149,7 +150,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   if (!date) errors.push('Fecha invalida');
   if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
   if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
-  if (price === 0 && inferredType === 'add') warnings.push('Compra a 0 EUR (split/dividendo) - se importa con precio minimo');
+  if (rowKind === 'trade' && price === 0 && inferredType === 'add') warnings.push('Compra a 0 EUR (split/dividendo) - se importa con precio minimo');
   if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
   if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   if (!Number.isFinite(valueEur) || valueEur < 0) errors.push('Valor EUR no puede ser negativo');
@@ -158,6 +159,11 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
     if (Math.abs(valueEurInput - computedValueEur) > tolerance) {
       errors.push('Valor EUR no cuadra con precio, acciones y FX');
     }
+  }
+
+  const externalIdentifiers = Array.isArray(row.externalIdentifiers) ? [...row.externalIdentifiers] : [];
+  if (symbol && !externalIdentifiers.some((item) => String(item.identifierType || '').toLowerCase() === 'ticker')) {
+    externalIdentifiers.unshift({ provider: 'manual', identifierType: 'ticker', identifierValue: symbol });
   }
 
   const normalized = {
@@ -175,16 +181,14 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
     cashFlowEur: (inferredType || 'add') === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur),
     externalId,
     source,
-    externalIdentifiers: symbol
-      ? [{ provider: 'manual', identifierType: 'ticker', identifierValue: symbol }]
-      : [],
-    rowKind: 'trade',
-    ignoreReason: null,
+    externalIdentifiers,
+    rowKind,
+    ignoreReason: row.ignoreReason || null,
     warnings,
   };
   normalized.rowHash = sha256(JSON.stringify(normalized));
   normalized.transactionId = `import:${source}:${normalized.rowHash.slice(0, 24)}`;
-  return { normalized, errors };
+  return { normalized, errors: rowKind === 'corporate_action_ignored' ? [] : errors };
 }
 
 function summarizeImportRows(rows) {
@@ -240,9 +244,21 @@ function serializeSummary(summary) {
 }
 
 function parseImportPayload(input, adapter) {
-  if (adapter.parser !== 'xlsx') {
-    throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
+  if (adapter.parser === 'pro-csv') {
+    if (typeof adapter.parse !== 'function') throw new Error(`Adaptador profesional no disponible: ${adapter.source}`);
+    const content = String(input.content || '').trim();
+    if (!content) throw new Error('Contenido CSV obligatorio');
+    const parsed = adapter.parse({ content, filename: input.filename || null, source: adapter.source });
+    return {
+      parsed: { headers: parsed.headers || [], rows: parsed.rows || [] },
+      fileHash: sha256(content),
+      payloadHash: sha256(`${adapter.source}:${content}`),
+      sheets: [],
+      selectedSheet: null,
+      fileSubtype: parsed.fileSubtype || adapter.profile || adapter.source,
+    };
   }
+  if (adapter.parser !== 'xlsx') throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
   const parsed = parseXlsxRows(contentBase64, input.sheetName || adapter.defaultSheet || null);

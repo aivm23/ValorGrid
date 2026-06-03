@@ -164,13 +164,19 @@ $publicBrokerTeaserPatterns = @(
   ('degiro' + '-csv'),
   ('ibkr' + '-csv')
 )
+$publicBrokerTeaserFiles = @(
+  'index.html',
+  'docs\API.md',
+  'src\domains\data-ingestion\ingestion-profiles.js',
+  'test\imports.test.js'
+)
 
 foreach ($file in $publicFiles) {
   if ($textExtensions -notcontains $file.Extension) { continue }
   $relative = $file.FullName.Substring($root.Path.Length + 1)
   $content = Get-Content -Path $file.FullName -Raw
   foreach ($pattern in $forbiddenTextPatterns) {
-    if ($relative -eq 'index.html' -and $pattern -in $publicBrokerTeaserPatterns) {
+    if ($relative -in $publicBrokerTeaserFiles -and $pattern -in $publicBrokerTeaserPatterns) {
       continue
     }
     if ($content.Contains($pattern)) {

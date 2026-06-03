@@ -55,13 +55,19 @@ function loadProAdapters() {
   if (!proPath) return;
   try {
     const resolvedPath = path.resolve(proPath);
-    const proAdapters = require(resolvedPath);
+    let proAdapters;
+    try {
+      proAdapters = require(resolvedPath);
+    } catch (error) {
+      if (error?.code !== 'MODULE_NOT_FOUND') throw error;
+      proAdapters = require(path.join(resolvedPath, 'index.cjs'));
+    }
     if (!proAdapters?.adapters?.length) return;
     for (const adapter of proAdapters.adapters) {
       if (!adapter?.source || !adapter?.label) continue;
       adapterDefinitions[adapter.source] = {
         parser: 'pro-csv',
-        profile: adapter.source,
+        profile: adapter.profile || 'valorgrid',
         label: adapter.label,
         edition: 'professional',
         parse: adapter.parse,

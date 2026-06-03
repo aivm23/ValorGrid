@@ -1,5 +1,6 @@
 const test = require('node:test');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const XLSX = require('../vendor/xlsx.full.min.js');
 const {
@@ -196,6 +197,93 @@ test('legacy generic sources are rejected with clear message', async () => {
   });
   assert.equal(api.response.status, 400);
   assert.match(api.body.error, /plantilla Excel de ValorGrid/);
+});
+
+test('professional csv adapters load from index.cjs folders and use canonical rows', () => {
+  const adapterDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-pro-adapter-'));
+  const originalPath = process.env.VALORGRID_PRO_ADAPTERS_PATH;
+  const headers = ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'];
+
+  fs.writeFileSync(
+    path.join(adapterDir, 'index.cjs'),
+    `
+const headers = ${JSON.stringify(headers)};
+module.exports = {
+  adapters: [
+    {
+      source: 'fixture-pro-csv',
+      label: 'Fixture Broker',
+      parse() {
+        return {
+          headers,
+          rows: [
+            {
+              rowIndex: 2,
+              headers,
+              values: ['compra', '2026-05-01', 'PROFX', 2, 10, 'EUR', 1, 20, 1, 'pro-1'],
+              data: {
+                Tipo: 'compra',
+                Fecha: '2026-05-01',
+                Ticker: 'PROFX',
+                Acciones: 2,
+                Precio: 10,
+                Divisa: 'EUR',
+                'FX a EUR': 1,
+                'Valor EUR': 20,
+                'Comision EUR': 1,
+                Referencia: 'pro-1',
+              },
+            },
+            {
+              rowIndex: 3,
+              headers,
+              values: ['compra', '2026-05-02', '', 0, 0, 'EUR', 1, 0, 0, 'ignored'],
+              data: {
+                Tipo: 'compra',
+                Fecha: '2026-05-02',
+                Ticker: '',
+                Acciones: 0,
+                Precio: 0,
+                Divisa: 'EUR',
+                'FX a EUR': 1,
+                'Valor EUR': 0,
+                'Comision EUR': 0,
+                Referencia: 'ignored',
+              },
+              rowKind: 'corporate_action_ignored',
+              ignoreReason: 'Ignored fixture row',
+            },
+          ],
+          fileSubtype: 'fixture',
+        };
+      },
+    },
+  ],
+};
+`,
+  );
+
+  try {
+    process.env.VALORGRID_PRO_ADAPTERS_PATH = adapterDir;
+    loadProAdapters();
+    seedTestInstrument({ symbol: 'PROFX', yahooSymbol: 'PROFX', name: 'Pro Fixture', type: 'stock', currency: 'EUR' });
+
+    const preview = previewImport({ source: 'fixture-pro-csv', filename: 'fixture.csv', content: 'fixture' });
+
+    assert.equal(adapterDefinitions['fixture-pro-csv'].profile, 'valorgrid');
+    assert.equal(preview.summary.errorCount, 0);
+    assert.equal(preview.summary.buys, 1);
+    assert.equal(preview.summary.ignoredCount, 1);
+    assert.equal(preview.rows[0].status, 'valid');
+    assert.equal(preview.rows[0].normalized.cashFlowEur, -21);
+    assert.equal(preview.rows[1].status, 'ignored');
+    assert.deepEqual(preview.rows[1].errors, []);
+  } finally {
+    delete adapterDefinitions['fixture-pro-csv'];
+    if (originalPath === undefined) delete process.env.VALORGRID_PRO_ADAPTERS_PATH;
+    else process.env.VALORGRID_PRO_ADAPTERS_PATH = originalPath;
+    fs.rmSync(adapterDir, { recursive: true, force: true });
+  }
 });
 
 test('GET /api/import/template.xlsx returns ValorGrid workbook template', async () => {
