@@ -157,7 +157,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 21. `domains/history/history-core`: motor de materialización de histórico.
 22. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
 23. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-24. `domains/admin/diagnostics-service`: métricas de rendimiento y tamaños de caché.
+24. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
 25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 26. `http`: servidor HTTP estático y listener.
 
@@ -290,6 +290,10 @@ Fuentes:
 ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
 
 Los conectores avanzados de ValorGrid Pro/Enterprise se tratan como superficie privada. Community solo documenta el contrato público de importación y no publica contratos operativos, código ni muestras privadas de esas integraciones.
+
+## Exportaciones
+
+La exportación pública de movimientos usa `GET /api/export/transactions.xlsx` y devuelve un Excel con una sola hoja `Movimientos`. El formato comparte encabezados con la plantilla oficial de importación, pero no incluye hojas de instrucciones ni ejemplos, para que el archivo pueda reimportarse directamente.
 
 ## Backups
 

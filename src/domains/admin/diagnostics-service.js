@@ -1,4 +1,6 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
+const XLSX = require('../../../vendor/xlsx.full.min.js');
+const { MOVIMIENTOS_HEADERS } = require('../data-ingestion/template-generator');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -122,36 +124,31 @@ function buildHealth() {
   };
 }
 
-function csvCell(value) {
-  const text = value === null || value === undefined ? '' : String(value);
-  return /[",\n;]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
-function buildTransactionsCsv() {
-  const headers = [
-    'id',
-    'date',
-    'marketDate',
-    'symbol',
-    'type',
-    'shares',
-    'price',
-    'currency',
-    'valueEur',
-    'commissionEur',
-    'cashFlowEur',
-    'origin',
-    'autoKey',
-    'importBatchId',
-    'externalId',
-    'rawHash',
+function rowToValorGridExport(row) {
+  const type = row.type === 'remove' ? 'venta' : 'compra';
+  const shares = Number(row.shares || 0);
+  return [
+    type,
+    row.date || '',
+    row.symbol || '',
+    row.type === 'remove' ? -Math.abs(shares) : Math.abs(shares),
+    Number(row.price || 0),
+    row.currency || 'EUR',
+    Number(row.fxToEur || 1),
+    Number(row.valueEur || 0),
+    Number(row.commissionEur || 0),
+    row.externalId || row.id || '',
   ];
-  const lines = [headers.join(';')];
-  for (const row of getTransactions()) {
-    lines.push(headers.map((key) => csvCell(row[key])).join(';'));
-  }
-  return `${lines.join('\n')}\n`;
 }
 
-  Object.assign(ctx, { tableCount, buildPerformanceDiagnostics, getDatabaseStats, buildHealth, csvCell, buildTransactionsCsv });
+function buildTransactionsXlsx() {
+  const workbook = XLSX.utils.book_new();
+  const rows = [MOVIMIENTOS_HEADERS, ...getTransactions().map(rowToValorGridExport)];
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  worksheet['!cols'] = MOVIMIENTOS_HEADERS.map(() => ({ wch: 18 }));
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos');
+  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
+}
+
+  Object.assign(ctx, { tableCount, buildPerformanceDiagnostics, getDatabaseStats, buildHealth, buildTransactionsXlsx });
 };

@@ -234,5 +234,5 @@ export interface RouteHandlers {
   buildMonthly: (year: number) => Promise<unknown>;
   buildPortfolioHistory: (range: string, granularity: string) => Promise<unknown>;
   buildPerformanceDiagnostics: () => Promise<unknown>;
-  buildTransactionsCsv: () => string;
+  buildTransactionsXlsx: () => Uint8Array;
 }

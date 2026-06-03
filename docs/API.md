@@ -132,11 +132,12 @@ Los backups se guardan en `.backups/` y no deben versionarse.
 ## Exportaciones
 
 ```text
-GET /api/export/transactions.csv
-GET /api/export/transactions.json
+GET /api/export/transactions.xlsx
 ```
 
-Exportan el ledger de movimientos para auditoría o migración manual.
+Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
+
+Las compras se exportan como `compra` con acciones positivas, las ventas como `venta` con acciones negativas, y `Referencia` usa `externalId` si existe o el `id` interno si no existe.
 
 ## Importaciones
 
@@ -214,7 +215,6 @@ El flujo recomendado es:
 7. `rollback`: revierte un lote importado si hace falta corregirlo.
 
 ValorGrid Community acepta la plantilla Excel oficial como fuente predeterminada. Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
-
 
 ## Errores
 

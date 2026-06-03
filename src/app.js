@@ -192,8 +192,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'buildPerformanceDiagnostics',
       'getDatabaseStats',
       'buildHealth',
-      'csvCell',
-      'buildTransactionsCsv',
+      'buildTransactionsXlsx',
     ]),
   );
 

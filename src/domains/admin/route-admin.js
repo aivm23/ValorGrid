@@ -8,7 +8,6 @@ function sendError(response, sendJson, error) {
 module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   const {
     sendJson,
-    sendText,
     getQuoteForSymbol,
     buildHealth,
     getTransactions,
@@ -16,7 +15,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     listInstruments,
     listInstrumentGroups,
     buildPerformanceDiagnostics,
-    buildTransactionsCsv,
+    buildTransactionsXlsx,
   } = resolveRouteHandlers(ctx);
 
   const { appInfo, root, db, dbPath, listBackups, createBackup, resolveBackupPath, fsSync, path } = ctx;
@@ -46,15 +45,15 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     return true;
   }
 
-  if (url.pathname === '/api/export/transactions.json' && request.method === 'GET') {
-    sendJson(response, 200, { transactions: getTransactions() });
-    return true;
-  }
-
-  if (url.pathname === '/api/export/transactions.csv' && request.method === 'GET') {
-    sendText(response, 200, buildTransactionsCsv(), 'text/csv; charset=utf-8', {
-      'Content-Disposition': 'attachment; filename="transactions.csv"',
+  if (url.pathname === '/api/export/transactions.xlsx' && request.method === 'GET') {
+    const buffer = buildTransactionsXlsx();
+    response.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="ValorGrid_Movimientos.xlsx"',
+      'Content-Length': buffer.length,
+      'Cache-Control': 'no-store',
     });
+    response.end(buffer);
     return true;
   }
 

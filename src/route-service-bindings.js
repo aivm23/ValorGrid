@@ -107,7 +107,7 @@ function resolveRouteHandlers(ctx) {
       'buildPerformanceDiagnostics',
       ctx.buildPerformanceDiagnostics,
     ),
-    buildTransactionsCsv: pickServiceFn(diagnosticsServices, 'buildTransactionsCsv', ctx.buildTransactionsCsv),
+    buildTransactionsXlsx: pickServiceFn(diagnosticsServices, 'buildTransactionsXlsx', ctx.buildTransactionsXlsx),
   };
 }
 

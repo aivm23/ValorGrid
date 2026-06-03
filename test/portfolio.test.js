@@ -1,6 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const XLSX = require('../vendor/xlsx.full.min.js');
+const { MOVIMIENTOS_HEADERS } = require('../src/domains/data-ingestion/template-generator');
 const {
   assert,
   appInfo,
@@ -349,16 +351,64 @@ test('GET /api/transactions returns stored transactions', async () => {
   assert.ok(Array.isArray(body.transactions));
 });
 
-test('export endpoints return ledger JSON and CSV', async () => {
-  const json = await jsonRequest('/api/export/transactions.json');
-  assert.equal(json.response.status, 200);
-  assert.ok(Array.isArray(json.body.transactions));
+test('export endpoint returns ledger XLSX in ValorGrid template format', async () => {
+  seedTestInstrument({ symbol: 'XLSXEXP', yahooSymbol: 'XLSXEXP', name: 'Export XLSX', type: 'stock', currency: 'USD' });
+  db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur,
+       commission_eur, cash_flow_eur, color, origin, external_id)
+     VALUES
+      ('export-xlsx-buy', 'add', 'XLSXEXP', 'Export XLSX', '2026-06-01', '2026-06-01', 2, 180, 100, 'USD', 0.9,
+       1.5, -181.5, '#0d9488', 'manual', 'broker-ref-001'),
+      ('export-xlsx-sell', 'remove', 'XLSXEXP', 'Export XLSX', '2026-06-02', '2026-06-02', 1, 95, 100, 'USD', 0.95,
+       0.5, 94.5, '#0d9488', 'manual', NULL)`,
+  ).run();
 
-  const csv = await request('/api/export/transactions.csv');
-  assert.equal(csv.status, 200);
-  assert.match(csv.headers.get('content-type'), /text\/csv/);
-  const text = await csv.text();
-  assert.match(text, /^id;date;marketDate;symbol;/);
+  const response = await request('/api/export/transactions.xlsx');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  assert.ok(response.headers.get('content-disposition').includes('ValorGrid_Movimientos.xlsx'));
+
+  const workbook = XLSX.read(Buffer.from(await response.arrayBuffer()), { type: 'buffer' });
+  assert.deepEqual(workbook.SheetNames, ['Movimientos']);
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Movimientos, { header: 1, defval: null });
+  assert.deepEqual(rows[0], MOVIMIENTOS_HEADERS);
+
+  const buy = rows.find((row) => row[9] === 'broker-ref-001');
+  const sell = rows.find((row) => row[9] === 'export-xlsx-sell');
+  assert.deepEqual(buy, ['compra', '2026-06-01', 'XLSXEXP', 2, 100, 'USD', 0.9, 180, 1.5, 'broker-ref-001']);
+  assert.deepEqual(sell, ['venta', '2026-06-02', 'XLSXEXP', -1, 100, 'USD', 0.95, 95, 0.5, 'export-xlsx-sell']);
+});
+
+test('legacy CSV and JSON export endpoints are no longer available', async () => {
+  const json = await jsonRequest('/api/export/transactions.json');
+  assert.equal(json.response.status, 404);
+  assert.equal(json.body.error, 'Not found');
+
+  const csv = await jsonRequest('/api/export/transactions.csv');
+  assert.equal(csv.response.status, 404);
+  assert.equal(csv.body.error, 'Not found');
+});
+
+test('legacy export helpers and toolbar ids are removed from source', () => {
+  const legacyCsvHelper = ['buildTransactions', 'Csv'].join('');
+  const legacyCsvToolbar = ['toolbar', 'export', 'csv'].join('-');
+  const legacyJsonToolbar = ['toolbar', 'export', 'json'].join('-');
+  const files = [
+    'src/app.js',
+    'src/route-service-bindings.js',
+    'src/domains/admin/diagnostics-service.js',
+    'src/domains/admin/route-admin.js',
+    'client/dom.js',
+    'index.html',
+  ];
+
+  for (const file of files) {
+    const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    assert.equal(source.includes(legacyCsvHelper), false, `${file} should not reference CSV helper`);
+    assert.equal(source.includes(legacyCsvToolbar), false, `${file} should not reference CSV toolbar id`);
+    assert.equal(source.includes(legacyJsonToolbar), false, `${file} should not reference JSON toolbar id`);
+  }
 });
 
 test('POST /api/transactions creates and DELETE /api/transactions/:id removes', async () => {

@@ -22,7 +22,7 @@ Está pensada como una herramienta de seguimiento, organización y visualizació
 - Importación mediante plantilla Excel oficial de ValorGrid con preview, conciliación y rollback.
 - Histórico de evolución de cartera.
 - Aportaciones automáticas configurables.
-- Backups locales y exportación de movimientos.
+- Backups locales y exportación Excel de movimientos.
 - Ejecución local con datos bajo control del usuario.
 
 ## Privacidad
@@ -116,6 +116,16 @@ GET /api/import/template.xlsx
 Un ejemplo sintético con tickers reales del S&P 500 está disponible en `samples/valorgrid-template/`. Los datos de movimientos son ficticios y no representan una cartera real.
 
 Los conectores avanzados de broker pertenecen a ValorGrid Pro/Enterprise. ValorGrid Community no publica código, contratos operativos ni muestras privadas de esas integraciones.
+
+## Exportaciones
+
+La app exporta movimientos en el mismo formato Excel que acepta el importador:
+
+```text
+GET /api/export/transactions.xlsx
+```
+
+El archivo contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, lista para auditoría o reimportación.
 
 ## Docker
 
