@@ -531,12 +531,14 @@ h2 {
   background: color-mix(in srgb, var(--accent) 25%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 60%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  color: #0f172a;
 }
 
 :root.dark .button:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 35%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 70%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  color: #ffffff;
 }
 
 .button:active:not(:disabled) {
@@ -570,12 +572,14 @@ h2 {
   background: color-mix(in srgb, var(--accent) 25%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 60%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  color: #0f172a;
 }
 
 :root.dark .calendar-button:hover {
   background: color-mix(in srgb, var(--accent) 35%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 70%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  color: #ffffff;
 }
 
 .calendar-button:active {
@@ -742,12 +746,14 @@ h2 {
   background: color-mix(in srgb, var(--accent) 25%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 60%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  color: #0f172a;
 }
 
 :root.dark .balance-toggle:hover {
   background: color-mix(in srgb, var(--accent) 35%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 70%, var(--button-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  color: #ffffff;
 }
 
 .balance-toggle:active {
@@ -3905,12 +3911,14 @@ td:last-child {
   background: color-mix(in srgb, var(--accent) 30%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 75%, var(--button-border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  color: #0f172a;
 }
 
 :root.dark .button-accent:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 45%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 85%, var(--button-border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  color: #ffffff;
 }
 }
 
