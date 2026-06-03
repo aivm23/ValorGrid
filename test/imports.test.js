@@ -525,16 +525,16 @@ test('GET /api/import/sources returns community sources when edition is communit
   assert.equal(valorgrid.edition, 'community');
   assert.equal(valorgrid.available, true);
 
-  const degiro = result.body.sources.find((s) => s.key === 'degiro-csv');
-  assert.ok(degiro, 'degiro-csv source must be present in the list');
-  assert.equal(degiro.edition, 'professional');
-  assert.equal(degiro.available, false, 'degiro-csv must not be available in community edition');
+  const brokerA = result.body.sources.find((s) => s.key === 'pro-broker-a-csv');
+  assert.ok(brokerA, 'pro-broker-a-csv source must be present in the list');
+  assert.equal(brokerA.edition, 'professional');
+  assert.equal(brokerA.available, false, 'pro-broker-a-csv must not be available in community edition');
 
-  const ibkr = result.body.sources.find((s) => s.key === 'ibkr-csv');
-  assert.ok(ibkr, 'ibkr-csv source must be present in the list');
-  assert.equal(ibkr.edition, 'professional');
-  assert.equal(ibkr.available, false, 'ibkr-csv must not be available in community edition');
-  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
+  const brokerB = result.body.sources.find((s) => s.key === 'pro-broker-b-csv');
+  assert.ok(brokerB, 'pro-broker-b-csv source must be present in the list');
+  assert.equal(brokerB.edition, 'professional');
+  assert.equal(brokerB.available, false, 'pro-broker-b-csv must not be available in community edition');
+  assert.equal(brokerB.comingSoon, true, 'pro-broker-b-csv must be marked as coming soon');
 });
 
 test('listImportSources includes knownProAdapters with available=false in community edition', () => {
@@ -546,18 +546,18 @@ test('listImportSources includes knownProAdapters with available=false in commun
   assert.ok(valorgrid);
   assert.equal(valorgrid.available, true);
 
-  const degiro = sources.find((s) => s.key === 'degiro-csv');
-  assert.ok(degiro);
-  assert.equal(degiro.label, 'DEGIRO');
-  assert.equal(degiro.edition, 'professional');
-  assert.equal(degiro.available, false);
+  const brokerA = sources.find((s) => s.key === 'pro-broker-a-csv');
+  assert.ok(brokerA);
+  assert.equal(brokerA.label, 'Broker A');
+  assert.equal(brokerA.edition, 'professional');
+  assert.equal(brokerA.available, false);
 
-  const ibkr = sources.find((s) => s.key === 'ibkr-csv');
-  assert.ok(ibkr);
-  assert.equal(ibkr.label, 'Interactive Brokers');
-  assert.equal(ibkr.edition, 'professional');
-  assert.equal(ibkr.available, false);
-  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
+  const brokerB = sources.find((s) => s.key === 'pro-broker-b-csv');
+  assert.ok(brokerB);
+  assert.equal(brokerB.label, 'Broker B');
+  assert.equal(brokerB.edition, 'professional');
+  assert.equal(brokerB.available, false);
+  assert.equal(brokerB.comingSoon, true, 'pro-broker-b-csv must be marked as coming soon');
 });
 
 test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', () => {
