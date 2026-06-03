@@ -532,6 +532,11 @@ h2 {
   border-color: color-mix(in srgb, var(--accent) 25%, var(--button-border));
 }
 
+:root.dark .button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 15%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--button-border));
+}
+
 .button:active:not(:disabled) {
   transform: scale(0.97);
 }
@@ -562,6 +567,11 @@ h2 {
 .calendar-button:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+}
+
+:root.dark .calendar-button:hover {
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--button-border));
 }
 
 .calendar-button:active {
@@ -727,6 +737,11 @@ h2 {
 .balance-toggle:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+}
+
+:root.dark .balance-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--button-border));
 }
 
 .balance-toggle:active {
@@ -1180,6 +1195,10 @@ h3 {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.ledger-totals .ledger-filtered-count {
+  color: var(--accent);
 }
 
 .ledger-totals,
@@ -3880,6 +3899,11 @@ td:last-child {
   background: color-mix(in srgb, var(--accent) 18%, var(--card));
   border-color: color-mix(in srgb, var(--accent) 68%, var(--button-border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+:root.dark .button-accent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 30%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 80%, var(--button-border));
 }
 
 .import-file-zone {
