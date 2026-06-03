@@ -528,8 +528,8 @@ h2 {
 }
 
 .button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 6%, var(--card));
-  border-color: color-mix(in srgb, var(--accent) 25%, var(--button-border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--button-border));
 }
 
 :root.dark .button:hover:not(:disabled) {
@@ -565,8 +565,8 @@ h2 {
 }
 
 .calendar-button:hover {
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--button-border));
 }
 
 :root.dark .calendar-button:hover {
@@ -735,8 +735,8 @@ h2 {
 }
 
 .balance-toggle:hover {
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--button-border));
 }
 
 :root.dark .balance-toggle:hover {
