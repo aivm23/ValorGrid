@@ -534,6 +534,7 @@ test('GET /api/import/sources returns community sources when edition is communit
   assert.ok(ibkr, 'ibkr-csv source must be present in the list');
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false, 'ibkr-csv must not be available in community edition');
+  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
 });
 
 test('listImportSources includes knownProAdapters with available=false in community edition', () => {
@@ -556,6 +557,7 @@ test('listImportSources includes knownProAdapters with available=false in commun
   assert.equal(ibkr.label, 'Interactive Brokers');
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false);
+  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
 });
 
 test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', () => {
@@ -579,6 +581,9 @@ test('listImportSources returns correct response shape for every source', () => 
     assert.ok(typeof source.label === 'string' && source.label.length > 0, 'label must be a non-empty string');
     assert.ok(['community', 'professional'].includes(source.edition), 'edition must be community or professional');
     assert.ok(typeof source.available === 'boolean', 'available must be a boolean');
+    if (source.comingSoon !== undefined) {
+      assert.equal(source.comingSoon, true, `comingSoon must be true when present (${source.key})`);
+    }
   }
 });
 

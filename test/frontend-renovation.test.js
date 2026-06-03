@@ -350,3 +350,10 @@ test('CSS defines metric-micro styling for KPI micro-info', () => {
   assert.ok(css.includes('font-family: var(--font-mono)'), 'metric-micro uses monospace font');
   assert.ok(css.includes('tabular-nums'), 'metric-micro uses tabular-nums');
 });
+
+test('imports.js renders "Próximamente" label for comingSoon sources', () => {
+  const importsSource = read(path.join('client', 'imports.js'));
+  assert.ok(importsSource.includes('comingSoon'), 'imports.js checks comingSoon flag');
+  assert.ok(importsSource.includes('Próximamente'), 'imports.js renders "Próximamente" label');
+  assert.ok(importsSource.includes('loadImportSources'), 'imports.js defines loadImportSources');
+});

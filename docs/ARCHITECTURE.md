@@ -232,6 +232,7 @@ Módulos principales:
 - `import-workflow.js`: lógica de flujo y validación de importación.
 - `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
 - `import-preview-renderer.js`: renderizado de preview de importación.
+- `import-confirm-renderer.js`: renderizado del paso de confirmación del asistente de importación.
 - `import-file-zone.js`: zona de arrastre y selección de archivo para importación.
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.

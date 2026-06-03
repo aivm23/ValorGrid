@@ -72,6 +72,7 @@ function loadProAdapters() {
         label: adapter.label,
         edition: 'professional',
         parse: adapter.parse,
+        ...(adapter.comingSoon ? { comingSoon: adapter.comingSoon } : {}),
       };
     }
   } catch {
@@ -81,7 +82,7 @@ function loadProAdapters() {
 loadProAdapters();
 
 function listImportSources(edition = 'community') {
-  const allAdapters = { ...adapterDefinitions, ...knownProAdapters };
+  const allAdapters = { ...knownProAdapters, ...adapterDefinitions };
   const sources = [];
 
   for (const [source, def] of Object.entries(allAdapters)) {
