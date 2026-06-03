@@ -37,7 +37,7 @@
 - **No `with (ctx)`** in backend or frontend modules.
 - **SQLite isolation**: all `node:sqlite` usage goes through `src/platform/db.js`. Never import `node:sqlite` directly elsewhere.
 - **SQL ownership**: SQL lives exclusively in repositories under `ctx.repositories.<domain>`. Services and routes never execute SQL directly. Architecture tests enforce this.
-- **Frontend**: vanilla JS modules in `client/`, orchestrated by root `app.js` loaded from `index.html`. No bundler.
+- **Frontend**: vanilla JS modules in `client/`, orchestrated by `client/app.js` loaded from `index.html`. No bundler.
 - **History materialization**: portfolio history is pre-computed and cached, not calculated on every request. Ledger changes trigger invalidation from the affected date forward.
 
 ## Testing

@@ -219,7 +219,7 @@ test('server public exports remain stable after modularization', () => {
 });
 
 test('frontend architecture stays modular', () => {
-  assert.ok(lineCount('app.js') <= 150, 'app.js must remain a small orchestrator');
+  assert.ok(lineCount(path.join('client', 'app.js')) <= 150, 'client/app.js must remain a small orchestrator');
   for (const file of filesUnder('client')) {
     assert.ok(lineCount(file) <= 350, `${file} must stay below 350 lines`);
     assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
@@ -229,7 +229,35 @@ test('frontend architecture stays modular', () => {
   assert.equal(/fetch\(/.test(read(path.join('client', 'charts.js'))), false, 'charts must not fetch data');
   assert.equal(/document\.|querySelector|innerHTML/.test(read(path.join('client', 'api.js'))), false, 'api must not touch DOM');
   assert.equal(/api\/|fetchJson|sendJson/.test(read(path.join('client', 'theme.js'))), false, 'theme must not call portfolio APIs');
-  assert.equal(read('app.js').includes('undefined'), false, 'app.js must not render undefined text');
+  assert.equal(read(path.join('client', 'app.js')).includes('undefined'), false, 'client/app.js must not render undefined text');
+});
+
+test('client/app.js imports use valid relative paths targeting existing files', () => {
+  const appSource = read(path.join('client', 'app.js'));
+  const importPaths = [];
+  const re = /import\s+(?:{[^}]*}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  let match;
+  while ((match = re.exec(appSource)) !== null) {
+    importPaths.push(match[1]);
+  }
+  assert.ok(importPaths.length > 0, 'client/app.js must contain at least one import');
+
+  for (const importPath of importPaths) {
+    assert.equal(
+      importPath.startsWith('./client/'),
+      false,
+      `import path '${importPath}' must not start with './client/' (would resolve to client/client/)`,
+    );
+
+    const resolved = path.join('client', importPath);
+    let exists = false;
+    try {
+      exists = fs.statSync(path.join(root, resolved)).isFile();
+    } catch {
+      // file does not exist
+    }
+    assert.ok(exists, `import path '${importPath}' must resolve to an existing file (expected: ${resolved})`);
+  }
 });
 
 test('import wizard uses non technical row decisions', () => {

@@ -12,5 +12,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.js", "server.js", "app.js", "test/**/*.js", "scripts/**/*.js"]
+  "include": ["src/**/*.js", "server.js", "client/app.js", "test/**/*.js", "scripts/**/*.js"]
 }

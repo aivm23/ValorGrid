@@ -24,7 +24,7 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: node --check server.js
-      - run: node --check app.js
+      - run: node --check client/app.js
       - run: npm test
       - name: Verify publication safety
         shell: pwsh

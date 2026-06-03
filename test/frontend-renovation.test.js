@@ -73,7 +73,7 @@ test('charts.js renders SVG with linearGradient for history line and area', asyn
   assert.ok(charts.includes('history-area'), 'charts defines history-area class');
 
   // Verify CSS references the gradients via url()
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('url(#historyLineGrad)'), 'CSS references line gradient');
   assert.ok(css.includes('url(#historyAreaGrad)'), 'CSS references area gradient');
 });
@@ -106,7 +106,7 @@ test('ledger.js renders type-badge and origin-badge classes for transactions', a
 });
 
 test('CSS defines hover states for ledger table rows', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('tbody tr:hover'), 'CSS defines tbody tr:hover');
   assert.ok(css.includes('tbody tr.is-selected'), 'CSS defines is-selected row state');
   assert.ok(css.includes('.type-buy'), 'CSS defines type-buy style');
@@ -118,7 +118,7 @@ test('CSS defines hover states for ledger table rows', () => {
 // ── 4) Modal entrance/exit animations ──
 
 test('CSS defines modal entrance and exit keyframe animations', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes modalIn'), 'CSS defines modalIn animation');
   assert.ok(css.includes('@keyframes modalOut'), 'CSS defines modalOut animation');
   assert.ok(css.includes('.modal.is-closing'), 'CSS uses is-closing class for exit');
@@ -129,14 +129,14 @@ test('CSS defines modal entrance and exit keyframe animations', () => {
 // ── 5) Donut chart entrance animation and radial offset hover ──
 
 test('CSS defines donut chart entrance animation', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes donutIn'), 'CSS defines donutIn animation');
   assert.ok(css.includes('transform: scale(0.88)'), 'donutIn starts with scale down');
   assert.ok(css.includes('opacity: 0'), 'donutIn starts with opacity 0');
 });
 
 test('CSS defines donut chart active segment radial offset', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('.donut-chart-active'), 'CSS defines donut-chart-active class');
   assert.ok(css.includes('--donut-active-x'), 'CSS uses --donut-active-x property');
   assert.ok(css.includes('--donut-active-y'), 'CSS uses --donut-active-y property');
@@ -157,7 +157,7 @@ test('summary.js sets CSS custom properties for active donut segment', () => {
 // ── 6) Sub-chart slide-in animation ──
 
 test('CSS defines sub-chart slide-in keyframe animation', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes subchartIn'), 'CSS defines subchartIn animation');
   assert.ok(css.includes('translateX(16px)'), 'subchartIn starts with translateX offset');
   assert.ok(css.includes('.subchart'), 'CSS targets .subchart with animation');
@@ -205,7 +205,7 @@ test('charts.js sets history subtitle with first date', async () => {
 test('index.html and charts.js render metric info tooltips for visible totals', () => {
   const index = read('index.html');
   const charts = read(path.join('client', 'charts.js'));
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
 
   assert.ok(index.includes('Total visible estimado'), 'distribution label updated');
   assert.ok(index.includes('aria-label="Información sobre la métrica"'), 'metric info aria label present in index');
@@ -239,7 +239,7 @@ test('ledger.js shows filter info with result count when filters are active', as
 // ── 11) Checkbox animation ──
 
 test('CSS defines checkbox check animation with scale and clip-path', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes checkPop'), 'CSS defines checkPop animation');
   assert.ok(css.includes('transform: scale(0)'), 'checkbox starts unchecked with scale 0');
   assert.ok(css.includes('transform: scale(1.2)'), 'checkPop has overshoot scale');
@@ -251,14 +251,14 @@ test('CSS defines checkbox check animation with scale and clip-path', () => {
 // ── 12) Bulk toolbar slide-in and delete button pulse ──
 
 test('CSS defines bulk toolbar slide-in animation', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes bulkToolbarIn'), 'CSS defines bulkToolbarIn animation');
   assert.ok(css.includes('transform: translateY(8px)'), 'bulkToolbarIn starts with translateY offset');
   assert.ok(css.includes('.bulk-toolbar'), 'CSS targets bulk-toolbar with animation');
 });
 
 test('CSS defines delete button pulse animation on hover', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('@keyframes deletePulse'), 'CSS defines deletePulse animation');
   assert.ok(css.includes('.icon-bulk-delete:hover'), 'delete pulse triggers on hover');
   assert.ok(css.includes('box-shadow'), 'delete pulse uses box-shadow');
@@ -268,7 +268,7 @@ test('CSS defines delete button pulse animation on hover', () => {
 // ── 13) Dark mode grid line opacity ──
 
 test('CSS reduces grid line opacity in dark mode', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('[data-theme="dark"] .history-grid-line'), 'CSS targets dark mode grid lines');
   assert.ok(css.includes('opacity: 0.15'), 'dark mode grid lines have reduced opacity');
   assert.ok(css.includes('.history-reference-line'), 'CSS defines reference line style');
@@ -285,7 +285,7 @@ test('charts.js renders legend separator before STOCK group', async () => {
 });
 
 test('CSS defines legend separator styling', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('.legend-separator'), 'CSS defines legend-separator class');
   assert.ok(css.includes('height: 1px'), 'separator has height');
   assert.ok(css.includes('background: var(--line)'), 'separator uses line color');
@@ -331,7 +331,7 @@ test('all frontend modules use ES module attach pattern', () => {
 // ── Integration: verify CSS class coverage for all new features ──
 
 test('CSS contains all semantic border classes used by KPI cards', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   const borderClasses = [
     '.metric-grid article.has-border-accent',
     '.metric-grid article.has-border-positive',
@@ -346,7 +346,7 @@ test('CSS contains all semantic border classes used by KPI cards', () => {
 });
 
 test('CSS defines metric-micro styling for KPI micro-info', () => {
-  const css = read('styles.css');
+  const css = read(path.join('client', 'styles.css'));
   assert.ok(css.includes('.metric-micro'), 'CSS defines metric-micro class');
   assert.ok(css.includes('font-family: var(--font-mono)'), 'metric-micro uses monospace font');
   assert.ok(css.includes('tabular-nums'), 'metric-micro uses tabular-nums');

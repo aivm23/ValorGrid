@@ -117,8 +117,8 @@ Reglas de transición:
 - `types.ts`: interfaces de dominio TypeScript.
 - `route-service-bindings.js`: resolución de handlers desde `ctx.services.*`.
 - `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
-- `app.js`: composition root y orquestador de módulos.
-- `app-core.js`: re-export de `app.js`.
+- `app.js`: composition root y orquestador de módulos (backend).
+- `app-core.js`: re-export de `src/app.js`.
 - `schema.js`: creación fresh idempotente de tablas.
 - `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
 
@@ -176,7 +176,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx`.
+- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx`, catálogo de fuentes PRO conocidas (`knownProAdapters`), carga dinámica de adaptadores PRO vía `VALORGRID_PRO_ADAPTERS_PATH` (`loadProAdapters()`), y listado de fuentes disponibles por edición (`listImportSources()`).
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
@@ -200,13 +200,13 @@ Reglas que deben mantenerse en cada cambio estructural:
 
 ### `index.html`
 
-Punto de entrada del frontend. Carga `./app.js` (archivo en la raíz del proyecto) como `<script type="module">`.
+Punto de entrada del frontend. Carga `./client/app.js` como `<script type="module">`.
 
-### `app.js`
+### `client/app.js`
 
 Orquestador del frontend:
 
-- vive en la raíz del proyecto (no en `client/`),
+- vive en `client/`,
 
 - crea `ctx` con primitivas del navegador y helpers API,
 - registra módulos `client/*.js` en orden fijo con `attach(ctx)`,
@@ -228,7 +228,7 @@ Módulos principales:
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `dashboard.js`: arranque de UI y boot overlay.
-- `imports.js`: orquestación del asistente de importación.
+- `imports.js`: orquestación del asistente de importación, carga dinámica de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
 - `import-workflow.js`: lógica de flujo y validación de importación.
 - `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
 - `import-preview-renderer.js`: renderizado de preview de importación.

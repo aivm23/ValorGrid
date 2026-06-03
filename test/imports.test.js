@@ -14,6 +14,7 @@ const {
   request,
   registerLifecycle,
 } = require('./integration-helpers');
+const { listImportSources, loadProAdapters, adapterDefinitions } = require('../src/domains/data-ingestion/ingestion-profiles');
 
 registerLifecycle(test);
 
@@ -411,4 +412,86 @@ test('valorgrid-xlsx requires mapping for instrument that does not exist', () =>
   assert.equal(preview.rows[0].status, 'needs_mapping');
   assert.equal(preview.canCommit, false);
   assert.ok(preview.detectedInstruments.some((item) => item.symbol === 'GHOST'), 'GHOST should appear in detected instruments');
+});
+
+test('GET /api/import/sources returns community sources when edition is community', async () => {
+  const result = await jsonRequest('/api/import/sources');
+  assert.equal(result.response.status, 200);
+  assert.ok(Array.isArray(result.body.sources));
+
+  const valorgrid = result.body.sources.find((s) => s.key === 'valorgrid-xlsx');
+  assert.ok(valorgrid, 'valorgrid-xlsx source must be present');
+  assert.equal(valorgrid.label, 'Plantilla Excel de ValorGrid');
+  assert.equal(valorgrid.edition, 'community');
+  assert.equal(valorgrid.available, true);
+
+  const degiro = result.body.sources.find((s) => s.key === 'degiro-csv');
+  assert.ok(degiro, 'degiro-csv source must be present in the list');
+  assert.equal(degiro.edition, 'professional');
+  assert.equal(degiro.available, false, 'degiro-csv must not be available in community edition');
+
+  const ibkr = result.body.sources.find((s) => s.key === 'ibkr-csv');
+  assert.ok(ibkr, 'ibkr-csv source must be present in the list');
+  assert.equal(ibkr.edition, 'professional');
+  assert.equal(ibkr.available, false, 'ibkr-csv must not be available in community edition');
+});
+
+test('listImportSources includes knownProAdapters with available=false in community edition', () => {
+  const sources = listImportSources('community');
+  assert.ok(Array.isArray(sources));
+  assert.ok(sources.length >= 3, 'should have at least 3 sources (1 community + 2 pro)');
+
+  const valorgrid = sources.find((s) => s.key === 'valorgrid-xlsx');
+  assert.ok(valorgrid);
+  assert.equal(valorgrid.available, true);
+
+  const degiro = sources.find((s) => s.key === 'degiro-csv');
+  assert.ok(degiro);
+  assert.equal(degiro.label, 'DEGIRO');
+  assert.equal(degiro.edition, 'professional');
+  assert.equal(degiro.available, false);
+
+  const ibkr = sources.find((s) => s.key === 'ibkr-csv');
+  assert.ok(ibkr);
+  assert.equal(ibkr.label, 'Interactive Brokers');
+  assert.equal(ibkr.edition, 'professional');
+  assert.equal(ibkr.available, false);
+});
+
+test('listImportSources marks all sources as available in professional edition', () => {
+  const sources = listImportSources('professional');
+  assert.ok(Array.isArray(sources));
+
+  for (const source of sources) {
+    assert.equal(source.available, true, `${source.key} should be available in professional edition`);
+  }
+});
+
+test('listImportSources returns correct response shape for every source', () => {
+  const sources = listImportSources('community');
+
+  for (const source of sources) {
+    assert.ok(typeof source.key === 'string' && source.key.length > 0, 'key must be a non-empty string');
+    assert.ok(typeof source.label === 'string' && source.label.length > 0, 'label must be a non-empty string');
+    assert.ok(['community', 'professional'].includes(source.edition), 'edition must be community or professional');
+    assert.ok(typeof source.available === 'boolean', 'available must be a boolean');
+  }
+});
+
+test('loadProAdapters handles missing VALORGRID_PRO_ADAPTERS_PATH gracefully', () => {
+  const originalPath = process.env.VALORGRID_PRO_ADAPTERS_PATH;
+  delete process.env.VALORGRID_PRO_ADAPTERS_PATH;
+
+  // loadProAdapters should not throw when env var is unset
+  assert.doesNotThrow(() => loadProAdapters());
+
+  // adapterDefinitions should only contain community adapters (no extra pro entries)
+  const keys = Object.keys(adapterDefinitions);
+  assert.ok(keys.includes('valorgrid-xlsx'), 'valorgrid-xlsx must be present');
+  assert.equal(keys.length, 1, 'only community adapters should be present when PRO path is unset');
+
+  // Restore original value
+  if (originalPath !== undefined) {
+    process.env.VALORGRID_PRO_ADAPTERS_PATH = originalPath;
+  }
 });

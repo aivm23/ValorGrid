@@ -216,7 +216,6 @@ Flujo completo en [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md).
 - [docs/DB_OPERATIONS.md](docs/DB_OPERATIONS.md): backup/reset/doctor/restore manual y política fresh-only.
 - [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md): privacidad práctica, archivos ignorados y publicación segura.
 - [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md): checklist para publicar en GitHub sin datos privados.
-- [GITHUB.md](GITHUB.md): guía de inicialización y subida del repositorio.
 - [SECURITY.md](SECURITY.md): notas estándar de privacidad y seguridad local.
 
 ## Apoyar el proyecto

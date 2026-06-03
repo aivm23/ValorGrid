@@ -1,5 +1,5 @@
 const { resolveRouteHandlers } = require('../../route-service-bindings');
-const { LEGACY_GENERIC_SOURCES } = require('./ingestion-profiles');
+const { LEGACY_GENERIC_SOURCES, listImportSources } = require('./ingestion-profiles');
 
 function sendError(response, sendJson, error) {
   const statusCode = error.statusCode || 400;
@@ -34,6 +34,12 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     listImportRollbackLog,
     getImportTemplate,
   } = resolveRouteHandlers(ctx);
+
+  if (url.pathname === '/api/import/sources' && request.method === 'GET') {
+    const edition = ctx.appInfo?.edition || 'community';
+    sendJson(response, 200, { sources: listImportSources(edition) });
+    return true;
+  }
 
   if (url.pathname === '/api/import/template.xlsx' && request.method === 'GET') {
     try {

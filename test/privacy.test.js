@@ -53,7 +53,8 @@ function publicFiles(dir = root, files = []) {
 }
 
 function allowsPublicBrokerTeaser(file) {
-  return path.relative(root, file) === 'index.html';
+  const relative = path.relative(root, file);
+  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'docs\\API.md' || relative === 'docs/API.md';
 }
 
 test('private database artifacts are ignored and not publishable', () => {

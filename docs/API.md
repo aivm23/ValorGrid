@@ -141,6 +141,7 @@ Exportan el ledger de movimientos para auditoría o migración manual.
 ## Importaciones
 
 ```text
+GET /api/import/sources
 GET /api/import/template.xlsx
 POST /api/import/preview
 POST /api/import/commit
@@ -151,11 +152,34 @@ GET /api/import/rollback-log
 POST /api/import/ticker-suggestions
 ```
 
-Fuentes soportadas:
+### Catálogo de fuentes
+
+`GET /api/import/sources` — devuelve la lista de fuentes de importación disponibles con su estado de disponibilidad según la edición activa (`community` o `professional`).
+
+Respuesta:
+
+```json
+{
+  "sources": [
+    { "key": "valorgrid-xlsx", "label": "Plantilla Excel de ValorGrid", "edition": "community", "available": true },
+    { "key": "degiro-csv", "label": "DEGIRO", "edition": "professional", "available": false },
+    { "key": "ibkr-csv", "label": "Interactive Brokers", "edition": "professional", "available": false }
+  ]
+}
+```
+
+- `available: true` — la fuente puede usarse para importar.
+- `available: false` — la fuente pertenece a otra edición y no está habilitada.
+
+### Fuentes soportadas
 
 ```text
-valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado)
+valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado, siempre disponible)
+degiro-csv      (adaptador DEGIRO — Profesional Edition)
+ibkr-csv        (adaptador Interactive Brokers — Profesional Edition)
 ```
+
+ValorGrid Community carga dinámicamente los adaptadores PRO cuando se define `VALORGRID_PRO_ADAPTERS_PATH`. Sin esta variable, las fuentes PRO aparecen como no disponibles (`available: false`).
 
 ### Descarga de plantilla
 
@@ -185,9 +209,9 @@ El flujo recomendado es:
 6. `commit`: inserta solo filas seleccionadas y válidas de forma atómica.
 7. `rollback`: revierte un lote importado si hace falta corregirlo.
 
-ValorGrid Community solo acepta la plantilla Excel oficial. Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
+ValorGrid Community acepta la plantilla Excel oficial como fuente predeterminada. Las fuentes legacy (`generic-csv`, `csv`, `generic-xlsx`, `xlsx`) devuelven error 400 con el mensaje "usa la plantilla Excel de ValorGrid".
 
-Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado. No forman parte del contrato publico de Community.
+Los adaptadores concretos de broker pertenecen a ValorGrid Pro/Enterprise y se mantienen en un repositorio privado. Community los carga dinámicamente cuando `VALORGRID_PRO_ADAPTERS_PATH` apunta al módulo de adaptadores.
 
 ## Errores
 

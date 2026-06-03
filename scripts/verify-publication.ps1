@@ -60,7 +60,7 @@ function Get-PublicFiles {
 Set-Location $root
 
 Invoke-Checked 'node --check server.js' { & $node --check 'server.js' }
-Invoke-Checked 'node --check app.js' { & $node --check 'app.js' }
+Invoke-Checked 'node --check client/app.js' { & $node --check 'client/app.js' }
 Invoke-Checked 'node --test' { & $node --test }
 
 foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlite' + '-shm'), ('portfolio.loadtest.sqlite' + '-wal'))) {

@@ -304,6 +304,18 @@ export function attach(ctx) {
     renderImportBatches();
   }
 
+  async function loadImportSources() {
+    try {
+      const { sources = [] } = await ctx.fetchJson('/api/import/sources');
+      const select = ctx.elements.importSource;
+      const teaser = select?.closest('label')?.querySelector('.import-source-teaser');
+      if (!select) return;
+      const hasProSources = sources.some(s => s.edition === 'professional' && s.available);
+      select.innerHTML = sources.map(s => `<option value="${s.key}"${s.available ? '' : ' disabled'}>${s.available ? s.label : `${s.label} - Profesional Edition`}</option>`).join('');
+      if (teaser) teaser.hidden = hasProSources;
+    } catch {}
+  }
+
   function renderImportRollbackLog() {
     const entries = ctx.state.importRollbackLog || [];
     if (!entries.length) return '';
@@ -328,22 +340,5 @@ export function attach(ctx) {
     }
   }
 
-  Object.assign(ctx, {
-    loadImportBatches,
-    openImportDialog,
-    closeImportDialog,
-    handleImportSourceChange,
-    handleImportFile,
-    handleImportSheetChange,
-    previewCsvImport,
-    commitCsvImport,
-    downloadImportTemplate,
-    updateImportFileDisplay,
-    clearImportFile,
-    renderImportPreview,
-    renderImportBatches,
-    rollbackImportBatch,
-    handleImportPreviewInteraction,
-    handleImportPreviewClick,
-  });
+  Object.assign(ctx, { loadImportBatches, loadImportSources, openImportDialog, closeImportDialog, handleImportSourceChange, handleImportFile, handleImportSheetChange, previewCsvImport, commitCsvImport, downloadImportTemplate, updateImportFileDisplay, clearImportFile, renderImportPreview, renderImportBatches, rollbackImportBatch, handleImportPreviewInteraction, handleImportPreviewClick });
 }

@@ -45,3 +45,4 @@ Thumbs.db
 # generated AI agent skills
 .agents/
 skills-lock.json
+.codex/

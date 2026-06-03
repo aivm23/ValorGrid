@@ -51,7 +51,7 @@ module.exports = [
     },
   },
   {
-    files: ['app.js', 'client/**/*.js'],
+    files: ['client/**/*.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ValorGrid</title>
     <link rel="icon" type="image/png" href="./assets/brand/valorgrid-logo.png" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./client/styles.css" />
   </head>
   <body>
     <div id="boot-overlay" class="boot-overlay" role="status" aria-live="polite">
@@ -41,16 +41,16 @@
               loading="eager"
               alt="ValorGrid"
             />
-            <p class="hero-copy">
-              Dashboard privado de gestión y seguimiento de cartera.
-            </p>
+            <p class="hero-copy">Dashboard privado de gestión y seguimiento de cartera.</p>
           </div>
           <div class="header-actions">
             <span class="toolbar-brand" aria-hidden="true">
               <img src="./assets/brand/valorgrid-logo.png" alt="" width="1254" height="1254" />
               <span>ValorGrid</span>
             </span>
-            <span id="app-version" class="app-version" aria-label="Versión de la aplicación"><span class="app-version-num"></span><span class="app-edition"></span></span>
+            <span id="app-version" class="app-version" aria-label="Versión de la aplicación"
+              ><span class="app-version-num"></span><span class="app-edition"></span
+            ></span>
             <button id="onboarding-wizard" class="calendar-button" type="button" aria-label="Alta guiada">
               <span class="plus-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Empezar</span>
@@ -68,7 +68,12 @@
               </svg>
               <span class="toolbar-label">Valores</span>
             </button>
-            <button id="open-import-dialog-toolbar" class="calendar-button" type="button" aria-label="Importar movimientos">
+            <button
+              id="open-import-dialog-toolbar"
+              class="calendar-button"
+              type="button"
+              aria-label="Importar movimientos"
+            >
               <span class="plus-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Importar</span>
             </button>
@@ -82,9 +87,23 @@
                 <span class="toolbar-label">Exportar</span>
               </summary>
               <div class="toolbar-menu-panel" role="menu">
-                <button id="toolbar-backup" class="button button-compact" type="button" role="menuitem">Backup BD</button>
-                <a id="toolbar-export-csv" class="button button-compact" href="/api/export/transactions.csv" role="menuitem">Exportar CSV</a>
-                <a id="toolbar-export-json" class="button button-compact" href="/api/export/transactions.json" role="menuitem">Exportar JSON</a>
+                <button id="toolbar-backup" class="button button-compact" type="button" role="menuitem">
+                  Backup BD
+                </button>
+                <a
+                  id="toolbar-export-csv"
+                  class="button button-compact"
+                  href="/api/export/transactions.csv"
+                  role="menuitem"
+                  >Exportar CSV</a
+                >
+                <a
+                  id="toolbar-export-json"
+                  class="button button-compact"
+                  href="/api/export/transactions.json"
+                  role="menuitem"
+                  >Exportar JSON</a
+                >
               </div>
             </details>
             <button
@@ -96,7 +115,9 @@
             >
               <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.03.03a2 2 0 0 1-2.83 2.83l-.03-.03A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.04a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.03.03a2 2 0 1 1-2.83-2.83l.03-.03A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.04a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.03-.03a2 2 0 1 1 2.83-2.83l.03.03A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.04a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.03-.03a2 2 0 1 1 2.83 2.83l-.03.03A1.7 1.7 0 0 0 19.4 9c.2.34.4.66.6 1H20a2 2 0 0 1 0 4h-.04a1.7 1.7 0 0 0-.56 1Z"></path>
+                <path
+                  d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.03.03a2 2 0 0 1-2.83 2.83l-.03-.03A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 0 1-4 0v-.04a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.03.03a2 2 0 1 1-2.83-2.83l.03-.03A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 0 1 0-4h.04a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.03-.03a2 2 0 1 1 2.83-2.83l.03.03A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 0 1 4 0v.04a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.03-.03a2 2 0 1 1 2.83 2.83l-.03.03A1.7 1.7 0 0 0 19.4 9c.2.34.4.66.6 1H20a2 2 0 0 1 0 4h-.04a1.7 1.7 0 0 0-.56 1Z"
+                ></path>
               </svg>
             </button>
             <button
@@ -112,13 +133,7 @@
                 <path class="eye-slash" d="M4 4l16 16"></path>
               </svg>
             </button>
-            <button
-              id="theme-toggle"
-              class="theme-toggle"
-              type="button"
-              aria-label="Cambiar tema"
-              title="Cambiar tema"
-            >
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
               <span class="theme-toggle-track" aria-hidden="true">
                 <span class="theme-symbol theme-symbol-sun"></span>
                 <span class="theme-symbol theme-symbol-moon"></span>
@@ -158,10 +173,12 @@
                   i
                 </button>
                 <span id="distribution-total-info" class="sr-only">
-                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.
+                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
+                  dashboard no entran en este total.
                 </span>
                 <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">
-                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.
+                  Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
+                  dashboard no entran en este total.
                 </div>
               </div>
               <strong id="portfolio-total"></strong>
@@ -212,16 +229,13 @@
             </div>
           </div>
         </section>
-
       </div>
 
       <section class="panel ytd-panel" aria-labelledby="tracking-title">
         <div class="panel-header">
           <div>
             <h2 id="tracking-title">Revisión YTD</h2>
-            <p id="ytd-subtitle" class="subtle">
-              Evolución del año en curso, flujos y desglose mensual por grupos.
-            </p>
+            <p id="ytd-subtitle" class="subtle">Evolución del año en curso, flujos y desglose mensual por grupos.</p>
           </div>
         </div>
         <div id="monthly-summary" class="monthly-summary ytd-summary"></div>
@@ -229,13 +243,11 @@
       </section>
 
       <section class="panel history-panel" aria-labelledby="history-title">
-          <div class="panel-header">
-            <div>
-              <h2 id="history-title">Histórico</h2>
-              <p id="history-subtitle" class="subtle">
-                Valor total de la cartera desde la primera inversión.
-              </p>
-            </div>
+        <div class="panel-header">
+          <div>
+            <h2 id="history-title">Histórico</h2>
+            <p id="history-subtitle" class="subtle">Valor total de la cartera desde la primera inversión.</p>
+          </div>
           <div class="history-controls" aria-label="Filtro histórico">
             <button class="button history-range" type="button" data-history-range="all">Todo</button>
             <button class="button history-range" type="button" data-history-range="5y">5 años</button>
@@ -298,9 +310,19 @@
         <div id="ledger-totals" class="ledger-totals"></div>
         <div class="bulk-toolbar ledger-bulk-toolbar">
           <span id="ledger-selection-count" class="subtle">0 movimientos seleccionados</span>
-          <button id="select-visible-transactions" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
-          <button id="deselect-all-transactions" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
-          <button id="delete-selected-transactions" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar movimientos seleccionados">
+          <button id="select-visible-transactions" class="button button-compact" type="button" hidden>
+            Seleccionar visibles
+          </button>
+          <button id="deselect-all-transactions" class="button button-compact" type="button" hidden>
+            Deseleccionar todos
+          </button>
+          <button
+            id="delete-selected-transactions"
+            class="button icon-bulk-delete"
+            type="button"
+            hidden
+            aria-label="Eliminar movimientos seleccionados"
+          >
             <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M4 7h16"></path>
               <path d="M10 11v6"></path>
@@ -354,7 +376,7 @@
 
         <label class="field" id="ticker-input-field">
           <span>Ticker</span>
-            <input id="add-ticker" name="ticker" required placeholder="Ticker o símbolo Yahoo" />
+          <input id="add-ticker" name="ticker" required placeholder="Ticker o símbolo Yahoo" />
         </label>
 
         <label class="field" id="ticker-select-field" hidden>
@@ -414,9 +436,19 @@
             </div>
             <div class="bulk-toolbar">
               <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
-              <button id="select-visible-groups" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
-              <button id="deselect-all-groups" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
-              <button id="delete-selected-groups" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar grupos seleccionados">
+              <button id="select-visible-groups" class="button button-compact" type="button" hidden>
+                Seleccionar visibles
+              </button>
+              <button id="deselect-all-groups" class="button button-compact" type="button" hidden>
+                Deseleccionar todos
+              </button>
+              <button
+                id="delete-selected-groups"
+                class="button icon-bulk-delete"
+                type="button"
+                hidden
+                aria-label="Eliminar grupos seleccionados"
+              >
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
                   <path d="M10 11v6"></path>
@@ -432,31 +464,31 @@
 
           <section class="instrument-config-section">
             <h3>Valores</h3>
-              <div class="instrument-create-panel">
-                <div>
-                  <h4>Crear valor</h4>
-                  <p class="subtle">Añade un valor manualmente si no viene de una importación.</p>
-                </div>
-                <div class="instrument-create-form instrument-create-form-wide">
-                  <input id="new-instrument-symbol" placeholder="Ticker interno" />
-                  <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
-                  <input id="new-instrument-name" placeholder="Nombre" />
-                  <select id="new-instrument-type">
-                    <option value="etf">ETF</option>
-                    <option value="stock">Stock</option>
-                  </select>
-                  <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
-                  <select id="new-instrument-group"></select>
-                  <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
-                  <button id="create-instrument" class="button" type="button">Crear valor</button>
-                </div>
+            <div class="instrument-create-panel">
+              <div>
+                <h4>Crear valor</h4>
+                <p class="subtle">Añade un valor manualmente si no viene de una importación.</p>
               </div>
-              <div class="instrument-list-heading">
-                <div>
-                  <h4>Listado de valores</h4>
-                  <p class="subtle">Filtra, edita y selecciona valores para acciones en bloque.</p>
-                </div>
+              <div class="instrument-create-form instrument-create-form-wide">
+                <input id="new-instrument-symbol" placeholder="Ticker interno" />
+                <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
+                <input id="new-instrument-name" placeholder="Nombre" />
+                <select id="new-instrument-type">
+                  <option value="etf">ETF</option>
+                  <option value="stock">Stock</option>
+                </select>
+                <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
+                <select id="new-instrument-group"></select>
+                <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
+                <button id="create-instrument" class="button" type="button">Crear valor</button>
               </div>
+            </div>
+            <div class="instrument-list-heading">
+              <div>
+                <h4>Listado de valores</h4>
+                <p class="subtle">Filtra, edita y selecciona valores para acciones en bloque.</p>
+              </div>
+            </div>
             <div class="instrument-filter-grid">
               <label class="field instrument-position-filter">
                 <span>Posición</span>
@@ -491,9 +523,19 @@
             </div>
             <div class="bulk-toolbar">
               <span id="instrument-selection-count" class="subtle">0 valores seleccionados</span>
-              <button id="select-visible-instruments" class="button button-compact" type="button" hidden>Seleccionar visibles</button>
-              <button id="deselect-all-instruments" class="button button-compact" type="button" hidden>Deseleccionar todos</button>
-              <button id="delete-selected-instruments" class="button icon-bulk-delete" type="button" hidden aria-label="Eliminar valores seleccionados">
+              <button id="select-visible-instruments" class="button button-compact" type="button" hidden>
+                Seleccionar visibles
+              </button>
+              <button id="deselect-all-instruments" class="button button-compact" type="button" hidden>
+                Deseleccionar todos
+              </button>
+              <button
+                id="delete-selected-instruments"
+                class="button icon-bulk-delete"
+                type="button"
+                hidden
+                aria-label="Eliminar valores seleccionados"
+              >
                 <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M4 7h16"></path>
                   <path d="M10 11v6"></path>
@@ -536,7 +578,8 @@
           <div>
             <h2>Planes de aportación</h2>
             <p class="subtle">
-              Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.
+              Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre
+              disponible.
             </p>
           </div>
           <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
@@ -557,7 +600,9 @@
         <div class="modal-header">
           <div>
             <h2>Importar movimientos</h2>
-            <p class="subtle">Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.</p>
+            <p class="subtle">
+              Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.
+            </p>
           </div>
           <button id="import-dialog-close" class="icon-close" type="button" aria-label="Cerrar">&times;</button>
         </div>
@@ -570,7 +615,19 @@
                 <strong>Descarga la plantilla</strong>
                 <small>Excel oficial de ValorGrid con instrucciones y ejemplos.</small>
                 <button id="import-download-template" class="button button-accent" type="button">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/><path d="M8 1v9"/><path d="M4 7l4 4 4-4"/></svg>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" />
+                    <path d="M8 1v9" />
+                    <path d="M4 7l4 4 4-4" />
+                  </svg>
                   Descargar plantilla
                 </button>
               </div>
@@ -601,22 +658,48 @@
           </select>
           <span class="import-source-teaser" aria-label="Fuentes profesionales disponibles">
             <span class="import-source-badge import-source-badge-pro">DEGIRO - <em>Profesional Edition</em></span>
-            <span class="import-source-badge import-source-badge-soon">Interactive Brokers - <em>Profesional Edition</em> - <em>Próximamente</em></span>
+            <span class="import-source-badge import-source-badge-soon"
+              >Interactive Brokers - <em>Profesional Edition</em> - <em>Próximamente</em></span
+            >
           </span>
         </label>
 
         <div class="import-file-zone" id="import-file-zone">
-          <input id="import-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <input
+            id="import-file"
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          />
           <div class="import-file-drop">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.45">
-              <path d="M14 4v12"/><path d="M8 11l6-7 6 7"/><path d="M4 19v3a2 2 0 002 2h16a2 2 0 002-2v-3"/>
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 28 28"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              opacity="0.45"
+            >
+              <path d="M14 4v12" />
+              <path d="M8 11l6-7 6 7" />
+              <path d="M4 19v3a2 2 0 002 2h16a2 2 0 002-2v-3" />
             </svg>
             <strong>Arrastra tu archivo Excel aquí</strong>
             <small>o haz clic para seleccionarlo</small>
           </div>
           <div class="import-file-selected" hidden>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round">
-              <path d="M3 7l4 4 3-3 7 7"/><path d="M17 5v6H3"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="#16a34a"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M3 7l4 4 3-3 7 7" />
+              <path d="M17 5v6H3" />
             </svg>
             <span></span>
             <button type="button" class="import-file-clear" aria-label="Quitar archivo">&times;</button>
@@ -637,7 +720,11 @@
           <summary>Mapeo avanzado de columnas</summary>
           <label class="field">
             <span>Mapping JSON</span>
-            <textarea id="import-mapping" rows="3" placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'></textarea>
+            <textarea
+              id="import-mapping"
+              rows="3"
+              placeholder='{"symbol":"Ticker","date":"Fecha","shares":"Acciones"}'
+            ></textarea>
           </label>
         </details>
 
@@ -647,7 +734,9 @@
         <div id="import-preview-output" class="import-preview-output"></div>
         <div class="modal-actions">
           <button id="import-preview" class="button button-primary" type="button">Analizar archivo</button>
-          <button id="import-commit" class="button button-primary" type="button" disabled hidden>Importar operaciones seleccionadas</button>
+          <button id="import-commit" class="button button-primary" type="button" disabled hidden>
+            Importar operaciones seleccionadas
+          </button>
           <button id="import-cancel" class="button" type="button">Cerrar</button>
         </div>
       </form>
@@ -715,7 +804,9 @@
         <div id="instrument-delete-preview" class="instrument-delete-preview"></div>
         <div class="modal-actions">
           <button id="instrument-delete-cancel" class="button" type="button">Cancelar</button>
-          <button id="instrument-delete-confirm" class="button button-danger" type="button">Eliminar seleccionados</button>
+          <button id="instrument-delete-confirm" class="button button-danger" type="button">
+            Eliminar seleccionados
+          </button>
         </div>
       </div>
     </dialog>
@@ -804,7 +895,9 @@
           <section class="wizard-step">
             <span>Paso 3</span>
             <h3>Primera compra opcional</h3>
-            <label class="check-field"><input id="wizard-add-transaction" type="checkbox" /> <span>Añadir primera compra</span></label>
+            <label class="check-field"
+              ><input id="wizard-add-transaction" type="checkbox" /> <span>Añadir primera compra</span></label
+            >
             <label class="field">
               <span>Fecha</span>
               <input id="wizard-transaction-date" type="date" data-optional-section="transaction" disabled />
@@ -812,15 +905,39 @@
             <div class="field-grid">
               <label class="field">
                 <span>Euros</span>
-                <input id="wizard-transaction-euros" type="number" min="0" step="0.01" placeholder="100" data-optional-section="transaction" disabled />
+                <input
+                  id="wizard-transaction-euros"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="100"
+                  data-optional-section="transaction"
+                  disabled
+                />
               </label>
               <label class="field">
                 <span>Acciones</span>
-                <input id="wizard-transaction-shares" type="number" min="0" step="0.000001" placeholder="2.5" data-optional-section="transaction" disabled />
+                <input
+                  id="wizard-transaction-shares"
+                  type="number"
+                  min="0"
+                  step="0.000001"
+                  placeholder="2.5"
+                  data-optional-section="transaction"
+                  disabled
+                />
               </label>
               <label class="field">
                 <span>Comisión EUR</span>
-                <input id="wizard-transaction-commission" type="number" min="0" step="0.01" placeholder="0" data-optional-section="transaction" disabled />
+                <input
+                  id="wizard-transaction-commission"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  data-optional-section="transaction"
+                  disabled
+                />
               </label>
             </div>
           </section>
@@ -828,11 +945,21 @@
           <section class="wizard-step">
             <span>Paso 4</span>
             <h3>Plan de aportación opcional</h3>
-            <label class="check-field"><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportación recurrente</span></label>
+            <label class="check-field"
+              ><input id="wizard-add-plan" type="checkbox" /> <span>Configurar aportación recurrente</span></label
+            >
             <div class="field-grid">
               <label class="field">
                 <span>Importe EUR</span>
-                <input id="wizard-plan-amount" type="number" min="0" step="0.01" placeholder="Importe a invertir" data-optional-section="plan" disabled />
+                <input
+                  id="wizard-plan-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Importe a invertir"
+                  data-optional-section="plan"
+                  disabled
+                />
               </label>
               <label class="field">
                 <span>Frecuencia</span>
@@ -846,7 +973,16 @@
               </label>
               <label id="wizard-plan-day-field" class="field" hidden>
                 <span>Día del mes</span>
-                <input id="wizard-plan-day" type="number" min="1" max="28" step="1" placeholder="1 a 28" data-optional-section="plan" disabled />
+                <input
+                  id="wizard-plan-day"
+                  type="number"
+                  min="1"
+                  max="28"
+                  step="1"
+                  placeholder="1 a 28"
+                  data-optional-section="plan"
+                  disabled
+                />
               </label>
               <label id="wizard-plan-weekday-field" class="field" hidden>
                 <span>Día de la semana</span>
@@ -884,6 +1020,6 @@
       </form>
     </dialog>
 
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./client/app.js"></script>
   </body>
 </html>

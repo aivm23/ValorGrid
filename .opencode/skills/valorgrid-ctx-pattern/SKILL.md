@@ -16,7 +16,7 @@ Active migration: modules are being moved from flat `src/` to `src/domains/<doma
 - Creating or splitting backend modules in `src/`
 - Debugging load-order or undefined dependency issues in `src/app.js`
 - Moving SQL from services into repositories
-- Wiring new frontend modules in `app.js`
+- Wiring new frontend modules in `client/app.js`
 - Verifying architecture boundaries and anti-regression tests
 
 ## Source of truth
@@ -25,7 +25,7 @@ Active migration: modules are being moved from flat `src/` to `src/domains/<doma
 - Backend/frontend constraints: `test/architecture.test.js`
 - Agent policies: `AGENTS.md`
 - Route service resolver: `src/route-service-bindings.js`
-- Frontend orchestrator: `app.js`
+- Frontend orchestrator: `client/app.js`
 
 Never trust docs first. Confirm with source code in these files.
 
@@ -167,7 +167,7 @@ export function attach(ctx) {
 }
 ```
 
-Register module imports and attach order explicitly in `app.js`.
+Register module imports and attach order explicitly in `client/app.js`.
 
 ## Safe workflow for architecture changes
 

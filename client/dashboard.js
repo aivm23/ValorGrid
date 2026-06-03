@@ -40,6 +40,7 @@ export function attach(ctx) {
       renderDashboard();
       state.initialLoadComplete = true;
       setBootState('ready');
+      await ctx.loadImportSources();
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
       if (!state.initialLoadComplete) setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
