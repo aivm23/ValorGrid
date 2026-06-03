@@ -252,6 +252,16 @@ module.exports = {
               },
               rowKind: 'corporate_action_ignored',
               ignoreReason: 'Ignored fixture row',
+              externalIdentifiers: [
+                { provider: 'global', identifierType: 'isin', identifierValue: 'ES0183746108' },
+                {
+                  provider: 'fixture',
+                  identifierType: 'broker_product',
+                  identifierValue: 'VIDRALA SA - RTS - NON TRADEABLE',
+                  displayName: 'VIDRALA SA - RTS - NON TRADEABLE',
+                  currency: 'EUR',
+                },
+              ],
             },
           ],
           fileSubtype: 'fixture',
@@ -278,6 +288,8 @@ module.exports = {
     assert.equal(preview.rows[0].normalized.cashFlowEur, -21);
     assert.equal(preview.rows[1].status, 'ignored');
     assert.deepEqual(preview.rows[1].errors, []);
+    assert.ok(preview.detectedInstruments.some((item) => item.label === 'VIDRALA SA - RTS - NON TRADEABLE'));
+    assert.equal(preview.detectedInstruments.some((item) => item.label.startsWith('isin:')), false);
   } finally {
     delete adapterDefinitions['fixture-pro-csv'];
     if (originalPath === undefined) delete process.env.VALORGRID_PRO_ADAPTERS_PATH;

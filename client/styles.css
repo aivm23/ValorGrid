@@ -3913,6 +3913,16 @@ td:last-child {
   position: relative;
 }
 
+.import-file-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.import-file-actions .button {
+  min-width: 150px;
+}
+
 .import-file-zone input[type="file"] {
   position: absolute;
   inset: 0;
@@ -4138,6 +4148,11 @@ td:last-child {
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+#import-dialog .import-instrument-card header strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
 #import-dialog .import-instrument-card:hover {
   border-color: color-mix(in srgb, var(--accent) 25%, var(--line));
 }
@@ -4175,7 +4190,52 @@ td:last-child {
 /* ÔöÇÔöÇ Refined confirm grid ÔöÇÔöÇ */
 
 #import-dialog .import-confirm-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+}
+
+#import-dialog .import-confirm-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 50%),
+    color-mix(in srgb, var(--card) 92%, var(--bg));
+}
+
+#import-dialog .import-confirm-hero span,
+#import-dialog .import-confirm-total span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+#import-dialog .import-confirm-hero strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 1.18rem;
+  font-weight: 850;
+}
+
+#import-dialog .import-confirm-hero p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+#import-dialog .import-confirm-total {
+  min-width: 190px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 72%, var(--card));
+  text-align: right;
 }
 
 #import-dialog .import-confirm-grid .metric-card {
@@ -4190,6 +4250,44 @@ td:last-child {
 
 #import-dialog .import-confirm-grid .metric-card strong {
   font-size: 1.08rem;
+}
+
+#import-dialog .import-impact-card {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(260px, 1.2fr);
+  gap: 16px;
+  align-items: center;
+}
+
+#import-dialog .import-impact-card > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+#import-dialog .import-impact-shares {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#import-dialog .import-impact-shares span {
+  display: grid;
+  gap: 2px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 80%, var(--card));
+  color: var(--text);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+#import-dialog .import-impact-shares small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
 }
 
 /* ÔöÇÔöÇ Refined operation groups ÔöÇÔöÇ */
@@ -4299,5 +4397,19 @@ td:last-child {
 
   #import-dialog .import-progress::before {
     display: none;
+  }
+
+  #import-dialog .import-confirm-hero,
+  #import-dialog .import-impact-card {
+    grid-template-columns: 1fr;
+  }
+
+  #import-dialog .import-confirm-total {
+    min-width: 0;
+    text-align: left;
+  }
+
+  #import-dialog .import-confirm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

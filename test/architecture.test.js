@@ -262,13 +262,19 @@ test('client/app.js imports use valid relative paths targeting existing files', 
 
 test('import wizard uses non technical row decisions', () => {
   const renderer = read(path.join('client', 'import-preview-renderer.js'));
+  const confirmRenderer = read(path.join('client', 'import-confirm-renderer.js'));
   const workflow = read(path.join('client', 'import-workflow.js'));
   const workflowHelpers = read(path.join('client', 'import-workflow-helpers.js'));
+  const imports = read(path.join('client', 'imports.js'));
+  const html = read('index.html');
 
   assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
   assert.ok(renderer.includes('Mixto'), 'group action must expose a mixed state when rows are partially selected');
   assert.ok(renderer.includes('is-safety-omitted'), 'unsafe default omissions must be visually highlighted');
+  assert.ok(confirmRenderer.includes('import-confirm-hero'), 'confirm step must use a structured impact summary');
+  assert.ok(html.includes('class="import-file-actions"'), 'analyze action must sit directly below the file drop zone');
+  assert.ok(imports.includes('ctx.elements.importPreview.hidden = Boolean(preview)'), 'analyze action must hide after preview is available');
   assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
   assert.ok(workflowHelpers.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
 });

@@ -1,4 +1,6 @@
-﻿const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
+﻿import { renderConfirmStep } from './import-confirm-renderer.js';
+
+const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
 
 const STEP_LABELS = {
   file: 'Archivo',
@@ -46,6 +48,7 @@ function renderProgress(activeStep, state) {
 function renderWorkflowActions(activeStep, preview, canContinue = true, state = {}) {
   const busy = Boolean(state.importWorkflowBusy);
   const backDisabled = activeStep === 'file' || busy ? ' disabled' : '';
+  if (!preview) return '';
   let nextLabel = 'Importar operaciones seleccionadas';
   if (busy && activeStep === 'instruments') nextLabel = 'Confirmando...';
   else if (busy && activeStep === 'file') nextLabel = 'Analizando...';
@@ -53,11 +56,9 @@ function renderWorkflowActions(activeStep, preview, canContinue = true, state = 
   else if (activeStep === 'instruments') nextLabel = 'Confirmar instrumentos';
   else if (activeStep === 'operations') nextLabel = 'Revisar impacto';
   const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
-  const showClose = activeStep === 'file' || activeStep === 'confirm';
   return `
     <div class="import-workflow-actions">
-      <button type="button" class="button" data-import-back${backDisabled}>Atrás</button>
-      ${showClose ? '<span></span>' : ''}
+      ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button" data-import-back${backDisabled}>Atrás</button>`}
       <button type="button" class="button button-primary" data-import-next${nextDisabled}>${nextLabel}</button>
     </div>`;
 }
@@ -144,12 +145,13 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
   const badgeStatus = omitted ? 'omitted' : attempted ? (complete ? 'resolved' : 'incomplete') : 'pending';
   const badgeLabel = safetyOmitted ? 'Omitido por seguridad' : omitted ? 'Omitido' : attempted ? (complete ? 'Confirmado' : 'Incompleto') : 'Sin confirmar';
   const missingFields = action === 'create' && attempted ? missingCreateFields(create) : new Set();
+  const visibleTicker = create.yahooSymbol || create.symbol || item.symbol || '';
   return `
     <article class="import-instrument-card${attempted && complete ? ' is-confirmed' : ''}${attempted && !complete && !omitted ? ' is-incomplete' : ''}${safetyOmitted ? ' is-safety-omitted' : ''}">
       <header>
         <div>
           <strong>${ctx.escapeHtml(item.label || item.key)}</strong>
-          <p class="subtle">${ctx.escapeHtml(item.isin || 'Sin ISIN')} · ${ctx.escapeHtml(item.currency || '-')} · ${ctx.escapeHtml(item.exchange || '-')}</p>
+          <p class="subtle">${visibleTicker ? `Ticker sugerido ${ctx.escapeHtml(visibleTicker)} · ` : ''}${ctx.escapeHtml(item.currency || '-')} · ${ctx.escapeHtml(item.exchange || '-')}</p>
         </div>
         <span class="status-pill status-${statusBadgeClass(badgeStatus)}">${badgeLabel}</span>
       </header>
@@ -286,38 +288,6 @@ function renderOperationRow(ctx, row, state) {
       </select>
       <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || rowWarnings.join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
     </article>`;
-}
-
-function renderConfirmStep(ctx, preview) {
-  const impact = preview.impactPreview || { instruments: [] };
-  const canCommit = preview.canCommit;
-  const fatalRows = (preview.rows || []).filter((row) => ['error', 'blocked', 'needs_mapping'].includes(row.status));
-  return `
-    <div class="import-confirm-grid">
-      <article class="metric-card"><span>Nuevas compras</span><strong>${impact.buyCount || 0}</strong></article>
-      <article class="metric-card"><span>Nuevas ventas</span><strong>${impact.sellCount || 0}</strong></article>
-      <article class="metric-card"><span>Instrumentos afectados</span><strong>${impact.instrumentCount || 0}</strong></article>
-      <article class="metric-card"><span>Valor bruto</span><strong>${ctx.formatCurrency(impact.totalValueEur || 0)}</strong></article>
-      <article class="metric-card"><span>Comisiones</span><strong>${ctx.formatCurrency(impact.totalCommissionEur || 0)}</strong></article>
-      <article class="metric-card"><span>Cash-flow neto</span><strong>${ctx.formatCurrency(impact.totalCashFlowEur || 0)}</strong></article>
-    </div>
-    ${!canCommit && fatalRows.length ? `<div class="import-warning-banner"><div>No se puede importar: hay ${fatalRows.length} filas pendientes (${fatalRows.some((r) => r.status === 'needs_mapping') ? 'instrumentos sin asignar' : 'con errores'}). Resuélvelas en los pasos anteriores.</div></div>` : ''}
-    <div class="import-impact-list">
-      ${(impact.instruments || [])
-        .map(
-          (item) => {
-            const liquidated = Math.abs(item.afterShares || 0) < 0.000001 && (item.beforeShares || 0) > 0;
-            return `
-            <article>
-              <strong>${ctx.escapeHtml(item.symbol)}</strong>
-              <span>Acciones antes ${ctx.formatShareNumber(item.beforeShares || 0)} · Acciones a importar ${ctx.formatShareNumber(item.deltaShares || 0)} · Acciones después ${ctx.formatShareNumber(item.afterShares || 0)}</span>
-              ${liquidated ? '<small class="import-warning-text">Posición liquidada en la importación</small>' : ''}
-              <small>${item.buys || 0} compras · ${item.sells || 0} ventas</small>
-            </article>`;
-          },
-        )
-        .join('') || '<div class="subtle">No hay operaciones seleccionadas para importar.</div>'}
-    </div>`;
 }
 
 export function renderImportPreviewContent(ctx, preview, workflowState, warnings = []) {

@@ -37,6 +37,8 @@ export function resetImportDraft(ctx) {
   ctx.elements.importPreviewOutput.innerHTML = '';
   ctx.elements.importMappingRequired.hidden = true;
   ctx.elements.importMappingRequired.innerHTML = '';
+  ctx.elements.importPreview.hidden = false;
+  ctx.elements.importPreview.disabled = true;
   ctx.elements.importCommit.disabled = true;
   ctx.elements.importCommit.hidden = true;
   syncImportMode(ctx);

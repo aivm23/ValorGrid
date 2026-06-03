@@ -103,6 +103,8 @@ export function attach(ctx) {
   }
   function renderImportPreview() {
     const preview = ctx.state.importPreview;
+    ctx.elements.importPreview.hidden = Boolean(preview);
+    ctx.elements.importPreview.disabled = Boolean(ctx.state.importWorkflowBusy || !ctx.state.importFileMeta);
     if (!preview) {
       ctx.state.importStep = 'file';
       ctx.elements.importPreviewOutput.innerHTML = renderImportPreviewContent(ctx, null, ctx.state, []);
@@ -169,7 +171,7 @@ export function attach(ctx) {
       ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
       updateCommitButton(ctx);
     } finally {
-      ctx.elements.importPreview.disabled = false;
+      ctx.elements.importPreview.disabled = Boolean(ctx.state.importWorkflowBusy || !ctx.state.importFileMeta || ctx.state.importPreview);
     }
   }
 

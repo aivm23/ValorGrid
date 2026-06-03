@@ -104,6 +104,11 @@ function almostEqual(a, b, relative = 0.02, absolute = 0.05) {
   return diff <= Math.max(absolute, Math.abs(b) * relative);
 }
 
+function displayLabelFromIdentifiers(identifiers = []) {
+  const brokerProduct = identifiers.find((item) => String(item.identifierType || item.type || '').toLowerCase() === 'broker_product');
+  return String(brokerProduct?.displayName || brokerProduct?.identifierValue || '').trim();
+}
+
 function matchExistingLedgerTransaction(importRepository, normalized) {
   if (!normalized.symbol || !normalized.date || !normalized.type) return null;
   const candidates = importRepository.listLedgerTransactionsForExactMatch({
@@ -226,7 +231,7 @@ function previewImportFactory(ctx, input = {}) {
     const instrument = normalized.symbol ? ctx.getInstrument(normalized.symbol) || resolution.instrument : null;
     const mappingKey =
       normalized.externalIdentifiers?.map(mappingKeyForIdentifier).find(Boolean) || (normalized.symbol ? `ticker:${normalized.symbol}` : null);
-    const detectedLabel = String(normalized.symbol || mappingKey || '').trim();
+    const detectedLabel = String(normalized.symbol || displayLabelFromIdentifiers(normalized.externalIdentifiers) || mappingKey || '').trim();
 
     if (mappingKey && !detectedInstruments.has(mappingKey)) {
       detectedInstruments.set(mappingKey, {

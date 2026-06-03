@@ -163,7 +163,13 @@ Respuesta:
   "sources": [
     { "key": "valorgrid-xlsx", "label": "Plantilla Excel de ValorGrid", "edition": "community", "available": true },
     { "key": "degiro-csv", "label": "DEGIRO", "edition": "professional", "available": false },
-    { "key": "ibkr-csv", "label": "Interactive Brokers", "edition": "professional", "available": false, "comingSoon": true }
+    {
+      "key": "ibkr-csv",
+      "label": "Interactive Brokers",
+      "edition": "professional",
+      "available": false,
+      "comingSoon": true
+    }
   ]
 }
 ```
