@@ -18,16 +18,16 @@ const adapterDefinitions = {
 };
 
 const knownProAdapters = {
-  'pro-broker-a-csv': {
+  'degiro-csv': {
     parser: 'pro-csv',
-    profile: 'pro-broker-a',
-    label: 'Broker A',
+    profile: 'degiro',
+    label: 'DEGIRO',
     edition: 'professional',
   },
-  'pro-broker-b-csv': {
+  'ibkr-csv': {
     parser: 'pro-csv',
-    profile: 'pro-broker-b',
-    label: 'Broker B',
+    profile: 'ibkr',
+    label: 'Interactive Brokers',
     edition: 'professional',
     comingSoon: true,
   },
