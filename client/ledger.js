@@ -39,21 +39,7 @@ export function attach(ctx) {
     const selectedIds = new Set(state.selectedTransactionIds);
     const selectedCount = selectedIds.size;
 
-    const hasFilters = symbolFilter || originFilter || typeFilter || fromDate || toDate;
-    if (elements.ledgerFilterInfo) {
-      if (hasFilters) {
-        const parts = [];
-        if (fromDate || toDate) {
-          const fromLabel = fromDate ? ctx.formatDate(fromDate) : 'inicio';
-          const toLabel = toDate ? ctx.formatDate(toDate) : 'hoy';
-          parts.push(`Período: ${fromLabel} – ${toLabel}`);
-        }
-        elements.ledgerFilterInfo.textContent = `Mostrando ${rows.length} de ${allTransactions.length} movimientos${parts.length ? ' · ' + parts.join(' · ') : ''}`;
-        elements.ledgerFilterInfo.hidden = false;
-      } else {
-        elements.ledgerFilterInfo.hidden = true;
-      }
-    }
+    if (elements.ledgerFilterInfo) elements.ledgerFilterInfo.hidden = true;
 
     const totals = rows.reduce(
       (acc, item) => {
@@ -66,8 +52,14 @@ export function attach(ctx) {
       },
       { invested: 0, withdrawn: 0, commissions: 0, cashFlow: 0 },
     );
+
+    const hasFilters = symbolFilter || originFilter || typeFilter || fromDate || toDate;
+    const countHtml = hasFilters
+      ? `<strong class="ledger-filtered-count">${filtered.length}</strong> / ${allTransactions.length}`
+      : `<strong>${filtered.length}</strong>`;
+
     elements.ledgerTotals.innerHTML = `
-      <span>Movimientos: <strong>${filtered.length}</strong></span>
+      <span>Movimientos: ${countHtml}</span>
       <span>Compras: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
       <span>Ventas: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
       <span>Comisiones: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>

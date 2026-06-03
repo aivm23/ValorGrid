@@ -29,6 +29,7 @@ const knownProAdapters = {
     profile: 'ibkr',
     label: 'Interactive Brokers',
     edition: 'professional',
+    comingSoon: true,
   },
 };
 
@@ -84,12 +85,13 @@ function listImportSources(edition = 'community') {
   const sources = [];
 
   for (const [source, def] of Object.entries(allAdapters)) {
-    const isAvailable = def.edition === 'community' || edition === 'professional';
+    const isAvailable = def.comingSoon ? false : def.edition === 'community' || edition === 'professional';
     sources.push({
       key: source,
       label: def.label,
       edition: def.edition || 'community',
       available: isAvailable,
+      ...(def.comingSoon ? { comingSoon: true } : {}),
     });
   }
 

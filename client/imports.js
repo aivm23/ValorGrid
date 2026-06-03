@@ -119,8 +119,7 @@ export function attach(ctx) {
   }
 
   async function handleImportSourceChange() {
-    syncImportMode(ctx);
-    resetImportState(ctx);
+    resetImportDraft(ctx);
     renderImportPreview();
     ctx.elements.importFeedback.textContent = '';
     updateCommitButton(ctx);
@@ -311,7 +310,11 @@ export function attach(ctx) {
       const teaser = select?.closest('label')?.querySelector('.import-source-teaser');
       if (!select) return;
       const hasProSources = sources.some(s => s.edition === 'professional' && s.available);
-      select.innerHTML = sources.map(s => `<option value="${s.key}"${s.available ? '' : ' disabled'}>${s.available ? s.label : `${s.label} - Profesional Edition`}</option>`).join('');
+      select.innerHTML = sources.map(s => {
+        if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - Profesional Edition - Próximamente</option>`;
+        if (s.available) return `<option value="${s.key}">${s.label}</option>`;
+        return `<option value="${s.key}" disabled>${s.label} - Profesional Edition</option>`;
+      }).join('');
       if (teaser) teaser.hidden = hasProSources;
     } catch {}
   }

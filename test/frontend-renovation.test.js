@@ -218,7 +218,7 @@ test('index.html and charts.js render metric info tooltips for visible totals', 
 
 // ── 10) Ledger filter info with result count ──
 
-test('ledger.js shows filter info with result count when filters are active', async () => {
+test('ledger.js shows filtered count X/Y in totals row when filters are active', async () => {
   seedTestInstrument({ symbol: 'FILTER1', yahooSymbol: 'FILTER1.DE', name: 'Filter Test', type: 'stock' });
   cachePrice('FILTER1.DE', '2026-05-14', 20);
 
@@ -228,12 +228,11 @@ test('ledger.js shows filter info with result count when filters are active', as
   assert.equal(response.status, 200);
   assert.ok(body.transactions.length > 0, 'transactions exist for filtering');
 
-  // Verify ledger.js source shows filter info
   const ledger = read(path.join('client', 'ledger.js'));
   assert.ok(ledger.includes('ledgerFilterInfo'), 'ledger references ledgerFilterInfo element');
-  assert.ok(ledger.includes('Mostrando'), 'ledger shows "Mostrando X de Y" text');
-  assert.ok(ledger.includes('movimientos'), 'ledger includes result count label');
+  assert.ok(ledger.includes('ledger-filtered-count'), 'ledger uses filtered-count class for highlights');
   assert.ok(ledger.includes('hasFilters'), 'ledger checks for active filters');
+  assert.ok(ledger.includes('/ ${allTransactions.length}'), 'ledger shows X / Y format');
 });
 
 // ── 11) Checkbox animation ──

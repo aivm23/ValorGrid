@@ -546,12 +546,16 @@ test('listImportSources includes knownProAdapters with available=false in commun
   assert.equal(ibkr.available, false);
 });
 
-test('listImportSources marks all sources as available in professional edition', () => {
+test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', () => {
   const sources = listImportSources('professional');
   assert.ok(Array.isArray(sources));
 
   for (const source of sources) {
-    assert.equal(source.available, true, `${source.key} should be available in professional edition`);
+    if (source.comingSoon) {
+      assert.equal(source.available, false, `${source.key} should not be available (coming soon)`);
+    } else {
+      assert.equal(source.available, true, `${source.key} should be available in professional edition`);
+    }
   }
 });
 

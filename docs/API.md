@@ -163,13 +163,14 @@ Respuesta:
   "sources": [
     { "key": "valorgrid-xlsx", "label": "Plantilla Excel de ValorGrid", "edition": "community", "available": true },
     { "key": "degiro-csv", "label": "DEGIRO", "edition": "professional", "available": false },
-    { "key": "ibkr-csv", "label": "Interactive Brokers", "edition": "professional", "available": false }
+    { "key": "ibkr-csv", "label": "Interactive Brokers", "edition": "professional", "available": false, "comingSoon": true }
   ]
 }
 ```
 
 - `available: true` — la fuente puede usarse para importar.
 - `available: false` — la fuente pertenece a otra edición y no está habilitada.
+- `comingSoon: true` — la fuente está en desarrollo y no está disponible en ninguna edición.
 
 ### Fuentes soportadas
 
