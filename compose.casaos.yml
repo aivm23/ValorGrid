@@ -2,7 +2,9 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:v3.2.3
+    # CasaOS AppStore candidate is intentionally pinned to the PR image.
+    # Do not bump this tag automatically when package.json changes.
+    image: ghcr.io/aivm23/valorgrid:v3.2.0
     container_name: valorgrid
     restart: unless-stopped
     environment:
@@ -10,10 +12,16 @@ services:
       PORT: 5173
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
     ports:
-      - "5173:5173"
+      - target: 5173
+        published: "5173"
+        protocol: tcp
     volumes:
-      - /DATA/AppData/valorgrid/data:/data
-      - /DATA/AppData/valorgrid/backups:/app/.backups
+      - type: bind
+        source: /DATA/AppData/valorgrid/data
+        target: /data
+      - type: bind
+        source: /DATA/AppData/valorgrid/backups
+        target: /app/.backups
     x-casaos:
       envs:
         - container: HOST
@@ -51,7 +59,7 @@ x-casaos:
   author: alvarovalderramamolina
   developer: alvarovalderramamolina
   category: Finance
-  version: "v3.2.3"
+  version: "v3.2.0"
   updateAt: "2026-06-03"
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues

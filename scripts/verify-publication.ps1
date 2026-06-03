@@ -226,19 +226,22 @@ if ([regex]::IsMatch($casaosCompose, '(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid
   throw 'compose.casaos.yml must not use :latest for CasaOS AppStore publication'
 }
 
-$expectedCasaosImage = "ghcr.io/aivm23/valorgrid:v$version"
+$pinnedCasaosVersion = '3.2.0'
+$expectedCasaosImage = "ghcr.io/aivm23/valorgrid:v$pinnedCasaosVersion"
 $expectedCasaosImagePattern = [regex]::Escape($expectedCasaosImage)
 if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*image:\s*$expectedCasaosImagePattern\s*$")) {
-  throw "compose.casaos.yml image must match package version tag: $expectedCasaosImage"
+  throw "compose.casaos.yml image must stay pinned to the CasaOS PR image: $expectedCasaosImage"
 }
 
 $requiredCasaosMounts = @(
-  '/DATA/AppData/valorgrid/data:/data',
-  '/DATA/AppData/valorgrid/backups:/app/.backups'
+  'source: /DATA/AppData/valorgrid/data',
+  'target: /data',
+  'source: /DATA/AppData/valorgrid/backups',
+  'target: /app/.backups'
 )
 foreach ($mount in $requiredCasaosMounts) {
   if (-not $casaosCompose.Contains($mount)) {
-    throw "compose.casaos.yml must use CasaOS AppData bind mount: $mount"
+    throw "compose.casaos.yml must use CasaOS AppData long-form bind mount: $mount"
   }
 }
 
@@ -270,9 +273,9 @@ foreach ($pattern in $requiredCasaosPatterns) {
   }
 }
 
-$expectedVersionPattern = [regex]::Escape("v$version")
+$expectedVersionPattern = [regex]::Escape("v$pinnedCasaosVersion")
 if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*version:\s*[""']?$expectedVersionPattern[""']?\s*$")) {
-  throw "compose.casaos.yml version must match package version: v$version"
+  throw "compose.casaos.yml version must stay pinned to CasaOS PR version: v$pinnedCasaosVersion"
 }
 
 $dockerWorkflowPath = Join-Path $root '.github\workflows\docker.yml'

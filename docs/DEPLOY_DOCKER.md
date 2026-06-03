@@ -30,9 +30,11 @@ http://localhost:5173
 
 El archivo de tienda es `compose.casaos.yml` y usa una imagen versionada:
 
-- `ghcr.io/aivm23/valorgrid:v3.2.3`
+- `ghcr.io/aivm23/valorgrid:v3.2.0`
 
 Esto evita problemas de actualizacion con `latest` en el AppStore de CasaOS.
+
+Nota de mantenimiento: `compose.casaos.yml` esta fijado a la imagen enviada en la PR de CasaOS. No se actualiza automaticamente cuando cambia `package.json`; solo debe cambiarse cuando se prepare una nueva actualizacion de CasaOS AppStore.
 
 Pasos de prueba previos al envio a AppStore:
 
