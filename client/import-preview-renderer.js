@@ -159,7 +159,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
         <span>${item.rowCount || 0} operaciones</span>
         <span>${item.buys || 0} compras / ${item.sells || 0} ventas</span>
         <span>${ctx.formatCurrency(item.approxValueEur || 0)}</span>
-        ${item.firstDate && item.lastDate ? `<span>${ctx.escapeHtml(item.firstDate)} - ${ctx.escapeHtml(item.lastDate)}</span>` : ''}
+        ${item.firstDate && item.lastDate ? `<span>${ctx.formatDate(item.firstDate)} - ${ctx.formatDate(item.lastDate)}</span>` : ''}
       </div>
       ${safetyOmitted ? '<div class="import-safety-message">Omitido por seguridad: hay más ventas que compras y podría generar posición negativa.</div>' : ''}
       ${!complete || action !== 'map' ? renderSuggestions(ctx, item) : ''}
@@ -270,11 +270,16 @@ function renderOperationRow(ctx, row, state) {
   const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
   const hasZeroPrice = row.normalized?.originalPrice === 0 && row.normalized?.type === 'add';
   const rowWarnings = row.normalized?.warnings || [];
+  const rawReference = row.raw?.Producto || row.raw?.Product || row.raw?.Descripcion || row.raw?.Descripción || row.raw?.Description || row.raw?.ISIN || row.raw?.Isin || '';
+  const unresolvedReference = !row.normalized?.symbol && rawReference
+    ? `<small class="import-row-reference">Excel: ${ctx.escapeHtml(rawReference)}</small>`
+    : '';
   return `
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
       <div>
         <strong>${ctx.escapeHtml(symbol)}</strong>
-        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${ctx.escapeHtml(row.normalized?.date || '-')} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatShareNumber(row.normalized.shares) : '-'} acciones</span>
+        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${row.normalized?.date ? ctx.formatDate(row.normalized.date) : '-'} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatShareNumber(row.normalized.shares) : '-'} acciones</span>
+        ${unresolvedReference}
       </div>
       <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(STATUS_LABELS[row.status] || row.status)}</span>
       <div class="import-operation-money">

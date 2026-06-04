@@ -3,7 +3,11 @@ export function attach(ctx) {
     const { elements } = ctx;
     if (!elements.bootOverlay) return;
     const text = elements.bootOverlay.querySelector('span');
+    const title = elements.bootOverlay.querySelector('strong');
+    const issueLink = elements.bootOverlay.querySelector('.boot-issue-link');
     if (text && message) text.textContent = message;
+    if (title) title.textContent = status === 'error' ? 'No se pudo arrancar ValorGrid' : 'Cargando ValorGrid...';
+    if (issueLink) issueLink.hidden = status !== 'error';
     elements.bootOverlay.classList.toggle('is-error', status === 'error');
     elements.bootOverlay.hidden = status === 'ready';
     if (elements.bootRetry) elements.bootRetry.hidden = status !== 'error';

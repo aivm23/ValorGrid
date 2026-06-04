@@ -165,6 +165,7 @@ export function attach(ctx) {
     tickerInputField: document.querySelector('#ticker-input-field'),
     tickerSelectField: document.querySelector('#ticker-select-field'),
     addTicker: document.querySelector('#add-ticker'),
+    operationCreateInstrument: document.querySelector('#operation-create-instrument'),
     removeTicker: document.querySelector('#remove-ticker'),
     addDate: document.querySelector('#add-date'),
     addEuros: document.querySelector('#add-euros'),

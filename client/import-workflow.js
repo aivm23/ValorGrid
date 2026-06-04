@@ -14,8 +14,8 @@ import { updateImportFileDisplay } from './import-file-zone.js';
 
 export { toBase64, isXlsxSource, canDownloadTemplate, parseMapping } from './import-workflow-helpers.js';
 export { updateImportFileDisplay, clearImportFile } from './import-file-zone.js';
-
-export function resetImportDraft(ctx) {
+export function resetImportDraft(ctx, options = {}) {
+  if (options.resetSource && ctx.elements.importSource) ctx.elements.importSource.value = 'valorgrid-xlsx';
   ctx.state.importPreview = null;
   ctx.state.importRowActions = {};
   ctx.state.importRowMappings = {};

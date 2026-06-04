@@ -5,18 +5,21 @@ export function attach(ctx) {
 
     const months = state.monthly.months || buildLegacyMonths(state.monthly);
     const completedMonths = months.filter((month) => month.total !== null && Number.isFinite(Number(month.total)));
+    const visibleMonths = completedMonths.filter(monthHasActivity);
+    const displayMonths = visibleMonths.length ? visibleMonths : completedMonths.slice(-1);
+    const omittedZeroMonths = completedMonths.length - displayMonths.length;
     const summary = state.monthly.summary || buildLegacySummary(state.monthly, completedMonths);
 
     elements.monthlySummary.innerHTML = renderYtdSummary(summary);
 
-    const monthCount = completedMonths.length;
+    const monthCount = displayMonths.length;
     if (elements.ytdSubtitle) {
       elements.ytdSubtitle.textContent = monthCount > 0
         ? `Evolución del año en curso, flujos y desglose mensual por grupos. ${monthCount} de 12 meses con datos.`
         : 'A la espera del primer movimiento del año.';
     }
 
-    if (!completedMonths.length) {
+    if (!displayMonths.length) {
       elements.monthlyTracking.innerHTML = `
         <div class="empty-action-state ytd-empty">
           <span class="subtle">Sin movimientos ni valoraciones para el año en curso.</span>
@@ -26,10 +29,28 @@ export function attach(ctx) {
       return;
     }
 
-    const latestMonth = completedMonths[completedMonths.length - 1]?.month;
-    elements.monthlyTracking.innerHTML = completedMonths
+    const latestMonth = displayMonths[displayMonths.length - 1]?.month;
+    const zeroNotice = omittedZeroMonths > 0 ? renderYtdZeroNotice(omittedZeroMonths) : '';
+    elements.monthlyTracking.innerHTML = zeroNotice + displayMonths
       .map((month) => renderMonthCard(month, month.month === latestMonth))
       .join('');
+  }
+
+  function monthHasActivity(month) {
+    return (
+      Number(month.total || 0) > 0 ||
+      Number(month.contributions || 0) > 0 ||
+      Number(month.withdrawals || 0) > 0 ||
+      (month.groups || []).some((group) => Number(group.value || 0) > 0)
+    );
+  }
+
+  function renderYtdZeroNotice(count) {
+    return `
+      <div class="ytd-zero-notice">
+        <strong>${count} ${count === 1 ? 'mes anterior esta' : 'meses anteriores estan'} a cero</strong>
+        <span>No se muestran para mantener la revision centrada en los meses con cartera o movimientos.</span>
+      </div>`;
   }
 
   function renderYtdSummary(summary) {

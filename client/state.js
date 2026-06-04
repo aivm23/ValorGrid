@@ -57,6 +57,8 @@ export function attach(ctx) {
     selectedTransactionIds: [],
     visibleTransactionIds: [],
     ledgerPageSize: 1000,
+    pendingTransactionDelete: [],
+    returnToOperationDialogAfterInstrumentCreate: false,
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });

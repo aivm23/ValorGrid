@@ -34,14 +34,13 @@ function resetImportState(ctx) {
 
 export function attach(ctx) {
   function openImportDialog() {
-    resetImportDraft(ctx);
-    syncImportMode(ctx);
-    ctx.elements.importDialog.showModal();
-  }
-  function closeImportDialog() {
-    ctx.elements.importDialog.close();
+    resetImportDraft(ctx, { resetSource: true });
+    syncImportMode(ctx); ctx.elements.importDialog.showModal();
   }
 
+  function closeImportDialog() {
+    resetImportDraft(ctx, { resetSource: true }); ctx.elements.importDialog.close();
+  }
   function setImportStep(step) {
     if (!STEP_ORDER.includes(step)) return;
     const targetIndex = STEP_ORDER.indexOf(step);
@@ -121,7 +120,7 @@ export function attach(ctx) {
   }
 
   async function handleImportSourceChange() {
-    resetImportDraft(ctx);
+    resetImportDraft(ctx, { resetSource: false });
     renderImportPreview();
     ctx.elements.importFeedback.textContent = '';
     updateCommitButton(ctx);
@@ -288,7 +287,8 @@ export function attach(ctx) {
     ctx.elements.importBatches.innerHTML = batches.length
       ? `<h4>Importaciones recientes</h4>${batches.slice(0, 5).map((batch) => {
           const isRolledBack = rolledBackIds.has(batch.id);
-          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(batch.firstDate || '')} ${ctx.escapeHtml(batch.lastDate || '')}</small>${isRolledBack ? '' : `<button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>`}</div>`;
+          const range = [batch.firstDate, batch.lastDate].filter(Boolean).map((date) => ctx.formatDate(date)).join(' - ');
+          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>`}</div>`;
         }).join('')}${rollbackSection}`
       : rollbackSection || '<span class="subtle">Sin importaciones todavía.</span>';
   }

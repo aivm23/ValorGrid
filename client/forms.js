@@ -3,7 +3,6 @@ export function attach(ctx) {
     ctx.elements.addFeedback.textContent = message;
     ctx.elements.addFeedback.dataset.state = message ? (isError ? 'error' : 'ok') : '';
   }
-
   function buildTransactionPayload(includeId = false) {
     const type = ctx.elements.operationType.value;
     const symbol = type === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
@@ -32,7 +31,6 @@ export function attach(ctx) {
   function transactionTypeLabel(type) {
     return type === 'remove' ? 'Venta' : 'Compra';
   }
-
   async function refreshTransactionPreview() {
     const payload = buildTransactionPayload(false);
     ctx.elements.transactionPreview.hidden = true;
@@ -57,25 +55,54 @@ export function attach(ctx) {
 
   function populateRemoveTickerOptions() {
     const symbols = symbolsWithShares();
-    ctx.elements.removeTicker.innerHTML = symbols.map((symbol) => `<option value="${symbol}">${symbol}</option>`).join('');
+    ctx.elements.removeTicker.innerHTML = symbols.length
+      ? symbols.map((symbol) => `<option value="${ctx.escapeHtml(symbol)}">${ctx.escapeHtml(symbol)}</option>`).join('')
+      : '<option value="">Sin posiciones abiertas</option>';
     return symbols;
   }
 
   function visibleInstruments() {
     return (ctx.state.instruments || []).filter((instrument) => instrument.type !== 'fx');
   }
+  function populateAddTickerOptions(selectedSymbol = '') {
+    const instruments = visibleInstruments();
+    ctx.elements.addTicker.innerHTML = instruments.length
+      ? instruments
+          .map((instrument) => {
+            const label = `${instrument.symbol} - ${instrument.name || instrument.yahooSymbol || instrument.symbol}`;
+            return `<option value="${ctx.escapeHtml(instrument.symbol)}" ${instrument.symbol === selectedSymbol ? 'selected' : ''}>${ctx.escapeHtml(label)}</option>`;
+          })
+          .join('')
+      : '<option value="">Sin valores creados</option>';
+    return instruments;
+  }
 
   function syncOperationCopy() {
     const isRemove = ctx.elements.operationType.value === 'remove';
     ctx.elements.operationTitle.textContent = isRemove ? 'Eliminar posición' : 'Añadir aportación';
     ctx.elements.addSubmit.textContent = isRemove ? 'Eliminar' : 'Añadir';
-    ctx.elements.tickerInputField.hidden = isRemove;
-    ctx.elements.tickerSelectField.hidden = !isRemove;
     ctx.elements.addTicker.required = !isRemove;
     ctx.elements.removeTicker.required = isRemove;
     ctx.elements.addTicker.disabled = isRemove;
     ctx.elements.removeTicker.disabled = !isRemove;
-    if (isRemove) populateRemoveTickerOptions();
+    const available = isRemove ? populateRemoveTickerOptions() : populateAddTickerOptions(ctx.elements.addTicker.value);
+    const isEmpty = available.length === 0;
+    ctx.elements.tickerInputField.hidden = isRemove || isEmpty;
+    ctx.elements.tickerSelectField.hidden = !isRemove || isEmpty;
+    ctx.elements.operationCreateInstrument.hidden = isRemove || isEmpty;
+    ctx.elements.addDate.closest('.field').hidden = isEmpty;
+    ctx.elements.addEuros.closest('.field-grid').hidden = isEmpty;
+    ctx.elements.addSubmit.disabled = isEmpty;
+    ctx.elements.addSubmit.hidden = isEmpty;
+    if (isEmpty) {
+      ctx.elements.transactionPreview.hidden = true;
+      ctx.state.transactionPreviewOk = false;
+      setAddFeedback(
+        isRemove
+          ? 'No hay ninguna posicion creada. Registra una compra antes de eliminar una posicion.'
+          : 'No hay valores creados. Crea un valor antes de añadir movimientos.',
+      );
+    }
   }
 
   function syncAmountInputs(event) {
@@ -98,7 +125,8 @@ export function attach(ctx) {
     setAddFeedback('');
     syncOperationCopy();
     ctx.elements.addDialog.showModal();
-    (type === 'remove' ? ctx.elements.removeTicker : ctx.elements.addTicker).focus();
+    const target = type === 'remove' ? ctx.elements.removeTicker : ctx.elements.addTicker;
+    if (!target.disabled && !ctx.elements.addSubmit.disabled) target.focus();
   }
 
   function closeAddDialog() {
@@ -120,14 +148,14 @@ export function attach(ctx) {
       setAddFeedback('Guardando movimiento...');
       const data = await ctx.sendJson('/api/transactions', 'POST', payload);
       setAddFeedback(`${data.transaction.symbol}: movimiento guardado.`);
-      window.setTimeout(closeAddDialog, 250);
+      window.setTimeout(closeAddDialog, 1800);
       ctx.state.historyCache = {};
       await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
     } catch (error) {
       const storedTransaction = await ctx.findTransactionById(payload.id).catch(() => null);
       if (storedTransaction) {
         setAddFeedback(`${storedTransaction.symbol}: movimiento guardado.`);
-        window.setTimeout(closeAddDialog, 250);
+        window.setTimeout(closeAddDialog, 1800);
         ctx.state.historyCache = {};
         await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
       } else {
@@ -270,7 +298,9 @@ export function attach(ctx) {
           parts.push(warnings.map((warning) => warning.message).join(' '));
         }
         if (previewData.preview.pendingCount > 1) {
-          parts.push(`${previewData.preview.pendingCount} aportaciones pendientes. Pulsa Guardar de nuevo para confirmar.`);
+          const estimated = Number(previewData.preview.estimatedTotalEur || 0);
+          const totalCopy = estimated > 0 ? ` por ${ctx.formatCurrency(estimated)} en total` : '';
+          parts.push(`${previewData.preview.pendingCount} aportaciones pendientes${totalCopy}. Pulsa Guardar de nuevo para confirmar.`);
         }
         ctx.elements.autoFeedback.textContent = parts.join(' ');
         ctx.elements.autoFeedback.dataset.state = 'error';
@@ -301,6 +331,7 @@ export function attach(ctx) {
     refreshTransactionPreview,
     symbolsWithShares,
     populateRemoveTickerOptions,
+    populateAddTickerOptions,
     syncOperationCopy,
     syncAmountInputs,
     openOperationDialog,

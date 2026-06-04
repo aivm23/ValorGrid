@@ -25,9 +25,17 @@ export function attach(ctx) {
   elements.addShares.addEventListener('input', ctx.syncAmountInputs);
   elements.addCommission.addEventListener('input', ctx.syncAmountInputs);
   elements.addTicker.addEventListener('input', ctx.syncAmountInputs);
+  elements.addTicker.addEventListener('change', ctx.syncAmountInputs);
   elements.removeTicker.addEventListener('change', ctx.syncAmountInputs);
   elements.addDate.addEventListener('change', ctx.syncAmountInputs);
   elements.operationType.addEventListener('change', ctx.syncOperationCopy);
+  elements.operationCreateInstrument?.addEventListener('click', () => {
+    state.returnToOperationDialogAfterInstrumentCreate = true;
+    elements.addDialog.close();
+    ctx.renderInstruments();
+    elements.instrumentDialog.showModal();
+    elements.newInstrumentSymbol.focus();
+  });
   elements.autoCalendar.addEventListener('click', ctx.openAutoDialog);
   elements.instrumentManager.addEventListener('click', () => {
     ctx.renderInstruments();
@@ -46,8 +54,14 @@ export function attach(ctx) {
     ctx.renderHistory?.();
   });
   elements.ledgerPageSize?.addEventListener('change', ctx.handleLedgerPageSizeChange);
-  elements.instrumentDialogClose.addEventListener('click', () => elements.instrumentDialog.close());
-  elements.instrumentCancel.addEventListener('click', () => elements.instrumentDialog.close());
+  elements.instrumentDialogClose.addEventListener('click', () => {
+    state.returnToOperationDialogAfterInstrumentCreate = false;
+    elements.instrumentDialog.close();
+  });
+  elements.instrumentCancel.addEventListener('click', () => {
+    state.returnToOperationDialogAfterInstrumentCreate = false;
+    elements.instrumentDialog.close();
+  });
   elements.autoDialogClose.addEventListener('click', ctx.closeAutoDialog);
   elements.autoCancel.addEventListener('click', ctx.closeAutoDialog);
   elements.autoPlanList.addEventListener('click', (event) => {
@@ -290,9 +304,10 @@ async function createGroup(ctx) {
 }
 
 async function createInstrument(ctx) {
+  const symbol = ctx.elements.newInstrumentSymbol.value.trim().toUpperCase();
   try {
     await ctx.sendJson('/api/instruments', 'POST', {
-      symbol: ctx.elements.newInstrumentSymbol.value,
+      symbol,
       yahooSymbol: ctx.elements.newInstrumentYahoo.value || ctx.elements.newInstrumentSymbol.value,
       name: ctx.elements.newInstrumentName.value || ctx.elements.newInstrumentSymbol.value,
       type: ctx.elements.newInstrumentType.value,
@@ -304,6 +319,14 @@ async function createInstrument(ctx) {
     ctx.elements.newInstrumentYahoo.value = '';
     ctx.elements.newInstrumentName.value = '';
     await ctx.refreshDashboard();
+    if (ctx.state.returnToOperationDialogAfterInstrumentCreate) {
+      ctx.state.returnToOperationDialogAfterInstrumentCreate = false;
+      ctx.elements.instrumentDialog.close();
+      ctx.openOperationDialog('add');
+      ctx.populateAddTickerOptions(symbol);
+      ctx.elements.addTicker.value = symbol;
+      ctx.syncAmountInputs({ target: ctx.elements.addTicker });
+    }
   } catch (error) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   }

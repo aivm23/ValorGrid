@@ -13,6 +13,14 @@
         <img src="./assets/brand/valorgrid-logo.png" width="1254" height="1254" alt="" aria-hidden="true" />
         <strong>Cargando ValorGrid...</strong>
         <span>Preparando datos y cartera local.</span>
+        <a
+          class="boot-issue-link"
+          href="https://github.com/ValorGrid/ValorGrid/issues"
+          target="_blank"
+          rel="noopener"
+          hidden
+          >Abrir incidencia en GitHub Issues</a
+        >
         <button id="boot-retry" class="button button-compact" type="button" hidden>Reintentar</button>
       </div>
     </div>
@@ -367,9 +375,13 @@
           </select>
         </label>
 
+        <div class="operation-create-row">
+          <button id="operation-create-instrument" class="button button-compact" type="button">Crear valor nuevo</button>
+        </div>
+
         <label class="field" id="ticker-input-field">
           <span>Ticker</span>
-          <input id="add-ticker" name="ticker" required placeholder="Ticker o símbolo Yahoo" />
+          <select id="add-ticker" name="ticker" required></select>
         </label>
 
         <label class="field" id="ticker-select-field" hidden>

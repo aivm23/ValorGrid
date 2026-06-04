@@ -139,10 +139,11 @@ export function attach(ctx) {
     const date = events[0].plotDate || events[0].marketDate || events[0].date;
     return [
       `${formatPlainDate(date)} - ${events.length} movimientos`,
+      '---',
       ...events.map((event) => {
         const type = event.type === 'remove' ? 'Venta' : 'Compra';
         return `${type} ${event.symbol}: ${formatShareNumber(event.shares)} acciones, ${formatCurrency(Number(event.valueEur))}`;
-      }),
+      }).flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
     ].join('\n');
   }
 
@@ -241,7 +242,7 @@ export function attach(ctx) {
         const x = clamp(scale.x(plotDate), padding.left, width - padding.right);
         const y = scale.y(point.value);
         const tooltip = escapeHtml(eventGroupTooltip(group));
-        const eventColor = group.length > 1 ? '#f59e0b' : historyEventColor(group[0]);
+        const eventColor = group.length > 1 ? 'url(#historyEventMultiGrad)' : historyEventColor(group[0]);
         const eventType = group.some((event) => event.type === 'remove') ? 'remove' : 'add';
         const r = group.length > 1 ? 6 : 5;
         return `
@@ -275,6 +276,11 @@ export function attach(ctx) {
         <linearGradient id="historyAreaGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15"/>
           <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.01"/>
+        </linearGradient>
+        <linearGradient id="historyEventMultiGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#06b6d4"/>
+          <stop offset="52%" stop-color="#22c55e"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
         </linearGradient>
       </defs>
       <line class="history-grid-line" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${

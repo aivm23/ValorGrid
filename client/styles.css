@@ -106,6 +106,17 @@ body {
   font-size: 0.9rem;
 }
 
+.boot-issue-link {
+  color: var(--accent);
+  font-size: 0.84rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.boot-issue-link:hover {
+  text-decoration: underline;
+}
+
 .boot-overlay.is-error .boot-card img {
   animation: none;
 }
@@ -212,6 +223,11 @@ p {
   justify-content: flex-start;
   width: 100%;
   text-align: left;
+  text-decoration: none;
+}
+
+.toolbar-menu-panel .button:hover {
+  text-decoration: none;
 }
 
 .header-actions.is-fixed {
@@ -1158,6 +1174,12 @@ h3 {
   transition: box-shadow 120ms ease, transform 120ms ease;
 }
 
+.operation-create-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: -8px;
+}
+
 .monthly-summary article:hover,
 .history-stats article:hover,
 .metric-grid article:hover {
@@ -1190,6 +1212,25 @@ h3 {
 .transaction-preview small {
   color: var(--muted);
   font-size: 0.74rem;
+}
+
+.ytd-zero-notice {
+  display: grid;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, var(--card)), var(--card));
+  padding: 12px 14px;
+}
+
+.ytd-zero-notice strong {
+  font-size: 0.88rem;
+}
+
+.ytd-zero-notice span {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .ledger-filters {
@@ -1546,6 +1587,12 @@ h3 {
 .import-operation-row p {
   grid-column: 1 / -1;
   margin: 0;
+}
+
+.import-row-reference {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 650;
 }
 
 .import-operation-money {
@@ -2481,6 +2528,10 @@ td:last-child {
   width: min(1120px, calc(100vw - 32px));
 }
 
+#instrument-delete-dialog.transaction-delete-dialog {
+  width: min(620px, calc(100vw - 32px));
+}
+
 #import-dialog {
   width: min(1160px, calc(100vw - 32px));
 }
@@ -2691,26 +2742,26 @@ td:last-child {
 .admin-preferences-section {
   grid-column: 1 / -1;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 4%, var(--bg)), var(--bg));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 82%, var(--bg));
   padding: 18px;
 }
 
 .admin-preference {
-  width: fit-content;
+  width: 100%;
   border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
 }
 
 .preference-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px);
+  gap: 14px;
   align-items: flex-end;
 }
 
 .preference-field {
-  min-width: 140px;
-  max-width: 180px;
+  min-width: 0;
+  max-width: none;
 }
 
 .ledger-pagination {
@@ -2911,17 +2962,17 @@ td:last-child {
 
 .instrument-table th:nth-child(1),
 .instrument-table td:nth-child(1) {
-  width: 8%;
+  width: 12%;
 }
 
 .instrument-table th:nth-child(2),
 .instrument-table td:nth-child(2) {
-  width: 18%;
+  width: 16%;
 }
 
 .instrument-table th:nth-child(3),
 .instrument-table td:nth-child(3) {
-  width: 20%;
+  width: 19%;
 }
 
 .instrument-table th:nth-child(4),
@@ -2946,7 +2997,7 @@ td:last-child {
 
 .instrument-table th:nth-child(8),
 .instrument-table td:nth-child(8) {
-  width: 11%;
+  width: 10%;
 }
 
 .instrument-table th,
@@ -2959,6 +3010,14 @@ td:last-child {
   gap: 8px;
   align-items: center;
   min-width: 0;
+  max-width: 100%;
+}
+
+.instrument-symbol-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row-select input {
@@ -3162,6 +3221,7 @@ td:last-child {
 }
 
 .icon-close {
+  position: relative;
   display: grid;
   place-items: center;
   width: 34px;
@@ -3173,6 +3233,45 @@ td:last-child {
   cursor: pointer;
   font: inherit;
   font-weight: 700;
+  overflow: hidden;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.icon-close::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--negative) 20%, transparent);
+  opacity: 0;
+  transform: scale(0.5) rotate(20deg);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.icon-close:hover,
+.icon-close:focus-visible {
+  border-color: color-mix(in srgb, var(--negative) 55%, var(--button-border));
+  background: color-mix(in srgb, var(--negative) 10%, var(--card));
+  color: #ef4444;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--negative) 14%, transparent);
+  transform: rotate(8deg) scale(1.06);
+}
+
+.icon-close:hover::before,
+.icon-close:focus-visible::before {
+  opacity: 1;
+  transform: scale(1.45) rotate(0deg);
+}
+
+.icon-close:active {
+  transform: rotate(0deg) scale(0.96);
 }
 
 .field,
@@ -3281,6 +3380,38 @@ td:last-child {
   display: grid;
   gap: 10px;
   align-items: start;
+}
+
+.delete-impact-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.delete-impact-summary article {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 10px;
+}
+
+.delete-impact-summary span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.delete-impact-summary strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .wizard-grid {
@@ -3445,6 +3576,11 @@ td:last-child {
 
   .admin-preferences-section {
     grid-column: auto;
+  }
+
+  .preference-row,
+  .delete-impact-summary {
+    grid-template-columns: 1fr;
   }
 
   .field-grid {
@@ -4266,8 +4402,22 @@ td:last-child {
 
 #import-dialog .import-impact-shares {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
   gap: 8px;
+  align-items: stretch;
+}
+
+#import-dialog .import-impact-shares b {
+  display: grid;
+  place-items: center;
+  min-height: 48px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 
 #import-dialog .import-impact-shares span {

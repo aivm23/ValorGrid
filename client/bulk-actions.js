@@ -77,7 +77,58 @@ export function attach(ctx) {
   async function deleteSelectedTransactions() {
     const ids = ctx.state.selectedTransactionIds || [];
     if (!ids.length) return;
-    if (!ctx.window.confirm(`Eliminar ${ids.length} movimiento(s) seleccionado(s)?`)) return;
+    showTransactionDeletePreview(ids);
+  }
+
+  function showTransactionDeletePreview(ids) {
+    const selected = (ctx.state.transactions || []).filter((transaction) => ids.includes(String(transaction.id)));
+    const firstDate = selected.map((transaction) => transaction.date).filter(Boolean).sort()[0] || null;
+    const totals = selected.reduce(
+      (acc, item) => {
+        acc.value += Number(item.valueEur || 0);
+        acc.cashFlow += Number(item.cashFlowEur || 0);
+        acc.commissions += Number(item.commissionEur || 0);
+        return acc;
+      },
+      { value: 0, cashFlow: 0, commissions: 0 },
+    );
+    setDeleteDialogCopy(
+      'Eliminar movimientos',
+      'Confirma el impacto antes de borrar. El historico se recalculara desde el primer movimiento afectado.',
+      'Eliminar movimientos',
+    );
+    ctx.elements.instrumentDeletePreview.innerHTML = `
+      <div class="delete-impact-summary">
+        <article><span>Movimientos</span><strong>${selected.length}</strong></article>
+        <article><span>Desde</span><strong>${firstDate ? ctx.formatDate(firstDate) : 'sin fecha'}</strong></article>
+        <article><span>Valor</span><strong>${ctx.formatCurrency(totals.value)}</strong></article>
+        <article><span>Comisiones</span><strong>${ctx.formatCurrency(totals.commissions)}</strong></article>
+        <article><span>Cash-flow</span><strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></article>
+      </div>
+      <div class="delete-preview-section">
+        <h3>Impacto en historico</h3>
+        <p class="subtle">Se invalidara la curva historica desde ${firstDate ? ctx.formatDate(firstDate) : 'la primera fecha afectada'} y se recalcularan dashboard, YTD y ledger.</p>
+      </div>
+      <ul class="delete-preview-list">
+        ${selected
+          .slice(0, 8)
+          .map(
+            (item) =>
+              `<li class="delete-item allowed"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.formatDate(item.date)} · ${ctx.transactionTypeLabel(item.type)} · ${ctx.formatShareNumber(item.shares)} acciones</li>`,
+          )
+          .join('')}
+      </ul>
+      ${selected.length > 8 ? `<p class="subtle">Y ${selected.length - 8} movimientos mas.</p>` : ''}
+    `;
+    ctx.state.pendingTransactionDelete = ids;
+    ctx.elements.instrumentDeleteConfirm.disabled = false;
+    ctx.elements.instrumentDeleteDialog.classList.add('transaction-delete-dialog');
+    ctx.elements.instrumentDeleteDialog.showModal();
+  }
+
+  async function confirmTransactionDelete() {
+    const ids = ctx.state.pendingTransactionDelete || [];
+    if (!ids.length) return;
     try {
       await Promise.all(
         ids.map(async (id) => {
@@ -86,7 +137,9 @@ export function attach(ctx) {
         }),
       );
       ctx.state.selectedTransactionIds = [];
+      ctx.state.pendingTransactionDelete = [];
       ctx.state.historyCache = {};
+      ctx.elements.instrumentDeleteDialog.close();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
     } catch (error) {
@@ -114,6 +167,12 @@ export function attach(ctx) {
   }
 
   function showInstrumentDeletePreview(results) {
+    ctx.elements.instrumentDeleteDialog.classList.remove('transaction-delete-dialog');
+    setDeleteDialogCopy(
+      'Eliminar instrumentos',
+      'Revisa el estado de cada instrumento antes de confirmar.',
+      'Eliminar seleccionados',
+    );
     const blocked = results.filter((r) => r.blocked);
     const allowed = results.filter((r) => !r.blocked);
 
@@ -153,6 +212,7 @@ export function attach(ctx) {
   }
 
   async function confirmInstrumentDelete() {
+    if ((ctx.state.pendingTransactionDelete || []).length) return confirmTransactionDelete();
     const symbols = ctx.state.pendingInstrumentDelete || [];
     if (!symbols.length) return;
     try {
@@ -170,7 +230,17 @@ export function attach(ctx) {
 
   function cancelInstrumentDelete() {
     ctx.state.pendingInstrumentDelete = [];
+    ctx.state.pendingTransactionDelete = [];
+    ctx.elements.instrumentDeleteDialog.classList.remove('transaction-delete-dialog');
     ctx.elements.instrumentDeleteDialog.close();
+  }
+
+  function setDeleteDialogCopy(title, subtitle, buttonLabel) {
+    const titleEl = ctx.elements.instrumentDeleteDialog.querySelector('.modal-header h2');
+    const subtitleEl = ctx.elements.instrumentDeleteDialog.querySelector('.modal-header .subtle');
+    if (titleEl) titleEl.textContent = title;
+    if (subtitleEl) subtitleEl.textContent = subtitle;
+    if (ctx.elements.instrumentDeleteConfirm) ctx.elements.instrumentDeleteConfirm.textContent = buttonLabel;
   }
 
   async function deleteSelectedGroups() {
