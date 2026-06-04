@@ -18,7 +18,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     buildTransactionsXlsx,
   } = resolveRouteHandlers(ctx);
 
-  const { appInfo, root, db, dbPath, listBackups, createBackup, resolveBackupPath, fsSync, path } = ctx;
+  const { appInfo, root, db, dbPath, backupDir, listBackups, createBackup, resolveBackupPath, fsSync, path } = ctx;
 
   if (url.pathname === '/api/version' && request.method === 'GET') {
     sendJson(response, 200, appInfo);
@@ -36,12 +36,12 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   }
 
   if (url.pathname === '/api/backups' && request.method === 'GET') {
-    sendJson(response, 200, { backups: listBackups(root) });
+    sendJson(response, 200, { backups: listBackups(root, backupDir) });
     return true;
   }
 
   if (url.pathname === '/api/backups' && request.method === 'POST') {
-    sendJson(response, 201, { backup: createBackup({ db, dbPath, root }) });
+    sendJson(response, 201, { backup: createBackup({ db, dbPath, root, backupDir }) });
     return true;
   }
 
@@ -59,7 +59,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
 
   const backupMatch = url.pathname.match(/^\/api\/backups\/([^/]+)$/);
   if (backupMatch && request.method === 'GET') {
-    const backupPath = resolveBackupPath(root, decodeURIComponent(backupMatch[1]));
+    const backupPath = resolveBackupPath(root, decodeURIComponent(backupMatch[1]), backupDir);
     if (!backupPath) {
       sendJson(response, 404, { error: 'Backup not found' });
       return true;

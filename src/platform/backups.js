@@ -1,8 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-function ensureBackupDir(root) {
-  const backupDir = path.join(root, '.backups');
+function ensureBackupDir(root, backupDir = path.join(root, '.backups')) {
   fs.mkdirSync(backupDir, { recursive: true });
   return backupDir;
 }
@@ -22,8 +21,8 @@ function pruneOldBackups(backupDir, limit = 6) {
   }
 }
 
-function createBackup({ db, dbPath, root }) {
-  const backupDir = ensureBackupDir(root);
+function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
   db.exec('PRAGMA wal_checkpoint(FULL)');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fileName = `portfolio-${stamp}.sqlite`;
@@ -38,8 +37,8 @@ function createBackup({ db, dbPath, root }) {
   };
 }
 
-function listBackups(root) {
-  const backupDir = ensureBackupDir(root);
+function listBackups(root, configuredBackupDir) {
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
   return fs
     .readdirSync(backupDir)
     .filter((file) => safeBackupName(file))
@@ -55,10 +54,10 @@ function listBackups(root) {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-function resolveBackupPath(root, file) {
+function resolveBackupPath(root, file, configuredBackupDir) {
   const safeName = safeBackupName(file);
   if (!safeName) return null;
-  const backupDir = ensureBackupDir(root);
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
   const fullPath = path.resolve(backupDir, safeName);
   return fullPath.startsWith(backupDir + path.sep) && fs.existsSync(fullPath) ? fullPath : null;
 }

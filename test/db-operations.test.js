@@ -27,6 +27,8 @@ test('database runtime path resolution follows app policy', () => {
   withTempRoot((tempRoot) => {
     const plain = resolveRuntimeConfig({}, tempRoot);
     assert.equal(plain.dbPath, path.join(tempRoot, 'data', 'portfolio.sqlite'));
+    assert.equal(plain.backupDir, path.join(tempRoot, '.backups'));
+    assert.equal(plain.port, 5173);
 
     fs.writeFileSync(path.join(tempRoot, 'portfolio.sqlite'), '');
     const legacy = resolveRuntimeConfig({}, tempRoot);
@@ -35,10 +37,14 @@ test('database runtime path resolution follows app policy', () => {
     const explicit = resolveRuntimeConfig(
       {
         PORTFOLIO_DB_PATH: path.join(tempRoot, 'custom', 'override.sqlite'),
+        VALORGRID_BACKUP_DIR: path.join(tempRoot, 'custom', 'backups'),
+        PORT: '0',
       },
       tempRoot,
     );
     assert.equal(explicit.dbPath, path.join(tempRoot, 'custom', 'override.sqlite'));
+    assert.equal(explicit.backupDir, path.join(tempRoot, 'custom', 'backups'));
+    assert.equal(explicit.port, 0);
   });
 });
 

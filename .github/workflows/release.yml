@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "${{ github.ref_name }}"
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tag must use vX.Y.Z format. Got $tag"
+          }
+          if ($tag -ne "v$version") {
+            throw "Release tag $tag does not match package.json version v$version"
+          }
+
+      - run: npm ci
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: node --check server.js
+      - run: node --check client/app.js
+      - run: node --check desktop/main.js
+      - run: npm test
+
+      - name: Verify publication safety
+        shell: pwsh
+        run: ./scripts/verify-publication.ps1
+
+      - run: npm run desktop:dist:win
+      - run: npm run release:checksums
+
+      - run: node scripts/generate-release-notes.js
+
+      - name: Attest installer
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/*.exe
+            dist/SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          files: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+            dist/SHA256SUMS.txt

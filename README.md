@@ -42,8 +42,22 @@ Yahoo Finance se usa solo como proveedor externo de precios. Los resultados se c
 
 Más detalle en [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md).
 
+## Instalar en Windows
+
+La ruta recomendada para usuarios no tecnicos es el instalador de GitHub Releases:
+
+1. Abrir la ultima release en GitHub.
+2. Descargar `ValorGrid-Setup-X.Y.Z-x64.exe`.
+3. Descargar `SHA256SUMS.txt` y comprobar el checksum si se quiere verificar el artefacto.
+4. Ejecutar el instalador y abrir ValorGrid desde el menu Inicio.
+
+La version de escritorio incluye el runtime necesario. No requiere instalar Node.js ni ejecutar comandos. La base SQLite y los backups se guardan en la carpeta privada de datos de la aplicacion del usuario, fuera del directorio instalado.
+
+La guia de publicacion y rollback esta en [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md).
 
 ## Requisitos
+
+Estos requisitos aplican solo al desarrollo local desde el repositorio:
 
 - Node.js 24 o superior, por el uso de `node:sqlite`.
 - PowerShell para los scripts `.ps1` incluidos.

@@ -41,6 +41,8 @@ La ruta de DB se decide así:
 2. `portfolio.sqlite` en la raíz, si existe por compatibilidad con instalaciones antiguas.
 3. `data/portfolio.sqlite` para instalaciones nuevas.
 
+En la app de escritorio Windows, ValorGrid define `PORTFOLIO_DB_PATH` automaticamente dentro de la carpeta privada de datos de usuario de la aplicacion. Los backups de escritorio usan la misma zona privada mediante `VALORGRID_BACKUP_DIR`.
+
 Recomendación:
 
 - Para uso personal, guarda la DB en una carpeta privada.

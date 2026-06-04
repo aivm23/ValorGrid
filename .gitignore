@@ -21,6 +21,7 @@ config.local.*
 *.err
 launch-*.out
 launch-*.err
+release-notes.md
 
 # Temporary/generated diagnostics
 debug-*.js

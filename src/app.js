@@ -285,7 +285,7 @@ function bindGroupedCtxNamespaces(ctx) {
   );
 }
 
-const { appInfo, root, dbPath, host, port } = createConfig();
+const { appInfo, root, dbPath, backupDir, host, port } = createConfig();
 const db = openDatabase(dbPath);
 const memoryCache = new Map();
 const memoryCacheTtlMs = 5 * 60 * 1000;
@@ -332,6 +332,7 @@ const config = {
   appInfo,
   root,
   dbPath,
+  backupDir,
   host,
   port,
   stockColors,

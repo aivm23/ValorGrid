@@ -31,6 +31,7 @@ Principios operativos de la migración:
 ## Raíz del proyecto
 
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
+- `desktop/main.js`: wrapper Electron para la distribucion Windows. Arranca el servidor local en `127.0.0.1` con puerto efimero y guarda DB/backups en la carpeta de datos de usuario de la app.
 
 ### Estructura física por dominio (implementada)
 
