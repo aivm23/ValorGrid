@@ -185,7 +185,7 @@ function applyTimelineValidation(ctx, importRepository, rows) {
 }
 
 
-function previewImportFactory(ctx, input = {}) {
+async function previewImportFactory(ctx, input = {}) {
   const importRepository = ctx.repositories?.imports;
   if (!importRepository) {
     throw new Error('import-preview requires ctx.repositories.imports');
@@ -195,7 +195,7 @@ function previewImportFactory(ctx, input = {}) {
   const mapping = buildInstrumentMapping(input);
   const rowDecisions = normalizeRowDecisions(input);
   const virtualSymbols = new Set((input.newInstruments || []).map((item) => String(item.symbol || '').trim().toUpperCase()).filter(Boolean));
-  const parsedPayload = parseImportPayload(input, adapter);
+  const parsedPayload = await parseImportPayload(input, adapter);
   const scopedPayloadHash = buildScopedPayloadHash(parsedPayload, input);
   const fileSubtype = parsedPayload.fileSubtype || 'unknown';
   const accepted = [];

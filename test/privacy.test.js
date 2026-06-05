@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const XLSX = require('../vendor/xlsx.full.min.js');
+const ExcelJS = require('exceljs');
 
 const root = path.resolve(__dirname, '..');
 const ignoredDirs = new Set([
@@ -147,7 +147,17 @@ test('public documentation does not expose professional connector internals', ()
   assert.deepEqual(offenders, []);
 });
 
-test('public XLSX sample files do not contain private broker tokens', () => {
+function plainCellValue(cell) {
+  const value = cell?.value;
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'object' && Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if (typeof value === 'object' && value.text) return String(value.text);
+  if (typeof value === 'object' && value.result !== undefined) return value.result;
+  return value;
+}
+
+test('public XLSX sample files do not contain private broker tokens', async () => {
   const forbidden = [
     ['DE', 'GIRO'].join(''),
     ['I', 'BKR'].join(''),
@@ -162,14 +172,18 @@ test('public XLSX sample files do not contain private broker tokens', () => {
   for (const file of publicFiles()) {
     if (path.extname(file) !== '.xlsx') continue;
     const buffer = fs.readFileSync(file);
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    workbook.SheetNames.forEach((sheetName) => {
-      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '' });
-      rows.forEach((row) => {
-        const text = row.map((cell) => String(cell)).join(' ');
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    workbook.worksheets.forEach((worksheet) => {
+      worksheet.eachRow({ includeEmpty: false }, (row) => {
+        const cells = [];
+        for (let columnIndex = 1; columnIndex <= Math.max(row.actualCellCount || 0, worksheet.actualColumnCount || 0); columnIndex += 1) {
+          cells.push(plainCellValue(row.getCell(columnIndex)));
+        }
+        const text = cells.map((cell) => String(cell)).join(' ');
         for (const item of forbidden) {
           if (text.toLowerCase().includes(item.toLowerCase())) {
-            offenders.push(`${path.relative(root, file)} sheet ${sheetName} contains ${item}`);
+            offenders.push(`${path.relative(root, file)} sheet ${worksheet.name} contains ${item}`);
           }
         }
       });

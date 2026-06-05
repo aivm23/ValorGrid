@@ -1,6 +1,12 @@
 const crypto = require('node:crypto');
-const XLSX = require('../../../vendor/xlsx.full.min.js');
+const ExcelJS = require('exceljs');
 const { typeAliases, adapterDefinitions, profileOverrides, LEGACY_GENERIC_SOURCES } = require('./ingestion-profiles');
+const { MOVIMIENTOS_HEADERS } = require('./template-generator');
+
+const MAX_XLSX_BYTES = 2 * 1024 * 1024;
+const MAX_ROWS_FREE = 500;
+const ALLOWED_SHEETS = new Set(['Movimientos', 'Instrucciones', 'Ejemplos']);
+const FORBIDDEN_HEADERS = new Set(['__proto__', 'prototype', 'constructor']);
 
 function sha256(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
@@ -15,26 +21,96 @@ function normalizeHeader(value) {
     .replace(/\s+/g, ' ');
 }
 
-function parseXlsxRows(contentBase64, sheetNameInput) {
+function getCellPlainValue(cell) {
+  const value = cell?.value;
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'object' && (value.formula || value.sharedFormula || value.result !== undefined)) {
+    throw new Error('La plantilla no puede contener formulas');
+  }
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'object' && Array.isArray(value.richText)) {
+    return value.richText.map((part) => part.text || '').join('').trim();
+  }
+  if (typeof value === 'object' && value.text) return String(value.text).trim();
+  return String(value).trim();
+}
+
+async function parseXlsxRows(contentBase64, sheetNameInput) {
   const buffer = Buffer.from(String(contentBase64 || ''), 'base64');
   if (!buffer.length) throw new Error('Contenido XLSX obligatorio');
-  const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: false, raw: false });
-  const sheets = workbook.SheetNames || [];
+  if (buffer.length > MAX_XLSX_BYTES) throw new Error('El archivo supera el tamano maximo permitido');
+
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer, {
+    ignoreNodes: [
+      'dataValidations',
+      'conditionalFormatting',
+      'extLst',
+      'hyperlinks',
+      'pageMargins',
+      'pageSetup',
+      'printOptions',
+      'drawing',
+      'picture',
+      'legacyDrawing',
+    ],
+  });
+
+  const sheets = workbook.worksheets.map((sheet) => sheet.name);
   if (!sheets.length) throw new Error('El archivo XLSX no contiene hojas');
-  const selectedSheet = sheetNameInput && sheets.includes(sheetNameInput) ? sheetNameInput : sheets[0];
-  const worksheet = workbook.Sheets[selectedSheet];
-  const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-  const nonEmptyRows = matrix.filter((item) => item.some((value) => String(value).trim() !== ''));
-  if (nonEmptyRows.length < 2) return { headers: [], rows: [], sheets, selectedSheet };
-  const headers = nonEmptyRows[0].map((header) => String(header || '').trim());
+  for (const sheet of sheets) {
+    if (!ALLOWED_SHEETS.has(sheet)) throw new Error(`Hoja no permitida: ${sheet}`);
+  }
+  if (!sheets.includes('Movimientos')) throw new Error('Falta la hoja Movimientos');
+  if (sheetNameInput && sheetNameInput !== 'Movimientos') {
+    throw new Error('Solo se permite importar la hoja Movimientos');
+  }
+
+  const selectedSheet = 'Movimientos';
+  const worksheet = workbook.getWorksheet(selectedSheet);
+  if (!worksheet) throw new Error('Falta la hoja Movimientos');
+
+  const matrix = [];
+  worksheet.eachRow({ includeEmpty: false }, (row) => {
+    const columnCount = Math.max(MOVIMIENTOS_HEADERS.length, row.actualCellCount || 0);
+    const values = [];
+    for (let columnIndex = 1; columnIndex <= columnCount; columnIndex += 1) {
+      values.push(getCellPlainValue(row.getCell(columnIndex)));
+    }
+    if (values.some((value) => String(value).trim() !== '')) matrix.push(values);
+  });
+
+  if (!matrix.length) return { headers: [], rows: [], sheets, selectedSheet };
+  const headers = matrix[0].map((header) => String(header || '').trim());
+  if (
+    headers.length !== MOVIMIENTOS_HEADERS.length ||
+    !MOVIMIENTOS_HEADERS.every((header, index) => headers[index] === header)
+  ) {
+    throw new Error('La plantilla no coincide con la plantilla oficial de ValorGrid');
+  }
+  for (const header of headers) {
+    if (FORBIDDEN_HEADERS.has(header)) throw new Error('Cabecera no permitida');
+  }
+
+  const dataRows = matrix.slice(1);
+  if (dataRows.length > MAX_ROWS_FREE) {
+    throw new Error('La version gratuita permite importar hasta 500 movimientos');
+  }
+
   return {
     headers,
-    rows: nonEmptyRows.slice(1).map((values, rowIndex) => ({
-      rowIndex: rowIndex + 2,
-      values,
-      headers,
-      data: Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])),
-    })),
+    rows: dataRows.map((values, rowIndex) => {
+      const data = Object.create(null);
+      headers.forEach((header, index) => {
+        data[header] = values[index] ?? '';
+      });
+      return {
+        rowIndex: rowIndex + 2,
+        values,
+        headers,
+        data,
+      };
+    }),
     sheets,
     selectedSheet,
   };
@@ -243,7 +319,7 @@ function serializeSummary(summary) {
   return { ...summary, symbols: Array.from(summary.symbols || []) };
 }
 
-function parseImportPayload(input, adapter) {
+async function parseImportPayload(input, adapter) {
   if (adapter.parser === 'pro-csv') {
     if (typeof adapter.parse !== 'function') throw new Error(`Adaptador profesional no disponible: ${adapter.source}`);
     const content = String(input.content || '').trim();
@@ -258,10 +334,10 @@ function parseImportPayload(input, adapter) {
       fileSubtype: parsed.fileSubtype || adapter.profile || adapter.source,
     };
   }
-  if (adapter.parser !== 'xlsx') throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
+  if (adapter.parser !== 'exceljs') throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
-  const parsed = parseXlsxRows(contentBase64, input.sheetName || adapter.defaultSheet || null);
+  const parsed = await parseXlsxRows(contentBase64, input.sheetName || adapter.defaultSheet || null);
   return {
     parsed: { headers: parsed.headers, rows: parsed.rows },
     fileHash: sha256(contentBase64),

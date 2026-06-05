@@ -43,7 +43,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
 
   if (url.pathname === '/api/import/template.xlsx' && request.method === 'GET') {
     try {
-      const buffer = getImportTemplate();
+      const buffer = await getImportTemplate();
       response.writeHead(200, {
         'Content-Type': TEMPLATE_MIME,
         'Content-Disposition': `attachment; filename="${TEMPLATE_FILENAME}"`,
@@ -61,7 +61,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     try {
       const body = await readJsonBody(request);
       if (rejectLegacySource(sendJson, response, body)) return true;
-      sendJson(response, 200, { preview: previewImport(body) });
+      sendJson(response, 200, { preview: await previewImport(body) });
     } catch (error) {
       sendError(response, sendJson, error);
     }

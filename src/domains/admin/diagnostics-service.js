@@ -1,6 +1,6 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
-const XLSX = require('../../../vendor/xlsx.full.min.js');
-const { MOVIMIENTOS_HEADERS } = require('../data-ingestion/template-generator');
+const ExcelJS = require('exceljs');
+const { MOVIMIENTOS_HEADERS, appendSheet } = require('../data-ingestion/template-generator');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -141,13 +141,11 @@ function rowToValorGridExport(row) {
   ];
 }
 
-function buildTransactionsXlsx() {
-  const workbook = XLSX.utils.book_new();
+async function buildTransactionsXlsx() {
+  const workbook = new ExcelJS.Workbook();
   const rows = [MOVIMIENTOS_HEADERS, ...getTransactions().map(rowToValorGridExport)];
-  const worksheet = XLSX.utils.aoa_to_sheet(rows);
-  worksheet['!cols'] = MOVIMIENTOS_HEADERS.map(() => ({ wch: 18 }));
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos');
-  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
+  appendSheet(workbook, 'Movimientos', rows, MOVIMIENTOS_HEADERS.map(() => 18));
+  return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
   Object.assign(ctx, { tableCount, buildPerformanceDiagnostics, getDatabaseStats, buildHealth, buildTransactionsXlsx });

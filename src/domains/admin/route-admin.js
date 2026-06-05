@@ -46,7 +46,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   }
 
   if (url.pathname === '/api/export/transactions.xlsx' && request.method === 'GET') {
-    const buffer = buildTransactionsXlsx();
+    const buffer = await buildTransactionsXlsx();
     response.writeHead(200, {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename="ValorGrid_Movimientos.xlsx"',

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const XLSX = require('../vendor/xlsx.full.min.js');
+const ExcelJS = require('exceljs');
 const { seedLoadtestDb } = require('../scripts/loadtest-data');
 const appInfo = require('../package.json');
 
@@ -106,14 +106,43 @@ function seedTestInstrument({ symbol, yahooSymbol, name = symbol, type = 'stock'
   ).run(symbol, yahooSymbol, name, type, currency, color);
 }
 
-function createWorkbookBase64(sheetsByName) {
-  const workbook = XLSX.utils.book_new();
+function plainCellValue(cell) {
+  const value = cell?.value;
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value === 'object' && Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if (typeof value === 'object' && value.text) return String(value.text);
+  if (typeof value === 'object' && value.result !== undefined) return value.result;
+  return value;
+}
+
+async function createWorkbookBase64(sheetsByName) {
+  const workbook = new ExcelJS.Workbook();
   for (const [sheetName, rows] of Object.entries(sheetsByName)) {
-    const worksheet = XLSX.utils.aoa_to_sheet(rows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    const worksheet = workbook.addWorksheet(sheetName);
+    for (const row of rows) worksheet.addRow(row);
   }
-  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer).toString('base64');
+}
+
+async function readWorkbook(buffer) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  return workbook;
+}
+
+function worksheetRows(worksheet, columnCount = worksheet.actualColumnCount || 0) {
+  const rows = [];
+  worksheet.eachRow({ includeEmpty: false }, (row) => {
+    const values = [];
+    const width = Math.max(columnCount, row.actualCellCount || 0);
+    for (let columnIndex = 1; columnIndex <= width; columnIndex += 1) {
+      values.push(plainCellValue(row.getCell(columnIndex)));
+    }
+    rows.push(values);
+  });
+  return rows;
 }
 
 function bumpTestMeta(key) {
@@ -192,6 +221,8 @@ module.exports = {
   cachePrice,
   seedTestInstrument,
   createWorkbookBase64,
+  readWorkbook,
+  worksheetRows,
   bumpTestMeta,
   startTestServer,
   stopTestServer,

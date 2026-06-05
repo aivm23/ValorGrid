@@ -1,4 +1,4 @@
-const XLSX = require('../../../vendor/xlsx.full.min.js');
+const ExcelJS = require('exceljs');
 
 const MOVIMIENTOS_HEADERS = [
   'Tipo',
@@ -50,27 +50,25 @@ const EJEMPLOS_ROWS = [
   ['compra', '10/04/2026', 'AAPL', '20', '200', 'USD', '0.92', '', '0.5', 'ord-004'],
 ];
 
-function generateTemplateXlsx() {
-  const workbook = XLSX.utils.book_new();
+function appendSheet(workbook, sheetName, rows, widths) {
+  const worksheet = workbook.addWorksheet(sheetName);
+  worksheet.columns = widths.map((width) => ({ width }));
+  for (const row of rows) {
+    worksheet.addRow(row);
+  }
+  return worksheet;
+}
 
-  const wsMovimientos = XLSX.utils.aoa_to_sheet([MOVIMIENTOS_HEADERS]);
-  wsMovimientos['!cols'] = MOVIMIENTOS_HEADERS.map(() => ({ wch: 18 }));
-  XLSX.utils.book_append_sheet(workbook, wsMovimientos, 'Movimientos');
-
-  const wsInstrucciones = XLSX.utils.aoa_to_sheet(INSTRUCCIONES_ROWS);
-  wsInstrucciones['!cols'] = [{ wch: 100 }];
-  XLSX.utils.book_append_sheet(workbook, wsInstrucciones, 'Instrucciones');
-
-  const wsEjemplos = XLSX.utils.aoa_to_sheet([EJEMPLOS_HEADERS, ...EJEMPLOS_ROWS]);
-  wsEjemplos['!cols'] = EJEMPLOS_HEADERS.map(() => ({ wch: 18 }));
-  XLSX.utils.book_append_sheet(workbook, wsEjemplos, 'Ejemplos');
-
-  return Buffer.from(
-    XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
-  );
+async function generateTemplateXlsx() {
+  const workbook = new ExcelJS.Workbook();
+  appendSheet(workbook, 'Movimientos', [MOVIMIENTOS_HEADERS], MOVIMIENTOS_HEADERS.map(() => 18));
+  appendSheet(workbook, 'Instrucciones', INSTRUCCIONES_ROWS, [100]);
+  appendSheet(workbook, 'Ejemplos', [EJEMPLOS_HEADERS, ...EJEMPLOS_ROWS], EJEMPLOS_HEADERS.map(() => 18));
+  return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
 module.exports = {
   generateTemplateXlsx,
   MOVIMIENTOS_HEADERS,
+  appendSheet,
 };

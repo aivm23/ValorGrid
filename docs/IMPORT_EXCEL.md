@@ -16,6 +16,17 @@ La plantilla tiene tres hojas:
 - `Instrucciones`: guía rápida.
 - `Ejemplos`: datos sintéticos.
 
+## Controles Del Parser
+
+La fuente pública sigue siendo `valorgrid-xlsx`, pero el parser interno usa ExcelJS. Solo se aceptan libros `.xlsx` modernos con estos controles:
+
+- tamaño máximo de 2 MB;
+- hojas permitidas: `Movimientos`, `Instrucciones`, `Ejemplos`;
+- importación exclusiva de la hoja `Movimientos`;
+- encabezados exactos de la plantilla oficial;
+- fórmulas rechazadas;
+- máximo 500 movimientos por importación en Community.
+
 ## Hoja Movimientos
 
 Encabezados obligatorios:

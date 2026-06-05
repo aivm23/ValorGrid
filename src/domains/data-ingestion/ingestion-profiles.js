@@ -9,7 +9,7 @@ const LEGACY_GENERIC_SOURCES = new Set(['csv', 'xlsx', 'generic-csv', 'generic-x
 
 const adapterDefinitions = {
   'valorgrid-xlsx': {
-    parser: 'xlsx',
+    parser: 'exceljs',
     profile: 'valorgrid',
     defaultSheet: 'Movimientos',
     label: 'Plantilla Excel de ValorGrid',

@@ -102,6 +102,8 @@ La app también exporta movimientos en el mismo formato Excel:
 GET /api/export/transactions.xlsx
 ```
 
+La fuente pública `valorgrid-xlsx` se procesa internamente con ExcelJS y controles estrictos: hoja `Movimientos`, encabezados exactos, sin fórmulas, tamaño máximo y límite de 500 movimientos en Community.
+
 Guía de importación: [docs/IMPORT_EXCEL.md](docs/IMPORT_EXCEL.md).
 
 Un ejemplo sintético con tickers reales del S&P 500 está disponible en `samples/valorgrid-template/`. Los datos de movimientos son ficticios y no representan una cartera real.

@@ -35,7 +35,7 @@ module.exports = function attach(ctx) {
 
   const { ensureImportEntities, persistRowIdentifiers } = createImportEntityHelpers(ctx);
 
-  function previewImport(input = {}) {
+  async function previewImport(input = {}) {
     return previewImportFactory(ctx, input);
   }
 
@@ -51,8 +51,8 @@ module.exports = function attach(ctx) {
     return importRepository.listImportBatchIds().map((id) => getImportBatch(id));
   }
 
-  function commitImport(input = {}) {
-    const preview = previewImport(input);
+  async function commitImport(input = {}) {
+    const preview = await previewImport(input);
     if (!preview.canCommit) {
       throw new Error('La importacion contiene errores y no se puede guardar');
     }

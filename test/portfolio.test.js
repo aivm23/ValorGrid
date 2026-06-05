@@ -1,7 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const XLSX = require('../vendor/xlsx.full.min.js');
 const { MOVIMIENTOS_HEADERS } = require('../src/domains/data-ingestion/template-generator');
 const {
   assert,
@@ -14,6 +13,8 @@ const {
   getQuoteForSymbol,
   cachePrice,
   seedTestInstrument,
+  readWorkbook,
+  worksheetRows,
   request,
   jsonRequest,
   registerLifecycle,
@@ -369,9 +370,9 @@ test('export endpoint returns ledger XLSX in ValorGrid template format', async (
   assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   assert.ok(response.headers.get('content-disposition').includes('ValorGrid_Movimientos.xlsx'));
 
-  const workbook = XLSX.read(Buffer.from(await response.arrayBuffer()), { type: 'buffer' });
-  assert.deepEqual(workbook.SheetNames, ['Movimientos']);
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Movimientos, { header: 1, defval: null });
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  assert.deepEqual(workbook.worksheets.map((sheet) => sheet.name), ['Movimientos']);
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
   assert.deepEqual(rows[0], MOVIMIENTOS_HEADERS);
 
   const buy = rows.find((row) => row[9] === 'broker-ref-001');

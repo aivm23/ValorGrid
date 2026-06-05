@@ -221,7 +221,7 @@ export interface RouteHandlers {
   getAutoPlans: () => AutoPlan[];
   previewAutoPlanExecutions: (plans: unknown, toDate?: string) => unknown;
   replaceAutoPlans: (plans: unknown) => unknown;
-  previewImport: (input: unknown) => unknown;
+  previewImport: (input: unknown) => Promise<unknown>;
   searchTickerSuggestions: (input: unknown) => Promise<unknown>;
   commitImport: (input: unknown) => Promise<unknown>;
   listImportBatches: () => ImportBatch[];
@@ -234,5 +234,5 @@ export interface RouteHandlers {
   buildMonthly: (year: number) => Promise<unknown>;
   buildPortfolioHistory: (range: string, granularity: string) => Promise<unknown>;
   buildPerformanceDiagnostics: () => Promise<unknown>;
-  buildTransactionsXlsx: () => Uint8Array;
+  buildTransactionsXlsx: () => Promise<Uint8Array>;
 }

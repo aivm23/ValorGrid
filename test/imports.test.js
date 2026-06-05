@@ -2,7 +2,6 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const XLSX = require('../vendor/xlsx.full.min.js');
 const {
   assert,
   db,
@@ -11,6 +10,8 @@ const {
   commitImport,
   seedTestInstrument,
   createWorkbookBase64,
+  readWorkbook,
+  worksheetRows,
   jsonRequest,
   request,
   registerLifecycle,
@@ -19,8 +20,8 @@ const { listImportSources, loadProAdapters, adapterDefinitions } = require('../s
 
 registerLifecycle(test);
 
-function valorGridWorkbook(rows, sheetName = 'Movimientos') {
-  return createWorkbookBase64({
+async function valorGridWorkbook(rows, sheetName = 'Movimientos') {
+  return await createWorkbookBase64({
     [sheetName]: [
       ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
       ...rows,
@@ -28,33 +29,33 @@ function valorGridWorkbook(rows, sheetName = 'Movimientos') {
   });
 }
 
-test('valorgrid-xlsx import preview is read-only and commit is atomic and idempotent', () => {
+test('valorgrid-xlsx import preview is read-only and commit is atomic and idempotent', async () => {
   seedTestInstrument({ symbol: 'IMPA', yahooSymbol: 'IMPA', name: 'Import A', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-01-10', 'IMPA', 2, 10, 'EUR', 1, 20, 1, 'imp-a-1']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-01-10', 'IMPA', 2, 10, 'EUR', 1, 20, 1, 'imp-a-1']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'valid');
   assert.equal(getPositionShares('IMPA', '2026-01-10'), 0);
 
-  const committed = commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
+  const committed = await commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(committed.summary.buys, 1);
   assert.equal(getPositionShares('IMPA', '2026-01-10'), 2);
 
-  const repeated = commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
+  const repeated = await commitImport({ source: 'valorgrid-xlsx', filename: 'import-test.xlsx', contentBase64 });
   assert.equal(repeated.summary.buys, 1);
   assert.equal(getPositionShares('IMPA', '2026-01-10'), 2);
 });
 
-test('valorgrid-xlsx import impact and commit use only selected rows', () => {
+test('valorgrid-xlsx import impact and commit use only selected rows', async () => {
   seedTestInstrument({ symbol: 'IMPS1', yahooSymbol: 'IMPS1', name: 'Import Selected One', type: 'stock', currency: 'EUR' });
   seedTestInstrument({ symbol: 'IMPS2', yahooSymbol: 'IMPS2', name: 'Import Selected Two', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([
+  const contentBase64 = await valorGridWorkbook([
     ['compra', '2026-01-11', 'IMPS1', 1, 10, 'EUR', 1, 10, 0, 'selected-1'],
     ['compra', '2026-01-11', 'IMPS2', 3, 20, 'EUR', 1, 60, 0, 'selected-2'],
   ]);
 
-  const preview = previewImport({
+  const preview = await previewImport({
     source: 'valorgrid-xlsx',
     contentBase64,
     rowActions: { 3: 'skip' },
@@ -62,7 +63,7 @@ test('valorgrid-xlsx import impact and commit use only selected rows', () => {
   assert.equal(preview.summary.buys, 1);
   assert.equal(preview.impactPreview.instruments.length, 1);
 
-  commitImport({
+  await commitImport({
     source: 'valorgrid-xlsx',
     contentBase64,
     rowActions: { 3: 'skip' },
@@ -80,9 +81,9 @@ test('valorgrid-xlsx import skips sells that would break future ledger positions
        VALUES ('future-import-position', 'add', 'IMPD', 'Import D', '2026-02-10', '2026-02-10', 1, 10, 10, 'EUR', 1, '#0d9488', 'manual', NULL)`,
     )
     .run();
-  const contentBase64 = valorGridWorkbook([['venta', '2026-01-10', 'IMPD', 1, 10, 'EUR', 1, 10, 0, 'historic-sell']]);
+  const contentBase64 = await valorGridWorkbook([['venta', '2026-01-10', 'IMPD', 1, 10, 'EUR', 1, 10, 0, 'historic-sell']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'skipped');
   assert.equal(preview.rows[0].blockReasonCode, 'existing_empty_position');
@@ -90,7 +91,7 @@ test('valorgrid-xlsx import skips sells that would break future ledger positions
 
 test('valorgrid-xlsx import API exposes preview, commit, list, detail and rollback', async () => {
   seedTestInstrument({ symbol: 'IMPC', yahooSymbol: 'IMPC', name: 'Import C', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-01-12', 'IMPC', 4, 5, 'EUR', 1, 20, 0, 'api-import-1']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-01-12', 'IMPC', 4, 5, 'EUR', 1, 20, 0, 'api-import-1']]);
   const payload = { source: 'valorgrid-xlsx', filename: 'api-import.xlsx', contentBase64 };
 
   const preview = await jsonRequest('/api/import/preview', {
@@ -127,9 +128,9 @@ test('valorgrid-xlsx import API exposes preview, commit, list, detail and rollba
   assert.equal(getPositionShares('IMPC', '2026-01-12'), 0);
 });
 
-test('valorgrid-xlsx import supports sheet selection and atomic commit', () => {
+test('valorgrid-xlsx import supports sheet selection and atomic commit', async () => {
   seedTestInstrument({ symbol: 'IMXE', yahooSymbol: 'IMXE', name: 'Import XLSX', type: 'stock', currency: 'EUR' });
-  const contentBase64 = createWorkbookBase64({
+  const contentBase64 = await createWorkbookBase64({
     Instrucciones: [['No importar'], ['foo']],
     Movimientos: [
       ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
@@ -137,55 +138,126 @@ test('valorgrid-xlsx import supports sheet selection and atomic commit', () => {
     ],
   });
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Movimientos' });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Movimientos' });
   assert.equal(preview.selectedSheet, 'Movimientos');
   assert.equal(preview.canCommit, true);
-  commitImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Movimientos' });
+  await commitImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Movimientos' });
   assert.equal(getPositionShares('IMXE', '2026-03-01'), 5);
 });
 
-test('valorgrid-xlsx import with non-EUR currency uses explicit FX to EUR', () => {
-  seedTestInstrument({ symbol: 'IMUSD', yahooSymbol: 'IMUSD', name: 'Import USD', type: 'stock', currency: 'USD' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-04-01', 'IMUSD', 2, 10, 'USD', 0.9, 18, 1, 'usd-import-1']]);
+test('valorgrid-xlsx parser only accepts the Movimientos sheet', async () => {
+  const contentBase64 = await createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-02', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'strict-sheet'],
+    ],
+    Datos: [['No permitido']],
+  });
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /Hoja no permitida: Datos/);
+  await assert.rejects(
+    () => previewImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Instrucciones' }),
+    /Hoja no permitida: Datos/,
+  );
+});
+
+test('valorgrid-xlsx parser rejects non-Movimientos sheet selection', async () => {
+  const contentBase64 = await createWorkbookBase64({
+    Instrucciones: [['No importar']],
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-02', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'wrong-sheet'],
+    ],
+  });
+
+  await assert.rejects(
+    () => previewImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Instrucciones' }),
+    /Solo se permite importar la hoja Movimientos/,
+  );
+});
+
+test('valorgrid-xlsx parser rejects formulas', async () => {
+  const contentBase64 = await createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-03', 'IMXE', { formula: '1+1', result: 2 }, 3, 'EUR', 1, 6, 0, 'formula-row'],
+    ],
+  });
+
+  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /formulas/);
+});
+
+test('valorgrid-xlsx parser requires exact ValorGrid headers', async () => {
+  const contentBase64 = await createWorkbookBase64({
+    Movimientos: [
+      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'constructor'],
+      ['compra', '2026-03-04', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'bad-header'],
+    ],
+  });
+
+  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /plantilla oficial de ValorGrid/);
+});
+
+test('valorgrid-xlsx parser limits community imports to 500 movements', async () => {
+  const rows = Array.from({ length: 501 }, (_, index) => [
+    'compra',
+    '2026-03-05',
+    'IMXE',
+    1,
+    3,
+    'EUR',
+    1,
+    3,
+    0,
+    `too-many-${index}`,
+  ]);
+  const contentBase64 = await valorGridWorkbook(rows);
+
+  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /500 movimientos/);
+});
+
+test('valorgrid-xlsx import with non-EUR currency uses explicit FX to EUR', async () => {
+  seedTestInstrument({ symbol: 'IMUSD', yahooSymbol: 'IMUSD', name: 'Import USD', type: 'stock', currency: 'USD' });
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-04-01', 'IMUSD', 2, 10, 'USD', 0.9, 18, 1, 'usd-import-1']]);
+
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].normalized.fxToEur, 0.9);
   assert.equal(preview.rows[0].normalized.cashFlowEur, -19);
-  commitImport({ source: 'valorgrid-xlsx', contentBase64 });
+  await commitImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(getPositionShares('IMUSD', '2026-04-01'), 2);
 });
 
-test('valorgrid-xlsx import rejects non-EUR trades without FX to EUR', () => {
+test('valorgrid-xlsx import rejects non-EUR trades without FX to EUR', async () => {
   seedTestInstrument({ symbol: 'IMFXR', yahooSymbol: 'IMFXR', name: 'Import FX Required', type: 'stock', currency: 'USD' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-04-02', 'IMFXR', 2, 10, 'USD', '', '', 0, 'usd-missing-fx']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-04-02', 'IMFXR', 2, 10, 'USD', '', '', 0, 'usd-missing-fx']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, false);
   assert.equal(preview.rows[0].status, 'error');
   assert.ok(preview.rows[0].errors.some((item) => /FX a EUR/.test(item)));
 });
 
-test('valorgrid-xlsx type inference from share sign works', () => {
+test('valorgrid-xlsx type inference from share sign works', async () => {
   seedTestInstrument({ symbol: 'IMINF', yahooSymbol: 'IMINF', name: 'Import Inference', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([
+  const contentBase64 = await valorGridWorkbook([
     ['', '2026-04-03', 'IMINF', 3, 10, 'EUR', 1, 30, 0, 'infer-buy'],
     ['', '2026-04-04', 'IMINF', -1, 10, 'EUR', 1, 10, 0, 'infer-sell'],
   ]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].normalized.type, 'add');
   assert.equal(preview.rows[1].normalized.type, 'remove');
 });
 
 test('legacy generic sources are rejected with clear message', async () => {
-  assert.throws(
+  await assert.rejects(
     () => previewImport({ source: 'generic-csv', content: 'type,symbol,date,shares,price\nadd,IMPA,2026-01-01,1,1' }),
     /plantilla Excel de ValorGrid/,
   );
-  const contentBase64 = valorGridWorkbook([['compra', '2026-01-01', 'IMPA', 1, 1, 'EUR', 1, 1, 0, 'legacy']]);
-  assert.throws(
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-01-01', 'IMPA', 1, 1, 'EUR', 1, 1, 0, 'legacy']]);
+  await assert.rejects(
     () => previewImport({ source: 'generic-xlsx', contentBase64 }),
     /plantilla Excel de ValorGrid/,
   );
@@ -199,7 +271,7 @@ test('legacy generic sources are rejected with clear message', async () => {
   assert.match(api.body.error, /plantilla Excel de ValorGrid/);
 });
 
-test('professional csv adapters load from index.cjs folders and use canonical rows', () => {
+test('professional csv adapters load from index.cjs folders and use canonical rows', async () => {
   const adapterDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-pro-adapter-'));
   const originalPath = process.env.VALORGRID_PRO_ADAPTERS_PATH;
   const headers = ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'];
@@ -278,7 +350,7 @@ module.exports = {
     loadProAdapters();
     seedTestInstrument({ symbol: 'PROFX', yahooSymbol: 'PROFX', name: 'Pro Fixture', type: 'stock', currency: 'EUR' });
 
-    const preview = previewImport({ source: 'fixture-pro-csv', filename: 'fixture.csv', content: 'fixture' });
+    const preview = await previewImport({ source: 'fixture-pro-csv', filename: 'fixture.csv', content: 'fixture' });
 
     assert.equal(adapterDefinitions['fixture-pro-csv'].profile, 'valorgrid');
     assert.equal(preview.summary.errorCount, 0);
@@ -301,23 +373,23 @@ module.exports = {
 test('GET /api/import/template.xlsx returns ValorGrid workbook template', async () => {
   const response = await request('/api/import/template.xlsx');
   const buffer = Buffer.from(await response.arrayBuffer());
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const workbook = await readWorkbook(buffer);
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   assert.ok(response.headers.get('content-disposition').includes('ValorGrid_Plantilla_Importacion.xlsx'));
-  assert.deepEqual(workbook.SheetNames, ['Movimientos', 'Instrucciones', 'Ejemplos']);
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Movimientos, { header: 1 });
+  assert.deepEqual(workbook.worksheets.map((sheet) => sheet.name), ['Movimientos', 'Instrucciones', 'Ejemplos']);
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
   assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
 });
 
-test('synthetic S&P500 sample XLSX has correct structure and Movimientos sheet', () => {
+test('synthetic S&P500 sample XLSX has correct structure and Movimientos sheet', async () => {
   const filePath = path.join(__dirname, '..', 'samples', 'valorgrid-template', 'valorgrid-template-sp500-synthetic.xlsx');
   const buffer = fs.readFileSync(filePath);
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const workbook = await readWorkbook(buffer);
 
-  assert.ok(workbook.SheetNames.includes('Movimientos'));
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Movimientos, { header: 1 });
+  assert.ok(workbook.worksheets.some((sheet) => sheet.name === 'Movimientos'));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
   assert.equal(rows.length, 10);
   assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
 
@@ -328,7 +400,7 @@ test('synthetic S&P500 sample XLSX has correct structure and Movimientos sheet',
   assert.ok(allRefs.every((ref) => ref.startsWith('sample-sp500-')), 'all references should use sample-sp500- prefix');
 });
 
-test('synthetic S&P500 sample preview resolves buys, sells, FX, and commissions', () => {
+test('synthetic S&P500 sample preview resolves buys, sells, FX, and commissions', async () => {
   const filePath = path.join(__dirname, '..', 'samples', 'valorgrid-template', 'valorgrid-template-sp500-synthetic.xlsx');
   const buffer = fs.readFileSync(filePath);
   const contentBase64 = buffer.toString('base64');
@@ -337,7 +409,7 @@ test('synthetic S&P500 sample preview resolves buys, sells, FX, and commissions'
     seedTestInstrument({ symbol: ticker, yahooSymbol: ticker, name: `S&P500 ${ticker}`, type: 'stock', currency: 'USD' });
   });
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
 
   assert.equal(preview.canCommit, true);
   assert.equal(preview.summary.buys, 6);
@@ -366,7 +438,7 @@ test('synthetic S&P500 sample preview resolves buys, sells, FX, and commissions'
   assert.ok(Number(preview.summary.commissionEur) > 0);
 });
 
-test('synthetic S&P500 sample commit produces correct final positions', () => {
+test('synthetic S&P500 sample commit produces correct final positions', async () => {
   const filePath = path.join(__dirname, '..', 'samples', 'valorgrid-template', 'valorgrid-template-sp500-synthetic.xlsx');
   const buffer = fs.readFileSync(filePath);
   const contentBase64 = buffer.toString('base64');
@@ -375,7 +447,7 @@ test('synthetic S&P500 sample commit produces correct final positions', () => {
     seedTestInstrument({ symbol: ticker, yahooSymbol: ticker, name: `S&P500 ${ticker}`, type: 'stock', currency: 'USD' });
   });
 
-  const commit = commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
+  const commit = await commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
   assert.equal(commit.summary.errorCount, 0);
   assert.equal(commit.summary.buys, 6);
   assert.equal(commit.summary.sells, 3);
@@ -388,7 +460,7 @@ test('synthetic S&P500 sample commit produces correct final positions', () => {
   assert.equal(getPositionShares('XOM', '2025-12-31'), 15);
 });
 
-test('synthetic S&P500 sample reimport is idempotent and supports rollback', () => {
+test('synthetic S&P500 sample reimport is idempotent and supports rollback', async () => {
   const filePath = path.join(__dirname, '..', 'samples', 'valorgrid-template', 'valorgrid-template-sp500-synthetic.xlsx');
   const buffer = fs.readFileSync(filePath);
   const contentBase64 = buffer.toString('base64');
@@ -397,10 +469,10 @@ test('synthetic S&P500 sample reimport is idempotent and supports rollback', () 
     seedTestInstrument({ symbol: ticker, yahooSymbol: ticker, name: `S&P500 ${ticker}`, type: 'stock', currency: 'USD' });
   });
 
-  const first = commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
+  const first = await commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
   const txnCount = db.prepare("SELECT COUNT(*) AS cnt FROM transactions WHERE origin = 'import'").get().cnt;
 
-  const repeated = commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
+  const repeated = await commitImport({ source: 'valorgrid-xlsx', filename: 'valorgrid-template-sp500-synthetic.xlsx', contentBase64 });
   assert.equal(repeated.batch.id, first.batch.id);
   assert.equal(db.prepare("SELECT COUNT(*) AS cnt FROM transactions WHERE origin = 'import'").get().cnt, txnCount);
 
@@ -424,8 +496,8 @@ test('template download includes Content-Length and Cache-Control headers', asyn
 
 test('template Movimientos sheet has only headers and no data rows', async () => {
   const response = await request('/api/import/template.xlsx');
-  const workbook = XLSX.read(Buffer.from(await response.arrayBuffer()), { type: 'buffer' });
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Movimientos, { header: 1, defval: '' });
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
 
   assert.equal(rows.length, 1, 'Movimientos must have exactly 1 row (headers only)');
   assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
@@ -433,10 +505,10 @@ test('template Movimientos sheet has only headers and no data rows', async () =>
 
 test('template Instrucciones sheet contains expected instructional content', async () => {
   const response = await request('/api/import/template.xlsx');
-  const workbook = XLSX.read(Buffer.from(await response.arrayBuffer()), { type: 'buffer' });
-  assert.ok(workbook.SheetNames.includes('Instrucciones'));
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  assert.ok(workbook.worksheets.some((sheet) => sheet.name === 'Instrucciones'));
 
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Instrucciones, { header: 1, defval: '' });
+  const rows = worksheetRows(workbook.getWorksheet('Instrucciones'), 1);
   const allText = rows.flat().map((cell) => String(cell)).join(' ');
   assert.ok(allText.includes('Plantilla de importación'), 'should contain title');
   assert.ok(allText.includes('Cómo usar esta plantilla'), 'should contain usage section');
@@ -447,10 +519,10 @@ test('template Instrucciones sheet contains expected instructional content', asy
 
 test('template Ejemplos sheet has valid example data rows', async () => {
   const response = await request('/api/import/template.xlsx');
-  const workbook = XLSX.read(Buffer.from(await response.arrayBuffer()), { type: 'buffer' });
-  assert.ok(workbook.SheetNames.includes('Ejemplos'));
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  assert.ok(workbook.worksheets.some((sheet) => sheet.name === 'Ejemplos'));
 
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets.Ejemplos, { header: 1, defval: '' });
+  const rows = worksheetRows(workbook.getWorksheet('Ejemplos'), 10);
   assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
   assert.equal(rows.length, 5, 'should have 1 header + 4 example rows');
 
@@ -465,11 +537,11 @@ test('template Ejemplos sheet has valid example data rows', async () => {
   assert.equal(String(aaplRow[7]).trim(), '', 'AAPL example should have empty Valor EUR to demo auto-compute');
 });
 
-test('valorgrid-xlsx auto-computes Valor EUR when empty with valid FX for non-EUR', () => {
+test('valorgrid-xlsx auto-computes Valor EUR when empty with valid FX for non-EUR', async () => {
   seedTestInstrument({ symbol: 'VAUTO', yahooSymbol: 'VAUTO', name: 'Auto Compute', type: 'stock', currency: 'USD' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-05-01', 'VAUTO', '2', '10', 'USD', '0.9', '', '0.5', 'auto-valor']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-05-01', 'VAUTO', '2', '10', 'USD', '0.9', '', '0.5', 'auto-valor']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'valid');
   assert.equal(preview.rows[0].normalized.currency, 'USD');
@@ -477,38 +549,38 @@ test('valorgrid-xlsx auto-computes Valor EUR when empty with valid FX for non-EU
   assert.equal(Number(preview.rows[0].normalized.valueEur.toFixed(2)), 18);
 });
 
-test('valorgrid-xlsx rejects zero shares', () => {
+test('valorgrid-xlsx rejects zero shares', async () => {
   seedTestInstrument({ symbol: 'VZERO', yahooSymbol: 'VZERO', name: 'Zero Shares', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-05-02', 'VZERO', '0', '10', 'EUR', '', '', '0', 'zero-shares']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-05-02', 'VZERO', '0', '10', 'EUR', '', '', '0', 'zero-shares']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.rows[0].status, 'error');
   assert.ok(preview.rows[0].errors.some((item) => /Acciones debe ser mayor/.test(item)));
 });
 
-test('valorgrid-xlsx rejects negative price (abs applied so negative price becomes valid)', () => {
+test('valorgrid-xlsx rejects negative price (abs applied so negative price becomes valid)', async () => {
   seedTestInstrument({ symbol: 'VNEGP', yahooSymbol: 'VNEGP', name: 'Negative Price', type: 'stock', currency: 'EUR' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-05-03', 'VNEGP', '5', '-10', 'EUR', '', '', '0', 'neg-price']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-05-03', 'VNEGP', '5', '-10', 'EUR', '', '', '0', 'neg-price']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.canCommit, true);
   assert.equal(preview.rows[0].status, 'valid');
   assert.equal(preview.rows[0].normalized.price, 10, 'negative price should be converted to positive via abs');
 });
 
-test('valorgrid-xlsx rejects zero or negative FX for non-EUR trades', () => {
+test('valorgrid-xlsx rejects zero or negative FX for non-EUR trades', async () => {
   seedTestInstrument({ symbol: 'VFX0', yahooSymbol: 'VFX0', name: 'Zero FX', type: 'stock', currency: 'USD' });
-  const contentBase64 = valorGridWorkbook([['compra', '2026-05-04', 'VFX0', '2', '10', 'USD', '0', '', '0', 'zero-fx']]);
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-05-04', 'VFX0', '2', '10', 'USD', '0', '', '0', 'zero-fx']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.rows[0].status, 'error');
   assert.ok(preview.rows[0].errors.some((item) => /FX a EUR/.test(item)));
 });
 
-test('valorgrid-xlsx requires mapping for instrument that does not exist', () => {
-  const contentBase64 = valorGridWorkbook([['compra', '2026-06-01', 'GHOST', '10', '5', 'EUR', '', '', '0', 'ghost-ticker']]);
+test('valorgrid-xlsx requires mapping for instrument that does not exist', async () => {
+  const contentBase64 = await valorGridWorkbook([['compra', '2026-06-01', 'GHOST', '10', '5', 'EUR', '', '', '0', 'ghost-ticker']]);
 
-  const preview = previewImport({ source: 'valorgrid-xlsx', contentBase64 });
+  const preview = await previewImport({ source: 'valorgrid-xlsx', contentBase64 });
   assert.equal(preview.rows[0].status, 'needs_mapping');
   assert.equal(preview.canCommit, false);
   assert.ok(preview.detectedInstruments.some((item) => item.symbol === 'GHOST'), 'GHOST should appear in detected instruments');
@@ -537,7 +609,7 @@ test('GET /api/import/sources returns community sources when edition is communit
   assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
 });
 
-test('listImportSources includes knownProAdapters with available=false in community edition', () => {
+test('listImportSources includes knownProAdapters with available=false in community edition', async () => {
   const sources = listImportSources('community');
   assert.ok(Array.isArray(sources));
   assert.ok(sources.length >= 3, 'should have at least 3 sources (1 community + 2 pro)');
@@ -560,7 +632,7 @@ test('listImportSources includes knownProAdapters with available=false in commun
   assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
 });
 
-test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', () => {
+test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', async () => {
   const sources = listImportSources('professional');
   assert.ok(Array.isArray(sources));
 
@@ -573,7 +645,7 @@ test('listImportSources marks all sources as available in professional edition, 
   }
 });
 
-test('listImportSources returns correct response shape for every source', () => {
+test('listImportSources returns correct response shape for every source', async () => {
   const sources = listImportSources('community');
 
   for (const source of sources) {
@@ -587,7 +659,7 @@ test('listImportSources returns correct response shape for every source', () => 
   }
 });
 
-test('loadProAdapters handles missing VALORGRID_PRO_ADAPTERS_PATH gracefully', () => {
+test('loadProAdapters handles missing VALORGRID_PRO_ADAPTERS_PATH gracefully', async () => {
   const originalPath = process.env.VALORGRID_PRO_ADAPTERS_PATH;
   delete process.env.VALORGRID_PRO_ADAPTERS_PATH;
 

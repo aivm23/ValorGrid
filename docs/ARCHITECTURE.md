@@ -172,7 +172,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Sub-módulos de import-service (cargados internamente):**
 
-- `ingestion-parser`: parseo de la plantilla XLSX oficial de ValorGrid a formato canónico.
+- `ingestion-parser`: parseo ExcelJS de la plantilla XLSX oficial de ValorGrid a formato canónico, con hojas permitidas, encabezados exactos, límite de tamaño, límite de filas y rechazo de fórmulas.
 - `ingestion-preview`: generación de preview y detección de instrumentos.
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
@@ -288,7 +288,7 @@ Fuentes:
 
 - Plantilla Excel de ValorGrid (XLSX).
 
-ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable.
+ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable. La fuente pública sigue llamándose `valorgrid-xlsx`, aunque el parser interno usa ExcelJS.
 
 Los conectores avanzados de ValorGrid Pro/Enterprise se tratan como superficie privada. Community solo documenta el contrato público de importación y no publica contratos operativos, código ni muestras privadas de esas integraciones.
 
