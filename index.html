@@ -280,8 +280,8 @@
             <p class="subtle">Auditoría del ledger: compras, ventas, automáticos e importados.</p>
           </div>
           <div class="ledger-header-actions">
-            <button id="add-position" class="button" type="button">Añadir</button>
-            <button id="remove-position" class="button" type="button">Eliminar</button>
+            <button id="add-position" class="button" type="button">Compra</button>
+            <button id="remove-position" class="button" type="button">Venta</button>
           </div>
         </div>
         <div class="ledger-filters">
@@ -369,8 +369,8 @@
       <form id="add-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2 id="operation-title">Añadir aportación</h2>
-            <p class="subtle">Indica ticker, fecha y una cantidad en euros o en acciones.</p>
+            <h2 id="operation-title">Nueva compra</h2>
+            <p class="subtle">Indica ticker, fecha y el total en euros, o bien las acciones con su precio unitario.</p>
           </div>
           <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -378,8 +378,8 @@
         <label class="field sr-only">
           <span>Operación</span>
           <select id="operation-type" name="operation">
-            <option value="add">Añadir</option>
-            <option value="remove">Eliminar</option>
+            <option value="add">Compra</option>
+            <option value="remove">Venta</option>
           </select>
         </label>
 
@@ -402,29 +402,34 @@
           <input id="add-date" name="date" type="date" required />
         </label>
 
-        <div class="field-grid">
-          <label class="field">
-            <span>Euros</span>
-            <input id="add-euros" name="euros" type="number" min="0" step="0.01" placeholder="100" />
-          </label>
+          <div class="field-grid">
+            <label class="field">
+              <span>Euros totales</span>
+              <input id="add-euros" name="euros" type="number" min="0" step="0.01" placeholder="100" />
+            </label>
 
-          <label class="field">
-            <span>Acciones</span>
-            <input id="add-shares" name="shares" type="number" min="0" step="0.000001" placeholder="2.5" />
-          </label>
+            <label class="field">
+              <span>Acciones</span>
+              <input id="add-shares" name="shares" type="number" min="0" step="0.000001" placeholder="2.5" />
+            </label>
 
-          <label class="field">
-            <span>Comisión EUR</span>
-            <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
-          </label>
-        </div>
+            <label class="field">
+              <span>Precio / acción</span>
+              <input id="add-price" name="price" type="number" min="0" step="0.0001" placeholder="40" />
+            </label>
+
+            <label class="field">
+              <span>Comisión EUR</span>
+              <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
+            </label>
+          </div>
 
         <p id="add-feedback" class="form-feedback" role="status"></p>
         <div id="transaction-preview" class="transaction-preview" hidden></div>
 
         <div class="modal-actions">
           <button id="add-cancel" class="button" type="button">Cancelar</button>
-          <button id="add-submit" class="button button-primary" type="submit">Añadir</button>
+          <button id="add-submit" class="button button-primary" type="submit">Guardar compra</button>
         </div>
       </form>
     </dialog>

@@ -170,6 +170,7 @@ export function attach(ctx) {
     addDate: document.querySelector('#add-date'),
     addEuros: document.querySelector('#add-euros'),
     addShares: document.querySelector('#add-shares'),
+    addPrice: document.querySelector('#add-price'),
     addCommission: document.querySelector('#add-commission'),
     addFeedback: document.querySelector('#add-feedback'),
     transactionPreview: document.querySelector('#transaction-preview'),

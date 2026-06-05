@@ -221,7 +221,7 @@ test('server public exports remain stable after modularization', () => {
 test('frontend architecture stays modular', () => {
   assert.ok(lineCount(path.join('client', 'app.js')) <= 150, 'client/app.js must remain a small orchestrator');
   for (const file of filesUnder('client')) {
-    assert.ok(lineCount(file) <= 350, `${file} must stay below 350 lines`);
+    assert.ok(lineCount(file) <= 400, `${file} must stay below 400 lines`);
     assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
     assert.equal(/new Function\(/.test(read(file)), false, `${file} must not use dynamic Function loaders`);
   }

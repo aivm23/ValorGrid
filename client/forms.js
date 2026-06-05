@@ -8,34 +8,49 @@ export function attach(ctx) {
     const symbol = type === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
+    const price = Number(ctx.elements.addPrice.value);
     const commission = Number(ctx.elements.addCommission.value);
     const payload = { type, symbol, date: ctx.elements.addDate.value };
     if (includeId) payload.id = ctx.clientRequestId('tx');
-    if (Number.isFinite(euros) && euros > 0) payload.euros = euros;
+    if (Number.isFinite(euros) && euros > 0) {
+      payload.euros = euros;
+    } else if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) {
+      payload.euros = shares * price;
+    }
     if (Number.isFinite(shares) && shares > 0) payload.shares = shares;
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
     return payload;
   }
 
-  function renderTransactionPreview(preview) {
-    ctx.elements.transactionPreview.hidden = false;
-    ctx.elements.transactionPreview.innerHTML = `
-      <span>Preview</span>
-      <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
-      <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
-      <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comisión: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
-      <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
-    `;
-  }
-
   function transactionTypeLabel(type) {
     return type === 'remove' ? 'Venta' : 'Compra';
   }
+
+  function renderTransactionPreview(preview) {
+    ctx.elements.transactionPreview.hidden = false;
+    const unitPrice = preview.shares > 0 ? ` - Precio/acción: ${Number(preview.valueEur / preview.shares).toFixed(2)} ${preview.currency}` : '';
+    ctx.elements.transactionPreview.innerHTML = `
+      <span>Preview</span>
+      <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
+      <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}${unitPrice}</small>
+      <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
+      <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
+    `;
+  }
+  function hasValidAmount() {
+    const euros = Number(ctx.elements.addEuros.value);
+    const shares = Number(ctx.elements.addShares.value);
+    const price = Number(ctx.elements.addPrice.value);
+    if (Number.isFinite(euros) && euros > 0) return true;
+    if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) return true;
+    return false;
+  }
+
   async function refreshTransactionPreview() {
     const payload = buildTransactionPayload(false);
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
-    if (!payload.symbol || !payload.date || Boolean(payload.euros) === Boolean(payload.shares)) return false;
+    if (!payload.symbol || !payload.date || !hasValidAmount()) return false;
     try {
       const data = await ctx.sendJson('/api/transactions/preview', 'POST', payload, { timeoutMs: 20000 });
       renderTransactionPreview(data.preview);
@@ -79,8 +94,8 @@ export function attach(ctx) {
 
   function syncOperationCopy() {
     const isRemove = ctx.elements.operationType.value === 'remove';
-    ctx.elements.operationTitle.textContent = isRemove ? 'Eliminar posición' : 'Añadir aportación';
-    ctx.elements.addSubmit.textContent = isRemove ? 'Eliminar' : 'Añadir';
+    ctx.elements.operationTitle.textContent = isRemove ? 'Registrar venta' : 'Registrar compra';
+    ctx.elements.addSubmit.textContent = isRemove ? 'Guardar venta' : 'Guardar compra';
     ctx.elements.addTicker.required = !isRemove;
     ctx.elements.removeTicker.required = isRemove;
     ctx.elements.addTicker.disabled = isRemove;
@@ -99,17 +114,19 @@ export function attach(ctx) {
       ctx.state.transactionPreviewOk = false;
       setAddFeedback(
         isRemove
-          ? 'No hay ninguna posicion creada. Registra una compra antes de eliminar una posicion.'
-          : 'No hay valores creados. Crea un valor antes de añadir movimientos.',
+          ? 'No hay ninguna posicion abierta. Registra una compra antes de añadir una venta.'
+          : 'No hay valores creados. Crea un valor antes de registrar compras.',
       );
     }
   }
 
   function syncAmountInputs(event) {
     const source = event.target;
-    const target = source === ctx.elements.addEuros ? ctx.elements.addShares : ctx.elements.addEuros;
-    if ((source === ctx.elements.addEuros || source === ctx.elements.addShares) && source.value && Number(source.value) > 0) {
-      target.value = '';
+    if (source === ctx.elements.addEuros && source.value && Number(source.value) > 0) {
+      ctx.elements.addShares.value = '';
+      ctx.elements.addPrice.value = '';
+    } else if ((source === ctx.elements.addShares || source === ctx.elements.addPrice) && source.value && Number(source.value) > 0) {
+      ctx.elements.addEuros.value = '';
     }
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
@@ -136,8 +153,8 @@ export function attach(ctx) {
   async function handleTransactionSubmit(event) {
     event.preventDefault();
     const payload = buildTransactionPayload(true);
-    if (Boolean(payload.euros) === Boolean(payload.shares)) {
-      setAddFeedback('Indica euros o acciones, solo uno de los dos campos.', true);
+    if (!hasValidAmount()) {
+      setAddFeedback('Indica el total en euros, o bien las acciones con su precio unitario.', true);
       return;
     }
     ctx.elements.addSubmit.disabled = true;
