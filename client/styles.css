@@ -507,7 +507,7 @@ h2 {
 .source-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
   align-items: center;
   justify-content: space-between;
   margin: -8px 0 24px;
@@ -515,12 +515,45 @@ h2 {
   font-size: 0.86rem;
 }
 
-#refresh-prices svg {
-  flex: 0 0 auto;
+.refresh-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--button-border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 25%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--button-border));
+  color: var(--accent);
+}
+
+:root.dark .refresh-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 35%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--button-border));
+}
+
+.refresh-button:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+.refresh-button:disabled {
+  cursor: progress;
+  opacity: 0.5;
+}
+
+.refresh-button svg {
   transition: transform 400ms ease;
 }
 
-#refresh-prices:disabled svg {
+.refresh-button:disabled svg {
   animation: refreshSpin 900ms linear infinite;
 }
 
@@ -3555,10 +3588,10 @@ td:last-child {
   .source-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 8px;
   }
 
-  #refresh-prices {
+  .refresh-button {
     align-self: flex-end;
   }
 
