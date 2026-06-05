@@ -515,10 +515,18 @@ h2 {
   font-size: 0.86rem;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+#refresh-prices svg {
+  flex: 0 0 auto;
+  transition: transform 400ms ease;
+}
+
+#refresh-prices:disabled svg {
+  animation: refreshSpin 900ms linear infinite;
+}
+
+@keyframes refreshSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .sr-only {
@@ -1231,6 +1239,12 @@ h3 {
 .ytd-zero-notice span {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.ledger-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .ledger-filters {
@@ -3539,17 +3553,23 @@ td:last-child {
   }
 
   .source-row {
+    flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
-  .actions,
+  #refresh-prices {
+    align-self: flex-end;
+  }
+
+  .ledger-header-actions,
   .history-controls {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
     width: 100%;
   }
 
-  .actions .button,
+  .ledger-header-actions .button,
   .history-controls .button {
     min-width: 0;
     padding: 8px 10px;
