@@ -6,6 +6,7 @@ ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la
 
 - `ValorGrid-Setup-X.Y.Z-x64.exe`: instalador Windows.
 - `SHA256SUMS.txt`: checksums SHA-256 de los artefactos de release.
+- Digests SHA-256 visibles en los assets de GitHub Releases.
 - `ghcr.io/aivm23/valorgrid:vX.Y.Z`: imagen Docker versionada publicada por el workflow Docker.
 - `ghcr.io/aivm23/valorgrid:latest`: etiqueta Docker de uso personal.
 
@@ -60,6 +61,7 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
 
 5. Verificar que la release contiene el instalador, `SHA256SUMS.txt` y notas de release.
 6. Verificar que GHCR contiene la imagen `vX.Y.Z`.
+7. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md` y `docs/LEGAL_NOTICE.md`.
 
 ## Upgrade
 
@@ -98,3 +100,17 @@ Get-FileHash .\ValorGrid-Setup-X.Y.Z-x64.exe -Algorithm SHA256
 ```
 
 El hash debe coincidir con la linea correspondiente en `SHA256SUMS.txt`.
+
+## SmartScreen
+
+Windows SmartScreen puede mostrar aviso en apps nuevas o sin firma de codigo con reputacion acumulada. No publiques instaladores por canales paralelos; la fuente oficial debe ser GitHub Releases o una futura landing que redirija a GitHub Releases.
+
+## Documentacion De Usuario
+
+Cada release estable debe mantener actualizados:
+
+- `README.md`: entrada publica principal.
+- `docs/FIRST_STEPS.md`: primeros pasos para usuario no tecnico.
+- `docs/IMPORT_EXCEL.md`: plantilla Excel y errores comunes.
+- `docs/FAQ.md`: preguntas frecuentes.
+- `docs/LEGAL_NOTICE.md`: aviso legal ampliado.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.5
+
+- Rework the public README as a hybrid product and technical entry point focused on Windows download, privacy and screenshots.
+- Add non-technical user documentation for first steps, Excel import, FAQ, legal notice and roadmap.
+- Update release notes generation with clearer Windows, checksum, privacy and legal messaging.
+
 ## 3.5.4
 
 - Fix packaged desktop startup by keeping backups outside `app.asar` when the DB path is explicit.
