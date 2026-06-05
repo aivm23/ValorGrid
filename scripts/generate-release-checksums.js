@@ -1,11 +1,13 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const { version } = require('../package.json');
 
 const releaseDir = path.resolve(process.argv[2] || 'dist');
 const outputPath = path.join(releaseDir, 'SHA256SUMS.txt');
 const allowedNames = new Set(['latest.yml']);
 const allowedExtensions = new Set(['.exe', '.blockmap']);
+const versionArtifactPattern = new RegExp(`-${version.replace(/\./g, '\\.')}-`);
 
 function sha256(filePath) {
   const hash = crypto.createHash('sha256');
@@ -22,6 +24,7 @@ const files = fs
   .filter((entry) => entry.isFile())
   .map((entry) => path.join(releaseDir, entry.name))
   .filter((filePath) => allowedNames.has(path.basename(filePath)) || allowedExtensions.has(path.extname(filePath).toLowerCase()))
+  .filter((filePath) => allowedNames.has(path.basename(filePath)) || versionArtifactPattern.test(path.basename(filePath)))
   .filter((filePath) => path.basename(filePath) !== 'SHA256SUMS.txt')
   .sort((a, b) => a.localeCompare(b));
 

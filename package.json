@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -15,7 +15,7 @@
     "start": "node server.js",
     "desktop:dev": "electron .",
     "desktop:pack": "electron-builder --dir",
-    "desktop:dist:win": "electron-builder --win nsis",
+    "desktop:dist:win": "electron-builder --win nsis --publish never",
     "release:checksums": "node scripts/generate-release-checksums.js dist",
     "test": "node --test",
     "lint": "eslint .",

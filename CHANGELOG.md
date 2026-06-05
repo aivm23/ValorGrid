@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.1
+
+- Fix Windows release builds by disabling electron-builder implicit publishing on git tags.
+
 ## 3.5.0
 
 - Add the first Windows desktop distribution path with Electron and an NSIS installer.
