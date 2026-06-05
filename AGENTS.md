@@ -6,7 +6,9 @@
 - `npm run lint` — run ESLint flat config checks
 - `npm run format:check` — run Prettier checks for docs/workflows/package manifests
 - `npm run typecheck` — run TypeScript type checking (`tsc --noEmit`)
-- `npm run check` — run lint + format check + tests
+- `npm run check` — run lint + format check + changelog check + tests
+- `npm run changelog:check` — verify CHANGELOG.md contains current version section
+- `npm run changelog:update` — auto-generate or update CHANGELOG.md entry for current version
 - `node --test --test-name-pattern "test name" test/portfolio.test.js` — run a single test
 - `npm start` — start server (`node server.js`)
 - `npm run db:backup` — create a local SQLite backup using active DB path resolution
@@ -25,6 +27,8 @@
   - **minor** (x.Y.0): new features, meaningful improvements, new functionality that's backward compatible
   - **major** (X.0.0): breaking changes, incompatible API changes, major refactors that change how the app works
 - When the version changes, include it in the same commit as the feature/fix.
+- When the version changes, update `CHANGELOG.md` with the new version section before committing, or run `npm run changelog:update` to auto-generate it from recent git history.
+- `npm run changelog:check` is part of the pre-push pipeline; commits with version bumps will fail CI if the changelog is not updated.
 - During this migration, each completed phase with real repository changes bumps at least a patch version.
 
 ## Architecture
@@ -52,9 +56,10 @@
 - Migration checkpoints run in this order:
   1. focused tests for touched domain(s),
   2. `npm run lint` + `npm run format:check`,
-  3. full `npm test`,
-  4. `npm run verify:publication`,
-  5. docs sync verification when docs/API/schema/module lists change.
+  3. `npm run changelog:check`,
+  4. full `npm test`,
+  5. `npm run verify:publication`,
+  6. docs sync verification when docs/API/schema/module lists change.
 
 ## UI & UX
 

@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.7.2",
+  "version": "3.7.3",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -27,7 +27,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"AGENTS.md\" \"README.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
     "format:check": "prettier --check \"AGENTS.md\" \"README.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
-    "check": "npm run lint && npm run format:check && npm test",
+    "check": "npm run lint && npm run format:check && npm run changelog:check && npm test",
     "typecheck": "tsc --noEmit",
     "db:backup": "powershell -ExecutionPolicy Bypass -File scripts/backup-db.ps1",
     "db:reset": "powershell -ExecutionPolicy Bypass -File scripts/reset-db.ps1",
@@ -61,7 +61,6 @@
     ],
     "win": {
       "icon": "assets/brand/valorgrid-logo.ico",
-      "signAndEditExecutable": false,
       "target": [
         {
           "target": "nsis",
@@ -72,6 +71,9 @@
       ]
     },
     "nsis": {
+      "installerIcon": "assets/brand/valorgrid-logo.ico",
+      "uninstallerIcon": "assets/brand/valorgrid-logo.ico",
+      "installerHeaderIcon": "assets/brand/valorgrid-logo.ico",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,

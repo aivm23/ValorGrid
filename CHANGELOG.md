@@ -1,12 +1,32 @@
 # Changelog
 
+## 3.7.3
+
+- fix: replace vulnerable xlsx parser with exceljs.
+- Fix Windows desktop shortcut and installer branding by embedding the ValorGrid icon in the packaged executable and NSIS assets.
+
 ## 3.7.2
 
 - chore: automate changelog update and check commands.
+
+## 3.7.1
+
 - feat: auto-calculate euros from shares x price, disable shares/price when euros filled, reorder fields.
+
+## 3.7.0
+
 - feat: add unit price field to operation form, rename add/remove labels to buy/sell in UI.
+
+## 3.5.8
+
 - style: attach refresh icon inline to price status text.
+
+## 3.5.7
+
 - style: compact icon-only refresh button next to price status.
+
+## 3.5.6
+
 - style: move add/remove buttons to ledger panel, redesign refresh button with accent icon and spin animation.
 
 ## 3.5.5
@@ -23,6 +43,10 @@
 ## 3.5.3
 
 - Add a local PowerShell script to clean `dist`, rebuild the Windows installer and regenerate release checksums.
+
+## 3.5.2
+
+- fix: correct GitHub Issues URL in boot error overlay to aivm23/ValorGrid.
 
 ## 3.5.1
 
