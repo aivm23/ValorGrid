@@ -122,12 +122,31 @@ export function attach(ctx) {
 
   function syncAmountInputs(event) {
     const source = event.target;
-    if (source === ctx.elements.addEuros && source.value && Number(source.value) > 0) {
-      ctx.elements.addShares.value = '';
-      ctx.elements.addPrice.value = '';
-    } else if ((source === ctx.elements.addShares || source === ctx.elements.addPrice) && source.value && Number(source.value) > 0) {
-      ctx.elements.addEuros.value = '';
+    const euros = ctx.elements.addEuros;
+    const shares = ctx.elements.addShares;
+    const price = ctx.elements.addPrice;
+    const hint = ctx.elements.addAmountHint;
+
+    if (source === euros) {
+      const hasEuros = euros.value && Number(euros.value) > 0;
+      shares.disabled = hasEuros;
+      price.disabled = hasEuros;
+      hint.hidden = !hasEuros;
+      if (hasEuros) {
+        shares.value = '';
+        price.value = '';
+        hint.textContent = 'Las acciones y el precio se autocalcularan con el precio de mercado al guardar.';
+      }
+    } else {
+      if (source.value && Number(source.value) > 0) {
+        euros.value = '';
+      }
     }
+
+    if (shares.value && Number(shares.value) > 0 && price.value && Number(price.value) > 0 && !shares.disabled) {
+      euros.value = (Number(shares.value) * Number(price.value)).toFixed(2);
+    }
+
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
     setAddFeedback('');
@@ -139,6 +158,9 @@ export function attach(ctx) {
     ctx.elements.addDate.value = ctx.todayInputValue();
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
+    ctx.elements.addShares.disabled = false;
+    ctx.elements.addPrice.disabled = false;
+    ctx.elements.addAmountHint.hidden = true;
     setAddFeedback('');
     syncOperationCopy();
     ctx.elements.addDialog.showModal();

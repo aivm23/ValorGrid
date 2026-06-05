@@ -173,6 +173,7 @@ export function attach(ctx) {
     addPrice: document.querySelector('#add-price'),
     addCommission: document.querySelector('#add-commission'),
     addFeedback: document.querySelector('#add-feedback'),
+    addAmountHint: document.querySelector('#add-amount-hint'),
     transactionPreview: document.querySelector('#transaction-preview'),
     addSubmit: document.querySelector('#add-submit'),
     refreshPrices: document.querySelector('#refresh-prices'),
