@@ -12,14 +12,17 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '../..')
     ? 'professional'
     : 'community';
   const port = env.PORT === undefined || env.PORT === '' ? 5173 : Number(env.PORT);
+  const dbPath = env.PORTFOLIO_DB_PATH || defaultDbPath;
+  const explicitDbBackupDir = path.join(path.dirname(dbPath), '..', 'backups');
+  const backupDir = env.VALORGRID_BACKUP_DIR || (env.PORTFOLIO_DB_PATH ? explicitDbBackupDir : defaultBackupDir);
 
   return {
     appInfo: { version, edition },
     root,
     port,
     host: env.HOST || '127.0.0.1',
-    dbPath: env.PORTFOLIO_DB_PATH || defaultDbPath,
-    backupDir: env.VALORGRID_BACKUP_DIR || defaultBackupDir,
+    dbPath,
+    backupDir,
   };
 }
 

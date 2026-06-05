@@ -396,6 +396,7 @@ const ctx = {
   appInfo,
   root,
   dbPath,
+  backupDir,
   host,
   port,
   db,

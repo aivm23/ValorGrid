@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.4
+
+- Fix packaged desktop startup by keeping backups outside `app.asar` when the DB path is explicit.
+- Add the ValorGrid logo to Windows desktop builds and remove the native Electron menu bar.
+
 ## 3.5.3
 
 - Add a local PowerShell script to clean `dist`, rebuild the Windows installer and regenerate release checksums.

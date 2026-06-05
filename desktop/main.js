@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 
 let mainWindow = null;
 let server = null;
@@ -48,6 +48,7 @@ function createWindow(url) {
     height: 900,
     minWidth: 1120,
     minHeight: 720,
+    icon: path.join(__dirname, '..', 'assets', 'brand', 'valorgrid-logo.png'),
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -79,6 +80,7 @@ if (!gotLock) {
   });
 
   app.whenReady().then(async () => {
+    Menu.setApplicationMenu(null);
     const url = await startLocalServer();
     createWindow(url);
   });

@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.5.3",
+  "version": "3.5.4",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -48,12 +48,14 @@
       "desktop/**/*",
       "src/**/*",
       "client/**/*",
+      "assets/brand/valorgrid-logo.png",
       "vendor/**/*",
       "index.html",
       "package.json",
       "node_modules/**/*"
     ],
     "win": {
+      "icon": "assets/brand/valorgrid-logo.ico",
       "signAndEditExecutable": false,
       "target": [
         {

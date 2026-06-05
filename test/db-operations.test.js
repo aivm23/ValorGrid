@@ -45,6 +45,14 @@ test('database runtime path resolution follows app policy', () => {
     assert.equal(explicit.dbPath, path.join(tempRoot, 'custom', 'override.sqlite'));
     assert.equal(explicit.backupDir, path.join(tempRoot, 'custom', 'backups'));
     assert.equal(explicit.port, 0);
+
+    const desktopLike = resolveRuntimeConfig(
+      {
+        PORTFOLIO_DB_PATH: path.join(tempRoot, 'desktop-data', 'portfolio.sqlite'),
+      },
+      tempRoot,
+    );
+    assert.equal(desktopLike.backupDir, path.join(tempRoot, 'backups'));
   });
 });
 
