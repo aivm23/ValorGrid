@@ -55,6 +55,16 @@ La version de escritorio incluye el runtime necesario. No requiere instalar Node
 
 La guia de publicacion y rollback esta en [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md).
 
+## Reconstruir el instalador Windows en local
+
+Desde la raiz del repositorio:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-desktop-win.ps1
+```
+
+El script limpia `dist/`, ejecuta el build Electron/NSIS y regenera `dist/SHA256SUMS.txt`.
+
 ## Requisitos
 
 Estos requisitos aplican solo al desarrollo local desde el repositorio:

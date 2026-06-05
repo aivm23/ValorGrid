@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.3
+
+- Add a local PowerShell script to clean `dist`, rebuild the Windows installer and regenerate release checksums.
+
 ## 3.5.1
 
 - Fix Windows release builds by disabling electron-builder implicit publishing on git tags.
