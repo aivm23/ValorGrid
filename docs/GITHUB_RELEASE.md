@@ -20,11 +20,17 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
    npm run db:backup
    ```
 
-2. Actualizar `CHANGELOG.md` con la nueva version.
+2. Actualizar `CHANGELOG.md` con la nueva version:
+
+   ```powershell
+   npm run changelog:update
+   ```
+
 3. Confirmar que `package.json` contiene la version final.
 4. Ejecutar:
 
    ```powershell
+   npm run changelog:check
    npm run typecheck
    npm run lint
    npm run format:check

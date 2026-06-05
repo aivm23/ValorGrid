@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.7.2
+
+- chore: automate changelog update and check commands.
+- feat: auto-calculate euros from shares x price, disable shares/price when euros filled, reorder fields.
+- feat: add unit price field to operation form, rename add/remove labels to buy/sell in UI.
+- style: attach refresh icon inline to price status text.
+- style: compact icon-only refresh button next to price status.
+- style: move add/remove buttons to ledger panel, redesign refresh button with accent icon and spin animation.
+
 ## 3.5.5
 
 - Rework the public README as a hybrid product and technical entry point focused on Windows download, privacy and screenshots.
