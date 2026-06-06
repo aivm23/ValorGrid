@@ -19,3 +19,19 @@ jobs:
       - run: node --check server.js
       - run: node --check client/app.js
       - run: npm test
+  test:linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: node --check server.js
+      - run: node --check client/app.js
+      - run: npm test
+      - run: npm run verify:publication
+      - run: npm run seed:demo

@@ -27,7 +27,7 @@ El repositorio incluye `.gitignore` y `.dockerignore` para evitar publicar datos
 
 Comprueba antes de publicar:
 
-```powershell
+```bash
 npm run verify:publication
 ```
 
@@ -55,13 +55,13 @@ Los backups se guardan localmente y no deben versionarse.
 
 Crear backup:
 
-```powershell
+```bash
 npm run db:backup
 ```
 
 Diagnóstico rápido:
 
-```powershell
+```bash
 npm run db:doctor
 ```
 

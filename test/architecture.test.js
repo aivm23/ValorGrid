@@ -292,3 +292,19 @@ test('administration and instrument filtering stay toolbar driven', () => {
   assert.ok(operations.includes('currentSharesForInstrument'), 'instrument filter must use current net shares');
   assert.ok(events.includes('toggleNegativePreference'), 'negative preference must be wired to UI events');
 });
+
+test('cross-platform npm run scripts avoid PowerShell except for Windows-only desktop flows', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const scripts = pkg.scripts || {};
+  const offenders = [];
+  for (const [name, command] of Object.entries(scripts)) {
+    if (!/powershell|pwsh/i.test(command)) continue;
+    if (name.startsWith('desktop:')) continue;
+    offenders.push(`${name}: ${command}`);
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `npm run scripts must not invoke PowerShell outside desktop:* flows: ${offenders.join(' | ')}`,
+  );
+});

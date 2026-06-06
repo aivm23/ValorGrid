@@ -153,9 +153,12 @@ Más detalle en [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md) y [docs/LEG
 Estos requisitos aplican solo al desarrollo desde el repositorio:
 
 - Node.js 24 o superior, por el uso de `node:sqlite`.
-- PowerShell para los scripts `.ps1` incluidos.
+- macOS o Linux: solo necesitas `node` y `npm`. Los scripts `db:*` y `verify:publication` usan entrypoints Node multiplataforma.
+- Windows: opcionalmente puedes seguir usando los wrappers `.ps1` (requieren PowerShell), aunque ya no son necesarios para `npm run db:*` ni para `npm run verify:publication`.
 
-```powershell
+### Linux y macOS
+
+```bash
 npm install
 npm start
 ```
@@ -168,7 +171,7 @@ http://localhost:5173
 
 Checks completos:
 
-```powershell
+```bash
 npm run typecheck
 npm run lint
 npm run format:check
@@ -176,7 +179,11 @@ npm test
 npm run verify:publication
 ```
 
-Reconstruir el instalador Windows en local:
+### Windows
+
+Los mismos comandos funcionan igual. Los wrappers `.ps1` (`scripts\db-*.ps1`, `scripts\verify-publication.ps1`) siguen disponibles como atajos nativos si los prefieres invocar directamente con PowerShell.
+
+Reconstruir el instalador Windows en local (solo Windows):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build-desktop-win.ps1
@@ -186,19 +193,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-desktop-win.ps1
 
 Crear backup local:
 
-```powershell
+```bash
 npm run db:backup
 ```
 
 Diagnóstico rápido de DB:
 
-```powershell
+```bash
 npm run db:doctor
 ```
 
 Reset fresh destructivo, con confirmación:
 
-```powershell
+```bash
 npm run db:reset
 ```
 

@@ -17,7 +17,7 @@ Portfolio data is stored in a local SQLite database. Keep these files private:
 
 Before publishing or pushing changes, run:
 
-```powershell
+```bash
 npm run verify:publication
 ```
 

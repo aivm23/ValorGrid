@@ -57,7 +57,7 @@ Reglas para no mezclar Community y Pro:
 
 Antes de publicar Community:
 
-```powershell
+```bash
 npm run verify:publication
 ```
 

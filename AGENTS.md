@@ -48,7 +48,7 @@
 
 - Test runner: `node:test` (built-in). Tests live in `test/` and run against the real app runtime.
 - **`docs/TESTING.md`** maps each test file to its domain and coverage.
-- CI runs on `windows-latest` with Node 24.
+- CI runs on `windows-latest` and `ubuntu-latest` with Node 24 (matrix). The Linux job covers cross-platform runtime, lint, typecheck, format, tests, `verify:publication` (Node) and `seed:demo`; the Windows job additionally validates `desktop:` flows.
 - Tests spin up a real server with an in-memory SQLite DB — they are integration tests, not unit tests.
 - All changes to `src/` services and routes require accompanying tests.
 - Demo/loadtest data uses one canonical synthetic dataset in `scripts/loadtest-data.js` (`seed:demo`).

@@ -82,7 +82,7 @@ La configuracion Electron/NSIS vive en `package.json` y usa estos assets version
 
 Antes de actualizar, crear un backup desde la app o con:
 
-```powershell
+```bash
 npm run db:backup
 ```
 

@@ -22,7 +22,7 @@ La app y los scripts comparten la misma política:
 
 ## Comandos operativos
 
-```powershell
+```bash
 npm run db:backup
 npm run db:doctor
 npm run db:reset
@@ -30,7 +30,7 @@ npm run db:reset
 
 Compatibilidad:
 
-```powershell
+```bash
 npm run backup
 ```
 

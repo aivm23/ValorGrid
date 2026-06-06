@@ -81,7 +81,7 @@ Rollback:
 
 Canal operativo recomendado: scripts locales.
 
-```powershell
+```bash
 npm run db:backup
 npm run db:doctor
 ```

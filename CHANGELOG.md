@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.7.4
+
+- refactor: replace PowerShell wrappers for `db:backup`, `db:doctor`, `db:reset` and `verify:publication` with cross-platform Node entrypoints. The Windows `.ps1` files remain as native shortcuts; the `desktop:dist:win:clean` and Windows installer flow stay PowerShell-only.
+- feat: add `scripts/verify-publication.js` covering portable checks (syntax, tests, gitignore, dockerignore, forbidden text, ALTER TABLE scan, canonical `seed:demo`).
+- chore: remove the broken Codex `/save` command while keeping the OpenCode `save` workflow.
+- docs: split import-debug guidance so Community only documents `valorgrid-xlsx`; professional broker import debugging moves to the private PRO skill.
+- test: scan tracked OpenCode/agent files in publication and privacy checks even when their directories are ignored locally.
+- test: add `test/verify-publication.test.js` and an architecture invariant that blocks PowerShell in `npm run` scripts outside `desktop:*`.
+- ci: add `test:linux` job on `ubuntu-latest` to the CI matrix alongside the existing `windows-latest` job.
+- docs: add a Linux/macOS development subsection to the README and neutralize `powershell` fences for cross-platform commands; Windows-specific flows (installer, SmartScreen, `Get-FileHash`, `desktop:dist:win:clean`) remain in `powershell`.
+
 ## 3.7.3
 
 - fix: replace vulnerable xlsx parser with exceljs.

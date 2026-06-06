@@ -70,7 +70,7 @@ Puedes revisar:
 
 Antes de importar muchos datos o actualizar la app, crea un backup desde la interfaz o con:
 
-```powershell
+```bash
 npm run db:backup
 ```
 
