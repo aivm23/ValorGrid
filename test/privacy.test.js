@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const test = require('node:test');
 const ExcelJS = require('exceljs');
 
@@ -18,8 +19,16 @@ const ignoredDirs = new Set([
   'local',
   'node_modules',
   '.opencode',
+  '.agents',
+  '.codex',
 ]);
 const ignoredFiles = [/^PLAN.*\.md$/i, /^Plan_.*\.md$/i];
+const trackedPublicPaths = ['.opencode/', '.agents/', '.codex/', 'skills-lock.json'];
+const localPublicWorkflowDirs = [
+  path.join('.opencode', 'agent'),
+  path.join('.opencode', 'commands'),
+  path.join('.opencode', 'skills'),
+];
 const textExtensions = new Set([
   '',
   '.css',
@@ -39,10 +48,10 @@ const publicBrokerTeaserTokens = new Set([
   ['ibkr', 'csv'].join('-'),
 ]);
 
-function publicFiles(dir = root, files = []) {
+function collectPublicFiles(dir = root, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!ignoredDirs.has(entry.name)) publicFiles(path.join(dir, entry.name), files);
+      if (!ignoredDirs.has(entry.name)) collectPublicFiles(path.join(dir, entry.name), files);
       continue;
     }
     if (!entry.isFile()) continue;
@@ -50,6 +59,36 @@ function publicFiles(dir = root, files = []) {
     files.push(path.join(dir, entry.name));
   }
   return files;
+}
+
+function trackedIgnoredPublicFiles() {
+  let output = '';
+  try {
+    output = execFileSync('git', ['-C', root, 'ls-files', '--', ...trackedPublicPaths], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    return [];
+  }
+
+  return output
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((relative) => path.join(root, relative))
+    .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
+    .filter((file) => !ignoredFiles.some((pattern) => pattern.test(path.basename(file))));
+}
+
+function localPublicWorkflowFiles() {
+  return localPublicWorkflowDirs.flatMap((relativeDir) => {
+    const fullDir = path.join(root, relativeDir);
+    return fs.existsSync(fullDir) ? collectPublicFiles(fullDir) : [];
+  });
+}
+
+function publicFiles() {
+  return Array.from(new Set([...collectPublicFiles(), ...localPublicWorkflowFiles(), ...trackedIgnoredPublicFiles()]));
 }
 
 function allowsPublicBrokerTeaser(file) {
@@ -204,9 +243,25 @@ test('fresh install configuration does not bundle personal holdings or plans', (
 
 test('gitignore protects local portfolio data and user import files', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  for (const pattern of ['*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups/', 'backups/', 'data/', 'local/', '.env', '.opencode/']) {
+  for (const pattern of [
+    '*.sqlite',
+    '*.sqlite-wal',
+    '*.sqlite-shm',
+    '.backups/',
+    'backups/',
+    'data/',
+    'local/',
+    '.env',
+    '.opencode/*',
+    '.opencode/plans/',
+    '.agents/',
+    'skills-lock.json',
+    '.codex/',
+  ]) {
     assert.ok(gitignore.includes(pattern), `${pattern} is ignored`);
   }
+  assert.ok(gitignore.includes('!.opencode/commands/'), 'public OpenCode commands are visible to Git');
+  assert.ok(gitignore.includes('!.opencode/skills/'), 'public OpenCode skills are visible to Git');
 });
 
 test('dockerignore protects private data from container build context', () => {

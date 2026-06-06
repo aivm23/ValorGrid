@@ -31,10 +31,18 @@ temp/
 .cache/
 dist/
 
-# Internal planning drafts
+# Internal planning drafts and public OpenCode workflows
 PLAN*.md
 Plan_*.md
-.opencode/
+.opencode/*
+!.opencode/agent/
+!.opencode/agent/*.md
+!.opencode/commands/
+!.opencode/commands/*.md
+!.opencode/skills/
+!.opencode/skills/*/
+!.opencode/skills/*/SKILL.md
+.opencode/plans/
 
 # Dependencies and editor metadata
 node_modules/
