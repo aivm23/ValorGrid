@@ -19,7 +19,7 @@ jobs:
       - run: node --check server.js
       - run: node --check client/app.js
       - run: npm test
-  test:linux:
+  test-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
