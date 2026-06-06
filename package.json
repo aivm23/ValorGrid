@@ -54,13 +54,21 @@
       "src/**/*",
       "client/**/*",
       "assets/brand/valorgrid-logo.png",
+      "assets/brand/valorgrid-logo.ico",
       "vendor/**/*",
       "index.html",
       "package.json",
       "node_modules/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "assets/brand/valorgrid-logo.ico",
+        "to": "assets/brand/valorgrid-logo.ico"
+      }
+    ],
     "win": {
       "icon": "assets/brand/valorgrid-logo.ico",
+      "signAndEditExecutable": false,
       "target": [
         {
           "target": "nsis",
@@ -74,6 +82,7 @@
       "installerIcon": "assets/brand/valorgrid-logo.ico",
       "uninstallerIcon": "assets/brand/valorgrid-logo.ico",
       "installerHeaderIcon": "assets/brand/valorgrid-logo.ico",
+      "include": "desktop/installer/installer.nsh",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,

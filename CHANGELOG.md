@@ -3,7 +3,7 @@
 ## 3.7.3
 
 - fix: replace vulnerable xlsx parser with exceljs.
-- Fix Windows desktop shortcut and installer branding by embedding the ValorGrid icon in the packaged executable and NSIS assets.
+- Fix Windows desktop shortcut and installer branding by using the ValorGrid icon in NSIS assets and shortcut creation.
 
 ## 3.7.2
 

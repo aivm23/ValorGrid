@@ -10,6 +10,15 @@ if (-not (Get-Command $npm -ErrorAction SilentlyContinue)) {
 
 Set-Location $root
 
+function Invoke-NpmScript {
+  param([Parameter(Mandatory = $true)][string]$ScriptName)
+
+  & $npm run $ScriptName
+  if ($LASTEXITCODE -ne 0) {
+    throw "npm script failed: $ScriptName"
+  }
+}
+
 $resolvedRoot = [System.IO.Path]::GetFullPath($root.Path)
 $resolvedDist = [System.IO.Path]::GetFullPath($dist)
 if (-not $resolvedDist.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar)) {
@@ -22,10 +31,10 @@ if (Test-Path $dist) {
 }
 
 Write-Output 'Building ValorGrid Windows installer'
-& $npm run desktop:dist:win
+Invoke-NpmScript 'desktop:dist:win'
 
 Write-Output 'Generating release checksums'
-& $npm run release:checksums
+Invoke-NpmScript 'release:checksums'
 
 Write-Output ''
 Write-Output 'Windows installer build complete:'

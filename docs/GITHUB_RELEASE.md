@@ -45,6 +45,15 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
    git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm portfolio.loadtest.sqlite .backups dist
    ```
 
+## Instalador Windows
+
+La configuracion Electron/NSIS vive en `package.json` y usa estos assets versionados:
+
+- `assets/brand/valorgrid-logo.ico`: icono del instalador, desinstalador, cabecera y accesos directos.
+- `desktop/installer/installer.nsh`: macro NSIS incluida por `package.json` para recrear los accesos directos de escritorio y menu Inicio con el icono de ValorGrid.
+
+`desktop/installer/installer.nsh` debe estar en git. GitHub Actions construye el `.exe` desde un checkout limpio; si el archivo falta, la release no puede aplicar la personalizacion NSIS y el instalador no queda reproducible desde el repositorio.
+
 ## Publicacion
 
 1. Crear un commit con el cambio de version, changelog, docs y codigo.
