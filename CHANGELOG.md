@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.7.9
+
+- fix: date inputs render in `es-ES` locale (`lang="es"`) so the calendar shows DD/MM/YYYY and starts on Monday.
+
+## 3.7.8
+
+- fix: make DB maintenance scripts use the same configured backup directory as the app.
+- refactor: remove the old import repository namespace and route backup APIs through grouped admin services.
+
 ## 3.7.7
 
 - fix: transaction form distinguishes user-entered euros from auto-calculated euros so the `euros OR shares` XOR constraint works correctly when both fields are populated.

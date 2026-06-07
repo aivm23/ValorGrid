@@ -257,7 +257,7 @@ export function attach(ctx) {
           <option value="6" ${Number(plan.weekday) === 6 ? 'selected' : ''}>Sábado</option>
           <option value="7" ${Number(plan.weekday) === 7 ? 'selected' : ''}>Domingo</option>
         </select></label>
-        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
+        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" lang="es" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
         <button class="button button-compact" type="button" data-remove-auto-plan="${index}">Quitar</button>
       </div>`;
   }
