@@ -235,4 +235,7 @@ export interface RouteHandlers {
   buildPortfolioHistory: (range: string, granularity: string) => Promise<unknown>;
   buildPerformanceDiagnostics: () => Promise<unknown>;
   buildTransactionsXlsx: () => Promise<Uint8Array>;
+  listBackups: () => unknown[];
+  createBackup: () => unknown;
+  resolveBackupPath: (file: string) => string | null;
 }

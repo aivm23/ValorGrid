@@ -4,7 +4,7 @@ const fsSync = require('node:fs');
 const path = require('node:path');
 const { createConfig } = require('./platform/config');
 const { openDatabase } = require('./platform/db');
-const { createBackup, listBackups, resolveBackupPath } = require('./platform/backups');
+const backups = require('./platform/backups');
 
 function pickCtxFunctions(ctx, names) {
   return names.reduce((picked, name) => {
@@ -245,11 +245,6 @@ function bindGroupedCtxNamespaces(ctx) {
   );
 
   Object.assign(
-    ctx.repositories.dataIngestion,
-    pickCtxFunctions(ctx, ['listImportBatches', 'getImportBatch', 'getImportRows', 'listImportRollbackLog']),
-  );
-
-  Object.assign(
     ctx.repositories.history,
     pickCtxFunctions(ctx, [
       'getHistoryBuild',
@@ -371,6 +366,7 @@ const repositories = {
 };
 
 const services = {
+  admin: {},
   shared: {},
   meta: {},
   instruments: {},
@@ -385,14 +381,19 @@ const services = {
   http: {},
 };
 
+const adminServices = {
+  listBackups: () => backups.listBackups(root, backupDir),
+  createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
+  resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
+};
+
+Object.assign(services.admin, adminServices);
+
 const ctx = {
   http,
   fs,
   fsSync,
   path,
-  createBackup,
-  listBackups,
-  resolveBackupPath,
   appInfo,
   root,
   dbPath,

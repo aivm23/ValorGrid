@@ -203,8 +203,8 @@ module.exports = function attach(ctx) {
       .map((row) => ({ date: row.date, type: row.type, shares: Number(row.shares || 0) }));
   }
 
-  repositories.imports = {
-    ...(repositories.imports || {}),
+  repositories.dataIngestion = {
+    ...(repositories.dataIngestion || {}),
     findImportBatchBySourceAndFileHash,
     findImportBatchById,
     deleteImportRowsByBatchId,

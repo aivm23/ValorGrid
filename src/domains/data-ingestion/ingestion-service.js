@@ -28,9 +28,9 @@ module.exports = function attach(ctx) {
 
   const { repositories, getInstrument, getToday, invalidateLedger } = ctx;
 
-  const importRepository = repositories.imports;
+  const importRepository = repositories.dataIngestion;
   if (!importRepository) {
-    throw new Error('import-service requires ctx.repositories.imports');
+    throw new Error('import-service requires ctx.repositories.dataIngestion');
   }
 
   const { ensureImportEntities, persistRowIdentifiers } = createImportEntityHelpers(ctx);

@@ -20,12 +20,13 @@ function resolveRouteHandlers(ctx) {
   const instrumentServices = ctx.services?.instruments || {};
   const onboardingServices = ctx.services?.onboarding || {};
   const transactionServices = ctx.services?.transactions || {};
-  const importServices = ctx.services?.dataIngestion || ctx.services?.imports || {};
+  const importServices = ctx.services?.dataIngestion || {};
   const suggestionServices = ctx.services?.suggestions || {};
   const portfolioServices = ctx.services?.portfolio || {};
   const historyServices = ctx.services?.history || {};
   const diagnosticsServices = ctx.services?.diagnostics || {};
   const marketDataServices = ctx.services?.marketData || {};
+  const adminServices = ctx.services?.admin || {};
 
   return {
     sendJson: pickServiceFn(sharedServices, 'sendJson', ctx.sendJson),
@@ -108,6 +109,9 @@ function resolveRouteHandlers(ctx) {
       ctx.buildPerformanceDiagnostics,
     ),
     buildTransactionsXlsx: pickServiceFn(diagnosticsServices, 'buildTransactionsXlsx', ctx.buildTransactionsXlsx),
+    listBackups: pickServiceFn(adminServices, 'listBackups', ctx.listBackups),
+    createBackup: pickServiceFn(adminServices, 'createBackup', ctx.createBackup),
+    resolveBackupPath: pickServiceFn(adminServices, 'resolveBackupPath', ctx.resolveBackupPath),
   };
 }
 

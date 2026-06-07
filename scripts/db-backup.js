@@ -2,12 +2,13 @@ const { repoRoot, resolveRuntimeConfig, createBackupForPath } = require('./db-ma
 
 function run() {
   const root = repoRoot();
-  const { dbPath } = resolveRuntimeConfig(process.env, root);
-  const backup = createBackupForPath({ dbPath, root });
+  const { dbPath, backupDir } = resolveRuntimeConfig(process.env, root);
+  const backup = createBackupForPath({ dbPath, root, backupDir });
   process.stdout.write(
     `${JSON.stringify(
       {
         dbPath,
+        backupDir,
         backup,
       },
       null,

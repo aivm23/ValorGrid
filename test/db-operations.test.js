@@ -94,6 +94,28 @@ test('resetDatabase creates backup, removes sidecars, and recreates fresh schema
   });
 });
 
+test('db scripts write backups to configured backupDir', () => {
+  withTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'desktop-data', 'portfolio.sqlite');
+    const env = { PORTFOLIO_DB_PATH: dbPath };
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    const db = openDatabase(dbPath);
+    db.exec('CREATE TABLE pre_reset_data (id INTEGER PRIMARY KEY)');
+    db.close();
+
+    const config = resolveRuntimeConfig(env, tempRoot);
+    const result = resetDatabase({ env, root: tempRoot });
+    assert.ok(result.backup);
+    assert.equal(path.dirname(result.backup.path), config.backupDir);
+    assert.equal(fs.existsSync(path.join(tempRoot, '.backups')), false);
+
+    const report = collectDoctorReport({ env, root: tempRoot });
+    assert.equal(report.backupDir, config.backupDir);
+    assert.equal(report.backupsCount, 1);
+    assert.ok(report.checks.some((check) => check.id === 'backups' && check.status === 'ok'));
+  });
+});
+
 test('db doctor reports fail for missing db and passes for valid fresh db', () => {
   withTempRoot((tempRoot) => {
     const missingPath = path.join(tempRoot, 'missing.sqlite');

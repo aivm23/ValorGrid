@@ -38,14 +38,16 @@ npm run backup
 
 Retencion:
 
-- Los backups creados por la app, la API o los scripts se guardan en `.backups/`.
+- Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `src/platform/config.js`.
+- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
+- Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automaticamente los 6 backups mas recientes y elimina los mas antiguos al crear uno nuevo.
 
 ## Flujo recomendado antes de tocar DB real
 
 1. Ejecutar `npm run db:doctor`.
 2. Ejecutar `npm run db:backup`.
-3. Confirmar que el backup aparece en `.backups/`.
+3. Confirmar que el backup aparece en el `backupDir` reportado por el comando.
 4. Solo entonces ejecutar cambios de mantenimiento o `db:reset`.
 
 ## Reset fresh (destructivo)
@@ -64,7 +66,7 @@ No existe endpoint HTTP para reset por diseño.
 Proceso manual guiado:
 
 1. Detener la app/servicio.
-2. Elegir backup en `.backups/`.
+2. Elegir backup en el directorio de backups activo.
 3. Reemplazar el archivo SQLite activo por ese backup.
 4. Iniciar la app.
 5. Ejecutar `npm run db:doctor` y `GET /api/health`.

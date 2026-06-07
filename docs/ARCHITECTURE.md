@@ -149,7 +149,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 12. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
 13. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
 14. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
-15. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching.
+15. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
 16. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
 17. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
 18. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
@@ -305,6 +305,7 @@ La app puede crear copias locales de SQLite con:
 - script PowerShell.
 
 Antes de copiar, se hace checkpoint WAL para reducir riesgo de backup inconsistente.
+La API y los scripts operativos comparten la misma `backupDir` resuelta por `src/platform/config.js`; las rutas admin consumen esta capacidad desde `ctx.services.admin`.
 
 ## Docker y CasaOS
 

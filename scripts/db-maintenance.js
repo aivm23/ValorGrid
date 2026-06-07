@@ -74,11 +74,11 @@ function withDatabase(dbPath, work) {
   }
 }
 
-function createBackupForPath({ dbPath, root }) {
+function createBackupForPath({ dbPath, root, backupDir }) {
   if (!fs.existsSync(dbPath)) {
     throw new Error(`Database file not found: ${dbPath}`);
   }
-  return withDatabase(dbPath, (db) => createBackup({ db, dbPath, root }));
+  return withDatabase(dbPath, (db) => createBackup({ db, dbPath, root, backupDir }));
 }
 
 function removeDatabaseArtifacts(dbPath) {
@@ -153,9 +153,9 @@ function inspectDatabase(dbPath) {
 
 function resetDatabase({ env = process.env, root = repoRoot() } = {}) {
   const config = resolveRuntimeConfig(env, root);
-  const { dbPath } = config;
+  const { dbPath, backupDir } = config;
   assertResetPathSafety(dbPath, { root, env });
-  const backup = fs.existsSync(dbPath) ? createBackupForPath({ dbPath, root }) : null;
+  const backup = fs.existsSync(dbPath) ? createBackupForPath({ dbPath, root, backupDir }) : null;
   const removedArtifacts = removeDatabaseArtifacts(dbPath);
   initializeFreshSchema(dbPath);
   const verification = inspectDatabase(dbPath);
@@ -176,7 +176,7 @@ function resetDatabase({ env = process.env, root = repoRoot() } = {}) {
 
 function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
   const config = resolveRuntimeConfig(env, root);
-  const { dbPath } = config;
+  const { dbPath, backupDir } = config;
   const checks = [];
   const addCheck = (status, id, message, details = null) => {
     checks.push({ status, id, message, details });
@@ -242,9 +242,9 @@ function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
     }
   }
 
-  const backups = listBackups(root);
+  const backups = listBackups(root, backupDir);
   if (!backups.length) {
-    addCheck('warn', 'no-backups', `No backups found in ${path.join(root, '.backups')}.`);
+    addCheck('warn', 'no-backups', `No backups found in ${backupDir}.`);
   } else {
     addCheck('ok', 'backups', `Backups available: ${backups.length}.`);
   }
@@ -291,6 +291,7 @@ function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
   return {
     root,
     dbPath,
+    backupDir,
     backupsCount: backups.length,
     checks,
     summary,

@@ -186,9 +186,9 @@ function applyTimelineValidation(ctx, importRepository, rows) {
 
 
 async function previewImportFactory(ctx, input = {}) {
-  const importRepository = ctx.repositories?.imports;
+  const importRepository = ctx.repositories?.dataIngestion;
   if (!importRepository) {
-    throw new Error('import-preview requires ctx.repositories.imports');
+    throw new Error('import-preview requires ctx.repositories.dataIngestion');
   }
 
   const adapter = resolveAdapter(input.source || 'csv');

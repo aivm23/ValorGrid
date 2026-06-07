@@ -191,6 +191,24 @@ test('app composition root initializes grouped ctx namespaces', () => {
     historyCoreIndex > historyRepositoryIndex,
     'src/app.js must load history-repository before history-core',
   );
+
+  assert.equal(
+    appSource.includes('ctx.repositories.dataIngestion,'),
+    false,
+    'data-ingestion repositories must be registered directly, not hydrated from flat service aliases',
+  );
+  assert.equal(
+    read(path.join('src', 'domains', 'data-ingestion', 'ingestion-repository.js')).includes(
+      'repositories.imports',
+    ),
+    false,
+    'data-ingestion repository must not register the old repositories.imports namespace',
+  );
+  assert.equal(
+    read(path.join('src', 'route-service-bindings.js')).includes('ctx.services?.imports'),
+    false,
+    'route bindings must not keep the old services.imports fallback',
+  );
 });
 
 test('server public exports remain stable after modularization', () => {
