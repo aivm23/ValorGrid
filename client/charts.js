@@ -114,7 +114,7 @@ export function attach(ctx) {
 
   function historyEventColor(event) {
     if (event.type === 'remove') return '#dc2626';
-    return assetColor(event.symbol, event.color);
+    return '#16a34a';
   }
 
   function eventTooltip(event) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.6
+
+- fix: history chart buy dots always render green (`#16a34a`) instead of the asset's custom color.
+
 ## 3.7.5
 
 - fix: ci rename `test:linux` to `test-linux` because GitHub Actions rejects colons in job IDs (the `ubuntu-latest` job silently failed to register and produced 0 jobs).
