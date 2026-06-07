@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.7
+
+- fix: transaction form distinguishes user-entered euros from auto-calculated euros so the `euros OR shares` XOR constraint works correctly when both fields are populated.
+
 ## 3.7.6
 
 - fix: history chart buy dots always render green (`#16a34a`) instead of the asset's custom color.

@@ -8,14 +8,11 @@ export function attach(ctx) {
     const symbol = type === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
-    const price = Number(ctx.elements.addPrice.value);
     const commission = Number(ctx.elements.addCommission.value);
     const payload = { type, symbol, date: ctx.elements.addDate.value };
     if (includeId) payload.id = ctx.clientRequestId('tx');
-    if (Number.isFinite(euros) && euros > 0) {
+    if (ctx.state.eurosManual && Number.isFinite(euros) && euros > 0) {
       payload.euros = euros;
-    } else if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) {
-      payload.euros = shares * price;
     }
     if (Number.isFinite(shares) && shares > 0) payload.shares = shares;
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
@@ -41,7 +38,7 @@ export function attach(ctx) {
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
     const price = Number(ctx.elements.addPrice.value);
-    if (Number.isFinite(euros) && euros > 0) return true;
+    if (ctx.state.eurosManual && Number.isFinite(euros) && euros > 0) return true;
     if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) return true;
     return false;
   }
@@ -132,12 +129,14 @@ export function attach(ctx) {
       shares.disabled = hasEuros;
       price.disabled = hasEuros;
       hint.hidden = !hasEuros;
+      ctx.state.eurosManual = hasEuros;
       if (hasEuros) {
         shares.value = '';
         price.value = '';
         hint.textContent = 'Las acciones y el precio se autocalcularan con el precio de mercado al guardar.';
       }
     } else {
+      ctx.state.eurosManual = false;
       if (source.value && Number(source.value) > 0) {
         euros.value = '';
       }
@@ -158,6 +157,7 @@ export function attach(ctx) {
     ctx.elements.addDate.value = ctx.todayInputValue();
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
+    ctx.state.eurosManual = false;
     ctx.elements.addShares.disabled = false;
     ctx.elements.addPrice.disabled = false;
     ctx.elements.addAmountHint.hidden = true;
