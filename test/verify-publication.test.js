@@ -99,6 +99,71 @@ test('verify-publication detects a non-canonical seed:demo entrypoint', () => {
   }
 });
 
+test('verify-publication detects stale CasaOS port metadata', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-verify-pub-'));
+  try {
+    const pkg = {
+      name: 'valorgrid-verify-pub-fixture',
+      version: '3.7.12',
+      private: true,
+      scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
+    };
+    const requiredGitignore = [
+      '*.sqlite',
+      '*.sqlite-wal',
+      '*.sqlite-shm',
+      'data/',
+      '.backups/',
+      'dist/',
+      '.env',
+      'local/',
+      'imports/',
+      'downloads/',
+    ].join('\n');
+    const requiredDockerignore = [
+      '.git',
+      '*.sqlite',
+      '*.sqlite-wal',
+      '*.sqlite-shm',
+      'data',
+      '.backups',
+      'backups',
+      '.env',
+      'local',
+      'imports',
+      'node_modules',
+    ].join('\n');
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
+    fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);
+    fs.writeFileSync(
+      path.join(tempDir, 'compose.casaos.yml'),
+      [
+        'services:',
+        '  valorgrid:',
+        '    image: ghcr.io/aivm23/valorgrid:latest',
+        '    environment:',
+        '      PORT: 5173',
+        '    ports:',
+        '      - target: 5173',
+        '        published: "5173"',
+        '    x-casaos:',
+        '      ports:',
+        '        - container: "5173"',
+        'x-casaos:',
+        '  version: "v3.7.12"',
+        '  port_map: "5173"',
+      ].join('\n'),
+    );
+
+    const result = runScriptExpectFail(tempDir);
+    assert.equal(result.ok, false);
+    assert.match(result.stdout, /casaos-compose|stale CasaOS image, version or port metadata/);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('verify-publication scans tracked OpenCode files even when the directory is ignored', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-verify-pub-'));
   try {

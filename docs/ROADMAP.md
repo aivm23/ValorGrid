@@ -34,7 +34,7 @@ Estado actual:
 - Windows: GitHub Releases con instalador NSIS.
 - Integridad: `SHA256SUMS.txt` y digests de assets en GitHub Releases.
 - Docker: GHCR con tags `vX.Y.Z` y `latest`.
-- CasaOS: compose público fijado a la versión enviada para AppStore.
+- CasaOS: compose público con imagen `latest` y metadata `version` fija para la ficha AppStore.
 
 Siguientes pasos:
 

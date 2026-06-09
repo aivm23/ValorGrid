@@ -88,7 +88,7 @@ npm run db:backup
 
 En Windows, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalacion conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
 
-En Docker/CasaOS, actualizar el tag de imagen a `vX.Y.Z`, arrancar y comprobar `/api/health`.
+En Docker/CasaOS, comprobar que `compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:latest`, que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
 
 ## Rollback
 

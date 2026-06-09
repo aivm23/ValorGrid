@@ -229,15 +229,8 @@ if (-not (Test-Path $casaosComposePath)) {
 }
 
 $casaosCompose = Get-Content $casaosComposePath -Raw
-if ([regex]::IsMatch($casaosCompose, '(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:latest\s*$')) {
-  throw 'compose.casaos.yml must not use :latest for CasaOS AppStore publication'
-}
-
-$pinnedCasaosVersion = '3.2.0'
-$expectedCasaosImage = "ghcr.io/aivm23/valorgrid:v$pinnedCasaosVersion"
-$expectedCasaosImagePattern = [regex]::Escape($expectedCasaosImage)
-if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*image:\s*$expectedCasaosImagePattern\s*$")) {
-  throw "compose.casaos.yml image must stay pinned to the CasaOS PR image: $expectedCasaosImage"
+if (-not [regex]::IsMatch($casaosCompose, '(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:latest\s*$')) {
+  throw 'compose.casaos.yml image must use ghcr.io/aivm23/valorgrid:latest'
 }
 
 $requiredCasaosMounts = @(
@@ -269,7 +262,7 @@ $requiredCasaosPatterns = @(
   '(?m)^\s*support:\s*https://github\.com/aivm23/ValorGrid/issues\s*$',
   '(?m)^\s*website:\s*https://github\.com/aivm23/ValorGrid\s*$',
   '(?m)^\s*main:\s*valorgrid\s*$',
-  '(?m)^\s*port_map:\s*["'']?5173["'']?\s*$',
+  '(?m)^\s*port_map:\s*["'']?1325["'']?\s*$',
   '(?m)^\s*architectures:\s*$',
   '(?m)^\s*-\s*amd64\s*$',
   '(?m)^\s*-\s*arm64\s*$'
@@ -280,9 +273,9 @@ foreach ($pattern in $requiredCasaosPatterns) {
   }
 }
 
-$expectedVersionPattern = [regex]::Escape("v$pinnedCasaosVersion")
+$expectedVersionPattern = [regex]::Escape("v$version")
 if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*version:\s*[""']?$expectedVersionPattern[""']?\s*$")) {
-  throw "compose.casaos.yml version must stay pinned to CasaOS PR version: v$pinnedCasaosVersion"
+  throw "compose.casaos.yml version must match package.json version: v$version"
 }
 
 $dockerWorkflowPath = Join-Path $root '.github\workflows\docker.yml'

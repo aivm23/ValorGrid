@@ -325,6 +325,32 @@ function checkSeedDemo() {
   addCheck('ok', 'seed-demo', 'seed:demo uses canonical loadtest entrypoint.');
 }
 
+function checkCasaosCompose(pkg) {
+  const composePath = path.join(repoRoot, 'compose.casaos.yml');
+  if (!fs.existsSync(composePath)) {
+    addCheck('warn', 'casaos-compose', 'compose.casaos.yml not present; skipped CasaOS checks.');
+    return;
+  }
+
+  const compose = fs.readFileSync(composePath, 'utf8');
+  const requiredPatterns = [
+    ['image: ghcr.io/aivm23/valorgrid:latest', /^\s*image:\s*ghcr\.io\/aivm23\/valorgrid:latest\s*$/m],
+    [`PORT=1325`, /^\s*PORT:\s*1325\s*$/m],
+    [`target: 1325`, /^\s*-\s*target:\s*1325\s*$/m],
+    [`published: "1325"`, /^\s*published:\s*["']?1325["']?\s*$/m],
+    [`container: "1325"`, /^\s*-\s*container:\s*["']?1325["']?\s*$/m],
+    [`version: v${pkg.version}`, new RegExp(`^\\s*version:\\s*["']?v${pkg.version.replace(/\./g, '\\.')}["']?\\s*$`, 'm')],
+    ['port_map: "1325"', /^\s*port_map:\s*["']?1325["']?\s*$/m],
+  ];
+  const missing = requiredPatterns.filter(([, pattern]) => !pattern.test(compose)).map(([label]) => label);
+
+  if (missing.length) {
+    addCheck('fail', 'casaos-compose', 'compose.casaos.yml has stale CasaOS image, version or port metadata', missing);
+  } else {
+    addCheck('ok', 'casaos-compose', `compose.casaos.yml tracks latest on port 1325 with metadata v${pkg.version}.`);
+  }
+}
+
 function run() {
   const pkg = readVersion();
   if (!pkg) {
@@ -340,6 +366,7 @@ function run() {
   checkForbiddenText();
   checkAlterTable();
   checkSeedDemo();
+  checkCasaosCompose(pkg);
 
   return printReport();
 }
