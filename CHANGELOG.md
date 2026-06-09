@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.13
+
+- test: add a Spanish documentation spellcheck gate for mojibake and common accent mistakes.
+
 ## 3.7.12
 
 - chore: allow the CasaOS compose app to track the latest GHCR image while keeping port and metadata checks.
