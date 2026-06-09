@@ -118,6 +118,8 @@ docker compose up -d --build
 
 La base SQLite queda en `./data` y los backups en `./backups`, ambas rutas privadas e ignoradas por Git.
 
+Para exponer Docker o CasaOS fuera de tu LAN privada, configura `VALORGRID_AUTH_PASSWORD` con una contrasena larga y usa HTTPS delante del contenedor. `VALORGRID_AUTH_USER` es opcional y por defecto vale `valorgrid`.
+
 También se publican imágenes GHCR versionadas desde tags `vX.Y.Z`:
 
 ```text
@@ -129,7 +131,7 @@ Guía completa: [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md).
 
 ## Privacidad
 
-ValorGrid se ejecuta en local. Por defecto escucha en `127.0.0.1`, no requiere login y no sincroniza datos con servidores externos.
+ValorGrid se ejecuta en local. Por defecto escucha en `127.0.0.1`, no requiere login y no sincroniza datos con servidores externos. En Docker/CasaOS puedes activar Basic Auth monousuario con `VALORGRID_AUTH_PASSWORD`.
 
 No deben subirse a GitHub:
 
@@ -166,7 +168,7 @@ npm start
 Después abre:
 
 ```text
-http://localhost:5173
+http://localhost:1325
 ```
 
 Checks completos:
