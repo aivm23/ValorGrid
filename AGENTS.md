@@ -5,8 +5,9 @@
 - `npm test` — run all tests (`node --test`)
 - `npm run lint` — run ESLint flat config checks
 - `npm run format:check` — run Prettier checks for docs/workflows/package manifests
+- `npm run docs:spellcheck` — check Spanish docs for mojibake and common accent mistakes
 - `npm run typecheck` — run TypeScript type checking (`tsc --noEmit`)
-- `npm run check` — run lint + format check + changelog check + tests
+- `npm run check` — run lint + format check + Spanish docs spellcheck + changelog check + tests
 - `npm run changelog:check` — verify CHANGELOG.md contains current version section
 - `npm run changelog:update` — auto-generate or update CHANGELOG.md entry for current version
 - `node --test --test-name-pattern "test name" test/portfolio.test.js` — run a single test
