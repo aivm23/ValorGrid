@@ -31,7 +31,7 @@ Principios operativos de la migración:
 ## Raíz del proyecto
 
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
-- `desktop/main.js`: wrapper Electron para la distribucion Windows. Arranca el servidor local en `127.0.0.1` con puerto efimero y guarda DB/backups en la carpeta de datos de usuario de la app.
+- `desktop/main.js`: wrapper Electron para la distribucion Windows. Arranca el servidor local en `127.0.0.1` con puerto efímero y guarda DB/backups en la carpeta de datos de usuario de la app.
 
 ### Estructura física por dominio (implementada)
 
@@ -105,7 +105,7 @@ Reglas de transición:
 **Infraestructura compartida en `src/platform/`:**
 
 - `config.js`: host, puerto, rutas, versión, DB activa y auth opcional.
-- `auth.js`: Basic Auth monousuario opt-in para despliegues Docker/CasaOS.
+- `auth.js`: Basic Auth monousuario opt-in para despliegues Docker/CasaOS (importado por `http.js`, no cargado directamente en `app.js`).
 - `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
 - `http.js`: servidor HTTP estático, Basic Auth opt-in y listener.
 - `backups.js`: creación, listado y descarga de backups SQLite.
