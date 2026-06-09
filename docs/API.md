@@ -5,8 +5,10 @@ ValorGrid expone una API HTTP local para que el frontend gestione cartera, hist√
 Por defecto el servidor escucha en:
 
 ```text
-http://127.0.0.1:5173
+http://127.0.0.1:1325
 ```
+
+Si `VALORGRID_AUTH_PASSWORD` esta configurado, toda la API queda protegida con Basic Auth monousuario. El usuario por defecto es `valorgrid` y puede cambiarse con `VALORGRID_AUTH_USER`.
 
 ## Sistema
 

@@ -13,28 +13,41 @@ docker compose up -d --build
 Abrir:
 
 ```text
-http://localhost:5173
+http://localhost:1325
 ```
 
 `docker-compose.yml` usa:
 
 - `HOST=0.0.0.0`
-- `PORT=5173`
+- `PORT=1325`
 - `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
+- `VALORGRID_AUTH_USER=valorgrid`
+- `VALORGRID_AUTH_PASSWORD=` (vacio: login desactivado)
 - `./data:/data`
 - `./backups:/app/.backups`
 
 `data/` y `backups/` son privados, estan ignorados por Git y deben incluirse en tu estrategia de backup.
 
-## CasaOS AppStore oficial (tag fijo)
+## CasaOS AppStore oficial
 
-El archivo de tienda es `compose.casaos.yml` y usa una imagen versionada:
+El archivo de tienda es `compose.casaos.yml` y usa la imagen estable `latest`:
 
-- `ghcr.io/aivm23/valorgrid:v3.2.0`
+- `ghcr.io/aivm23/valorgrid:latest`
 
-Esto evita problemas de actualizacion con `latest` en el AppStore de CasaOS.
+CasaOS mantiene un campo `version` fijo en la metadata (`x-casaos.version`) para identificar la ficha, pero la imagen del contenedor no queda fijada a ese tag.
 
-Nota de mantenimiento: `compose.casaos.yml` esta fijado a la imagen enviada en la PR de CasaOS. No se actualiza automaticamente cuando cambia `package.json`; solo debe cambiarse cuando se prepare una nueva actualizacion de CasaOS AppStore.
+## Login monousuario
+
+ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expuestas fuera de una LAN privada, activa Basic Auth con variables de entorno:
+
+```bash
+VALORGRID_AUTH_USER=valorgrid
+VALORGRID_AUTH_PASSWORD=usa-una-contrasena-larga
+```
+
+Si `VALORGRID_AUTH_PASSWORD` esta vacio o no existe, el login queda desactivado. Si esta configurado, ValorGrid protege toda la app: pantalla principal, assets, API, exportaciones, backups, `/api/health` y `/api/version`.
+
+Basic Auth debe ir detras de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
 
 Pasos de prueba previos al envio a AppStore:
 
@@ -50,13 +63,13 @@ El compose CasaOS usa bind mounts bajo `/DATA/AppData/valorgrid`, que es la ruta
 - `/DATA/AppData/valorgrid/data:/data`
 - `/DATA/AppData/valorgrid/backups:/app/.backups`
 
-## Uso personal con latest (sin compose adicional)
+## Imagen latest
 
 El workflow Docker publica tambien:
 
 - `ghcr.io/aivm23/valorgrid:latest`
 
-Para uso personal puedes consumir `latest` en tu propio compose, pero el compose oficial de AppStore permanece en tag fijo `vX.Y.Z`.
+El compose de CasaOS y los compose personales pueden consumir `latest`. Mantén `x-casaos.version` sincronizado con `package.json` cuando se actualice la ficha CasaOS.
 
 ## Upgrade y rollback en CasaOS
 
@@ -65,8 +78,8 @@ Checklist de upgrade:
 1. Ejecutar backup antes de actualizar:
    - `npm run db:backup`
    - `npm run db:doctor`
-2. Cambiar la imagen en el compose de la app CasaOS de `vX.Y.Z` a la nueva version `vA.B.C`.
-3. Actualizar el contenedor desde CasaOS.
+2. Actualizar el contenedor desde CasaOS para descargar la imagen `latest` publicada.
+3. Comprobar que la ficha CasaOS mantiene `x-casaos.version` sincronizado con `package.json`.
 4. Comprobar salud en `/api/health`.
 5. Revisar que los datos siguen presentes.
 
@@ -98,4 +111,4 @@ ValorGrid conserva automaticamente los 6 backups mas recientes en el directorio 
 
 ## Seguridad
 
-ValorGrid no incluye autenticacion todavia. Usar solo en LAN privada o detras de VPN. No exponer el puerto directamente a Internet hasta disponer de capa de autenticacion.
+ValorGrid incluye Basic Auth monousuario opcional con `VALORGRID_AUTH_PASSWORD`. Para exponer Docker/CasaOS fuera de una LAN privada, configura una contrasena fuerte y usa HTTPS delante del contenedor.

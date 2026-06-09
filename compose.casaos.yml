@@ -2,18 +2,18 @@ name: valorgrid
 
 services:
   valorgrid:
-    # CasaOS AppStore candidate is intentionally pinned to the PR image.
-    # Do not bump this tag automatically when package.json changes.
-    image: ghcr.io/aivm23/valorgrid:v3.2.0
+    image: ghcr.io/aivm23/valorgrid:latest
     container_name: valorgrid
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0
-      PORT: 5173
+      PORT: 1325
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+      VALORGRID_AUTH_USER: valorgrid
+      VALORGRID_AUTH_PASSWORD: ""
     ports:
-      - target: 5173
-        published: "5173"
+      - target: 1325
+        published: "1325"
         protocol: tcp
     volumes:
       - type: bind
@@ -36,8 +36,16 @@ services:
           description:
             en_US: SQLite database file path inside the container.
             es_ES: Ruta del archivo SQLite dentro del contenedor.
+        - container: VALORGRID_AUTH_USER
+          description:
+            en_US: Basic Auth username when VALORGRID_AUTH_PASSWORD is set.
+            es_ES: Usuario de Basic Auth cuando VALORGRID_AUTH_PASSWORD esta configurado.
+        - container: VALORGRID_AUTH_PASSWORD
+          description:
+            en_US: Set a strong password before exposing ValorGrid outside your private LAN.
+            es_ES: Configura una contrasena fuerte antes de exponer ValorGrid fuera de tu LAN privada.
       ports:
-        - container: "5173"
+        - container: "1325"
           description:
             en_US: ValorGrid Web UI HTTP port.
             es_ES: Puerto HTTP de la interfaz web de ValorGrid.
@@ -59,8 +67,8 @@ x-casaos:
   author: alvarovalderramamolina
   developer: alvarovalderramamolina
   category: Finance
-  version: "v3.2.0"
-  updateAt: "2026-06-03"
+  version: "v3.7.12"
+  updateAt: "2026-06-10"
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues
   repo: https://github.com/aivm23/ValorGrid
@@ -71,7 +79,7 @@ x-casaos:
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/historico-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/movimientos-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/valores-grupos-demo.png
-  port_map: "5173"
+  port_map: "1325"
   scheme: http
   index: /
   title:

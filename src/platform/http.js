@@ -1,11 +1,15 @@
 const { assertCtxDeps } = require('./ctx-utils');
+const { createBasicAuthGuard } = require('./auth');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['http', 'port', 'handleApi', 'sendJson', 'resolveRequestPath', 'fs', 'path', 'contentTypes'], 'http');
+  assertCtxDeps(ctx, ['http', 'port', 'handleApi', 'sendJson', 'resolveRequestPath', 'fs', 'path', 'contentTypes', 'config'], 'http');
 
-  const { http, port, handleApi, sendJson, resolveRequestPath, fs, path, contentTypes } = ctx;
+  const { http, port, handleApi, sendJson, resolveRequestPath, fs, path, contentTypes, config } = ctx;
+  const authGuard = createBasicAuthGuard(config.auth);
 
   const server = http.createServer(async (request, response) => {
+    if (authGuard && !authGuard(request, response)) return;
+
     const url = new URL(request.url || '/', `http://${request.headers.host || `localhost:${port}`}`);
 
     if (url.pathname.startsWith('/api/')) {

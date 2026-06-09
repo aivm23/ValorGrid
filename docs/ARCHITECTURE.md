@@ -104,9 +104,10 @@ Reglas de transición:
 
 **Infraestructura compartida en `src/platform/`:**
 
-- `config.js`: host, puerto, rutas, versión y DB activa.
+- `config.js`: host, puerto, rutas, versión, DB activa y auth opcional.
+- `auth.js`: Basic Auth monousuario opt-in para despliegues Docker/CasaOS.
 - `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
-- `http.js`: servidor HTTP estático y listener.
+- `http.js`: servidor HTTP estático, Basic Auth opt-in y listener.
 - `backups.js`: creación, listado y descarga de backups SQLite.
 - `ctx-utils.js`: `assertCtxDeps`, `getCtxDep`.
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
@@ -129,7 +130,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Cargados vía `require()` directo (antes del bucle):**
 
-- `config`: host, puerto, rutas, versión y DB activa.
+- `config`: host, puerto, rutas, versión, DB activa y auth opcional.
 - `db`: apertura SQLite, PRAGMAs, helpers y transacciones.
 - `backups`: creación, listado y descarga de backups SQLite.
 
@@ -160,7 +161,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 23. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
 24. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
 25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-26. `http`: servidor HTTP estático y listener.
+26. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 
@@ -312,18 +313,18 @@ La API y los scripts operativos comparten la misma `backupDir` resuelta por `src
 Docker ejecuta la app como servicio local con:
 
 - `HOST=0.0.0.0`
-- `PORT=5173`
+- `PORT=1325`
 - `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
 
 Los volúmenes guardan datos y backups fuera del contenedor.
 
 ## Seguridad
 
-La app no incluye autenticación. Para uso doméstico debe quedarse en:
+La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. Para uso doméstico sin `VALORGRID_AUTH_PASSWORD`, debe quedarse en:
 
 - localhost,
 - LAN privada,
 - VPN,
-- o reverse proxy con autenticación externa.
+- o reverse proxy con HTTPS y `VALORGRID_AUTH_PASSWORD`.
 
-No debe exponerse directamente a Internet sin una capa de autenticación adicional.
+No debe exponerse directamente a Internet sin HTTPS y autenticación.

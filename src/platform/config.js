@@ -11,10 +11,11 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '../..')
   const edition = String(env.VALORGRID_EDITION || 'community').trim().toLowerCase() === 'professional'
     ? 'professional'
     : 'community';
-  const port = env.PORT === undefined || env.PORT === '' ? 5173 : Number(env.PORT);
+  const port = env.PORT === undefined || env.PORT === '' ? 1325 : Number(env.PORT);
   const dbPath = env.PORTFOLIO_DB_PATH || defaultDbPath;
   const explicitDbBackupDir = path.join(path.dirname(dbPath), '..', 'backups');
   const backupDir = env.VALORGRID_BACKUP_DIR || (env.PORTFOLIO_DB_PATH ? explicitDbBackupDir : defaultBackupDir);
+  const authPassword = String(env.VALORGRID_AUTH_PASSWORD || '');
 
   return {
     appInfo: { version, edition },
@@ -23,6 +24,11 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '../..')
     host: env.HOST || '127.0.0.1',
     dbPath,
     backupDir,
+    auth: {
+      enabled: authPassword.length > 0,
+      user: String(env.VALORGRID_AUTH_USER || 'valorgrid'),
+      password: authPassword,
+    },
   };
 }
 

@@ -28,7 +28,7 @@ test('database runtime path resolution follows app policy', () => {
     const plain = resolveRuntimeConfig({}, tempRoot);
     assert.equal(plain.dbPath, path.join(tempRoot, 'data', 'portfolio.sqlite'));
     assert.equal(plain.backupDir, path.join(tempRoot, '.backups'));
-    assert.equal(plain.port, 5173);
+    assert.equal(plain.port, 1325);
 
     fs.writeFileSync(path.join(tempRoot, 'portfolio.sqlite'), '');
     const legacy = resolveRuntimeConfig({}, tempRoot);

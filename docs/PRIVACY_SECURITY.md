@@ -101,7 +101,13 @@ Recomendación:
 
 - úsalo en localhost, LAN privada o VPN;
 - no abras el puerto directamente a Internet;
-- si necesitas acceso externo, añade reverse proxy con autenticación.
+- si necesitas acceso externo en Docker/CasaOS, configura `VALORGRID_AUTH_PASSWORD` y usa HTTPS delante del contenedor.
+
+## Login monousuario
+
+`VALORGRID_AUTH_PASSWORD` activa Basic Auth para toda la app. `VALORGRID_AUTH_USER` es opcional y por defecto es `valorgrid`.
+
+La contraseña no se guarda en SQLite ni se muestra en la API. Debe gestionarse como secreto del despliegue. Si `VALORGRID_AUTH_PASSWORD` esta vacio, ValorGrid mantiene el modo local sin login.
 
 ## GitHub
 

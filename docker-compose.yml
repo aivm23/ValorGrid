@@ -7,10 +7,12 @@ services:
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0
-      PORT: 5173
+      PORT: 1325
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+      VALORGRID_AUTH_USER: valorgrid
+      VALORGRID_AUTH_PASSWORD: ""
     ports:
-      - "5173:5173"
+      - "1325:1325"
     volumes:
       - ./data:/data
       - ./backups:/app/.backups
