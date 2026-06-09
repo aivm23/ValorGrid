@@ -1,6 +1,6 @@
-# Semantica financiera de metricas
+# semántica financiera de métricas
 
-Este documento fija la semantica operativa usada por la app para metricas de cartera.
+Este documento fija la semántica operativa usada por la app para métricas de cartera.
 No cambia endpoints ni payloads; solo define como interpretar campos y signos.
 
 Fuentes de verdad actuales:
@@ -12,16 +12,16 @@ Fuentes de verdad actuales:
 
 ## Convencion de signos base
 
-- `cash_flow_eur < 0`: salida de caja (compras + comision).
-- `cash_flow_eur > 0`: entrada de caja (ventas netas de comision).
+- `cash_flow_eur < 0`: salida de caja (compras + comisión).
+- `cash_flow_eur > 0`: entrada de caja (ventas netas de comisión).
 - `netContributed > 0`: capital neto aportado a cartera.
-- `netContributed < 0`: retirada neta de capital (la cartera ya devolvio mas caja de la aportada).
+- `netContributed < 0`: retirada neta de capital (la cartera ya devolvió más caja de la aportada).
 
 Formula base:
 
 - `netContributed = -SUM(cash_flow_eur)`
 
-## Metricas de `/api/portfolio/performance`
+## métricas de `/api/portfolio/performance`
 
 - `currentValue`:
   - Valor actual total (EUR) de posiciones visibles.
@@ -47,7 +47,7 @@ Formula base:
   - Si `netContributed > 0`: `(totalGain / netContributed) * 100`.
   - Si `netContributed <= 0`: `null`.
 
-## Metricas de `/api/portfolio/monthly` (bloque `summary`)
+## métricas de `/api/portfolio/monthly` (bloque `summary`)
 
 - `valueStart`:
   - Valor de cartera a `YYYY-01-01`, valorando posiciones con precios de esa fecha.
@@ -66,9 +66,9 @@ Formula base:
   - `currentValue - valueStart - netContributed`.
   - Equivale al resultado del periodo YTD (mercado + realizado - comisiones), partiendo del valor inicial.
 
-## Metricas mensuales por mes (`months[]`)
+## métricas mensuales por mes (`months[]`)
 
-Para cada mes se exponen `contributions`, `withdrawals`, `commissions`, `netContribution` con la misma semantica anterior, pero filtradas a operaciones del mes.
+Para cada mes se exponen `contributions`, `withdrawals`, `commissions`, `netContribution` con la misma semántica anterior, pero filtradas a operaciones del mes.
 
 ## Serie historica (`/api/portfolio/history`, campo `series[].contributed`)
 
@@ -82,7 +82,7 @@ Consecuencia directa:
 - Ventas netas: `contributed` decrece.
 - Si ventas netas superan compras historicas, `contributed` puede ser negativo.
 
-## Relacion entre distribucion actual e historico
+## relación entre distribucion actual e histórico
 
 - `Distribucion actual`:
   - `buildSummary().total` suma solo las posiciones con `showInDistribution = true` y `value >= minimumDisplayValueEur`.
@@ -93,7 +93,7 @@ Consecuencia directa:
 - Consecuencia:
   - Ambos totales pueden diferir y seguir siendo correctos porque responden a reglas distintas.
 
-## Metricas auxiliares
+## métricas auxiliares
 
 ### `transactionCount`
 
@@ -115,19 +115,19 @@ Conteo de transacciones con `origin = 'auto'` en un periodo. Fuente: `summarizeT
 
 Grupo con mayor `variation` en valor absoluto para un mes dado. Calculado en `topMonthlyGroup` comparando `abs(variation)` entre grupos.
 
-## Calculos de importacion con plantilla
+## cálculos de importación con plantilla
 
 La plantilla Excel de ValorGrid (`valorgrid-xlsx`) usa las siguientes reglas:
 
 - `Valor EUR` opcional: si se omite, se calcula como `abs(Acciones) * Precio * FX a EUR`.
 - `Divisa` y `FX a EUR` son obligatorios para operaciones no EUR.
-- No se busca FX automaticamente durante la importacion: el usuario debe proporcionarlo.
-- `Tipo` (compra/venta) se infiere del signo de `Acciones` si se deja vacio.
+- No se busca FX automáticamente durante la importación: el usuario debe proporcionarlo.
+- `Tipo` (compra/venta) se infiere del signo de `Acciones` si se deja vacío.
 - `Comision EUR` es siempre opcional (por defecto 0).
 
-Estas reglas aplican al perfil publico `valorgrid`. Los adaptadores privados de ValorGrid Pro/Enterprise deben normalizar sus datos a esta semantica antes de llegar al ledger.
+Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de ValorGrid Pro/Enterprise deben normalizar sus datos a esta semántica antes de llegar al ledger.
 
-## Calculos de posicion
+## cálculos de posicion
 
 ### `getPositionShares(symbol, asOfDate)`
 
@@ -145,23 +145,23 @@ Umbral de visibilidad: `0.01` EUR. Definido en `src/app.js`. Las posiciones con 
 
 ### `previewTransaction(input)`
 
-Calcula la vista previa de una operacion sin persistirla:
+Calcula la vista previa de una operación sin persistirla:
 
 - **Tipo**: `input.type === 'remove' ? 'remove' : 'add'`.
 - **Symbol**: `normalizeSymbol(input.symbol || input.ticker)`.
 - **Fecha**: `input.date || getToday()`.
 - **Euros vs Shares**: si `euros > 0`, `shares = euros / priceEur`. Si `shares > 0`, `valueEur = shares * priceEur`. Es XOR: no se permiten ambos.
-- **Comision**: `abs(input.commissionEur ?? input.commission)`, por defecto `0`.
+- **comisión**: `abs(input.commissionEur ?? input.commission)`, por defecto `0`.
 - **`cashFlowEur`**:
   - Compra: `-(valueEur + commissionEur)`.
   - Venta: `valueEur - commissionEur`.
-- **Validacion de venta**: si `type === 'remove'`, se verifica que `getPositionShares(symbol, date) >= shares`.
+- **validación de venta**: si `type === 'remove'`, se verifica que `getPositionShares(symbol, date) >= shares`.
 
 ## Onboarding
 
 ### `buildOnboardingStatus()`
 
-Determina si el wizard de configuracion inicial esta completo:
+Determina si el wizard de configuración inicial está completo:
 
 - `setupComplete = true` si `instruments > 0 AND transactions > 0 AND groups > 0`.
 - Fuente: portfolio-service, se expone en `/api/onboarding/status` y dentro de `buildSummary().onboarding`.

@@ -21,7 +21,7 @@ Campos principales:
 - `is_expandable`
 - `active`
 
-Se usa para distribucion actual, revision YTD, desglose del donut y organizacion de instrumentos. Estos flags no definen la frecuencia de aportacion automatica.
+Se usa para distribucion actual, revisión YTD, desglose del donut y organizacion de instrumentos. Estos flags no definen la frecuencia de aportacion automatica.
 
 ### `instruments`
 
@@ -41,7 +41,7 @@ Campos principales:
 - `group_id`
 - `display_order`: orden de visualización (INTEGER, default 0).
 - `show_in_distribution`: controla si aparece en la distribucion del dashboard (INTEGER, default 1).
-- `show_in_monthly`: controla si aparece en la revision YTD por grupos (INTEGER, default 1).
+- `show_in_monthly`: controla si aparece en la revisión YTD por grupos (INTEGER, default 1).
 
 `fx` se usa para instrumentos técnicos internos de conversión y no debe aparecer como posición visible.
 

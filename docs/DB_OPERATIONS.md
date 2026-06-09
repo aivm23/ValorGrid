@@ -41,7 +41,7 @@ Retencion:
 - Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `src/platform/config.js`.
 - En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
-- La app conserva automaticamente los 6 backups mas recientes y elimina los mas antiguos al crear uno nuevo.
+- La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
 
 ## Flujo recomendado antes de tocar DB real
 

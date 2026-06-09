@@ -1,6 +1,6 @@
 # GitHub Release
 
-ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la version de `package.json`.
+ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la versión de `package.json`.
 
 ## Artefactos esperados
 
@@ -10,7 +10,7 @@ ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la
 - `ghcr.io/aivm23/valorgrid:vX.Y.Z`: imagen Docker versionada publicada por el workflow Docker.
 - `ghcr.io/aivm23/valorgrid:latest`: etiqueta Docker de uso personal.
 
-La release no publica bases SQLite, backups, `.env`, ficheros de importacion del usuario ni artefactos privados.
+La release no publica bases SQLite, backups, `.env`, ficheros de importación del usuario ni artefactos privados.
 
 ## Preparacion local
 
@@ -20,13 +20,13 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
    npm run db:backup
    ```
 
-2. Actualizar `CHANGELOG.md` con la nueva version:
+2. Actualizar `CHANGELOG.md` con la nueva versión:
 
    ```powershell
    npm run changelog:update
    ```
 
-3. Confirmar que `package.json` contiene la version final.
+3. Confirmar que `package.json` contiene la versión final.
 4. Ejecutar:
 
    ```powershell
@@ -34,6 +34,7 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
    npm run typecheck
    npm run lint
    npm run format:check
+   npm run docs:spellcheck
    npm test
    npm run verify:publication
    ```
@@ -47,16 +48,16 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importacion del
 
 ## Instalador Windows
 
-La configuracion Electron/NSIS vive en `package.json` y usa estos assets versionados:
+La configuración Electron/NSIS vive en `package.json` y usa estos assets versionados:
 
 - `assets/brand/valorgrid-logo.ico`: icono del instalador, desinstalador, cabecera y accesos directos.
 - `desktop/installer/installer.nsh`: macro NSIS incluida por `package.json` para recrear los accesos directos de escritorio y menu Inicio con el icono de ValorGrid.
 
 `desktop/installer/installer.nsh` debe estar en git. GitHub Actions construye el `.exe` desde un checkout limpio; si el archivo falta, la release no puede aplicar la personalizacion NSIS y el instalador no queda reproducible desde el repositorio.
 
-## Publicacion
+## Publicación
 
-1. Crear un commit con el cambio de version, changelog, docs y codigo.
+1. Crear un commit con el cambio de versión, changelog, docs y código.
 2. Crear un tag limpio:
 
    ```powershell
@@ -86,7 +87,7 @@ Antes de actualizar, crear un backup desde la app o con:
 npm run db:backup
 ```
 
-En Windows, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalacion conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
+En Windows, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalación conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
 
 En Docker/CasaOS, comprobar que `compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:latest`, que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
 
@@ -95,9 +96,9 @@ En Docker/CasaOS, comprobar que `compose.casaos.yml` usa `ghcr.io/aivm23/valorgr
 Windows:
 
 1. Cerrar ValorGrid.
-2. Desinstalar la version actual si es necesario.
+2. Desinstalar la versión actual si es necesario.
 3. Instalar el `.exe` de la release anterior.
-4. Si hay perdida o corrupcion de datos, restaurar un backup SQLite manualmente.
+4. Si hay perdida o corrupción de datos, restaurar un backup SQLite manualmente.
 
 Docker/CasaOS:
 
@@ -118,14 +119,14 @@ El hash debe coincidir con la linea correspondiente en `SHA256SUMS.txt`.
 
 ## SmartScreen
 
-Windows SmartScreen puede mostrar aviso en apps nuevas o sin firma de codigo con reputacion acumulada. No publiques instaladores por canales paralelos; la fuente oficial debe ser GitHub Releases o una futura landing que redirija a GitHub Releases.
+Windows SmartScreen puede mostrar aviso en apps nuevas o sin firma de código con reputacion acumulada. No publiques instaladores por canales paralelos; la fuente oficial debe ser GitHub Releases o una futura landing que redirija a GitHub Releases.
 
-## Documentacion De Usuario
+## documentación De Usuario
 
 Cada release estable debe mantener actualizados:
 
-- `README.md`: entrada publica principal.
-- `docs/FIRST_STEPS.md`: primeros pasos para usuario no tecnico.
+- `README.md`: entrada pública principal.
+- `docs/FIRST_STEPS.md`: primeros pasos para usuario no técnico.
 - `docs/IMPORT_EXCEL.md`: plantilla Excel y errores comunes.
 - `docs/FAQ.md`: preguntas frecuentes.
 - `docs/LEGAL_NOTICE.md`: aviso legal ampliado.

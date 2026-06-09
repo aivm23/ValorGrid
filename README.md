@@ -13,7 +13,7 @@
 
 **ValorGrid es una app local para controlar, importar y visualizar tu cartera privada sin subir tus datos a una plataforma de terceros.**
 
-[Descargar Windows](https://github.com/aivm23/ValorGrid/releases/latest) · [Ver capturas](#capturas) · [Docker](#docker) · [Primeros pasos](docs/FIRST_STEPS.md) · [Documentación](#documentacion-util)
+[Descargar Windows](https://github.com/aivm23/ValorGrid/releases/latest) · [Ver capturas](#capturas) · [Docker](#docker) · [Primeros pasos](docs/FIRST_STEPS.md) · [Documentación](#documentación-util)
 
 > ValorGrid no ofrece asesoramiento financiero, recomendaciones de inversión ni señales de compra o venta. Es una herramienta de registro, visualización y auditoría personal.
 
@@ -78,7 +78,7 @@ Guía completa: [docs/FIRST_STEPS.md](docs/FIRST_STEPS.md).
 
 ### Histórico
 
-![Histórico](assets/screenshots/historico-demo.png)
+![Histórico](assets/screenshots/histórico-demo.png)
 
 ### Instrumentos Y Grupos
 
@@ -118,7 +118,7 @@ docker compose up -d --build
 
 La base SQLite queda en `./data` y los backups en `./backups`, ambas rutas privadas e ignoradas por Git.
 
-Para exponer Docker o CasaOS fuera de tu LAN privada, configura `VALORGRID_AUTH_PASSWORD` con una contrasena larga y usa HTTPS delante del contenedor. `VALORGRID_AUTH_USER` es opcional y por defecto vale `valorgrid`.
+Para exponer Docker o CasaOS fuera de tu LAN privada, configura `VALORGRID_AUTH_PASSWORD` con una contraseña larga y usa HTTPS delante del contenedor. `VALORGRID_AUTH_USER` es opcional y por defecto vale `valorgrid`.
 
 También se publican imágenes GHCR versionadas desde tags `vX.Y.Z`:
 

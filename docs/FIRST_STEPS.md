@@ -55,7 +55,7 @@ Guía completa: [IMPORT_EXCEL.md](IMPORT_EXCEL.md).
 
 ValorGrid materializa el histórico para que la lectura sea rápida.
 
-![Histórico](../assets/screenshots/historico-demo.png)
+![Histórico](../assets/screenshots/histórico-demo.png)
 
 Puedes revisar:
 

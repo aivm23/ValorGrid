@@ -41,7 +41,7 @@ La ruta de DB se decide así:
 2. `portfolio.sqlite` en la raíz, si existe por compatibilidad con instalaciones antiguas.
 3. `data/portfolio.sqlite` para instalaciones nuevas.
 
-En la app de escritorio Windows, ValorGrid define `PORTFOLIO_DB_PATH` automaticamente dentro de la carpeta privada de datos de usuario de la aplicacion. Los backups de escritorio usan la misma zona privada mediante `VALORGRID_BACKUP_DIR`.
+En la app de escritorio Windows, ValorGrid define `PORTFOLIO_DB_PATH` automáticamente dentro de la carpeta privada de datos de usuario de la aplicación. Los backups de escritorio usan la misma zona privada mediante `VALORGRID_BACKUP_DIR`.
 
 Recomendación:
 
@@ -107,7 +107,7 @@ Recomendación:
 
 `VALORGRID_AUTH_PASSWORD` activa Basic Auth para toda la app. `VALORGRID_AUTH_USER` es opcional y por defecto es `valorgrid`.
 
-La contraseña no se guarda en SQLite ni se muestra en la API. Debe gestionarse como secreto del despliegue. Si `VALORGRID_AUTH_PASSWORD` esta vacio, ValorGrid mantiene el modo local sin login.
+La contraseña no se guarda en SQLite ni se muestra en la API. Debe gestionarse como secreto del despliegue. Si `VALORGRID_AUTH_PASSWORD` está vacío, ValorGrid mantiene el modo local sin login.
 
 ## GitHub
 

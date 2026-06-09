@@ -8,7 +8,7 @@ Por defecto el servidor escucha en:
 http://127.0.0.1:1325
 ```
 
-Si `VALORGRID_AUTH_PASSWORD` esta configurado, toda la API queda protegida con Basic Auth monousuario. El usuario por defecto es `valorgrid` y puede cambiarse con `VALORGRID_AUTH_USER`.
+Si `VALORGRID_AUTH_PASSWORD` está configurado, toda la API queda protegida con Basic Auth monousuario. El usuario por defecto es `valorgrid` y puede cambiarse con `VALORGRID_AUTH_USER`.
 
 ## Sistema
 
@@ -47,7 +47,7 @@ DELETE /api/instrument-identifiers/:id
 - El bloqueo real por posición o automatizaciones activas se aplica al ejecutar `DELETE /api/instruments/:symbol` o `DELETE /api/instruments`.
 
 - `instruments` almacena valores visibles de cartera.
-- `instrument_groups` organiza visibilidad por dashboard, revision YTD y desglose.
+- `instrument_groups` organiza visibilidad por dashboard, revisión YTD y desglose.
 - `instrument_identifiers` guarda identificadores confirmados por el usuario, como ISIN o alias de broker, para futuras importaciones.
 
 ## Onboarding

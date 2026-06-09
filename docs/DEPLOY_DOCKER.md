@@ -4,7 +4,7 @@ ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base S
 
 ## Docker Compose local (build desde repositorio)
 
-Desde la raiz del repositorio:
+Desde la raíz del repositorio:
 
 ```bash
 docker compose up -d --build
@@ -22,7 +22,7 @@ http://localhost:1325
 - `PORT=1325`
 - `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
 - `VALORGRID_AUTH_USER=valorgrid`
-- `VALORGRID_AUTH_PASSWORD=` (vacio: login desactivado)
+- `VALORGRID_AUTH_PASSWORD=` (vacío: login desactivado)
 - `./data:/data`
 - `./backups:/app/.backups`
 
@@ -42,14 +42,14 @@ ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expue
 
 ```bash
 VALORGRID_AUTH_USER=valorgrid
-VALORGRID_AUTH_PASSWORD=usa-una-contrasena-larga
+VALORGRID_AUTH_PASSWORD=usa-una-contraseña-larga
 ```
 
-Si `VALORGRID_AUTH_PASSWORD` esta vacio o no existe, el login queda desactivado. Si esta configurado, ValorGrid protege toda la app: pantalla principal, assets, API, exportaciones, backups, `/api/health` y `/api/version`.
+Si `VALORGRID_AUTH_PASSWORD` está vacío o no existe, el login queda desactivado. Si está configurado, ValorGrid protege toda la app: pantalla principal, assets, API, exportaciones, backups, `/api/health` y `/api/version`.
 
-Basic Auth debe ir detras de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
+Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
 
-Pasos de prueba previos al envio a AppStore:
+Pasos de prueba previos al envío a AppStore:
 
 1. Abrir CasaOS.
 2. Entrar en App Store.
@@ -65,7 +65,7 @@ El compose CasaOS usa bind mounts bajo `/DATA/AppData/valorgrid`, que es la ruta
 
 ## Imagen latest
 
-El workflow Docker publica tambien:
+El workflow Docker publica también:
 
 - `ghcr.io/aivm23/valorgrid:latest`
 
@@ -86,9 +86,9 @@ Checklist de upgrade:
 Rollback:
 
 1. Detener la app en CasaOS.
-2. Volver el tag de imagen a la version anterior (`vX.Y.Z` estable).
+2. Volver el tag de imagen a la versión anterior (`vX.Y.Z` estable).
 3. Arrancar de nuevo la app.
-4. Si hubo corrupcion o perdida de datos, restaurar backup manualmente (seccion siguiente).
+4. Si hubo corrupción o perdida de datos, restaurar backup manualmente (sección siguiente).
 
 ## Backup y restore
 
@@ -107,8 +107,8 @@ Restore manual:
 4. Arrancar de nuevo el servicio.
 5. Ejecutar `npm run db:doctor` y comprobar `/api/health`.
 
-ValorGrid conserva automaticamente los 6 backups mas recientes en el directorio de backups montado.
+ValorGrid conserva automáticamente los 6 backups más recientes en el directorio de backups montado.
 
 ## Seguridad
 
-ValorGrid incluye Basic Auth monousuario opcional con `VALORGRID_AUTH_PASSWORD`. Para exponer Docker/CasaOS fuera de una LAN privada, configura una contrasena fuerte y usa HTTPS delante del contenedor.
+ValorGrid incluye Basic Auth monousuario opcional con `VALORGRID_AUTH_PASSWORD`. Para exponer Docker/CasaOS fuera de una LAN privada, configura una contraseña fuerte y usa HTTPS delante del contenedor.
