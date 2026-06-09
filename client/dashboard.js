@@ -66,7 +66,11 @@ export function attach(ctx) {
       const numEl = elements.appVersion.querySelector('.app-version-num');
       const edEl = elements.appVersion.querySelector('.app-edition');
       if (numEl) numEl.textContent = `v${state.version}`;
-      if (edEl) edEl.textContent = state.edition === 'professional' ? 'Profesional Edition' : 'Community Edition';
+      if (edEl) {
+        edEl.textContent = state.edition === 'professional' ? 'Profesional Edition' : 'Community Edition';
+        edEl.classList.toggle('app-edition-professional', state.edition === 'professional');
+        edEl.classList.toggle('app-edition-community', state.edition !== 'professional');
+      }
     }
     elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
     if (elements.exportMenu) elements.exportMenu.hidden = Boolean(state.onboarding?.needsSetup);

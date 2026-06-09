@@ -293,6 +293,14 @@ p {
   font-weight: 400;
 }
 
+.app-edition-community {
+  color: var(--accent);
+}
+
+.app-edition-professional {
+  color: #f59e0b;
+}
+
 .eyebrow {
   margin-bottom: 6px;
   color: var(--muted);
