@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.7.12
+
+- chore: allow the CasaOS compose app to track the latest GHCR image while keeping port and metadata checks.
+
+## 3.7.11
+
+- chore: change the default local, Docker and CasaOS web port from 5173 to 1325.
+
+## 3.7.10
+
+- feat: add opt-in single-user Basic Auth for CasaOS and other internet-facing Docker deployments.
+
 ## 3.7.9
 
 - fix: date inputs render in `es-ES` locale (`lang="es"`) so the calendar shows DD/MM/YYYY and starts on Monday.
