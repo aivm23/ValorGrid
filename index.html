@@ -85,25 +85,19 @@
               <span class="plus-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Importar</span>
             </button>
-            <details id="export-menu" class="toolbar-menu" hidden>
-              <summary class="calendar-button" aria-label="Exportar datos">
-                <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M14 3h5v5"></path>
-                  <path d="M10 13 19 4"></path>
-                  <path d="M19 13v6H5V5h6"></path>
-                </svg>
-                <span class="toolbar-label">Exportar</span>
-              </summary>
-              <div class="toolbar-menu-panel" role="menu">
-                <a
-                  id="toolbar-export-xlsx"
-                  class="button button-compact"
-                  href="/api/export/transactions.xlsx"
-                  role="menuitem"
-                  >Exportar Excel</a
-                >
-              </div>
-            </details>
+            <a
+              id="toolbar-export-xlsx"
+              class="calendar-button"
+              href="/api/export/transactions.xlsx"
+              aria-label="Exportar datos"
+            >
+              <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M14 3h5v5"></path>
+                <path d="M10 13 19 4"></path>
+                <path d="M19 13v6H5V5h6"></path>
+              </svg>
+              <span class="toolbar-label">Exportar</span>
+            </a>
             <button
               id="admin-manager"
               class="balance-toggle"

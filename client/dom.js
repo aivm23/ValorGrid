@@ -42,7 +42,6 @@ export function attach(ctx) {
     createBackup: document.querySelector('#create-backup'),
     openImportDialog: document.querySelector('#open-import-dialog'),
     openImportDialogToolbar: document.querySelector('#open-import-dialog-toolbar'),
-    exportMenu: document.querySelector('#export-menu'),
     toolbarExportXlsx: document.querySelector('#toolbar-export-xlsx'),
     adminManager: document.querySelector('#admin-manager'),
     adminDialog: document.querySelector('#admin-dialog'),

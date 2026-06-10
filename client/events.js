@@ -102,9 +102,6 @@ export function attach(ctx) {
   elements.wizardTransactionShares.addEventListener('input', ctx.syncWizardAmountInputs);
   document.addEventListener('click', (event) => {
     if (event.target.closest('[data-open-onboarding]')) ctx.openWizardDialog();
-    if (elements.exportMenu?.open && !event.target.closest('#export-menu')) {
-      elements.exportMenu.open = false;
-    }
     if (
       !event.target.closest('#portfolio-chart') &&
       !event.target.closest('#holdings-legend') &&
