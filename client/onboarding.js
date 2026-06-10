@@ -21,6 +21,7 @@ export function attach(ctx) {
     ctx.elements.wizardPlanFrequency.value = '';
     ctx.elements.wizardPlanDay.value = '';
     ctx.elements.wizardPlanWeekday.value = '';
+    ctx.elements.wizardPlanWeekday.innerHTML = `<option value="">Selecciona día</option>${ctx.weekdayOptions('')}`;
     ctx.elements.wizardTransactionDate.value = ctx.todayInputValue();
     ctx.elements.wizardPlanStart.value = '';
     ctx.elements.wizardPlanConfirmRetroactive.checked = false;

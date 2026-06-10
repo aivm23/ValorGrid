@@ -43,6 +43,8 @@ export function attach(ctx) {
     expandedGroupId: null,
     hideBalances: false,
     negativeRed: true,
+    dateFormat: 'dd/mm/yyyy',
+    weekStart: 'monday',
     instrumentPositionFilter: 'all',
     instrumentFilters: {
       symbol: '',

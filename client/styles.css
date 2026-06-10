@@ -298,7 +298,10 @@ p {
 }
 
 .app-edition-professional {
-  color: #f59e0b;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .eyebrow {
@@ -2758,72 +2761,206 @@ td:last-child {
   content: "";
 }
 
+/* ── Admin Panel ─────────────────────────────────────────── */
+
 .admin-panel {
   width: 100%;
   max-width: min(880px, calc(100vw - 32px));
   overflow-x: hidden;
 }
 
-.admin-panel .modal-header {
-  padding-bottom: 16px;
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
+  position: relative;
 }
 
-.admin-panel .modal-header h2 {
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
+.admin-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 72px;
+  height: 2px;
+  background: var(--gradient-brand);
+  border-radius: 1px;
 }
 
-.admin-panel .modal-header .subtle {
-  font-size: 0.86rem;
+.admin-header-text h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
 }
+
+.admin-header-text .subtle {
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+/* ── Admin Grid ─────────────────────────────────────────── */
 
 .admin-grid {
+  display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   min-width: 0;
-  gap: 24px;
+  gap: 18px;
 }
 
-.admin-grid section {
+/* ── Admin Cards ────────────────────────────────────────── */
+
+.admin-card {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--card) 80%, var(--bg));
   padding: 18px;
+  animation: adminCardIn 350ms ease both;
 }
 
-.admin-grid section h3 {
-  margin: 0 0 14px;
-  font-size: 0.92rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+.admin-card:nth-child(2) { animation-delay: 60ms; }
+.admin-card:nth-child(3) { animation-delay: 120ms; }
+
+@keyframes adminCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.admin-preferences-section {
+.admin-card--full {
   grid-column: 1 / -1;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--card) 82%, var(--bg));
-  padding: 18px;
+}
+
+.admin-card--preferences {
+  border-left: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 4%, var(--card)),
+    color-mix(in srgb, var(--accent-violet) 3%, var(--card))
+  );
+}
+
+.admin-card--backups {
+  border-top: 2px solid color-mix(in srgb, var(--accent-green) 40%, transparent);
+}
+
+.admin-card--imports {
+  border-top: 2px solid color-mix(in srgb, var(--accent-amber) 40%, transparent);
+}
+
+/* ── Card Headings ──────────────────────────────────────── */
+
+.admin-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-card-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.admin-card--backups .admin-card-icon {
+  background: color-mix(in srgb, var(--accent-green) 10%, transparent);
+  color: var(--accent-green);
+}
+
+.admin-card--imports .admin-card-icon {
+  background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
+  color: var(--accent-amber);
+}
+
+.admin-card-head h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+/* ── Preferences Grid ───────────────────────────────────── */
+
+.admin-prefs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  align-items: flex-end;
 }
 
 .admin-preference {
   width: 100%;
-  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 15%, var(--line));
 }
 
-.preference-row {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px);
-  gap: 14px;
-  align-items: flex-end;
+.admin-prefs-hint {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
 }
+
+/* ── Admin Action Button ────────────────────────────────── */
+
+.admin-action-btn {
+  width: 100%;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-green) 8%, var(--card)),
+    color-mix(in srgb, var(--accent) 6%, var(--card))
+  );
+  border-color: color-mix(in srgb, var(--accent-green) 25%, var(--button-border));
+}
+
+.admin-action-btn:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-green) 16%, var(--card)),
+    color-mix(in srgb, var(--accent) 12%, var(--card))
+  );
+  border-color: color-mix(in srgb, var(--accent-green) 50%, var(--button-border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 10%, transparent);
+}
+
+/* ── Shared Admin Bits ──────────────────────────────────── */
 
 .preference-field {
   min-width: 0;
   max-width: none;
+}
+
+.backup-list,
+.import-batches {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.backup-list a,
+.import-batches a,
+.import-batches button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .ledger-pagination {
@@ -2846,23 +2983,6 @@ td:last-child {
 .ledger-pagination .button-compact:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.admin-grid .button-compact {
-  margin-bottom: 12px;
-}
-
-.backup-list,
-.import-batches {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.backup-list a,
-.import-batches a,
-.import-batches button {
-  max-width: 100%;
-  overflow-wrap: anywhere;
 }
 
 .inline-form {
@@ -3650,12 +3770,11 @@ td:last-child {
     grid-template-columns: 1fr;
   }
 
-  .admin-preferences-section {
+  .admin-card--full {
     grid-column: auto;
   }
 
-  .preference-row,
-  .delete-impact-summary {
+  .admin-prefs-grid {
     grid-template-columns: 1fr;
   }
 

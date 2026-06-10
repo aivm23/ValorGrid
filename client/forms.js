@@ -249,15 +249,9 @@ export function attach(ctx) {
         <label class="field" ${isMonthly ? '' : 'hidden'}><span>Día mes</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
         <label class="field" ${isWeekly ? '' : 'hidden'}><span>Día semana</span><select data-auto-field="weekday">
           <option value="">Día</option>
-          <option value="1" ${Number(plan.weekday) === 1 ? 'selected' : ''}>Lunes</option>
-          <option value="2" ${Number(plan.weekday) === 2 ? 'selected' : ''}>Martes</option>
-          <option value="3" ${Number(plan.weekday) === 3 ? 'selected' : ''}>Miércoles</option>
-          <option value="4" ${Number(plan.weekday) === 4 ? 'selected' : ''}>Jueves</option>
-          <option value="5" ${Number(plan.weekday) === 5 ? 'selected' : ''}>Viernes</option>
-          <option value="6" ${Number(plan.weekday) === 6 ? 'selected' : ''}>Sábado</option>
-          <option value="7" ${Number(plan.weekday) === 7 ? 'selected' : ''}>Domingo</option>
+          ${ctx.weekdayOptions(plan.weekday)}
         </select></label>
-        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" lang="es" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
+        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" lang="${ctx.state.weekStart === 'sunday' ? 'en-US' : 'es'}" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
         <button class="button button-compact" type="button" data-remove-auto-plan="${index}">Quitar</button>
       </div>`;
   }

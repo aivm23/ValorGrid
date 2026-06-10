@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.0
+
+- feat: add date format (dd/mm/yyyy vs mm/dd/yyyy) and calendar start day (Monday vs Sunday) settings in Admin preferences with dd/mm/yyyy and Monday as defaults.
+
 ## 3.7.15
 
 - feat: improve Operativa section microcopy and add info tooltips for Aportado neto, Resultado total, and Plusvalía latente cards with clearer context about total ledger scope and open investment percentage.

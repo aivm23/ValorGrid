@@ -35,5 +35,7 @@ ctx.initTheme();
 ctx.initBalancePrivacy();
 ctx.initNegativePreference();
 ctx.initLedgerPageSize();
+ctx.initDateFormat();
+ctx.initWeekStart();
 ctx.refreshDashboard();
 ctx.refreshHistory();

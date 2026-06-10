@@ -55,6 +55,8 @@ export function attach(ctx) {
     ctx.renderHistory?.();
   });
   elements.ledgerPageSize?.addEventListener('change', ctx.handleLedgerPageSizeChange);
+  elements.dateFormatSelect?.addEventListener('change', ctx.handleDateFormatChange);
+  elements.weekStartSelect?.addEventListener('change', ctx.handleWeekStartChange);
   elements.instrumentDialogClose.addEventListener('click', () => {
     state.returnToOperationDialogAfterInstrumentCreate = false;
     elements.instrumentDialog.close();

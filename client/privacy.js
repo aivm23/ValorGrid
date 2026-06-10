@@ -55,6 +55,41 @@ export function attach(ctx) {
     applyLedgerPageSize(event.target.value);
   }
 
+  function applyDateFormat(format) {
+    const valid = format === 'dd/mm/yyyy' || format === 'mm/dd/yyyy' ? format : 'dd/mm/yyyy';
+    ctx.state.dateFormat = valid;
+    ctx.localStorage.setItem('valorgrid-date-format', valid);
+    if (ctx.elements.dateFormatSelect) ctx.elements.dateFormatSelect.value = valid;
+  }
+
+  function initDateFormat() {
+    applyDateFormat(ctx.localStorage.getItem('valorgrid-date-format') || 'dd/mm/yyyy');
+  }
+
+  function handleDateFormatChange(event) {
+    applyDateFormat(event.target.value);
+    if (ctx.state.summary) ctx.renderDashboard();
+  }
+
+  function applyWeekStart(day) {
+    const valid = day === 'monday' || day === 'sunday' ? day : 'monday';
+    ctx.state.weekStart = valid;
+    ctx.localStorage.setItem('valorgrid-week-start', valid);
+    if (ctx.elements.weekStartSelect) ctx.elements.weekStartSelect.value = valid;
+    const lang = valid === 'sunday' ? 'en-US' : 'es';
+    ctx.document.querySelectorAll('input[type="date"]').forEach((input) => {
+      input.lang = lang;
+    });
+  }
+
+  function initWeekStart() {
+    applyWeekStart(ctx.localStorage.getItem('valorgrid-week-start') || 'monday');
+  }
+
+  function handleWeekStartChange(event) {
+    applyWeekStart(event.target.value);
+  }
+
   ctx.formatCurrency = function formatCurrencyWithPrivacy(value) {
     return ctx.state.hideBalances ? maskedValue : visibleFormatter(value);
   };
@@ -69,5 +104,11 @@ export function attach(ctx) {
     applyLedgerPageSize,
     initLedgerPageSize,
     handleLedgerPageSizeChange,
+    applyDateFormat,
+    initDateFormat,
+    handleDateFormatChange,
+    applyWeekStart,
+    initWeekStart,
+    handleWeekStartChange,
   });
 }

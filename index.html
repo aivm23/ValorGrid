@@ -767,18 +767,23 @@
 
     <dialog id="admin-dialog" class="modal">
       <div class="modal-panel modal-panel-wide admin-panel">
-        <div class="modal-header">
-          <div>
+        <div class="admin-header">
+          <div class="admin-header-text">
             <h2>Administración</h2>
             <p class="subtle">Backups, importaciones y preferencias de visualización.</p>
           </div>
           <button id="admin-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
 
-        <div class="ops-grid admin-grid">
-          <section class="admin-preferences-section">
-            <h3>Preferencias</h3>
-            <div class="preference-row">
+        <div class="admin-grid">
+          <section class="admin-card admin-card--preferences admin-card--full">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v2m0 10v2M1 8h2m10 0h2m-1.7-5.3-1.4 1.4m-7.8 7.8-1.4 1.4m0-10.6 1.4 1.4m7.8 7.8 1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
+              <h3>Preferencias</h3>
+            </div>
+            <div class="admin-prefs-grid">
               <label class="switch-field admin-preference">
                 <input id="negative-red-toggle" type="checkbox" checked />
                 <span>Mostrar negativos en rojo</span>
@@ -794,16 +799,44 @@
                   <option value="1000" selected>1000</option>
                 </select>
               </label>
+              <label class="field preference-field">
+                <span>Formato de fecha</span>
+                <select id="date-format-select">
+                  <option value="dd/mm/yyyy" selected>dd/mm/aaaa</option>
+                  <option value="mm/dd/yyyy">mm/dd/aaaa</option>
+                </select>
+              </label>
+              <label class="field preference-field">
+                <span>Inicio del calendario</span>
+                <select id="week-start-select">
+                  <option value="monday" selected>Lunes</option>
+                  <option value="sunday">Domingo</option>
+                </select>
+              </label>
             </div>
-            <p class="subtle">Solo cambia la presentación; no modifica ningún dato.</p>
+            <p class="subtle admin-prefs-hint">Solo cambia la presentación; no modifica ningún dato.</p>
           </section>
-          <section>
-            <h3>Backups</h3>
-            <button id="create-backup" class="button button-compact" type="button">Crear backup</button>
+
+          <section class="admin-card admin-card--backups">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
+              <h3>Backups</h3>
+            </div>
+            <button id="create-backup" class="button button-compact admin-action-btn" type="button">
+              <span class="admin-action-btn-label">Crear backup</span>
+            </button>
             <div id="backup-list" class="backup-list"></div>
           </section>
-          <section class="import-box">
-            <h3>Importaciones</h3>
+
+          <section class="admin-card admin-card--imports">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2M8 2v8m0 0 3-3m-3 3-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <h3>Importaciones</h3>
+            </div>
             <p class="subtle">Revierte lotes importados si necesitas corregirlos.</p>
             <div id="import-batches" class="import-batches"></div>
           </section>

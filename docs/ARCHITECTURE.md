@@ -50,7 +50,7 @@ src/
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
-├── platform/           (db, config, http, backups, ctx-utils, validators, app-error, utils)
+├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
 ├── types.ts
 ├── app.js
 ├── routes.js

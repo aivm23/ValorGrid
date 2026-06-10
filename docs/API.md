@@ -100,17 +100,17 @@ Los planes soportan frecuencia diaria, semanal, bisemanal y mensual. Cada plan t
 GET /api/portfolio/summary
 GET /api/portfolio/performance
 GET /api/portfolio/monthly?year=2026
-GET /api/portfolio/history?range=ytd
+GET /api/portfolio/history?range=ytd&granularity=auto
 GET /api/portfolio/history?range=1y
-GET /api/portfolio/history?range=2y
-GET /api/portfolio/history?range=5y
-GET /api/portfolio/history?range=all
+GET /api/portfolio/history?range=2y&granularity=weekly
+GET /api/portfolio/history?range=5y&granularity=weekly
+GET /api/portfolio/history?range=all&granularity=weekly
 ```
 
 - `summary`: distribución actual, grupos e instrumentos.
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
 - `monthly`: revisión YTD por meses y grupos.
-- `history`: serie histórica materializada diaria/semanal y eventos.
+- `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).
 - Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.
 
 ## Precios

@@ -12,9 +12,32 @@ export function attach(ctx) {
     return `<span class="${moneyClass(value)}">${formatCurrency(Number(value || 0))}</span>`;
   }
 
+  function dateLocale() {
+    return ctx.state.dateFormat === 'mm/dd/yyyy' ? 'en-US' : 'es-ES';
+  }
+
+  function weekdayOptions(selectedValue) {
+    const all = [
+      { value: '1', label: 'Lunes' },
+      { value: '2', label: 'Martes' },
+      { value: '3', label: 'Miércoles' },
+      { value: '4', label: 'Jueves' },
+      { value: '5', label: 'Viernes' },
+      { value: '6', label: 'Sábado' },
+      { value: '7', label: 'Domingo' },
+    ];
+    const ordered = ctx.state.weekStart === 'sunday'
+      ? [all[6], all[0], all[1], all[2], all[3], all[4], all[5]]
+      : all;
+    return ordered.map((d) => {
+      const sel = String(selectedValue) === d.value ? ' selected' : '';
+      return `<option value="${d.value}"${sel}>${d.label}</option>`;
+    }).join('');
+  }
+
   function formatDate(value) {
     if (!value) return 'sin fecha';
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(dateLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -22,14 +45,14 @@ export function attach(ctx) {
   }
 
   function formatDateTime(value) {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(dateLocale(), {
       dateStyle: 'short',
       timeStyle: 'short',
     }).format(new Date(value));
   }
 
   function formatPlainDate(value) {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(dateLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -139,6 +162,7 @@ export function attach(ctx) {
     formatDate,
     formatDateTime,
     formatPlainDate,
+    weekdayOptions,
     todayInputValue,
     addYears,
     requestedHistoryStart,
