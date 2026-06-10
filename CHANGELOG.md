@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.15
+
+- feat: improve Operativa section microcopy and add info tooltips for Aportado neto, Resultado total, and Plusvalía latente cards with clearer context about total ledger scope and open investment percentage.
+
 ## 3.7.14
 
 - fix: auth guard activates on password presence instead of `config.enabled`, and HTTP server wraps `new URL()` in try/catch while hiding internal error messages.

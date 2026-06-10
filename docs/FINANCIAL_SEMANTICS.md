@@ -23,6 +23,8 @@ Formula base:
 
 ## métricas de `/api/portfolio/performance`
 
+> **Ámbito**: estas métricas resumen **todo el ledger desde el primer movimiento**, no el año vigente. El `netContributed` anual de la sección Revisión YTD (`/api/portfolio/monthly`) es independiente.
+
 - `currentValue`:
   - Valor actual total (EUR) de posiciones visibles.
   - Fuente: `buildSummary().total`.
@@ -46,6 +48,16 @@ Formula base:
 - `simpleReturnPct`:
   - Si `netContributed > 0`: `(totalGain / netContributed) * 100`.
   - Si `netContributed <= 0`: `null`.
+
+### Porcentaje UI de plusvalía latente sobre inversión abierta
+
+En la tarjeta **Plusvalía latente** de la sección Operativa se muestra un porcentaje calculado en el frontend (no en el backend):
+
+- `inversión abierta = currentValue - unrealizedGain`.
+- `% latente = (unrealizedGain / inversión abierta) * 100`.
+- Si `inversión abierta <= 0`, se muestra `sin inversión abierta`.
+
+Este porcentaje compara la plusvalía latente con la inversión que sigue abierta tras ventas FIFO, no con todas las compras históricas.
 
 ## métricas de `/api/portfolio/monthly` (bloque `summary`)
 

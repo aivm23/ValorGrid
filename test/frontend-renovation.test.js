@@ -357,3 +357,64 @@ test('imports.js renders "Próximamente" label for comingSoon sources', () => {
   assert.ok(importsSource.includes('Próximamente'), 'imports.js renders "Próximamente" label');
   assert.ok(importsSource.includes('loadImportSources'), 'imports.js defines loadImportSources');
 });
+
+// ── 15) Operativa section microcopy and tooltips ──
+
+test('operations.js Operativa cards use improved microcopy and tooltips', () => {
+  const ops = read(path.join('client', 'operations.js'));
+
+  // Old copy removed
+  assert.ok(!ops.includes('sin base de aportación'), 'removed old "sin base de aportación" copy');
+  assert.ok(!ops.includes('>no realizada<'), 'removed old standalone "no realizada" microcopy');
+
+  // New microcopy for Aportado neto
+  assert.ok(ops.includes('desde primer movimiento'), 'aportado microcopy: desde primer movimiento');
+  assert.ok(ops.includes('retirada neta total'), 'aportado microcopy: retirada neta total');
+
+  // New microcopy for Resultado total
+  assert.ok(ops.includes('valor + retirado neto'), 'resultado microcopy: valor + retirado neto');
+  assert.ok(ops.includes('sin aportación neta'), 'resultado microcopy: sin aportación neta');
+  assert.ok(ops.includes('sobre aportado'), 'resultado microcopy: sobre aportado');
+
+  // New microcopy for Plusvalía latente
+  assert.ok(ops.includes('sobre inversión abierta'), 'latent microcopy: sobre inversión abierta');
+  assert.ok(ops.includes('sin inversión abierta'), 'latent microcopy: sin inversión abierta');
+
+  // Plusvalía realizada copy updated
+  assert.ok(ops.includes('resultado ventas FIFO'), 'realized copy: resultado ventas FIFO');
+
+  // Tooltips present
+  assert.ok(ops.includes('op-contributed-info'), 'tooltip id for aportado neto');
+  assert.ok(ops.includes('op-result-info'), 'tooltip id for resultado total');
+  assert.ok(ops.includes('op-latent-info'), 'tooltip id for plusvalía latente');
+
+  // Tooltip content
+  assert.ok(ops.includes('Aportado neto total desde el primer movimiento'), 'aportado tooltip text');
+  assert.ok(ops.includes('Resultado total = valor mercado - aportado neto'), 'resultado tooltip text');
+  assert.ok(ops.includes('Plusvalía no realizada de posiciones abiertas'), 'latent tooltip text');
+
+  // Open investment formula present
+  assert.ok(ops.includes('currentValue - unrealizedGain'), 'open investment formula present');
+  assert.ok(ops.includes('unrealizedGain / openInvestment'), 'latent pct formula present');
+
+  // metricInfo helper defined
+  assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in operations.js');
+});
+
+test('operations.js Operativa cards handle edge cases without NaN or Infinity', () => {
+  const ops = read(path.join('client', 'operations.js'));
+
+  // Verify the code guards against division by zero for latent pct
+  assert.ok(ops.includes('openInvestment > 0'), 'guards latent pct against zero open investment');
+
+  // Verify the code handles netContributed === 0 for result microcopy
+  assert.ok(ops.includes('netContributed === 0'), 'handles zero netContributed for result microcopy');
+
+  // Verify no hardcoded NaN, Infinity, or undefined in template literals
+  const templateMatch = ops.match(/innerHTML\s*=\s*`[\s\S]*?`;/g) || [];
+  for (const tpl of templateMatch) {
+    assert.ok(!tpl.includes('NaN'), 'no NaN in template literals');
+    assert.ok(!tpl.includes('Infinity'), 'no Infinity in template literals');
+    assert.ok(!tpl.includes('undefined'), 'no undefined in template literals');
+  }
+});

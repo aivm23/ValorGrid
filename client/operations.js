@@ -1,23 +1,83 @@
 export function attach(ctx) {
+  function metricInfo(label, tooltip, id) {
+    const escapedLabel = ctx.escapeHtml(label);
+    const escapedTooltip = ctx.escapeHtml(tooltip);
+    return `
+      <div class="metric-label">
+        <span>${escapedLabel}</span>
+        <button type="button" class="metric-info-button" aria-label="Información sobre la métrica" aria-describedby="${id}">i</button>
+        <span id="${id}" class="sr-only">${escapedTooltip}</span>
+        <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">${escapedTooltip}</div>
+      </div>`;
+  }
+
   function renderPerformance() {
     const performance = ctx.state.summary?.performance;
     if (!performance) {
       ctx.elements.performanceSummary.innerHTML = '<article><span>Rentabilidad</span><strong>Pendiente</strong></article>';
       return;
     }
-    const returnCopy = performance.netContributed > 0
-      ? ctx.formatPercent(performance.simpleReturnPct)
-      : 'sin base de aportación';
+    const netContributed = performance.netContributed;
+    const contributedMicro = netContributed >= 0 ? 'desde primer movimiento' : 'retirada neta total';
+    const contributedTooltip = 'Aportado neto total desde el primer movimiento: compras y comisiones menos ventas netas. Si es negativo, ya has retirado más caja de la aportada.';
+
+    const totalGain = performance.totalGain;
+    let resultMicro;
+    if (netContributed < 0) {
+      resultMicro = 'valor + retirado neto';
+    } else if (netContributed === 0) {
+      resultMicro = 'sin aportación neta';
+    } else {
+      resultMicro = `${ctx.formatPercent(performance.simpleReturnPct)} sobre aportado`;
+    }
+    const resultTooltip = 'Resultado total = valor mercado - aportado neto. Cuando el aportado neto es negativo, se lee como valor mercado + retirada neta.';
+
+    const currentValue = ctx.state.summary.total;
+    const unrealizedGain = performance.unrealizedGain;
+    const openInvestment = currentValue - unrealizedGain;
+    let latentMicro;
+    if (openInvestment > 0) {
+      const latentPct = (unrealizedGain / openInvestment) * 100;
+      latentMicro = `${latentPct.toFixed(1)}% sobre inversión abierta`;
+    } else {
+      latentMicro = 'sin inversión abierta';
+    }
+    const latentTooltip = 'Plusvalía no realizada de posiciones abiertas. El porcentaje compara la plusvalía latente con la inversión que sigue abierta tras ventas FIFO, no con todas las compras históricas.';
+
     const commissionCopy = performance.commissions > 0 && performance.transactionCount > 0
       ? `${(performance.commissions / performance.transactionCount).toFixed(2)} €/movimiento`
       : 'sin comisiones';
     ctx.elements.performanceSummary.innerHTML = `
-      <article class="has-border-accent"><span>Valor mercado</span><strong>${ctx.formatCurrency(ctx.state.summary.total)}</strong><small class="metric-micro">a precios actuales</small></article>
-      <article class="has-border-accent"><span>Aportado neto</span><strong class="${ctx.moneyClass(performance.netContributed)}">${ctx.formatCurrency(performance.netContributed)}</strong><small class="metric-micro">compras - ventas</small></article>
-      <article class="${performance.totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado total</span><strong class="${ctx.moneyClass(performance.totalGain)}">${ctx.formatCurrency(performance.totalGain)}</strong><small>${returnCopy}</small></article>
-      <article class="${performance.unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Plusvalía latente</span><strong class="${ctx.moneyClass(performance.unrealizedGain)}">${ctx.formatCurrency(performance.unrealizedGain)}</strong><small class="metric-micro">no realizada</small></article>
-      <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Plusvalía realizada</span><strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong><small>ventas FIFO</small></article>
-      <article class="has-border-amber"><span>Comisiones</span><strong>${ctx.formatCurrency(performance.commissions)}</strong><small class="metric-micro">${commissionCopy}</small></article>
+      <article class="has-border-accent">
+        <span>Valor mercado</span>
+        <strong>${ctx.formatCurrency(currentValue)}</strong>
+        <small class="metric-micro">a precios actuales</small>
+      </article>
+      <article class="has-border-accent">
+        ${metricInfo('Aportado neto', contributedTooltip, 'op-contributed-info')}
+        <strong class="${ctx.moneyClass(netContributed)}">${ctx.formatCurrency(netContributed)}</strong>
+        <small class="metric-micro">${contributedMicro}</small>
+      </article>
+      <article class="${totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+        ${metricInfo('Resultado total', resultTooltip, 'op-result-info')}
+        <strong class="${ctx.moneyClass(totalGain)}">${ctx.formatCurrency(totalGain)}</strong>
+        <small class="metric-micro">${resultMicro}</small>
+      </article>
+      <article class="${unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+        ${metricInfo('Plusvalía latente', latentTooltip, 'op-latent-info')}
+        <strong class="${ctx.moneyClass(unrealizedGain)}">${ctx.formatCurrency(unrealizedGain)}</strong>
+        <small class="metric-micro">${latentMicro}</small>
+      </article>
+      <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+        <span>Plusvalía realizada</span>
+        <strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong>
+        <small class="metric-micro">resultado ventas FIFO</small>
+      </article>
+      <article class="has-border-amber">
+        <span>Comisiones</span>
+        <strong>${ctx.formatCurrency(performance.commissions)}</strong>
+        <small class="metric-micro">${commissionCopy}</small>
+      </article>
     `;
   }
 
