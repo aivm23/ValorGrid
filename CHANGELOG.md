@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.1
+
+- chore: remove backup button from toolbar export menu.
+
 ## 3.8.0
 
 - feat: add date format (dd/mm/yyyy vs mm/dd/yyyy) and calendar start day (Monday vs Sunday) settings in Admin preferences with dd/mm/yyyy and Monday as defaults.

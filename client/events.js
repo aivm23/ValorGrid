@@ -155,7 +155,6 @@ export function attach(ctx) {
     if (btn) ctx.goToLedgerPage(btn.dataset.ledgerPage);
   });
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
-  elements.toolbarBackup?.addEventListener('click', () => createBackup(ctx));
   elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);
   elements.openImportDialogToolbar?.addEventListener('click', ctx.openImportDialog);
   elements.importDialogClose.addEventListener('click', ctx.closeImportDialog);
