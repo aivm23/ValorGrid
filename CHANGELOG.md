@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.8.2
+
+- style: remove underline from toolbar anchor buttons.
+- refactor: replace export dropdown with direct download link.
+- chore: remove backup button from toolbar export menu.
+- feat: add date format and calendar start day settings with redesigned admin panel.
+- feat: improve Operativa section microcopy, tooltips and open investment percentage.
+- fix: harden auth guard activation and HTTP error handling.
+- style: community and professional edition labels in corporate colors.
+- chore: update changelog and CasaOS metadata for v3.7.13.
+- docs: fix Spanish accents and mojibake across documentation - Correct encoding artifacts and missing tildes in Spanish docs and README.
+- feat: add Spanish documentation spellcheck gate - Add check-spanish-docs.js that validates Spanish docs for mojibake, missing accents, and common spelling mistakes.
+- docs: clarify auth.js is imported by http.js, not loaded directly in app.js.
+- docs: update README with Basic Auth and new port 1325.
+
 ## 3.8.1
 
 - chore: remove backup button from toolbar export menu.

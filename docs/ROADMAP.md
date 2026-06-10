@@ -38,7 +38,6 @@ Estado actual:
 
 Siguientes pasos:
 
-- mejorar README como ventana comercial principal;
-- preparar landing propia cuando exista dominio;
+- landing: https://valorgrid.app ya está operativa como ficha principal del proyecto.
 - valorar firma de código para reducir fricción de Windows SmartScreen;
 - publicar material de onboarding y vídeo corto.

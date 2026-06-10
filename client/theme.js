@@ -1,3 +1,5 @@
+const VALID_THEMES = new Set(['dark', 'light']);
+
 export function attach(ctx) {
   const { document, localStorage, elements, window } = ctx;
 
@@ -10,8 +12,9 @@ export function attach(ctx) {
 
   function initTheme() {
     const savedTheme = localStorage.getItem('portfolio-theme');
+    const validTheme = VALID_THEMES.has(savedTheme) ? savedTheme : null;
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+    applyTheme(validTheme || (prefersDark ? 'dark' : 'light'));
   }
 
   Object.assign(ctx, {

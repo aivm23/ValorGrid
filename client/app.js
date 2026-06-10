@@ -4,6 +4,7 @@
  */
 
 import { fetchJson, normalizeErrorMessage, sendJson } from './api.js';
+import storage from './storage.js';
 import { attach as attachState } from './state.js';
 import { attach as attachDom } from './dom.js';
 import { attach as attachFormat } from './format.js';
@@ -22,7 +23,7 @@ import { attach as attachHistory } from './history.js';
 import { attach as attachBulkActions } from './bulk-actions.js';
 import { attach as attachEvents } from './events.js';
 
-const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, localStorage, Intl, Number, Date, Math, Promise, Set, Map };
+const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
 
 [
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,

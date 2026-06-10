@@ -218,6 +218,7 @@ Orquestador del frontend:
 
 Módulos principales:
 
+- `storage.js`: wrapper seguro para preferencias del usuario con fallback a cookies.
 - `api.js`: fetch local, errores y timeouts.
 - `api-client.js`: wrapper HTTP tipado con JSDoc para cada endpoint de la API.
 - `state.js`: estado global de UI.

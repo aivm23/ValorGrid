@@ -68,7 +68,7 @@ export function attach(ctx) {
 
   function handleDateFormatChange(event) {
     applyDateFormat(event.target.value);
-    if (ctx.state.summary) ctx.renderDashboard();
+    ctx.refreshDashboard();
   }
 
   function applyWeekStart(day) {
@@ -88,6 +88,7 @@ export function attach(ctx) {
 
   function handleWeekStartChange(event) {
     applyWeekStart(event.target.value);
+    ctx.refreshDashboard();
   }
 
   ctx.formatCurrency = function formatCurrencyWithPrivacy(value) {
