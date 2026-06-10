@@ -638,6 +638,7 @@ h2 {
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0 11px;
+  text-decoration: none;
   transition: background-color 120ms ease, border-color 120ms ease, transform 100ms ease;
 }
 
