@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.14
+
+- fix: auth guard activates on password presence instead of `config.enabled`, and HTTP server wraps `new URL()` in try/catch while hiding internal error messages.
+
 ## 3.7.13
 
 - test: add a Spanish documentation spellcheck gate for mojibake and common accent mistakes.

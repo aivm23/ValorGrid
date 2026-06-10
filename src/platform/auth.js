@@ -36,16 +36,19 @@ function reject(response) {
 }
 
 function createBasicAuthGuard(config = {}) {
-  if (!config.enabled) return null;
-
   const expectedUser = String(config.user || 'valorgrid');
   const expectedPassword = String(config.password || '');
 
+  if (!expectedPassword) {
+    return null;
+  }
+
   return function authorize(request, response) {
     const credentials = parseBasicAuth(request.headers.authorization);
-    const userMatches = credentials ? safeEqualString(credentials.user, expectedUser) : false;
-    const passwordMatches = credentials ? safeEqualString(credentials.password, expectedPassword) : false;
-    const ok = userMatches && passwordMatches;
+    const ok =
+      credentials &&
+      safeEqualString(credentials.user, expectedUser) &&
+      safeEqualString(credentials.password, expectedPassword);
 
     if (!ok) {
       reject(response);

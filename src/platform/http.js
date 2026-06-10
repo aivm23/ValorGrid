@@ -10,14 +10,21 @@ module.exports = function attach(ctx) {
   const server = http.createServer(async (request, response) => {
     if (authGuard && !authGuard(request, response)) return;
 
-    const url = new URL(request.url || '/', `http://${request.headers.host || `localhost:${port}`}`);
+    let url;
+    try {
+      url = new URL(request.url || '/', `http://${request.headers.host || `localhost:${port}`}`);
+    } catch {
+      sendJson(response, 400, { error: 'Bad request' });
+      return;
+    }
 
     if (url.pathname.startsWith('/api/')) {
       try {
         const handled = await handleApi(request, response, url);
         if (!handled) sendJson(response, 404, { error: 'Not found' });
       } catch (error) {
-        sendJson(response, 500, { error: error.message || 'Internal server error' });
+        console.error(error);
+        sendJson(response, 500, { error: 'Internal server error' });
       }
       return;
     }
