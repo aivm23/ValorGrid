@@ -150,18 +150,19 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 12. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
 13. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
 14. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
-15. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-16. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
-17. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-18. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-19. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-20. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-21. `domains/history/history-core`: motor de materialización de histórico.
-22. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-23. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-24. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-25. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-26. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+15. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+16. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+17. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
+18. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+19. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+20. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+21. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+22. `domains/history/history-core`: motor de materialización de histórico.
+23. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+24. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+25. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+26. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+27. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 

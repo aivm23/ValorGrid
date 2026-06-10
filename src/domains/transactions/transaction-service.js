@@ -27,8 +27,6 @@ module.exports = function attach(ctx) {
     getToday,
     normalizeSymbol,
     getInstrument,
-    dateUtc,
-    addDays,
     transactionSign,
     ensureInstrument,
     getQuoteForSymbol,
@@ -244,106 +242,6 @@ module.exports = function attach(ctx) {
     return { plans: adjusted, warnings };
   }
 
-  function weekdayNumber(dateValue) {
-    const jsDay = dateUtc(dateValue).getUTCDay();
-    return jsDay === 0 ? 7 : jsDay;
-  }
-
-  function nextWeekdayOnOrAfter(startDate, weekday) {
-    const current = weekdayNumber(startDate);
-    const diff = (weekday - current + 7) % 7;
-    return addDays(startDate, diff);
-  }
-
-  function currentMonthScheduledDate(plan, today = getToday()) {
-    const date = dateUtc(today);
-    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(plan.day).padStart(2, '0')}`;
-  }
-
-  function effectiveAutoPlanStart(plan, today = getToday()) {
-    if (plan.startDate) return plan.startDate;
-    if ((plan.frequency || 'monthly') === 'monthly') return currentMonthScheduledDate(plan, today);
-    return today;
-  }
-
-  function getAutoPlanScheduledDates(plan, toDate = getToday()) {
-    const normalized = {
-      ...plan,
-      frequency: plan.frequency || 'monthly',
-      day: plan.day || 1,
-      weekday: plan.weekday || null,
-    };
-    const startDate = effectiveAutoPlanStart(normalized, toDate);
-    if (!startDate || startDate > toDate) return [];
-    const dates = [];
-
-    if (normalized.frequency === 'daily') {
-      for (let date = startDate; date <= toDate; date = addDays(date, 1)) dates.push(date);
-      return dates;
-    }
-
-    if (normalized.frequency === 'weekly' || normalized.frequency === 'biweekly') {
-      const step = normalized.frequency === 'biweekly' ? 14 : 7;
-      for (let date = nextWeekdayOnOrAfter(startDate, Number(normalized.weekday)); date <= toDate; date = addDays(date, step)) {
-        dates.push(date);
-      }
-      return dates;
-    }
-
-    const start = dateUtc(startDate);
-    const end = dateUtc(toDate);
-    for (let year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year += 1) {
-      const startMonth = year === start.getUTCFullYear() ? start.getUTCMonth() + 1 : 1;
-      const endMonth = year === end.getUTCFullYear() ? end.getUTCMonth() + 1 : 12;
-      for (let month = startMonth; month <= endMonth; month += 1) {
-        const scheduledDate = `${year}-${String(month).padStart(2, '0')}-${String(normalized.day).padStart(2, '0')}`;
-        if (scheduledDate >= startDate && scheduledDate <= toDate) dates.push(scheduledDate);
-      }
-    }
-    return dates;
-  }
-
-  function autoKeyForPlan(plan, scheduledDate) { return `auto:${plan.symbol}:${scheduledDate}`; }
-
-  function autoPlanExists(autoKey) {
-    if (transactionExistsByAutoKey(autoKey)) return true;
-    const parts = autoKey.split(':');
-    if (parts.length === 3 && parts[0] === 'auto') {
-      const symbol = parts[1];
-      const date = parts[2];
-      const monthKey = date.slice(0, 7);
-      const legacyKey = `auto:${monthKey}:${symbol}`;
-      return transactionExistsByAutoKey(legacyKey);
-    }
-    return false;
-  }
-
-  function previewAutoPlanExecutions(plans, toDate = getToday()) {
-    const { plans: normalizedPlans, warnings } = applyAutoPlanEditPolicy(normalizeAutoPlans(plans), toDate);
-    const items = normalizedPlans.map((plan) => {
-      const scheduledDates = plan.enabled ? getAutoPlanScheduledDates(plan, toDate) : [];
-      const pendingDates = scheduledDates.filter((scheduledDate) => {
-        const autoKey = autoKeyForPlan(plan, scheduledDate);
-        return !autoPlanExists(autoKey) && !isAutoPlanSkipped(autoKey);
-      });
-      return {
-        symbol: plan.symbol,
-        frequency: plan.frequency,
-        amountEur: plan.amountEur,
-        pendingCount: pendingDates.length,
-        firstDate: pendingDates[0] || null,
-        lastDate: pendingDates[pendingDates.length - 1] || null,
-        estimatedTotalEur: pendingDates.length * plan.amountEur,
-      };
-    });
-    return {
-      plans: items,
-      pendingCount: items.reduce((sum, item) => sum + item.pendingCount, 0),
-      estimatedTotalEur: items.reduce((sum, item) => sum + item.estimatedTotalEur, 0),
-      warnings,
-    };
-  }
-
   function getPositionShares(symbol, asOfDate = null) {
     const instrument = getInstrument(symbol);
     if (!instrument) return 0;
@@ -395,8 +293,61 @@ module.exports = function attach(ctx) {
     const date = input.date || getToday();
     const hasEuros = Number.isFinite(Number(input.euros)) && Number(input.euros) > 0;
     const hasShares = Number.isFinite(Number(input.shares)) && Number(input.shares) > 0;
+    const manualUnitPrice = Number.isFinite(Number(input.unitPrice)) && Number(input.unitPrice) > 0;
 
     if (!symbolInput) throw new Error('Missing symbol');
+
+    const existingInstrument = getInstrumentByInput(symbolInput);
+
+    if (manualUnitPrice) {
+      if (!existingInstrument) {
+        throw new Error('Manual unit price requires an existing instrument');
+      }
+      if (hasEuros) {
+        throw new Error('unitPrice cannot be combined with euros');
+      }
+      if (!hasShares) {
+        throw new Error('unitPrice requires shares');
+      }
+
+      const instrument = existingInstrument;
+      const currency = instrument.currency || 'EUR';
+      const fxToEur = (await getFxToEur(currency, date)) ?? 1;
+      const priceEur = toEur(input.unitPrice, currency, fxToEur);
+      const shares = Number(input.shares);
+      const valueEur = shares * priceEur;
+      const commissionEur = Number.isFinite(Number(input.commissionEur ?? input.commission))
+        ? Math.abs(Number(input.commissionEur ?? input.commission))
+        : 0;
+      const cashFlowEur = type === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur);
+
+      if (type === 'remove') {
+        const available = getPositionShares(instrument.symbol, date);
+        if (shares > available + 0.0000001) {
+          throw new Error(`Not enough shares. Available: ${available.toFixed(6)}`);
+        }
+      }
+
+      return {
+        type,
+        date,
+        symbol: instrument.symbol,
+        name: instrument.name,
+        marketDate: date,
+        shares,
+        valueEur,
+        price: input.unitPrice,
+        priceEur,
+        currency,
+        fxToEur,
+        commissionEur,
+        cashFlowEur,
+        instrument,
+        quote: null,
+        manualUnitPrice: true,
+      };
+    }
+
     if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
     const quote = await getQuoteForSymbol(symbolInput, date);
@@ -408,7 +359,6 @@ module.exports = function attach(ctx) {
       ? Math.abs(Number(input.commissionEur ?? input.commission))
       : 0;
     const cashFlowEur = type === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur);
-    const existingInstrument = getInstrumentByInput(symbolInput);
     const instrument =
       existingInstrument ||
       (type === 'add'
@@ -446,6 +396,7 @@ module.exports = function attach(ctx) {
       cashFlowEur,
       instrument,
       quote,
+      manualUnitPrice: false,
     };
   }
 
@@ -484,7 +435,7 @@ module.exports = function attach(ctx) {
     normalizeAutoPlans,
     autoPlanMateriallyChanged,
     applyAutoPlanEditPolicy,
-    getAutoPlanScheduledDates,
+    getAutoPlanScheduledDates: ctx.getAutoPlanScheduledDates,
     autoKeyForPlan,
     autoPlanExists,
     previewAutoPlanExecutions,
@@ -495,4 +446,45 @@ module.exports = function attach(ctx) {
     deleteTransaction,
     isAutoPlanSkipped,
   });
+
+  function autoKeyForPlan(plan, scheduledDate) { return `auto:${plan.symbol}:${scheduledDate}`; }
+
+  function autoPlanExists(autoKey) {
+    if (transactionExistsByAutoKey(autoKey)) return true;
+    const parts = autoKey.split(':');
+    if (parts.length === 3 && parts[0] === 'auto') {
+      const symbol = parts[1];
+      const date = parts[2];
+      const monthKey = date.slice(0, 7);
+      const legacyKey = `auto:${monthKey}:${symbol}`;
+      return transactionExistsByAutoKey(legacyKey);
+    }
+    return false;
+  }
+
+  function previewAutoPlanExecutions(plans, toDate = getToday()) {
+    const { plans: normalizedPlans, warnings } = applyAutoPlanEditPolicy(normalizeAutoPlans(plans), toDate);
+    const items = normalizedPlans.map((plan) => {
+      const scheduledDates = plan.enabled ? ctx.getAutoPlanScheduledDates(plan, toDate) : [];
+      const pendingDates = scheduledDates.filter((scheduledDate) => {
+        const autoKey = autoKeyForPlan(plan, scheduledDate);
+        return !autoPlanExists(autoKey) && !isAutoPlanSkipped(autoKey);
+      });
+      return {
+        symbol: plan.symbol,
+        frequency: plan.frequency,
+        amountEur: plan.amountEur,
+        pendingCount: pendingDates.length,
+        firstDate: pendingDates[0] || null,
+        lastDate: pendingDates[pendingDates.length - 1] || null,
+        estimatedTotalEur: pendingDates.length * plan.amountEur,
+      };
+    });
+    return {
+      plans: items,
+      pendingCount: items.reduce((sum, item) => sum + item.pendingCount, 0),
+      estimatedTotalEur: items.reduce((sum, item) => sum + item.estimatedTotalEur, 0),
+      warnings,
+    };
+  }
 };

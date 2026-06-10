@@ -84,6 +84,20 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 - cash-flow firmado,
 - origen.
 
+### Parámetros de `POST /api/transactions` y `POST /api/transactions/preview`
+
+Se aceptan tres modos de cantidad, mutuamente excluyentes:
+
+- **`euros`** (importe total): se calculan las acciones con `euros / priceEur` usando precio de mercado/cache.
+- **`shares`** (acciones): se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
+- **`shares` + `unitPrice`** (precio manual): `unitPrice` es un precio unitario introducido manualmente por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). El cálculo es `valueEur = shares * toEur(unitPrice, currency, fxToEur)`. `unitPrice` solo es válido cuando `shares > 0` y no se puede combinar con `euros`.
+
+Reglas de validación:
+
+- `euros` y `shares` son XOR (no se permiten ambos).
+- `unitPrice` requiere `shares > 0` y no se permite con `euros`.
+- `unitPrice` requiere un instrumento existente.
+
 ## Aportaciones automáticas
 
 ```text

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.9.0
+
+- feat: manual unit price in transaction form — when the user enters "Precio / acción + Acciones", the manual price is now the accounting source for valueEur instead of being silently discarded and replaced by market price.
+- feat: show "Precio manual" indicator in transaction preview when unit price is used.
+- feat: support non-EUR instruments with manual unit price — FX conversion is applied correctly.
+- refactor: extract auto-plan date calculation logic into `auto-plan-date-service` to keep `transaction-service` under 500 lines.
+- fix: transaction form no longer discards the user-entered unit price; preview and save produce identical numbers.
+- test: add integration tests for manual unit price (EUR, non-EUR, validation edge cases).
+- docs: update API.md, FINANCIAL_SEMANTICS.md and ARCHITECTURE.md with manual unit price semantics and new module.
+
 ## 3.8.2
 
 - style: remove underline from toolbar anchor buttons.

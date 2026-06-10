@@ -683,3 +683,146 @@ test('unknown API endpoints return 404 JSON', async () => {
   assert.equal(body.error, 'Not found');
 });
 
+test('manual unit price: buy with shares + unitPrice uses manual price for valueEur', async () => {
+  seedTestInstrument({ symbol: 'U3O8', yahooSymbol: 'U3O8', name: 'S&P 500', type: 'stock', currency: 'EUR' });
+
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'U3O8',
+    date: '2026-05-06',
+    shares: 3,
+    unitPrice: 11.99,
+    commissionEur: 0,
+  });
+
+  assert.equal(transaction.symbol, 'U3O8');
+  assert.equal(transaction.shares, 3);
+  assert.equal(Number(transaction.valueEur.toFixed(2)), 35.97);
+  assert.equal(transaction.price, 11.99);
+  assert.equal(transaction.currency, 'EUR');
+  assert.equal(Number(transaction.commissionEur.toFixed(2)), 0);
+  assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -35.97);
+  assert.equal(getPositionShares('U3O8', '2026-05-06'), 3);
+});
+
+test('manual unit price preview: POST /api/transactions/preview with unitPrice', async () => {
+  seedTestInstrument({ symbol: 'U3O8P', yahooSymbol: 'U3O8P', name: 'S&P 500 Preview', type: 'stock', currency: 'EUR' });
+  const before = getTransactions().length;
+
+  const { response, body } = await jsonRequest('/api/transactions/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'U3O8P',
+      date: '2026-05-06',
+      shares: 3,
+      unitPrice: 11.99,
+      commissionEur: 0,
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.preview.symbol, 'U3O8P');
+  assert.equal(Number(body.preview.valueEur.toFixed(2)), 35.97);
+  assert.equal(body.preview.manualUnitPrice, true);
+  assert.equal(Number(body.preview.cashFlowEur.toFixed(2)), -35.97);
+  assert.equal(getTransactions().length, before);
+});
+
+test('manual unit price regression: shares without unitPrice uses market price', async () => {
+  seedTestInstrument({ symbol: 'MRKT', yahooSymbol: 'MRKT', name: 'Market Test', type: 'stock', currency: 'EUR' });
+  cachePrice('MRKT', '2026-05-14', 12.29);
+
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'MRKT',
+    date: '2026-05-14',
+    shares: 3,
+    commissionEur: 0,
+  });
+
+  assert.equal(transaction.symbol, 'MRKT');
+  assert.equal(transaction.shares, 3);
+  assert.equal(Number(transaction.valueEur.toFixed(2)), 36.87);
+  assert.equal(transaction.price, 12.29);
+  assert.equal(transaction.currency, 'EUR');
+});
+
+test('manual unit price validation: unitPrice without shares returns 400', async () => {
+  seedTestInstrument({ symbol: 'VAL1', yahooSymbol: 'VAL1', name: 'Validation 1', type: 'stock', currency: 'EUR' });
+
+  const { response, body } = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'VAL1',
+      date: '2026-05-14',
+      unitPrice: 11.99,
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /unitPrice requires shares/i);
+});
+
+test('manual unit price validation: unitPrice with euros returns 400', async () => {
+  seedTestInstrument({ symbol: 'VAL2', yahooSymbol: 'VAL2', name: 'Validation 2', type: 'stock', currency: 'EUR' });
+
+  const { response, body } = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'VAL2',
+      date: '2026-05-14',
+      euros: 100,
+      unitPrice: 11.99,
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /unitPrice cannot be combined with euros/i);
+});
+
+test('manual unit price validation: negative unitPrice returns 400', async () => {
+  seedTestInstrument({ symbol: 'VAL3', yahooSymbol: 'VAL3', name: 'Validation 3', type: 'stock', currency: 'EUR' });
+
+  const { response, body } = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'VAL3',
+      date: '2026-05-14',
+      shares: 3,
+      unitPrice: -1,
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /unitPrice must be a positive number/i);
+});
+
+test('manual unit price non-EUR: USD instrument with FX', async () => {
+  seedTestInstrument({ symbol: 'USDTST', yahooSymbol: 'USDTST', name: 'USD Test', type: 'stock', currency: 'USD' });
+  cachePrice('USDEUR=X', '2026-05-14', 0.9);
+
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'USDTST',
+    date: '2026-05-14',
+    shares: 2,
+    unitPrice: 10,
+    commissionEur: 0,
+  });
+
+  assert.equal(transaction.symbol, 'USDTST');
+  assert.equal(transaction.shares, 2);
+  assert.equal(transaction.currency, 'USD');
+  assert.equal(Number(transaction.fxToEur.toFixed(2)), 0.9);
+  assert.equal(Number(transaction.valueEur.toFixed(2)), 18);
+  assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -18);
+});
+

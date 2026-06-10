@@ -435,6 +435,7 @@ const modules = [
   './domains/market-data/market-data',
   './domains/transactions/transaction-repository',
   './domains/transactions/transaction-service',
+  './domains/transactions/auto-plan-date-service',
   './domains/data-ingestion/ingestion-repository',
   './domains/data-ingestion/ingestion-service',
   './domains/onboarding/onboarding-repository',

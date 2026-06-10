@@ -162,7 +162,10 @@ Calcula la vista previa de una operación sin persistirla:
 - **Tipo**: `input.type === 'remove' ? 'remove' : 'add'`.
 - **Symbol**: `normalizeSymbol(input.symbol || input.ticker)`.
 - **Fecha**: `input.date || getToday()`.
-- **Euros vs Shares**: si `euros > 0`, `shares = euros / priceEur`. Si `shares > 0`, `valueEur = shares * priceEur`. Es XOR: no se permiten ambos.
+- **Modos de cantidad**:
+  - **`euros`**: se calculan las acciones con `shares = euros / priceEur` usando precio de mercado/cache.
+  - **`shares`** sin `unitPrice`: se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
+  - **`shares` + `unitPrice`**: `unitPrice` es un precio manual introducido por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). Se calcula `priceEur = toEur(unitPrice, currency, fxToEur)` y `valueEur = shares * priceEur`. `unitPrice` solo es válido con `shares > 0`, no se permite con `euros`, y requiere un instrumento existente.
 - **comisión**: `abs(input.commissionEur ?? input.commission)`, por defecto `0`.
 - **`cashFlowEur`**:
   - Compra: `-(valueEur + commissionEur)`.

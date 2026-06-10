@@ -28,12 +28,28 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     try {
       const input = await readJsonBody(request);
       assertString(input.symbol || input.ticker, 'symbol');
-      assertXor(
-        Number.isFinite(Number(input.euros)) && Number(input.euros) > 0,
-        Number.isFinite(Number(input.shares)) && Number(input.shares) > 0,
-        'euros',
-        'shares',
-      );
+
+      const hasManualUnitPrice = Number.isFinite(Number(input.unitPrice)) && Number(input.unitPrice) > 0;
+      const hasShares = Number.isFinite(Number(input.shares)) && Number(input.shares) > 0;
+      const hasEuros = Number.isFinite(Number(input.euros)) && Number(input.euros) > 0;
+      const hasInvalidUnitPrice = Number.isFinite(Number(input.unitPrice)) && Number(input.unitPrice) <= 0;
+
+      if (hasInvalidUnitPrice) {
+        throw new Error('unitPrice must be a positive number');
+      }
+
+      if (hasManualUnitPrice) {
+        if (hasEuros) {
+          throw new Error('unitPrice cannot be combined with euros');
+        }
+        if (!hasShares) {
+          throw new Error('unitPrice requires shares');
+        }
+      }
+      else {
+        assertXor(hasEuros, hasShares, 'euros', 'shares');
+      }
+
       const transaction = await createTransaction(input);
       sendJson(response, 201, { transaction });
     } catch (error) {
