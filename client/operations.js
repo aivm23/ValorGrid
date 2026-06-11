@@ -289,20 +289,12 @@ export function attach(ctx) {
         </div>`;
     }
 
-    const lockedBanner = isEditable
-      ? ''
-      : `<div class="operations-pro-banner">
-           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-           <span>Personalización disponible en <strong>Professional Edition</strong></span>
-         </div>`;
-
     container.innerHTML = `
-      <div class="operations-preference-section">
+      <div class="pro-preference-group">
         <div class="admin-card-head">
           <h3>Operativa</h3>
         </div>
         <div class="operations-preference-list">${rowsHtml}</div>
-        ${lockedBanner}
       </div>`;
 
     if (isEditable) {

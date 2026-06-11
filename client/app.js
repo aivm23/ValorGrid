@@ -20,6 +20,7 @@ import { attach as attachImports } from './imports.js';
 import { attach as attachTheme } from './theme.js';
 import { attach as attachPrivacy } from './privacy.js';
 import { attach as attachHistory } from './history.js';
+import { attach as attachHistoryPreferences } from './history-preferences.js';
 import { attach as attachBulkActions } from './bulk-actions.js';
 import { attach as attachEvents } from './events.js';
 
@@ -28,7 +29,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, window, document, loca
 [
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
-  attachOnboarding, attachImports, attachPrivacy, attachBulkActions,
+  attachOnboarding, attachImports, attachPrivacy, attachBulkActions, attachHistoryPreferences,
 ].forEach((attach) => attach(ctx));
 
 attachEvents(ctx);

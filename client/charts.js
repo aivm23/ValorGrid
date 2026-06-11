@@ -168,22 +168,23 @@ export function attach(ctx) {
       return;
     }
 
-    renderHistorySvg(history);
+    const visibleEvents = ctx.getVisibleHistoryEvents(history);
+    renderHistorySvg(history, visibleEvents);
 
     const last = history.series[history.series.length - 1];
     const first = history.series[0];
-    const invested = (history.events || []).reduce((sum, event) => {
+    const invested = visibleEvents.reduce((sum, event) => {
       const sign = event.type === 'remove' ? -1 : 1;
       return sum + sign * Number(event.valueEur || 0) + (event.type === 'add' ? Number(event.commissionEur || 0) : 0);
     }, 0);
     elements.historyStats.innerHTML = `
     <article class="has-border-accent">${metricInfo(
       'Último valor histórico',
-      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribución actual.',
+      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribucion actual.',
       'history-last-value-info',
     )}<strong>${formatCurrency(last.value)}</strong></article>
     <article class="has-border-accent"><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>
-    <article class="has-border-violet"><span>Eventos visibles</span><strong>${(history.events || []).length}</strong></article>
+    <article class="has-border-violet"><span>Eventos visibles</span><strong>${visibleEvents.length}</strong></article>
   `;
     const quality = history.meta?.dataQuality && history.meta.dataQuality !== 'ok' ? ` - datos ${history.meta.dataQuality}` : '';
     elements.historyStatus.textContent = `${formatCurrency(last.value)} - ${history.series.length} puntos${quality}`;
@@ -195,7 +196,7 @@ export function attach(ctx) {
     }
   }
 
-  function renderHistorySvg(history) {
+  function renderHistorySvg(history, visibleEvents) {
     const width = 900;
     const height = 320;
     const padding = { top: 24, right: 24, bottom: 38, left: 68 };
@@ -212,7 +213,7 @@ export function attach(ctx) {
     },${height - padding.bottom} Z`;
     const first = history.series[0];
     const last = history.series[history.series.length - 1];
-    const events = history.events || [];
+    const events = visibleEvents || [];
     const groupedEvents = events.reduce((groups, event) => {
       const key = eventGroupKey(event);
       const items = groups.get(key) || [];

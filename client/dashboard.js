@@ -47,6 +47,9 @@ export function attach(ctx) {
         state.uiPreferences = prefs.preferences || state.uiPreferences;
         state.availableOperationMetrics = prefs.availableOperationMetrics;
         state.uiPreferencesEditable = prefs.editable !== false;
+        if (prefs.preferences?.historyEventFilters) {
+          state.historyEventFilters = prefs.preferences.historyEventFilters;
+        }
       } catch {
         // If preferences endpoint fails, keep defaults and don't block dashboard.
       }
@@ -91,6 +94,12 @@ export function attach(ctx) {
     ctx.renderImportBatches();
     ctx.renderInstruments();
     ctx.renderOperationsPreferenceControls?.();
+    ctx.renderHistoryPreferenceControls?.();
+
+    const proCard = ctx.elements.proPreferencesCard;
+    if (proCard) {
+      proCard.open = state.edition === 'professional';
+    }
   }
 
   async function refreshHistory(options = {}) {
