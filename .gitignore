@@ -44,6 +44,9 @@ Plan_*.md
 !.opencode/skills/*/SKILL.md
 .opencode/plans/
 
+# Husky internal copy (in node_modules)
+node_modules/.husky/
+
 # Dependencies and editor metadata
 node_modules/
 .vscode/

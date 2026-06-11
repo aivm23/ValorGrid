@@ -16,9 +16,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run docs:spellcheck
       - run: node --check server.js
       - run: node --check client/app.js
       - run: npm test
+      - run: npm run verify:publication
+      - run: npm run seed:demo
   test-linux:
     runs-on: ubuntu-latest
     steps:
@@ -30,6 +33,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run docs:spellcheck
       - run: node --check server.js
       - run: node --check client/app.js
       - run: npm test

@@ -35,14 +35,17 @@
     "db:doctor": "node scripts/db-doctor.js",
     "backup": "npm run db:backup",
     "seed:demo": "node scripts/seed-loadtest-db.js",
-    "verify:publication": "node scripts/verify-publication.js"
+    "verify:publication": "node scripts/verify-publication.js",
+    "prepare": "husky"
   },
   "devDependencies": {
     "electron": "^42.3.3",
     "electron-builder": "^26.8.1",
     "eslint": "^10.4.1",
     "prettier": "^3.8.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6"
   },
   "build": {
     "appId": "com.valorgrid.app",
@@ -91,5 +94,31 @@
       "createStartMenuShortcut": true,
       "shortcutName": "ValorGrid"
     }
+  },
+  "lint-staged": {
+    "client/**/*.js": [
+      "eslint --fix"
+    ],
+    "server.js": [
+      "eslint --fix"
+    ],
+    "src/**/*.js": [
+      "eslint --fix"
+    ],
+    "test/**/*.js": [
+      "eslint --fix"
+    ],
+    "scripts/**/*.js": [
+      "eslint --fix"
+    ],
+    "*.md": [
+      "prettier --write"
+    ],
+    ".github/**/*.yml": [
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write"
+    ]
   }
 }
