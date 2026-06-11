@@ -210,9 +210,11 @@ module.exports = function attach(ctx) {
   function listPortfolioEventsByRange(fromDate, toDate) {
     return db
       .prepare(
-        `SELECT id, type, symbol, name, date, market_date AS marketDate, plot_date AS plotDate,
-                shares, value_eur AS valueEur, price, currency, origin, color, created_at AS createdAt
+        `SELECT portfolio_events.id, portfolio_events.type, portfolio_events.symbol, portfolio_events.name, portfolio_events.date, market_date AS marketDate, plot_date AS plotDate,
+                shares, value_eur AS valueEur, price, portfolio_events.currency, origin, portfolio_events.color, created_at AS createdAt,
+                instruments.type AS instrumentType
          FROM portfolio_events
+         LEFT JOIN instruments ON instruments.symbol = portfolio_events.symbol
          WHERE plot_date BETWEEN ? AND ?
          ORDER BY plot_date ASC, created_at ASC`,
       )

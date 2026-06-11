@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.9.3
+
+- feat: history event filter preferences — extend `ui_preferences` with `historyEventFilters` (mode, assetTypes, transactionTypes).
+- feat: add `instrumentType` to history events via LEFT JOIN instruments in portfolio history API.
+- feat: filter history event markers in frontend — derive `visibleEvents` from `historyEventFilters` without reloading data.
+- feat: add Professional Edition history settings controls in Admin preferences with PRO banner for Community.
+- feat: unify Pro preferences into collapsible card with expand/collapse animation.
+- feat: global `.pro-edition-label` CSS class — all "Professional Edition" text uses corporate gradient + italic.
+- feat: CSS variables `--radius-full`, `--gradient-pro`, `--gradient-pro-text` — eliminate duplicated values.
+- feat: merge `.operations-pro-banner` and `.history-pro-banner` into shared CSS rules.
+- test: add integration tests for preferences API validation, legacy tolerance, corrupt JSON, and instrumentType in history events.
+- docs: update API.md, DATA_MODEL.md, ARCHITECTURE.md, EDITIONS.md with history event filter preferences.
+
 ## 3.9.0
 
 - feat: manual unit price in transaction form — when the user enters "Precio / acción + Acciones", the manual price is now the accounting source for valueEur instead of being silently discarded and replaced by market price.

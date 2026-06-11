@@ -573,4 +573,117 @@ test('YTD history starts at the range axis before the first operation', async ()
   assert.equal(ytd.events[0].id, 'axis-start-buy');
 });
 
+test('GET /api/preferences/ui returns historyEventFilters defaults', async () => {
+  db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
+  const { response, body } = await jsonRequest('/api/preferences/ui');
+
+  assert.equal(response.status, 200);
+  assert.equal(body.editable, false);
+  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.ok(body.preferences.historyEventFilters);
+  assert.equal(body.preferences.historyEventFilters.mode, 'all');
+  assert.deepEqual(body.preferences.historyEventFilters.assetTypes, ['stock', 'etf']);
+  assert.deepEqual(body.preferences.historyEventFilters.transactionTypes, ['add', 'remove']);
+});
+
+test('GET /api/preferences/ui tolerates legacy ui_preferences without historyEventFilters', async () => {
+  db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
+  db.prepare("INSERT INTO app_meta (key, value) VALUES ('ui_preferences', ?)").run(
+    JSON.stringify({ operationsMetricIds: ['marketValue', 'netContributed', 'totalGain', 'unrealizedGain', 'realizedGain', 'commissions'] }),
+  );
+  const { response, body } = await jsonRequest('/api/preferences/ui');
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.ok(body.preferences.historyEventFilters);
+  assert.equal(body.preferences.historyEventFilters.mode, 'all');
+});
+
+test('GET /api/preferences/ui tolerates corrupt JSON and returns defaults', async () => {
+  db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
+  db.prepare("INSERT INTO app_meta (key, value) VALUES ('ui_preferences', ?)").run('not json at all{{{');
+  const { response, body } = await jsonRequest('/api/preferences/ui');
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.ok(body.preferences.historyEventFilters);
+});
+
+test('PUT /api/preferences/ui returns 403 in community', async () => {
+  const { response, body } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['add'] } }),
+  });
+
+  assert.equal(response.status, 403);
+  assert.match(body.error, /Professional Edition/i);
+});
+
+test('PUT /api/preferences/ui validates historyEventFilters mode', async () => {
+  const { response } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'invalid' } }),
+  });
+
+  assert.equal(response.status, 403);
+});
+
+test('PUT /api/preferences/ui validates historyEventFilters assetTypes', async () => {
+  const { response } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['bond'], transactionTypes: ['add'] } }),
+  });
+
+  assert.equal(response.status, 403);
+});
+
+test('PUT /api/preferences/ui validates historyEventFilters transactionTypes', async () => {
+  const { response } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['dividend'] } }),
+  });
+
+  assert.equal(response.status, 403);
+});
+
+test('PUT /api/preferences/ui rejects custom mode without assetTypes', async () => {
+  const { response } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'custom', transactionTypes: ['add'] } }),
+  });
+
+  assert.equal(response.status, 403);
+});
+
+test('PUT /api/preferences/ui rejects custom mode without transactionTypes', async () => {
+  const { response } = await jsonRequest('/api/preferences/ui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'] } }),
+  });
+
+  assert.equal(response.status, 403);
+});
+
+test('history events include instrumentType via LEFT JOIN instruments', async () => {
+  seedTestInstrument({ symbol: 'HISTFILT', yahooSymbol: 'HISTFILT', name: 'History Filter Test', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'HISTETFF', yahooSymbol: 'HISTETFF', name: 'History ETF Filter', type: 'etf', currency: 'EUR' });
+  cachePrice('HISTFILT', '2026-05-01', 10);
+  cachePrice('HISTETFF', '2026-05-01', 20);
+  await createTransaction({ type: 'add', symbol: 'HISTFILT', date: '2026-05-01', shares: 1 });
+  await createTransaction({ type: 'add', symbol: 'HISTETFF', date: '2026-05-02', euros: 100 });
+
+  const history = await buildPortfolioHistory('all');
+  const stockEvent = history.events.find((e) => e.symbol === 'HISTFILT');
+  const etfEvent = history.events.find((e) => e.symbol === 'HISTETFF');
+
+  assert.equal(stockEvent.instrumentType, 'stock');
+  assert.equal(etfEvent.instrumentType, 'etf');
+});
+
 
