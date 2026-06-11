@@ -1405,9 +1405,9 @@ h3 {
 }
 
 .import-source-badge-soon {
-  color: #b45309;
-  border-color: color-mix(in srgb, #f59e0b 42%, var(--line));
-  background: color-mix(in srgb, #f59e0b 10%, var(--card));
+  color: #0f766e;
+  border-color: color-mix(in srgb, #14b8a6 42%, var(--line));
+  background: color-mix(in srgb, #14b8a6 9%, var(--card));
 }
 
 .import-step-body {
