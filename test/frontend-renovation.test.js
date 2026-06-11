@@ -363,9 +363,18 @@ test('imports.js renders "Próximamente" label for comingSoon sources', () => {
 test('operations.js Operativa cards use improved microcopy and tooltips', () => {
   const ops = read(path.join('client', 'operations.js'));
 
-  // Old copy removed
-  assert.ok(!ops.includes('sin base de aportación'), 'removed old "sin base de aportación" copy');
-  assert.ok(!ops.includes('>no realizada<'), 'removed old standalone "no realizada" microcopy');
+  // metricInfo helper defined
+  assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in operations.js');
+
+  // Tooltip IDs for buttons i
+  assert.ok(ops.includes('op-contributed-info'), 'tooltip id for aportado neto');
+  assert.ok(ops.includes('op-result-info'), 'tooltip id for resultado total');
+  assert.ok(ops.includes('op-latent-info'), 'tooltip id for plusvalía latente');
+
+  // Tooltip content
+  assert.ok(ops.includes('Aportado neto total desde el primer movimiento'), 'aportado tooltip text');
+  assert.ok(ops.includes('Resultado total = valor mercado - aportado neto'), 'resultado tooltip text');
+  assert.ok(ops.includes('Plusvalía no realizada de posiciones abiertas'), 'latent tooltip text');
 
   // New microcopy for Aportado neto
   assert.ok(ops.includes('desde primer movimiento'), 'aportado microcopy: desde primer movimiento');
@@ -383,22 +392,13 @@ test('operations.js Operativa cards use improved microcopy and tooltips', () => 
   // Plusvalía realizada copy updated
   assert.ok(ops.includes('resultado ventas FIFO'), 'realized copy: resultado ventas FIFO');
 
-  // Tooltips present
-  assert.ok(ops.includes('op-contributed-info'), 'tooltip id for aportado neto');
-  assert.ok(ops.includes('op-result-info'), 'tooltip id for resultado total');
-  assert.ok(ops.includes('op-latent-info'), 'tooltip id for plusvalía latente');
-
-  // Tooltip content
-  assert.ok(ops.includes('Aportado neto total desde el primer movimiento'), 'aportado tooltip text');
-  assert.ok(ops.includes('Resultado total = valor mercado - aportado neto'), 'resultado tooltip text');
-  assert.ok(ops.includes('Plusvalía no realizada de posiciones abiertas'), 'latent tooltip text');
-
   // Open investment formula present
   assert.ok(ops.includes('currentValue - unrealizedGain'), 'open investment formula present');
   assert.ok(ops.includes('unrealizedGain / openInvestment'), 'latent pct formula present');
 
-  // metricInfo helper defined
-  assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in operations.js');
+  // Old copy removed
+  assert.ok(!ops.includes('sin base de aportación'), 'removed old "sin base de aportación" copy');
+  assert.ok(!ops.includes('>no realizada<'), 'removed old standalone "no realizada" microcopy');
 });
 
 test('operations.js Operativa cards handle edge cases without NaN or Infinity', () => {
@@ -410,7 +410,7 @@ test('operations.js Operativa cards handle edge cases without NaN or Infinity', 
   // Verify the code handles netContributed === 0 for result microcopy
   assert.ok(ops.includes('netContributed === 0'), 'handles zero netContributed for result microcopy');
 
-  // Verify no hardcoded NaN, Infinity, or undefined in template literals
+  // Verify no hardcoded NaN, Infinity, or undefined in operations.js template literals
   const templateMatch = ops.match(/innerHTML\s*=\s*`[\s\S]*?`;/g) || [];
   for (const tpl of templateMatch) {
     assert.ok(!tpl.includes('NaN'), 'no NaN in template literals');

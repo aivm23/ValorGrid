@@ -214,3 +214,18 @@ export function fetchQuote(symbol, date) {
   if (date) params.set('date', date);
   return fetchJson(`/api/quote?${params.toString()}`);
 }
+
+// ── Preferences ──
+
+/** @returns {Promise<{ preferences: Record<string, unknown>, editable: boolean }>} */
+export function fetchUiPreferences() {
+  return fetchJson('/api/preferences/ui');
+}
+
+/**
+ * @param {Record<string, unknown>} payload
+ * @returns {Promise<{ preferences: Record<string, unknown> }>}
+ */
+export function saveUiPreferences(payload) {
+  return sendJson('/api/preferences/ui', 'PUT', payload);
+}

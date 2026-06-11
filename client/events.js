@@ -45,6 +45,7 @@ export function attach(ctx) {
   elements.adminManager?.addEventListener('click', () => {
     ctx.renderBackups();
     ctx.renderImportBatches?.();
+    ctx.renderOperationsPreferenceControls?.();
     elements.adminDialog.showModal();
   });
   elements.adminDialogClose?.addEventListener('click', () => elements.adminDialog.close());

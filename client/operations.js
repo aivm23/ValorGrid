@@ -1,3 +1,5 @@
+import { DEFAULT_OPERATION_METRIC_IDS } from './operations-metrics.js';
+
 export function attach(ctx) {
   function metricInfo(label, tooltip, id) {
     const escapedLabel = ctx.escapeHtml(label);
@@ -13,10 +15,13 @@ export function attach(ctx) {
 
   function renderPerformance() {
     const performance = ctx.state.summary?.performance;
+    const metricIds = ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS;
+
     if (!performance) {
       ctx.elements.performanceSummary.innerHTML = '<article><span>Rentabilidad</span><strong>Pendiente</strong></article>';
       return;
     }
+
     const netContributed = performance.netContributed;
     const contributedMicro = netContributed >= 0 ? 'desde primer movimiento' : 'retirada neta total';
     const contributedTooltip = 'Aportado neto total desde el primer movimiento: compras y comisiones menos ventas netas. Si es negativo, ya has retirado más caja de la aportada.';
@@ -47,38 +52,59 @@ export function attach(ctx) {
     const commissionCopy = performance.commissions > 0 && performance.transactionCount > 0
       ? `${(performance.commissions / performance.transactionCount).toFixed(2)} €/movimiento`
       : 'sin comisiones';
-    ctx.elements.performanceSummary.innerHTML = `
-      <article class="has-border-accent">
-        <span>Valor mercado</span>
-        <strong>${ctx.formatCurrency(currentValue)}</strong>
-        <small class="metric-micro">a precios actuales</small>
-      </article>
-      <article class="has-border-accent">
-        ${metricInfo('Aportado neto', contributedTooltip, 'op-contributed-info')}
-        <strong class="${ctx.moneyClass(netContributed)}">${ctx.formatCurrency(netContributed)}</strong>
-        <small class="metric-micro">${contributedMicro}</small>
-      </article>
-      <article class="${totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-        ${metricInfo('Resultado total', resultTooltip, 'op-result-info')}
-        <strong class="${ctx.moneyClass(totalGain)}">${ctx.formatCurrency(totalGain)}</strong>
-        <small class="metric-micro">${resultMicro}</small>
-      </article>
-      <article class="${unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-        ${metricInfo('Plusvalía latente', latentTooltip, 'op-latent-info')}
-        <strong class="${ctx.moneyClass(unrealizedGain)}">${ctx.formatCurrency(unrealizedGain)}</strong>
-        <small class="metric-micro">${latentMicro}</small>
-      </article>
-      <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-        <span>Plusvalía realizada</span>
-        <strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong>
-        <small class="metric-micro">resultado ventas FIFO</small>
-      </article>
-      <article class="has-border-amber">
-        <span>Comisiones</span>
-        <strong>${ctx.formatCurrency(performance.commissions)}</strong>
-        <small class="metric-micro">${commissionCopy}</small>
-      </article>
-    `;
+
+    const html = metricIds
+      .map((metricId) => {
+        switch (metricId) {
+          case 'marketValue':
+            return `
+              <article class="has-border-accent">
+                <span>Valor mercado</span>
+                <strong>${ctx.formatCurrency(currentValue)}</strong>
+                <small class="metric-micro">a precios actuales</small>
+              </article>`;
+          case 'netContributed':
+            return `
+              <article class="has-border-accent">
+                ${metricInfo('Aportado neto', contributedTooltip, 'op-contributed-info')}
+                <strong class="${ctx.moneyClass(netContributed)}">${ctx.formatCurrency(netContributed)}</strong>
+                <small class="metric-micro">${contributedMicro}</small>
+              </article>`;
+          case 'totalGain':
+            return `
+              <article class="${totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                ${metricInfo('Resultado total', resultTooltip, 'op-result-info')}
+                <strong class="${ctx.moneyClass(totalGain)}">${ctx.formatCurrency(totalGain)}</strong>
+                <small class="metric-micro">${resultMicro}</small>
+              </article>`;
+          case 'unrealizedGain':
+            return `
+              <article class="${unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                ${metricInfo('Plusvalía latente', latentTooltip, 'op-latent-info')}
+                <strong class="${ctx.moneyClass(unrealizedGain)}">${ctx.formatCurrency(unrealizedGain)}</strong>
+                <small class="metric-micro">${latentMicro}</small>
+              </article>`;
+          case 'realizedGain':
+            return `
+              <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                <span>Plusvalía realizada</span>
+                <strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong>
+                <small class="metric-micro">resultado ventas FIFO</small>
+              </article>`;
+          case 'commissions':
+            return `
+              <article class="has-border-amber">
+                <span>Comisiones</span>
+                <strong>${ctx.formatCurrency(performance.commissions)}</strong>
+                <small class="metric-micro">${commissionCopy}</small>
+              </article>`;
+          default:
+            return '';
+        }
+      })
+      .join('');
+
+    ctx.elements.performanceSummary.innerHTML = html || '';
   }
 
   function renderBackups() {
@@ -222,5 +248,99 @@ export function attach(ctx) {
       : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar valores.</div>';
   }
 
-  Object.assign(ctx, { renderPerformance, renderBackups, renderInstruments, renderGroupRows });
+  function getAvailableMetricOptions(selectedIds) {
+    const available = [
+      { id: 'marketValue', label: 'Valor mercado' },
+      { id: 'netContributed', label: 'Aportado neto' },
+      { id: 'totalGain', label: 'Resultado total' },
+      { id: 'unrealizedGain', label: 'Plusvalía latente' },
+      { id: 'realizedGain', label: 'Plusvalía realizada' },
+      { id: 'commissions', label: 'Comisiones' },
+      { id: 'simpleReturnPct', label: 'Rentabilidad simple' },
+      { id: 'transactionCount', label: 'Nº movimientos' },
+      { id: 'averageCommission', label: 'Comisión media' },
+      { id: 'openInvestment', label: 'Inversión abierta' },
+      { id: 'netCashFlow', label: 'Cash-flow neto' },
+      { id: 'grossBought', label: 'Compras brutas' },
+      { id: 'grossSold', label: 'Ventas brutas' },
+    ];
+    return available;
+  }
+
+  function renderOperationsPreferenceControls() {
+    const container = ctx.elements.operationsPreferenceControls;
+    if (!container) return;
+
+    const selectedIds = ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS;
+    const isEditable = ctx.state.uiPreferencesEditable !== false;
+    const availableMetrics = getAvailableMetricOptions(selectedIds);
+
+    let rowsHtml = '';
+    for (let i = 0; i < 6; i++) {
+      const currentId = selectedIds[i] || DEFAULT_OPERATION_METRIC_IDS[i];
+      const optionsHtml = availableMetrics
+        .map((m) => `<option value="${ctx.escapeHtml(m.id)}" ${m.id === currentId ? 'selected' : ''}>${ctx.escapeHtml(m.label)}</option>`)
+        .join('');
+      const disabledAttr = isEditable ? '' : 'disabled';
+      rowsHtml += `
+        <div class="operations-preference-row">
+          <span class="preference-label">Posición ${i + 1}</span>
+          <select class="preference-select operation-metric-select" data-position="${i}" aria-label="Métrica posición ${i + 1}" ${disabledAttr}>${optionsHtml}</select>
+        </div>`;
+    }
+
+    const lockedBanner = isEditable
+      ? ''
+      : `<div class="operations-pro-banner">
+           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+           <span>Personalización disponible en <strong>Professional Edition</strong></span>
+         </div>`;
+
+    container.innerHTML = `
+      <div class="operations-preference-section">
+        <div class="admin-card-head">
+          <h3>Operativa</h3>
+        </div>
+        <div class="operations-preference-list">${rowsHtml}</div>
+        ${lockedBanner}
+      </div>`;
+
+    if (isEditable) {
+      container.querySelectorAll('.operation-metric-select').forEach((select) => {
+        select.addEventListener('change', (event) => handleOperationMetricPreferenceChange(event));
+      });
+    }
+  }
+
+  async function handleOperationMetricPreferenceChange(event) {
+    const select = event.target;
+    const position = Number(select.dataset.position);
+    const newMetricId = select.value;
+    const currentIds = [...(ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS)];
+
+    const oldMetricId = currentIds[position];
+    if (oldMetricId === newMetricId) return;
+
+    const otherPositions = currentIds.filter((_, idx) => idx !== position);
+    currentIds.splice(position, 0, newMetricId);
+
+    try {
+      await ctx.sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds: currentIds });
+      ctx.state.uiPreferences = { operationsMetricIds: currentIds };
+      ctx.state.uiPreferencesEditable = true;
+      ctx.renderPerformance();
+    } catch {
+      select.value = oldMetricId;
+    }
+  }
+
+  async function applyOperationMetricPreferences(payload) {
+    if (!payload || !Array.isArray(payload.operationsMetricIds)) return;
+    ctx.state.uiPreferences = { operationsMetricIds: [...payload.operationsMetricIds] };
+    ctx.state.uiPreferencesEditable = payload.editable !== false;
+    ctx.renderPerformance();
+    ctx.renderOperationsPreferenceControls?.();
+  }
+
+  Object.assign(ctx, { renderPerformance, renderBackups, renderInstruments, renderGroupRows, renderOperationsPreferenceControls, handleOperationMetricPreferenceChange, applyOperationMetricPreferences });
 }

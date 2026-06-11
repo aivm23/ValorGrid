@@ -43,6 +43,7 @@ Community no carga código privado por defecto. Cualquier integración Pro/Enter
 - Sin nombres de fuentes privadas en parser, servicios, endpoints, fixtures, docs técnicas o contratos públicos.
 - Se permite nombrar integraciones Pro en la UI pública solo como teaser comercial, siempre deshabilitadas en Community y sin publicar contratos técnicos privados.
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
+- La personalización de métricas de Operativa (`PUT /api/preferences/ui`) está deshabilitada en Community y solo activa en Professional Edition. Community muestra el selector como teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
 
 ## Desarrollo Local
 

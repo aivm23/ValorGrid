@@ -51,6 +51,7 @@ export function attach(ctx) {
     ledgerPageSize: document.querySelector('#ledger-page-size'),
     dateFormatSelect: document.querySelector('#date-format-select'),
     weekStartSelect: document.querySelector('#week-start-select'),
+    operationsPreferenceControls: document.querySelector('#operations-preference-controls'),
     importDialog: document.querySelector('#import-dialog'),
     importDialogClose: document.querySelector('#import-dialog-close'),
     importCancel: document.querySelector('#import-cancel'),

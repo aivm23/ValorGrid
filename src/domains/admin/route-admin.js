@@ -23,6 +23,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
 
   const { appInfo, dbPath } = ctx.config || ctx;
   const { fsSync, path } = ctx;
+  const { getUiPreferences, saveUiPreferences } = ctx;
 
   if (url.pathname === '/api/version' && request.method === 'GET') {
     sendJson(response, 200, appInfo);
@@ -92,6 +93,27 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     try {
       const quote = await getQuoteForSymbol(url.searchParams.get('symbol'), url.searchParams.get('date'));
       sendJson(response, 200, { quote });
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/preferences/ui' && request.method === 'GET') {
+    try {
+      const result = getUiPreferences();
+      sendJson(response, 200, result);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/preferences/ui' && request.method === 'PUT') {
+    try {
+      const body = await ctx.readJsonBody(request);
+      const result = saveUiPreferences(body);
+      sendJson(response, 200, result);
     } catch (error) {
       sendError(response, sendJson, error);
     }

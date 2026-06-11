@@ -197,6 +197,14 @@ function bindGroupedCtxNamespaces(ctx) {
   );
 
   Object.assign(
+    ctx.services.uiPreferences,
+    pickCtxFunctions(ctx, [
+      'getUiPreferences',
+      'saveUiPreferences',
+    ]),
+  );
+
+  Object.assign(
     ctx.services.http,
     pickCtxFunctions(ctx, ['monthLabel', 'resolveRequestPath', 'handleApi', 'server']),
   );
@@ -379,6 +387,7 @@ const services = {
   portfolio: {},
   history: {},
   diagnostics: {},
+  uiPreferences: {},
   http: {},
 };
 
@@ -388,8 +397,9 @@ const adminServices = {
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
 };
 
+const uiPreferencesServices = {};
 Object.assign(services.admin, adminServices);
-
+Object.assign(services.uiPreferences, uiPreferencesServices);
 const ctx = {
   http,
   fs,
@@ -425,6 +435,7 @@ const modules = [
   './schema-seed',
   './domains/meta/meta-repository',
   './domains/meta/meta-state',
+  './domains/meta/ui-preferences-service',
   './platform/utils',
   './domains/instruments/instrument-repository',
   './domains/portfolio/portfolio-repository',

@@ -309,15 +309,15 @@ Campos principales:
 
 ### `app_meta`
 
-Almacena claves de versión interna para invalidación de cachés.
+Almacena claves de versión interna para invalidación de cachés y preferencias de presentación.
 
 Campos:
 
-- `key`: identificador (ej. `ledger_version`, `price_version`).
-- `value`: valor numérico como texto.
+- `key`: identificador (ej. `ledger_version`, `price_version`, `ui_preferences`).
+- `value`: valor numérico como texto, o JSON serializado para preferencias (`ui_preferences`).
 - `updated_at`
 
-Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico.
+Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico. La clave `ui_preferences` almacena un JSON con `operationsMetricIds` (array de 6 IDs de métricas de Operativa para personalizar las tarjetas de performance).
 
 ## Precios y FX (detalle)
 

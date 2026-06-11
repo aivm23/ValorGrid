@@ -41,6 +41,16 @@ export function attach(ctx) {
       state.backups = backupData.backups || [];
       state.importBatches = importData.batches || [];
       state.autoPlans = summary.autoPlans || state.autoPlans;
+
+      try {
+        const prefs = await ctx.fetchJson('/api/preferences/ui');
+        state.uiPreferences = prefs.preferences || state.uiPreferences;
+        state.availableOperationMetrics = prefs.availableOperationMetrics;
+        state.uiPreferencesEditable = prefs.editable !== false;
+      } catch {
+        // If preferences endpoint fails, keep defaults and don't block dashboard.
+      }
+
       renderDashboard();
       state.initialLoadComplete = true;
       setBootState('ready');
@@ -80,6 +90,7 @@ export function attach(ctx) {
     ctx.renderBackups();
     ctx.renderImportBatches();
     ctx.renderInstruments();
+    ctx.renderOperationsPreferenceControls?.();
   }
 
   async function refreshHistory(options = {}) {

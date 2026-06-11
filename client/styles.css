@@ -2951,6 +2951,97 @@ td:last-child {
   max-width: none;
 }
 
+/* ── Operations Metric Preferences ──────────────────────── */
+
+.operations-preference-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.operations-preference-section .admin-card-head {
+  margin-bottom: 10px;
+}
+
+.operations-preference-section .admin-card-head h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.operations-preference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.operations-preference-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 6px;
+}
+
+.operations-preference-row .preference-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.operations-preference-row .preference-select {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.operations-preference-row .preference-select:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.operations-preference-row .preference-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--muted) 8%, var(--bg));
+}
+
+.operations-pro-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-amber) 8%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent-amber) 20%, transparent);
+  border-radius: 6px;
+}
+
+.operations-pro-banner strong {
+  color: var(--accent-amber);
+  font-weight: 600;
+}
+
+.operations-pro-banner svg {
+  color: var(--accent-amber);
+}
+
 .backup-list,
 .import-batches {
   min-width: 0;

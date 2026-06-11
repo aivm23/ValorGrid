@@ -24,6 +24,16 @@ GET /api/diagnostics/performance
 - `GET /api/state`: devuelve el estado completo de la aplicación: instrumentos, grupos, movimientos, planes automáticos y ruta de base de datos activa.
 - `GET /api/diagnostics/performance`: devuelve métricas de rendimiento, tamaños de caché e invalidaciones pendientes.
 
+## Preferencias de interfaz
+
+```text
+GET /api/preferences/ui
+PUT /api/preferences/ui
+```
+
+- `GET /api/preferences/ui`: devuelve las preferencias de presentación guardadas en `app_meta` con clave `ui_preferences`. Si no existen, devuelve los valores por defecto. En Community, `editable` es `false`; en Professional, `editable` es `true`.
+- `PUT /api/preferences/ui`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. En Professional valida y persiste exactamente 6 IDs de métricas de Operativa. El payload debe contener `operationsMetricIds` como array de 6 IDs únicos válidos.
+
 ## Instrumentos y grupos
 
 ```text
