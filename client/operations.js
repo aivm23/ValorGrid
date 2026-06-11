@@ -248,7 +248,7 @@ export function attach(ctx) {
       : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar valores.</div>';
   }
 
-  function getAvailableMetricOptions(selectedIds) {
+  function getAvailableMetricOptions(_selectedIds) {
     const available = [
       { id: 'marketValue', label: 'Valor mercado' },
       { id: 'netContributed', label: 'Aportado neto' },
@@ -313,7 +313,6 @@ export function attach(ctx) {
     const oldMetricId = currentIds[position];
     if (oldMetricId === newMetricId) return;
 
-    const otherPositions = currentIds.filter((_, idx) => idx !== position);
     currentIds.splice(position, 0, newMetricId);
 
     try {

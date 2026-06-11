@@ -263,7 +263,7 @@ export const OPERATION_METRICS = {
     valueClass() {
       return '';
     },
-    value(data) {
+    value(_data) {
       return 0;
     },
     microcopy() {
