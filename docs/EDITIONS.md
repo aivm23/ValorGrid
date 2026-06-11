@@ -44,6 +44,7 @@ Community no carga código privado por defecto. Cualquier integración Pro/Enter
 - Se permite nombrar integraciones Pro en la UI pública solo como teaser comercial, siempre deshabilitadas en Community y sin publicar contratos técnicos privados.
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
 - La personalización de métricas de Operativa (`PUT /api/preferences/ui`) está deshabilitada en Community y solo activa en Professional Edition. Community muestra el selector como teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
+- La personalización de filtros de marcadores del gráfico Histórico (`historyEventFilters` en `PUT /api/preferences/ui`) también es exclusiva de Professional Edition. Community muestra los controles bloqueados con el mismo banner de Professional Edition.
 
 ## Desarrollo Local
 

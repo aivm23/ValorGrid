@@ -140,7 +140,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-5. `domains/meta/ui-preferences-service`: persistencia de preferencias UI en `app_meta` con clave `ui_preferences`.
+5. `domains/meta/ui-preferences-service`: persistencia de preferencias UI en `app_meta` con clave `ui_preferences`. Incluye `operationsMetricIds` y `historyEventFilters` para filtros de marcadores del gráfico Histórico.
 6. `shared/operations-metrics`: catálogo compartido de IDs y métricas de Operativa (backend + frontend).
 7. `utils`: helpers compartidos (formato, validación, fechas).
 6. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.

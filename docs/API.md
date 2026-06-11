@@ -31,8 +31,8 @@ GET /api/preferences/ui
 PUT /api/preferences/ui
 ```
 
-- `GET /api/preferences/ui`: devuelve las preferencias de presentación guardadas en `app_meta` con clave `ui_preferences`. Si no existen, devuelve los valores por defecto. En Community, `editable` es `false`; en Professional, `editable` es `true`.
-- `PUT /api/preferences/ui`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. En Professional valida y persiste exactamente 6 IDs de métricas de Operativa. El payload debe contener `operationsMetricIds` como array de 6 IDs únicos válidos.
+- `GET /api/preferences/ui`: devuelve las preferencias de presentación guardadas en `app_meta` con clave `ui_preferences`. Si no existen, devuelve los valores por defecto que incluyen `operationsMetricIds` (array de 6 métricas) y `historyEventFilters` (modo `all`, tipos de instrumento `stock`/`etf`, tipos de operación `add`/`remove`). En Community, `editable` es `false`; en Professional, `editable` es `true`.
+- `PUT /api/preferences/ui`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. En Professional acepta payloads parciales con `operationsMetricIds` y/o `historyEventFilters`, preservando las preferencias no enviadas. `historyEventFilters` soporta `mode` (`all`, `none`, `custom`), `assetTypes` (`stock`, `etf`) y `transactionTypes` (`add`, `remove`). En `custom` se exige al menos un valor de cada filtro.
 
 ## Instrumentos y grupos
 
