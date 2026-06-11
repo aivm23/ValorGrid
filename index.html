@@ -668,9 +668,9 @@
             <option value="ibkr-csv" disabled>Interactive Brokers - Profesional Edition - Próximamente</option>
           </select>
           <span class="import-source-teaser" aria-label="Fuentes profesionales disponibles">
-            <span class="import-source-badge import-source-badge-pro">DEGIRO - <em>Profesional Edition</em></span>
+            <span class="import-source-badge import-source-badge-pro">DEGIRO - <em class="pro-edition-label">Professional Edition</em></span>
             <span class="import-source-badge import-source-badge-soon"
-              >Interactive Brokers - <em>Profesional Edition</em> - <em>Próximamente</em></span
+              >Interactive Brokers - <em class="pro-edition-label">Professional Edition</em> - <em>Próximamente</em></span
             >
           </span>
         </label>
@@ -804,7 +804,17 @@
                   <option value="sunday">Domingo</option>
                 </select>
               </label>
-              <div id="operations-preference-controls"></div>
+              <details class="pro-preferences-card" id="pro-preferences-card">
+                <summary class="pro-preferences-summary">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  <span>Personalización disponible en <strong class="pro-edition-label">Professional Edition</strong></span>
+                  <svg class="pro-preferences-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </summary>
+                <div class="pro-preferences-body">
+                  <div id="operations-preference-controls"></div>
+                  <div id="history-preference-controls"></div>
+                </div>
+              </details>
             </div>
             <p class="subtle admin-prefs-hint">Solo cambia la presentación; no modifica ningún dato.</p>
           </section>
