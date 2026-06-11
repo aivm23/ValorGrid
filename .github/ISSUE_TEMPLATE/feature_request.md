@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Propón una mejora para ValorGrid Community
-title: '[Feature]: '
+title: "[Feature]: "
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## Problema

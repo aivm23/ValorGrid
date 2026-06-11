@@ -188,7 +188,12 @@ Respuesta:
 ```json
 {
   "sources": [
-    { "key": "valorgrid-xlsx", "label": "Plantilla Excel de ValorGrid", "edition": "community", "available": true },
+    {
+      "key": "valorgrid-xlsx",
+      "label": "Plantilla Excel de ValorGrid",
+      "edition": "community",
+      "available": true
+    },
     {
       "key": "<fuente-profesional>",
       "label": "<Fuente profesional>",

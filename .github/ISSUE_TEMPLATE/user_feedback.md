@@ -1,9 +1,9 @@
 ---
 name: User feedback
 about: Comparte feedback de uso real sin datos privados
-title: '[Feedback]: '
+title: "[Feedback]: "
 labels: feedback
-assignees: ''
+assignees: ""
 ---
 
 ## Contexto
