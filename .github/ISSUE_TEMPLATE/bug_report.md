@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Reporta un problema reproducible en ValorGrid
-title: "[Bug]: "
+title: '[Bug]: '
 labels: bug
-assignees: ""
+assignees: ''
 ---
 
 ## Qué Ha Pasado
