@@ -313,7 +313,7 @@ export function attach(ctx) {
     const oldMetricId = currentIds[position];
     if (oldMetricId === newMetricId) return;
 
-    currentIds.splice(position, 0, newMetricId);
+    currentIds[position] = newMetricId;
 
     try {
       await ctx.sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds: currentIds });
