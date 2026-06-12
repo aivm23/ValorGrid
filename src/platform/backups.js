@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { openDatabase } = require('./db');
 
 function ensureBackupDir(root, backupDir = path.join(root, '.backups')) {
   fs.mkdirSync(backupDir, { recursive: true });
@@ -23,7 +24,7 @@ function pruneOldBackups(backupDir, limit = 6) {
 
 function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
   const backupDir = ensureBackupDir(root, configuredBackupDir);
-  db.exec('PRAGMA wal_checkpoint(FULL)');
+  try { db.exec('PRAGMA wal_checkpoint(FULL)'); } catch { /* skip for in-memory or non-WAL databases */ }
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fileName = `portfolio-${stamp}.sqlite`;
   const targetPath = path.join(backupDir, fileName);
@@ -62,7 +63,7 @@ function resolveBackupPath(root, file, configuredBackupDir) {
   return fullPath.startsWith(backupDir + path.sep) && fs.existsSync(fullPath) ? fullPath : null;
 }
 
-function restoreBackup({ db, dbPath, root, backupDir: configuredBackupDir, targetFile }) {
+function restoreBackup({ db, dbPath, root, backupDir: configuredBackupDir, targetFile, ctx }) {
   const backupDir = ensureBackupDir(root, configuredBackupDir);
   const safeName = safeBackupName(targetFile);
   if (!safeName) {
@@ -87,9 +88,15 @@ function restoreBackup({ db, dbPath, root, backupDir: configuredBackupDir, targe
   const preRestorePath = path.join(backupDir, preRestoreName);
   fs.copyFileSync(dbPath, preRestorePath);
   fs.copyFileSync(backupPath, dbPath);
+  db.close();
+  const newDb = openDatabase(dbPath);
+  if (ctx) {
+    ctx.db = newDb;
+  }
   return {
     restoredFile: safeName,
     preRestoreBackup: preRestoreName,
+    db: newDb,
   };
 }
 

@@ -169,7 +169,9 @@ $publicBrokerTeaserFiles = @(
   'src\domains\data-ingestion\ingestion-profiles.js',
   'src/domains/data-ingestion/ingestion-profiles.js',
   'test\imports.test.js',
-  'test/imports.test.js'
+  'test/imports.test.js',
+  'client/imports.js',
+  'client\imports.js'
 )
 
 foreach ($file in $publicFiles) {
