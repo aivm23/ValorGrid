@@ -131,7 +131,7 @@ export function attach(ctx) {
     const file = ctx.elements.importFile.files?.[0];
     if (!file) return;
     const isXlsxMode = isXlsxSource(source);
-    const fileExt = (file.name.match(/\.[^.]+$/) || [])[1]?.toLowerCase();
+    const fileExt = (file.name.match(/\.[^.]+$/) || [])[0]?.toLowerCase();
     if (isXlsxMode && fileExt !== '.xlsx') {
       ctx.elements.importFeedback.textContent = 'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.';
       ctx.state.importFileMeta = null;
