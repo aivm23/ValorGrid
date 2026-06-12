@@ -35,8 +35,8 @@ test('operations.js renders KPI cards with semantic border classes and metric-mi
   const ops = read(path.join('client', 'operations.js'));
   assert.ok(ops.includes('has-border-accent'), 'operations uses has-border-accent');
   assert.ok(ops.includes('has-border-positive'), 'operations uses has-border-positive');
-  assert.ok(ops.includes('has-border-negative'), 'operations uses has-border-negative');
   assert.ok(ops.includes('has-border-amber'), 'operations uses has-border-amber');
+  assert.ok(ops.includes('borderClasses'), 'operations uses position-based borderClasses array');
   assert.ok(ops.includes('metric-micro'), 'operations uses metric-micro for micro-info');
 });
 
