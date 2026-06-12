@@ -19,6 +19,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     listBackups,
     createBackup,
     resolveBackupPath,
+    restoreBackup,
   } = resolveRouteHandlers(ctx);
 
   const { appInfo, dbPath } = ctx.config || ctx;
@@ -47,6 +48,17 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
 
   if (url.pathname === '/api/backups' && request.method === 'POST') {
     sendJson(response, 201, { backup: createBackup() });
+    return true;
+  }
+
+  const restoreMatch = url.pathname.match(/^\/api\/backups\/([^/]+)\/restore$/);
+  if (restoreMatch && request.method === 'POST') {
+    try {
+      const result = restoreBackup({ targetFile: decodeURIComponent(restoreMatch[1]) });
+      sendJson(response, 200, { ok: true, restoredFile: result.restoredFile, preRestoreBackup: result.preRestoreBackup });
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
     return true;
   }
 

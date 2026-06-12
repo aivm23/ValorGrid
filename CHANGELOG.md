@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.9.4
+
+- docs: audit and sync documentation — replace fragile line counts in TESTING.md with stable file/domain/coverage matrix, add missing tests (auth, storage, verify-publication), fix CI description to match actual matrix (windows + ubuntu, Node 24, verify:publication, seed:demo), remove obsolete `node --check app.js` reference.
+- docs: add `src/shared/` and `client/history-preferences.js` to ARCHITECTURE.md module inventory, remove fragile "9 lines" claim for server.js, adjust migration text to clarify not all domains have own routes.
+- docs: add `npm run seed:demo` to GITHUB_RELEASE.md local preparation steps, fix "Documentación de usuario" header capitalization.
+- chore: bump version 3.9.3 -> 3.9.4 (patch) in package.json, package-lock.json, compose.casaos.yml.
+
 ## 3.9.3
 
 - feat: history event filter preferences — extend `ui_preferences` with `historyEventFilters` (mode, assetTypes, transactionTypes).

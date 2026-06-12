@@ -153,6 +153,12 @@ export function attach(ctx) {
     if (btn) ctx.goToLedgerPage(btn.dataset.ledgerPage);
   });
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
+  elements.backupList?.addEventListener('click', (event) => {
+    const restoreButton = event.target.closest('.restore-btn');
+    if (restoreButton) {
+      handleRestoreBackup(restoreButton.dataset.file);
+    }
+  });
   elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);
   elements.openImportDialogToolbar?.addEventListener('click', ctx.openImportDialog);
   elements.importDialogClose.addEventListener('click', ctx.closeImportDialog);
@@ -220,6 +226,26 @@ export function attach(ctx) {
   elements.deselectAllGroups?.addEventListener('click', ctx.deselectAllGroups);
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
+
+  async function handleRestoreBackup(restoreFile) {
+    const confirmed = window.confirm(`Restaurar el backup ${restoreFile}?\n\nSe reemplazará la base de datos actual. Se creará un backup previo automáticamente.`);
+    if (!confirmed) return;
+    const typeConfirmed = window.prompt(`Escribe RESTAURAR para confirmar:`, '');
+    if (typeConfirmed !== 'RESTAURAR') {
+      elements.backupList.textContent = 'Restauración cancelada.';
+      return;
+    }
+    elements.backupList.textContent = 'Restaurando...';
+    try {
+      await ctx.sendJson(`/api/backups/${encodeURIComponent(restoreFile)}/restore`, 'POST', {});
+      const backupData = await ctx.fetchJson('/api/backups');
+      state.backups = backupData.backups || [];
+      ctx.renderBackups();
+      elements.backupList.textContent = 'Backup restaurado correctamente. Recarga la página.';
+    } catch (error) {
+      elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+    }
+  }
 
   async function createBackup(localCtx) {
     elements.createBackup.disabled = true;

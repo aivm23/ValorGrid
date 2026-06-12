@@ -19,7 +19,7 @@ ValorGrid evoluciona de un monolito modular con `ctx` plano hacia este patrón o
 - **Clean-ish layering** (`routes` -> `services` -> `repositories`).
 - **Dependency Injection explícita** usando un `ctx` agrupado.
 - **TypeScript strict incremental** (migración activa sin big-bang, `tsconfig.json` con `strict: true`, `checkJs: false`).
-- **Carpetas por bounded context** (migración activa de `src/` plano a `src/domains/<domain>/` agrupando service + repository + routes por dominio, con `src/platform/` para infraestructura compartida).
+- **Carpetas por bounded context** (migración activa de `src/` plano a `src/domains/<domain>/` agrupando service + repository + routes por dominio donde aplica, con `src/platform/` para infraestructura compartida y `src/shared/` para módulos transversales sin dominio propio).
 
 Principios operativos de la migración:
 
@@ -50,6 +50,7 @@ src/
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
+├── shared/             (operations-metrics)
 ├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
 ├── types.ts
 ├── app.js
@@ -57,13 +58,13 @@ src/
 └── ...
 ```
 
-Cada dominio se migra completo: service + repository + routes. `src/app.js` y `route-*.js` mantienen el wiring externo.
+Cada dominio se migra completo: service + repository + routes (cuando aplica). `src/app.js` y `route-*.js` mantienen el wiring externo.
 
 ## Backend
 
 ### `server.js`
 
-Bootstrap mínimo (9 líneas): delega en `src/app.js` para toda la lógica. Solo arranca el listener HTTP cuando se ejecuta directamente.
+Bootstrap mínimo: delega en `src/app.js` para toda la lógica. Solo arranca el listener HTTP cuando se ejecuta directamente.
 
 ### `src/app.js`
 
@@ -234,6 +235,7 @@ Módulos principales:
 - `ledger.js`: movimientos y filtros.
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
+- `history-preferences.js`: persistencia de preferencias de filtros de eventos en gráfico histórico.
 - `dashboard.js`: arranque de UI y boot overlay.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
 - `import-workflow.js`: lógica de flujo y validación de importación.

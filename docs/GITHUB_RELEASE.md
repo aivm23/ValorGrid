@@ -35,8 +35,9 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importación de
    npm run lint
    npm run format:check
    npm run docs:spellcheck
-   npm test
-   npm run verify:publication
+    npm test
+    npm run verify:publication
+    npm run seed:demo
    ```
 
 5. Revisar `git status --short`.
@@ -121,7 +122,7 @@ El hash debe coincidir con la linea correspondiente en `SHA256SUMS.txt`.
 
 Windows SmartScreen puede mostrar aviso en apps nuevas o sin firma de código con reputacion acumulada. No publiques instaladores por canales paralelos; la fuente oficial debe ser GitHub Releases o una futura landing que redirija a GitHub Releases.
 
-## documentación De Usuario
+## Documentación de usuario
 
 Cada release estable debe mantener actualizados:
 

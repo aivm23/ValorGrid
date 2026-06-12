@@ -193,6 +193,42 @@ test('backup API creates, lists, and downloads SQLite backups', async () => {
   fs.rmSync(path.join(process.cwd(), '.backups', create.body.backup.file), { force: true });
 });
 
+test('POST /api/backups/:file/restore validates backup, creates pre-restore, and restores DB state', async () => {
+  const create = await jsonRequest('/api/backups', { method: 'POST' });
+  assert.equal(create.response.status, 201);
+  const backupFile = create.body.backup.file;
+
+  const restore = await jsonRequest(`/api/backups/${encodeURIComponent(backupFile)}/restore`, { method: 'POST' });
+  assert.equal(restore.response.status, 200);
+  assert.equal(restore.body.ok, true);
+  assert.ok(restore.body.restoredFile);
+  assert.equal(restore.body.restoredFile, backupFile);
+  assert.ok(restore.body.preRestoreBackup);
+  assert.ok(restore.body.preRestoreBackup.startsWith('pre-restore-'));
+  assert.notEqual(restore.body.preRestoreBackup, backupFile);
+
+  const list = await jsonRequest('/api/backups');
+  assert.ok(list.body.backups.some((b) => b.file === restore.body.preRestoreBackup));
+
+  const tempBackupDir = path.join(path.dirname(path.dirname(process.env.PORTFOLIO_DB_PATH)), 'backups');
+  const preRestorePath = path.join(tempBackupDir, restore.body.preRestoreBackup);
+  assert.ok(fs.existsSync(preRestorePath), 'pre-restore backup should exist on disk');
+  fs.rmSync(preRestorePath, { force: true });
+  fs.rmSync(path.join(tempBackupDir, backupFile), { force: true });
+});
+
+test('POST /api/backups/:file/restore rejects invalid file names', async () => {
+  const { response, body } = await jsonRequest('/api/backups/..%2F..%2Fetc%2Fpasswd.sqlite/restore', { method: 'POST' });
+  assert.equal(response.status, 400);
+  assert.ok(body.error);
+});
+
+test('POST /api/backups/:file/restore rejects non-existent backups', async () => {
+  const { response, body } = await jsonRequest('/api/backups/nonexistent-file.sqlite/restore', { method: 'POST' });
+  assert.equal(response.status, 404);
+  assert.ok(body.error);
+});
+
 test('GET /api/instruments returns configured instruments', async () => {
   const { response, body } = await jsonRequest('/api/instruments');
 

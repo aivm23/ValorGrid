@@ -62,8 +62,40 @@ function resolveBackupPath(root, file, configuredBackupDir) {
   return fullPath.startsWith(backupDir + path.sep) && fs.existsSync(fullPath) ? fullPath : null;
 }
 
+function restoreBackup({ db, dbPath, root, backupDir: configuredBackupDir, targetFile }) {
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
+  const safeName = safeBackupName(targetFile);
+  if (!safeName) {
+    const error = new Error('Invalid backup file name');
+    error.statusCode = 400;
+    throw error;
+  }
+  const backupPath = path.resolve(backupDir, safeName);
+  if (!backupPath.startsWith(backupDir + path.sep)) {
+    const error = new Error('Backup file not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (!fs.existsSync(backupPath)) {
+    const error = new Error('Backup file not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  db.exec('PRAGMA wal_checkpoint(FULL)');
+  const preRestoreStamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const preRestoreName = `pre-restore-${preRestoreStamp}.sqlite`;
+  const preRestorePath = path.join(backupDir, preRestoreName);
+  fs.copyFileSync(dbPath, preRestorePath);
+  fs.copyFileSync(backupPath, dbPath);
+  return {
+    restoredFile: safeName,
+    preRestoreBackup: preRestoreName,
+  };
+}
+
 module.exports = {
   createBackup,
   listBackups,
   resolveBackupPath,
+  restoreBackup,
 };

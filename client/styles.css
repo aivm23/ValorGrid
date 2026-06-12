@@ -1318,8 +1318,7 @@ h3 {
   font-weight: 600;
 }
 
-.ledger-totals,
-.backup-list {
+.ledger-totals {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -1332,8 +1331,7 @@ h3 {
   font-weight: 600;
 }
 
-.ledger-totals strong,
-.backup-list a {
+.ledger-totals strong {
   color: var(--text);
   font-size: 0.92rem;
   font-family: var(--font-mono);
@@ -1746,6 +1744,9 @@ h3 {
 }
 
 .import-batch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px;
@@ -1759,6 +1760,16 @@ h3 {
 .import-batch-row.is-rolled-back strong {
   text-decoration: line-through;
   text-decoration-color: var(--muted);
+}
+
+.import-batch-row .restore-btn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.import-batch-row .restore-btn:hover {
+  background: var(--danger);
+  color: var(--bg);
 }
 
 .import-committing-overlay {

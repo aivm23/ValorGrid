@@ -395,6 +395,7 @@ const adminServices = {
   listBackups: () => backups.listBackups(root, backupDir),
   createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
+  restoreBackup: ({ targetFile }) => backups.restoreBackup({ db, dbPath, root, backupDir, targetFile }),
 };
 
 const uiPreferencesServices = {};
