@@ -98,6 +98,55 @@ export function attach(ctx) {
                 <strong>${ctx.formatCurrency(performance.commissions)}</strong>
                 <small class="metric-micro">${commissionCopy}</small>
               </article>`;
+          case 'simpleReturnPct':
+            return `
+              <article class="${(performance.simpleReturnPct || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                ${metricInfo('Rentabilidad simple', 'Resultado total como porcentaje del capital aportado. Si es negativo, el retorno sobre lo aportado es negativo.', 'op-simplereturn-info')}
+                <strong>${performance.simpleReturnPct !== null ? ctx.formatPercent(performance.simpleReturnPct) : 'N/D'}</strong>
+                <small class="metric-micro">retorno sobre aportado</small>
+              </article>`;
+          case 'transactionCount':
+            return `
+              <article>
+                <span>Nº movimientos</span>
+                <strong>${performance.transactionCount || 0}</strong>
+                <small class="metric-micro">compras y ventas totales</small>
+              </article>`;
+          case 'averageCommission':
+            return `
+              <article>
+                <span>Comisión media</span>
+                <strong>${performance.transactionCount > 0 ? ctx.formatCurrency(performance.commissions / performance.transactionCount) : 'N/D'}</strong>
+                <small class="metric-micro">por movimiento</small>
+              </article>`;
+          case 'openInvestment':
+            return `
+              <article class="has-border-accent">
+                ${metricInfo('Inversión abierta', 'Valor de mercado menos plusvalía latente. Es el capital que sigue invertido en posiciones abiertas tras ventas FIFO.', 'op-openinvestment-info')}
+                <strong>${ctx.formatCurrency(openInvestment)}</strong>
+                <small class="metric-micro">capital actualmente invertido</small>
+              </article>`;
+          case 'netCashFlow':
+            return `
+              <article class="${performance.netCashFlow >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                ${metricInfo('Cash-flow neto', 'Flujo de caja neto total: aportaciones menos retiraciones. Negativo = neto aportado, positivo = neto retirado.', 'op-netcashflow-info')}
+                <strong class="${ctx.moneyClass(performance.netCashFlow)}">${ctx.formatCurrency(performance.netCashFlow)}</strong>
+                <small class="metric-micro">flujo neto acumulado</small>
+              </article>`;
+          case 'grossBought':
+            return `
+              <article class="has-border-positive">
+                <span>Compras brutas</span>
+                <strong>${ctx.formatCurrency(performance.grossInvested || 0)}</strong>
+                <small class="metric-micro">total comprado sin comisiones</small>
+              </article>`;
+          case 'grossSold':
+            return `
+              <article class="has-border-negative">
+                <span>Ventas brutas</span>
+                <strong>${ctx.formatCurrency(performance.grossWithdrawn || 0)}</strong>
+                <small class="metric-micro">total vendido sin comisiones</small>
+              </article>`;
           default:
             return '';
         }
