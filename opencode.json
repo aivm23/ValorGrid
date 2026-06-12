@@ -17,6 +17,12 @@
     "auto": true,
     "tail_turns": 15
   },
+  "agent": {
+    "test-gate": {
+      "description": "Guardian before commit: runs ALL tests and blocks commits if anything fails.",
+      "mode": "primary"
+    }
+  },
   "mcp": {
     "sqlite": {
       "type": "local",

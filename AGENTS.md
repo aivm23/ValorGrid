@@ -61,6 +61,11 @@
   4. full `npm test`,
   5. `npm run verify:publication`,
   6. docs sync verification when docs/API/schema/module lists change.
+- **CRITICAL RULE: ALWAYS run `npm run check` (lint + format + spellcheck + changelog + tests) BEFORE any commit.**
+  - If tests fail, DO NOT commit or push. Fix the failure first.
+  - This includes `npm test`, `npm run lint`, `npm run typecheck`, `npm run verify:publication`.
+  - Before creating a tag or release, run the full CI-equivalent test suite locally.
+- Before commit, verify that the tests you run locally are the same tests CI will run.
 
 ## UI & UX
 
@@ -96,7 +101,10 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 ## Git
 
 - **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `style:`
-- `/save` command reviews changes, runs `npm test`, and pushes. Always run tests before committing.
+- `/save` command reviews changes, runs `npm run check` (lint + format + spellcheck + changelog + tests), and pushes.
+  - **RULE: If `npm run check` fails, DO NOT commit or push. Fix the failure first.**
+  - **RULE: Before any commit, run ALL tests, not just quick tests.**
+  - **RULE: Verify that what you run locally is the same that CI runs.**
 - Release tags must use only `v{num_version}` (example: `v2.30.32`). Do not append suffixes, phase labels, or extra text.
 - **Never commit**: `*.sqlite`, `.env`, `data/`, `.backups/`, secrets, tokens, credentials, broker exports, local paths.
 - Run `npm run verify:publication` before any push to ensure private data is not exposed.

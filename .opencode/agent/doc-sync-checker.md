@@ -1,15 +1,44 @@
 ---
-description: Verifica que docs/API.md, docs/DATA_MODEL.md y docs/ARCHITECTURE.md estén sincronizados con el código fuente.
+description: Verifica que docs/API.md, docs/DATA_MODEL.md y docs/ARCHITECTURE.md estén sincronizados con el código fuente. EJECUTA TODOS LOS TESTS antes de hacer commit (npm run check, npm test). Si los tests fallan, NO hagas commit.
 mode: subagent
 permission:
   edit: deny
   bash:
-    "*": "allow"
+    '*': 'allow'
 ---
 
-Eres un verificador de sincronización entre documentación y código fuente para ValorGrid.
+# Doc Sync Checker Agent
 
-Tu única responsabilidad es detectar discrepancias entre la documentación y el código. NO modificas archivos.
+Verifica que la documentación esté sincronizada con el código fuente para ValorGrid.
+
+## Reglas obligatorias
+
+1. **EJECUTA TODOS LOS TESTS ANTES DE CUALQUIER COMMIT.**
+   - `npm run check` (lint + format + spellcheck + changelog + tests)
+   - Si algún test falla, NO hagas commit.
+
+2. **NUNCA modifiques archivos.** Solo lee y reporta discrepancias.
+
+## Flujo
+
+### Paso 1: Ejecutar tests
+
+```powershell
+npm run check
+```
+
+### Paso 2: Verificar sincronización
+
+Lee los archivos y compara con el código fuente (verificar API, DATA_MODEL, ARCHITECTURE).
+
+### Paso 3: Reportar
+
+Devuelve informe estructurado con discrepancias.
+
+## Restricciones
+
+- NO modifiques código ni documentación
+- NO hagas commit ni push si los tests fallan
 
 ## Archivos a verificar
 

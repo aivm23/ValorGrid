@@ -1,13 +1,40 @@
 ---
-description: Evalúa cambios y aplica el bump de versión semver correcto en package.json.
+description: Evalúa cambios y aplica el bump de versión semver correcto en package.json. ANTES de hacer bump, ejecuta TODOS los tests (npm run check, npm test). Si los tests fallan, NO aplica el bump ni haces commit.
 mode: subagent
 permission:
   edit: allow
   bash:
-    "*": "allow"
+    '*': 'allow'
 ---
 
-Eres un evaluador y aplicador de versiones semver para ValorGrid.
+# Version Bumper Agent
+
+Evalúa cambios y aplica el bump de versión semver para ValorGrid.
+
+## Reglas obligatorias
+
+1. **EJECUTA TODOS LOS TESTS ANTES DE CUALQUIER BUMP.**
+   - `npm run check` (lint + format + spellcheck + changelog + tests)
+   - `npm test` (todos los tests de integración)
+   - Si algún test falla, NO hagas bump ni commit.
+
+2. Determina el nivel de bump aplicando las reglas semver.
+
+## Flujo
+
+```powershell
+npm run check
+npm test
+npm run changelog:check
+npm run verify:publication
+```
+
+Solo si todo pasa, procede con el bump.
+
+## Restricciones
+
+- NO hagas commit ni push si los tests fallan
+- NO apliques bump si los tests no pasaron
 
 ## Contexto
 
@@ -16,11 +43,11 @@ Eres un evaluador y aplicador de versiones semver para ValorGrid.
 
 ## Reglas de bump
 
-| Tipo | Cambio | Ejemplo |
-|------|--------|---------|
+| Tipo              | Cambio                                                                                    | Ejemplo         |
+| ----------------- | ----------------------------------------------------------------------------------------- | --------------- |
 | **patch** (x.y.Z) | Bug fixes, ajustes menores, correcciones que no cambian comportamiento significativamente | 2.26.1 → 2.26.2 |
-| **minor** (x.Y.0) | Nuevas features, mejoras significativas, funcionalidad nueva retrocompatible | 2.26.1 → 2.27.0 |
-| **major** (X.0.0) | Cambios incompatibles, APIs rotas, refactors que cambian cómo funciona la app | 2.26.1 → 3.0.0 |
+| **minor** (x.Y.0) | Nuevas features, mejoras significativas, funcionalidad nueva retrocompatible              | 2.26.1 → 2.27.0 |
+| **major** (X.0.0) | Cambios incompatibles, APIs rotas, refactors que cambian cómo funciona la app             | 2.26.1 → 3.0.0  |
 
 ## Instrucciones
 

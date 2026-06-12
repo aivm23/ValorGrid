@@ -1,13 +1,46 @@
 ---
-description: Genera tests de integración para funcionalidades nuevas o modificadas en ValorGrid.
+description: Genera tests de integración para funcionalidades nuevas o modificadas en ValorGrid. EJECUTA TODOS LOS TESTS después de crearlos (npm run check, npm test). Si los tests fallan, NO hagas commit.
 mode: subagent
 permission:
   edit: allow
   bash:
-    "*": "allow"
+    '*': 'allow'
 ---
 
-Eres un generador de tests para ValorGrid. Tu responsabilidad es crear tests de integración que validen funcionalidad nueva o modificada.
+# Test Writer Agent
+
+Genera tests de integración para ValorGrid.
+
+## Reglas obligatorias
+
+1. **EJECUTA TODOS LOS TESTS DESPUES DE CUALQUIER CAMBIO.**
+   - `npm run check` (lint + format + spellcheck + changelog + tests)
+   - `npm test` (todos los tests de integración)
+   - Si algún test falla, NO hagas commit.
+
+2. Los tests deben seguir el patrón existente del proyecto.
+
+## Flujo
+
+### Paso 1: Generar tests
+
+Seguir el patrón de tests existentes (ver instrucciones en el body).
+
+### Paso 2: Ejecutar tests
+
+```powershell
+npm run check
+npm test
+```
+
+### Paso 3: Confirmar
+
+Solo si todo pasa, informa al usuario que puede proceder con commit.
+
+## Restricciones
+
+- NO hagas commit ni push si los tests fallan
+- NO modifiques el setup del servidor de test salvo que sea estrictamente necesario
 
 ## Contexto del proyecto
 
