@@ -53,111 +53,101 @@ export function attach(ctx) {
       ? `${(performance.commissions / performance.transactionCount).toFixed(2)} €/movimiento`
       : 'sin comisiones';
 
+    const borderClasses = ['has-border-accent', 'has-border-accent', 'has-border-positive', 'has-border-positive', 'has-border-positive', 'has-border-amber'];
+
     const html = metricIds
-      .map((metricId) => {
-        switch (metricId) {
+      .map((metricId, index) => {
+        const borderClass = borderClasses[index] || '';
+        const content = renderMetricContent(metricId, {
+          currentValue, netContributed, contributedMicro, contributedTooltip,
+          totalGain, resultMicro, resultTooltip,
+          unrealizedGain, latentMicro, latentTooltip,
+          openInvestment, performance, commissionCopy, metricInfo,
+        });
+        return content
+          ? `<article class="${borderClass}">${content}</article>`
+          : '';
+      })
+      .join('');
+
+    ctx.elements.performanceSummary.innerHTML = html || '';
+  }
+
+  function renderMetricContent(metricId, props) {
+    const { currentValue, netContributed, contributedMicro, contributedTooltip, totalGain, resultMicro, resultTooltip, unrealizedGain, latentMicro, latentTooltip, openInvestment, performance, commissionCopy, metricInfo } = props;
+    switch (metricId) {
           case 'marketValue':
             return `
-              <article class="has-border-accent">
-                <span>Valor mercado</span>
-                <strong>${ctx.formatCurrency(currentValue)}</strong>
-                <small class="metric-micro">a precios actuales</small>
-              </article>`;
+              <span>Valor mercado</span>
+              <strong>${ctx.formatCurrency(currentValue)}</strong>
+              <small class="metric-micro">a precios actuales</small>`;
           case 'netContributed':
             return `
-              <article class="has-border-accent">
-                ${metricInfo('Aportado neto', contributedTooltip, 'op-contributed-info')}
-                <strong class="${ctx.moneyClass(netContributed)}">${ctx.formatCurrency(netContributed)}</strong>
-                <small class="metric-micro">${contributedMicro}</small>
-              </article>`;
+              ${metricInfo('Aportado neto', contributedTooltip, 'op-contributed-info')}
+              <strong class="${ctx.moneyClass(netContributed)}">${ctx.formatCurrency(netContributed)}</strong>
+              <small class="metric-micro">${contributedMicro}</small>`;
           case 'totalGain':
             return `
-              <article class="${totalGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                ${metricInfo('Resultado total', resultTooltip, 'op-result-info')}
-                <strong class="${ctx.moneyClass(totalGain)}">${ctx.formatCurrency(totalGain)}</strong>
-                <small class="metric-micro">${resultMicro}</small>
-              </article>`;
+              ${metricInfo('Resultado total', resultTooltip, 'op-result-info')}
+              <strong class="${ctx.moneyClass(totalGain)}">${ctx.formatCurrency(totalGain)}</strong>
+              <small class="metric-micro">${resultMicro}</small>`;
           case 'unrealizedGain':
             return `
-              <article class="${unrealizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                ${metricInfo('Plusvalía latente', latentTooltip, 'op-latent-info')}
-                <strong class="${ctx.moneyClass(unrealizedGain)}">${ctx.formatCurrency(unrealizedGain)}</strong>
-                <small class="metric-micro">${latentMicro}</small>
-              </article>`;
+              ${metricInfo('Plusvalía latente', latentTooltip, 'op-latent-info')}
+              <strong class="${ctx.moneyClass(unrealizedGain)}">${ctx.formatCurrency(unrealizedGain)}</strong>
+              <small class="metric-micro">${latentMicro}</small>`;
           case 'realizedGain':
             return `
-              <article class="${performance.realizedGain >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                <span>Plusvalía realizada</span>
-                <strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong>
-                <small class="metric-micro">resultado ventas FIFO</small>
-              </article>`;
+              <span>Plusvalía realizada</span>
+              <strong class="${ctx.moneyClass(performance.realizedGain)}">${ctx.formatCurrency(performance.realizedGain)}</strong>
+              <small class="metric-micro">resultado ventas FIFO</small>`;
           case 'commissions':
             return `
-              <article class="has-border-amber">
-                <span>Comisiones</span>
-                <strong>${ctx.formatCurrency(performance.commissions)}</strong>
-                <small class="metric-micro">${commissionCopy}</small>
-              </article>`;
+              <span>Comisiones</span>
+              <strong>${ctx.formatCurrency(performance.commissions)}</strong>
+              <small class="metric-micro">${commissionCopy}</small>`;
           case 'simpleReturnPct': {
             const pct = performance.simpleReturnPct;
             const displayPct = pct !== null ? ctx.formatPercent(pct) : 'N/D';
             const microText = pct !== null ? 'retorno sobre aportado' : 'requiere neto aportado > 0';
             return `
-              <article class="${pct !== null && pct >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                ${metricInfo('Rentabilidad simple', 'Resultado total como porcentaje del capital aportado. No disponible cuando el neto aportado es negativo (has retirado más de lo aportado).', 'op-simplereturn-info')}
-                <strong>${displayPct}</strong>
-                <small class="metric-micro">${microText}</small>
-              </article>`;
+              ${metricInfo('Rentabilidad simple', 'Resultado total como porcentaje del capital aportado. No disponible cuando el neto aportado es negativo (has retirado más de lo aportado).', 'op-simplereturn-info')}
+              <strong>${displayPct}</strong>
+              <small class="metric-micro">${microText}</small>`;
           }
           case 'transactionCount':
             return `
-              <article>
-                <span>Nº movimientos</span>
-                <strong>${performance.transactionCount || 0}</strong>
-                <small class="metric-micro">compras y ventas totales</small>
-              </article>`;
+              <span>Nº movimientos</span>
+              <strong>${performance.transactionCount || 0}</strong>
+              <small class="metric-micro">compras y ventas totales</small>`;
           case 'averageCommission':
             return `
-              <article class="has-border-amber">
-                <span>Comisión media</span>
-                <strong>${performance.transactionCount > 0 ? ctx.formatCurrency(performance.commissions / performance.transactionCount) : 'N/D'}</strong>
-                <small class="metric-micro">por movimiento</small>
-              </article>`;
+              <span>Comisión media</span>
+              <strong>${performance.transactionCount > 0 ? ctx.formatCurrency(performance.commissions / performance.transactionCount) : 'N/D'}</strong>
+              <small class="metric-micro">por movimiento</small>`;
           case 'openInvestment':
             return `
-              <article class="has-border-accent">
-                ${metricInfo('Inversión abierta', 'Valor de mercado menos plusvalía latente. Es el capital que sigue invertido en posiciones abiertas tras ventas FIFO.', 'op-openinvestment-info')}
-                <strong>${ctx.formatCurrency(openInvestment)}</strong>
-                <small class="metric-micro">capital actualmente invertido</small>
-              </article>`;
+              ${metricInfo('Inversión abierta', 'Valor de mercado menos plusvalía latente. Es el capital que sigue invertido en posiciones abiertas tras ventas FIFO.', 'op-openinvestment-info')}
+              <strong>${ctx.formatCurrency(openInvestment)}</strong>
+              <small class="metric-micro">capital actualmente invertido</small>`;
           case 'netCashFlow':
             return `
-              <article class="${performance.netCashFlow >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                ${metricInfo('Cash-flow neto', 'Flujo de caja neto total: aportaciones menos retiraciones. Negativo = neto aportado, positivo = neto retirado.', 'op-netcashflow-info')}
-                <strong class="${ctx.moneyClass(performance.netCashFlow)}">${ctx.formatCurrency(performance.netCashFlow)}</strong>
-                <small class="metric-micro">flujo neto acumulado</small>
-              </article>`;
+              ${metricInfo('Cash-flow neto', 'Flujo de caja neto total: aportaciones menos retiraciones. Negativo = neto aportado, positivo = neto retirado.', 'op-netcashflow-info')}
+              <strong class="${ctx.moneyClass(performance.netCashFlow)}">${ctx.formatCurrency(performance.netCashFlow)}</strong>
+              <small class="metric-micro">flujo neto acumulado</small>`;
           case 'grossBought':
             return `
-              <article class="has-border-positive">
-                <span>Compras brutas</span>
-                <strong>${ctx.formatCurrency(performance.grossInvested || 0)}</strong>
-                <small class="metric-micro">total comprado sin comisiones</small>
-              </article>`;
+              <span>Compras brutas</span>
+              <strong>${ctx.formatCurrency(performance.grossInvested || 0)}</strong>
+              <small class="metric-micro">total comprado sin comisiones</small>`;
           case 'grossSold':
             return `
-              <article class="has-border-negative">
-                <span>Ventas brutas</span>
-                <strong>${ctx.formatCurrency(performance.grossWithdrawn || 0)}</strong>
-                <small class="metric-micro">total vendido sin comisiones</small>
-              </article>`;
+              <span>Ventas brutas</span>
+              <strong>${ctx.formatCurrency(performance.grossWithdrawn || 0)}</strong>
+              <small class="metric-micro">total vendido sin comisiones</small>`;
           default:
             return '';
         }
-      })
-      .join('');
-
-    ctx.elements.performanceSummary.innerHTML = html || '';
   }
 
   function renderBackups() {
