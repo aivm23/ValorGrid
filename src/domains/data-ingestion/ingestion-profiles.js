@@ -21,13 +21,19 @@ const knownProAdapters = {
   'degiro-csv': {
     parser: 'pro-csv',
     profile: 'degiro',
-    label: 'DEGIRO',
+    label: 'DEGIRO Transactions CSV',
     edition: 'professional',
   },
   'ibkr-csv': {
     parser: 'pro-csv',
     profile: 'ibkr',
-    label: 'Interactive Brokers',
+    label: 'Interactive Brokers Transactions CSV',
+    edition: 'professional',
+  },
+  'clicktrade-csv': {
+    parser: 'pro-csv',
+    profile: 'clicktrade',
+    label: 'ClickTrade',
     edition: 'professional',
     comingSoon: true,
   },

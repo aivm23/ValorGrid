@@ -113,6 +113,8 @@ function resolveRouteHandlers(ctx) {
     createBackup: pickServiceFn(adminServices, 'createBackup', ctx.createBackup),
     resolveBackupPath: pickServiceFn(adminServices, 'resolveBackupPath', ctx.resolveBackupPath),
     restoreBackup: pickServiceFn(adminServices, 'restoreBackup', ctx.restoreBackup),
+    createRiskBackup: pickServiceFn(adminServices, 'createRiskBackup', ctx.createRiskBackup),
+    deleteBackupFile: pickServiceFn(adminServices, 'deleteBackupFile', ctx.deleteBackupFile),
   };
 }
 

@@ -41,7 +41,8 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
   if (buffer.length > MAX_XLSX_BYTES) throw new Error('El archivo supera el tamano maximo permitido');
 
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer, {
+  try {
+    await workbook.xlsx.load(buffer, {
     ignoreNodes: [
       'dataValidations',
       'conditionalFormatting',
@@ -321,7 +322,9 @@ function serializeSummary(summary) {
 
 async function parseImportPayload(input, adapter) {
   if (adapter.parser === 'pro-csv') {
-    if (typeof adapter.parse !== 'function') throw new Error(`Adaptador profesional no disponible: ${adapter.source}`);
+    if (typeof adapter.parse !== 'function') {
+      throw new Error(`El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`);
+    }
     const content = String(input.content || '').trim();
     if (!content) throw new Error('Contenido CSV obligatorio');
     const parsed = adapter.parse({ content, filename: input.filename || null, source: adapter.source });

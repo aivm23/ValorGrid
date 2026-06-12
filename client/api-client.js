@@ -203,6 +203,11 @@ export function createBackup() {
   return sendJson('/api/backups', 'POST', {});
 }
 
+/** @param {string} file */
+export function deleteBackup(file) {
+  return sendJson(`/api/backups/${encodeURIComponent(file)}`, 'DELETE', {});
+}
+
 /** @returns {Promise<unknown>} */
 export function fetchDiagnostics() {
   return fetchJson('/api/diagnostics/performance');

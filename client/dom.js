@@ -61,6 +61,7 @@ export function attach(ctx) {
     importFile: document.querySelector('#import-file'),
     importFileZone: document.querySelector('#import-file-zone'),
     importSource: document.querySelector('#import-source'),
+    importProBanners: document.querySelector('#import-pro-banners'),
     importSheetField: document.querySelector('#import-sheet-field'),
     importSheet: document.querySelector('#import-sheet'),
     importMapping: document.querySelector('#import-mapping'),

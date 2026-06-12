@@ -112,11 +112,9 @@ module.exports = function attach(ctx) {
       }
       realizedGain += valueEur - commissionEur - costBasis;
     }
-
     const netContributed = -netCashFlow;
     const totalGain = Number(currentValue || 0) - netContributed;
     const unrealizedGain = totalGain - realizedGain;
-
     return {
       grossInvested,
       grossWithdrawn,
@@ -202,7 +200,6 @@ module.exports = function attach(ctx) {
       };
     });
   }
-
   function autoPlanMateriallyChanged(previous, next) {
     if (!previous) return false;
     const previousFrequency = previous.frequency || 'monthly';
@@ -221,7 +218,6 @@ module.exports = function attach(ctx) {
       String(previous.startDate || '') !== String(next.startDate || '')
     );
   }
-
   function applyAutoPlanEditPolicy(plans, today = getToday()) {
     const currentPlans = new Map(getAutoPlans().map((plan) => [plan.symbol, plan]));
     const warnings = [];
@@ -283,7 +279,6 @@ module.exports = function attach(ctx) {
       autoKey,
     });
     invalidateLedger(preview.date, 'transaction-create');
-
     return getTransactions().find((transaction) => transaction.id === id);
   }
 
@@ -347,7 +342,6 @@ module.exports = function attach(ctx) {
         manualUnitPrice: true,
       };
     }
-
     if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
     const quote = await getQuoteForSymbol(symbolInput, date);
@@ -411,7 +405,25 @@ module.exports = function attach(ctx) {
     if (result.changes > 0) invalidateLedger(transaction.date, 'transaction-delete');
     return result.changes > 0;
   }
-
+  function bulkDeleteTransactions(ids) {
+    if (!ids || !ids.length) return 0;
+    const validIds = ids.filter((id) => {
+      const t = findTransactionForDelete(id);
+      return t != null;
+    });
+    let deleted = 0;
+    for (const id of validIds) {
+      const transaction = findTransactionForDelete(id);
+      if (!transaction) continue;
+      const result = deleteTransactionById(id);
+      if (result.changes > 0 && transaction.autoKey) {
+        insertAutoPlanSkip(transaction.autoKey);
+      }
+      if (result.changes > 0) invalidateLedger(transaction.date, 'transaction-delete');
+      deleted += result.changes;
+    }
+    return deleted;
+  }
   function isAutoPlanSkipped(autoKey) {
     if (autoPlanSkipExists(autoKey)) return true;
     const parts = autoKey.split(':');
@@ -424,7 +436,6 @@ module.exports = function attach(ctx) {
     }
     return false;
   }
-
   Object.assign(ctx, {
     getTransactions,
     getAutoPlans,
@@ -444,11 +455,10 @@ module.exports = function attach(ctx) {
     createTransaction,
     previewTransaction,
     deleteTransaction,
+    bulkDeleteTransactions,
     isAutoPlanSkipped,
   });
-
   function autoKeyForPlan(plan, scheduledDate) { return `auto:${plan.symbol}:${scheduledDate}`; }
-
   function autoPlanExists(autoKey) {
     if (transactionExistsByAutoKey(autoKey)) return true;
     const parts = autoKey.split(':');
@@ -461,7 +471,6 @@ module.exports = function attach(ctx) {
     }
     return false;
   }
-
   function previewAutoPlanExecutions(plans, toDate = getToday()) {
     const { plans: normalizedPlans, warnings } = applyAutoPlanEditPolicy(normalizeAutoPlans(plans), toDate);
     const items = normalizedPlans.map((plan) => {

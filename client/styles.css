@@ -1772,6 +1772,35 @@ h3 {
   color: var(--bg);
 }
 
+.import-batch-row .backup-delete-btn {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+.import-batch-row .backup-delete-btn:hover {
+  background: var(--muted);
+  color: var(--bg);
+}
+
+.import-backup-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  border: 1px solid var(--warning-border);
+  border-radius: 8px;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.import-backup-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .import-committing-overlay {
   display: grid;
   place-items: center;

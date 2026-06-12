@@ -77,6 +77,7 @@ GET /api/transactions
 POST /api/transactions
 POST /api/transactions/preview
 DELETE /api/transactions/:id
+DELETE /api/transactions (bulk)
 ```
 
 Los movimientos son la verdad contable principal. Una compra o venta puede incluir:

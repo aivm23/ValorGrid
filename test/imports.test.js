@@ -606,13 +606,18 @@ test('GET /api/import/sources returns community sources when edition is communit
   assert.ok(ibkr, 'ibkr-csv source must be present in the list');
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false, 'ibkr-csv must not be available in community edition');
-  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
+
+  const clicktrade = result.body.sources.find((s) => s.key === 'clicktrade-csv');
+  assert.ok(clicktrade, 'clicktrade-csv source must be present in the list');
+  assert.equal(clicktrade.edition, 'professional');
+  assert.equal(clicktrade.available, false, 'clicktrade-csv must not be available in community edition');
+  assert.equal(clicktrade.comingSoon, true, 'clicktrade-csv must be marked as coming soon');
 });
 
 test('listImportSources includes knownProAdapters with available=false in community edition', async () => {
   const sources = listImportSources('community');
   assert.ok(Array.isArray(sources));
-  assert.ok(sources.length >= 3, 'should have at least 3 sources (1 community + 2 pro)');
+  assert.ok(sources.length >= 4, 'should have at least 4 sources (1 community + 3 pro)');
 
   const valorgrid = sources.find((s) => s.key === 'valorgrid-xlsx');
   assert.ok(valorgrid);
@@ -620,16 +625,22 @@ test('listImportSources includes knownProAdapters with available=false in commun
 
   const degiro = sources.find((s) => s.key === 'degiro-csv');
   assert.ok(degiro);
-  assert.equal(degiro.label, 'DEGIRO');
+  assert.equal(degiro.label, 'DEGIRO Transactions CSV');
   assert.equal(degiro.edition, 'professional');
   assert.equal(degiro.available, false);
 
   const ibkr = sources.find((s) => s.key === 'ibkr-csv');
   assert.ok(ibkr);
-  assert.equal(ibkr.label, 'Interactive Brokers');
+  assert.equal(ibkr.label, 'Interactive Brokers Transactions');
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false);
-  assert.equal(ibkr.comingSoon, true, 'ibkr-csv must be marked as coming soon');
+
+  const clicktrade = sources.find((s) => s.key === 'clicktrade-csv');
+  assert.ok(clicktrade);
+  assert.equal(clicktrade.label, 'ClickTrade');
+  assert.equal(clicktrade.edition, 'professional');
+  assert.equal(clicktrade.available, false);
+  assert.equal(clicktrade.comingSoon, true, 'clicktrade-csv must be marked as coming soon');
 });
 
 test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', async () => {

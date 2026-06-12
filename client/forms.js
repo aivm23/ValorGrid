@@ -344,9 +344,11 @@ export function attach(ctx) {
       ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
       ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
-      ctx.elements.autoFeedback.textContent = data.warnings?.length
-        ? data.warnings.map((warning) => warning.message).join(' ')
-        : 'Planes de aportación guardados.';
+      let feedbackMsg = data.warnings?.length ? data.warnings.map((warning) => warning.message).join(' ') : 'Planes de aportación guardados.';
+      if (data.backup) {
+        feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
+      }
+      ctx.elements.autoFeedback.textContent = feedbackMsg;
       ctx.elements.autoFeedback.dataset.state = 'ok';
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });

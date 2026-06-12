@@ -33,7 +33,6 @@ function bindGroupedCtxNamespaces(ctx) {
       'setMemoryCached',
     ]),
   );
-
   Object.assign(
     ctx.services.meta,
     pickCtxFunctions(ctx, [
@@ -45,7 +44,6 @@ function bindGroupedCtxNamespaces(ctx) {
       'invalidatePrices',
     ]),
   );
-
   Object.assign(
     ctx.services.instruments,
     pickCtxFunctions(ctx, [
@@ -396,6 +394,8 @@ const adminServices = {
   createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
   restoreBackup: ({ targetFile }) => backups.restoreBackup({ db, dbPath, root, backupDir, targetFile }),
+  createRiskBackup: ({ reason, metadata }) => backups.createRiskBackup({ db, dbPath, root, backupDir, reason, metadata }),
+  deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir),
 };
 
 const uiPreferencesServices = {};

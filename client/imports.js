@@ -130,7 +130,21 @@ export function attach(ctx) {
     const source = ctx.elements.importSource.value || 'valorgrid-xlsx';
     const file = ctx.elements.importFile.files?.[0];
     if (!file) return;
-    if (isXlsxSource(source)) {
+    const isXlsxMode = isXlsxSource(source);
+    const fileExt = (file.name.match(/\.[^.]+$/) || [])[1]?.toLowerCase();
+    if (isXlsxMode && fileExt !== '.xlsx') {
+      ctx.elements.importFeedback.textContent = 'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.';
+      ctx.state.importFileMeta = null;
+      updateImportFileDisplay(ctx, '');
+      return;
+    }
+    if (!isXlsxMode && fileExt === '.xlsx') {
+      ctx.elements.importFeedback.textContent = 'Has seleccionado un formato CSV pero el archivo es .xlsx. Selecciona "Plantilla Excel de ValorGrid" o carga un archivo CSV.';
+      ctx.state.importFileMeta = null;
+      updateImportFileDisplay(ctx, '');
+      return;
+    }
+    if (isXlsxMode) {
       const buffer = await file.arrayBuffer();
       ctx.state.importFileMeta = { name: file.name, contentBase64: toBase64(buffer) };
     } else {
@@ -180,9 +194,13 @@ export function attach(ctx) {
     ctx.elements.importPreviewOutput.innerHTML = '<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>Importando operaciones...</strong><span>Conciliando movimientos y actualizando cartera.</span></div></div>';
     try {
       ensureDefaultRowActions(ctx);
-      await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
+      let response = await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
       ctx.state.historyCache = {};
-      ctx.elements.importFeedback.textContent = 'Importación guardada.';
+      if (response?.backup) {
+        ctx.elements.importFeedback.textContent = `Importación guardada. Backup automático creado: ${response.backup.file}`;
+      } else {
+        ctx.elements.importFeedback.textContent = 'Importación guardada (sin cambios nuevos).';
+      }
       await loadImportBatches();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
@@ -309,15 +327,33 @@ export function attach(ctx) {
     try {
       const { sources = [] } = await ctx.fetchJson('/api/import/sources');
       const select = ctx.elements.importSource;
-      const teaser = select?.closest('label')?.querySelector('.import-source-teaser');
+      const bannersContainer = ctx.elements.importProBanners;
       if (!select) return;
-      const hasProSources = sources.some(s => s.edition === 'professional' && s.available);
-      select.innerHTML = sources.map(s => {
-        if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - Profesional Edition - Próximamente</option>`;
-        if (s.available) return `<option value="${s.key}">${s.label}</option>`;
-        return `<option value="${s.key}" disabled>${s.label} - Profesional Edition</option>`;
-      }).join('');
-      if (teaser) teaser.hidden = hasProSources;
+      select.innerHTML = sources
+        .filter(s => s.edition === 'community' || s.available)
+        .map(s => {
+          if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - Profesional Edition - Próximamente</option>`;
+          return `<option value="${s.key}">${s.label}</option>`;
+        }).join('');
+      if (select.options.length <= 1) select.value = 'valorgrid-xlsx';
+      const allPro = sources.filter(s => s.edition === 'professional');
+      const proImplemented = allPro.filter(s => s.available && !s.comingSoon);
+      const proComingSoon = allPro.filter(s => s.comingSoon);
+      if (bannersContainer) {
+        if (proImplemented.length || proComingSoon.length) {
+          bannersContainer.hidden = false;
+          let html = '';
+          if (proImplemented.length) {
+            html += `<span class="import-source-badge import-source-badge-pro">${proImplemented.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
+          }
+          if (proComingSoon.length) {
+            html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em>Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
+          }
+          bannersContainer.innerHTML = html;
+        } else {
+          bannersContainer.hidden = true;
+        }
+      }
     } catch {}
   }
 
@@ -333,8 +369,14 @@ export function attach(ctx) {
     if (!window.confirm('¿Revertir esta importación?')) return;
     button.disabled = true;
     try {
-      await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});
+      ctx.elements.importFeedback.textContent = 'Se creará un backup automático antes de revertir la importación.';
+      let response = await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});
       ctx.state.historyCache = {};
+      if (response?.backup) {
+        ctx.elements.importFeedback.textContent = `Importación revertida. Backup automático creado: ${response.backup.file}`;
+      } else {
+        ctx.elements.importFeedback.textContent = 'Importación revertida.';
+      }
       await loadImportBatches();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });

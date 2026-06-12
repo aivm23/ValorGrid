@@ -1,5 +1,5 @@
 export function attach(ctx) {
-  const { elements, state, document, window, fetchJson, sendJson, normalizeErrorMessage } = ctx;
+  const { elements, state, document, window, fetchJson, sendJson, normalizeErrorMessage, deleteBackup } = ctx;
   const syncStickyToolbar = () => {
     elements.headerActions.classList.toggle('is-fixed', window.scrollY > 120);
   };
@@ -158,6 +158,10 @@ export function attach(ctx) {
     if (restoreButton) {
       handleRestoreBackup(restoreButton.dataset.file);
     }
+    const deleteButton = event.target.closest('.backup-delete-btn');
+    if (deleteButton) {
+      handleDeleteBackup(deleteButton.dataset.file);
+    }
   });
   elements.openImportDialog?.addEventListener('click', ctx.openImportDialog);
   elements.openImportDialogToolbar?.addEventListener('click', ctx.openImportDialog);
@@ -242,6 +246,19 @@ export function attach(ctx) {
       state.backups = backupData.backups || [];
       ctx.renderBackups();
       elements.backupList.textContent = 'Backup restaurado correctamente. Recarga la página.';
+    } catch (error) {
+      elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+    }
+  }
+
+  async function handleDeleteBackup(backupFile) {
+    const confirmed = window.confirm(`¿Eliminar el backup ${backupFile}?\n\nEsta acción no se puede deshacer.`);
+    if (!confirmed) return;
+    try {
+      await deleteBackup(backupFile);
+      const backupData = await fetchJson('/api/backups');
+      state.backups = backupData.backups || [];
+      ctx.renderBackups();
     } catch (error) {
       elements.backupList.textContent = ctx.normalizeErrorMessage(error);
     }

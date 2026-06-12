@@ -93,9 +93,66 @@ function restoreBackup({ db, dbPath, root, backupDir: configuredBackupDir, targe
   };
 }
 
+const ALLOWED_RISK_REASONS = new Set([
+  'before-import-commit',
+  'before-import-rollback',
+  'before-bulk-transaction-delete',
+  'before-instrument-delete',
+  'before-group-delete',
+  'before-auto-plans-replace',
+]);
+
+function createRiskBackup({ db, dbPath, root, backupDir: configuredBackupDir, reason, metadata }) {
+  if (!ALLOWED_RISK_REASONS.has(reason)) {
+    const error = new Error('Invalid risk backup reason');
+    error.statusCode = 400;
+    throw error;
+  }
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
+  db.exec('PRAGMA wal_checkpoint(FULL)');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const fileName = `risk-${reason}-${stamp}.sqlite`;
+  const targetPath = path.join(backupDir, fileName);
+  fs.copyFileSync(dbPath, targetPath);
+  pruneOldBackups(backupDir);
+  return {
+    file: fileName,
+    path: targetPath,
+    size: fs.statSync(targetPath).size,
+    createdAt: new Date().toISOString(),
+    reason,
+    metadata,
+  };
+}
+
+function deleteBackupFile(root, file, configuredBackupDir) {
+  const safeName = safeBackupName(file);
+  if (!safeName) {
+    const error = new Error('Invalid backup file name');
+    error.statusCode = 400;
+    throw error;
+  }
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
+  const fullPath = path.resolve(backupDir, safeName);
+  if (!fullPath.startsWith(backupDir + path.sep)) {
+    const error = new Error('Backup file not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (!fs.existsSync(fullPath)) {
+    const error = new Error('Backup file not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  fs.unlinkSync(fullPath);
+  return { deleted: safeName };
+}
+
 module.exports = {
   createBackup,
   listBackups,
   resolveBackupPath,
   restoreBackup,
+  createRiskBackup,
+  deleteBackupFile,
 };

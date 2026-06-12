@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.10.0
+
+- feat: add automatic risk backups before high-risk operations (import commit, import rollback, bulk transaction delete, instrument delete, group delete, auto-plans replace).
+- feat: add backup deletion endpoint and UI button.
+- feat: unify backup and import batch UI layouts with card-style rows.
+- feat: show non-blocking info messages before risky operations and backup creation confirmations after success.
+- feat: add bulk DELETE /api/transactions endpoint with single risk backup for entire batch.
+- feat: add import commit backup info message and import rollback backup confirmation.
+- feat: add instrument and group delete risk backup support.
+- feat: add auto-plans replace risk backup support.
+- feat: add backup delete handler and CSS styling.
+- feat: add retention literal (6 backups) in backup section.
+- feat: add import confirm step backup notice with SVG icon.
+- feat: upgrade from 3.9.4 to 3.10.0 minor version bump.
+- test: add backup API tests for create, list, download, and restore.
+- test: fix KPI border classes assertion for position-based colors.
+- fix: use position-based border colors for Operativa cards and refactor renderMetricContent.
+- fix: replace splice with direct assignment in operation metric preference change.
+- chore: fix Prettier CLI formatting for YAML and issue templates.
+- chore: update package-lock.json for husky and lint-staged.
+- ci: unify checks across platforms and add pre-commit hooks.
+
 ## 3.9.4
 
 - docs: audit and sync documentation — replace fragile line counts in TESTING.md with stable file/domain/coverage matrix, add missing tests (auth, storage, verify-publication), fix CI description to match actual matrix (windows + ubuntu, Node 24, verify:publication, seed:demo), remove obsolete `node --check app.js` reference.

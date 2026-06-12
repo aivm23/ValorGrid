@@ -20,6 +20,7 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     createBackup,
     resolveBackupPath,
     restoreBackup,
+    deleteBackupFile,
   } = resolveRouteHandlers(ctx);
 
   const { appInfo, dbPath } = ctx.config || ctx;
@@ -87,6 +88,16 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
       'Cache-Control': 'no-store',
     });
     fsSync.createReadStream(backupPath).pipe(response);
+    return true;
+  }
+
+  if (backupMatch && request.method === 'DELETE') {
+    try {
+      const result = deleteBackupFile(decodeURIComponent(backupMatch[1]));
+      sendJson(response, 200, result);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
     return true;
   }
 

@@ -158,7 +158,7 @@ export function attach(ctx) {
     }
     ctx.elements.backupList.innerHTML = `<h4>Backups recientes</h4>${backups.slice(0, 5).map((backup) => {
       const downloadUrl = `/api/backups/${encodeURIComponent(backup.file)}`;
-      return `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(backup.file)}</strong></span><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact" type="button" title="Descargar este backup">Descargar</a><button type="button" class="button button-compact restore-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Restaurar este backup">Restaurar</button></div></div>`;
+      return `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(backup.file)}</strong></span><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact" type="button" title="Descargar este backup">Descargar</a><button type="button" class="button button-compact restore-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Restaurar este backup">Restaurar</button><button type="button" class="button button-compact backup-delete-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Eliminar este backup">Borrar</button></div></div>`;
     }).join('')}`;
   }
 
