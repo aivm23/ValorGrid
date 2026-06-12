@@ -33,7 +33,8 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     rollbackImportBatch,
     listImportRollbackLog,
     getImportTemplate,
-    createRiskBackup,
+    // createRiskBackup disabled: automatic risk backups are not performed
+    // createRiskBackup,
   } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/import/sources' && request.method === 'GET') {
@@ -82,19 +83,8 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
     try {
       const body = await readJsonBody(request);
       if (rejectLegacySource(sendJson, response, body)) return true;
-      const preview = await previewImport(body);
-      const hasNewRows = preview.canCommit && !preview.rows.every((r) => ['duplicate', 'ignored', 'skipped'].includes(r.status));
-      let riskBackup = null;
-      if (hasNewRows) {
-        try {
-          riskBackup = createRiskBackup({ reason: 'before-import-commit', metadata: { filename: body.filename, rowCount: preview.rows.length } });
-        } catch (backupError) {
-          sendError(response, sendJson, backupError);
-          return true;
-        }
-      }
       const result = await commitImport(body);
-      sendJson(response, 201, { ...result, backup: riskBackup });
+      sendJson(response, 201, result);
     } catch (error) {
       sendError(response, sendJson, error);
     }
@@ -126,15 +116,16 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
       sendJson(response, 200, { ok: true });
       return true;
     }
-    let riskBackup = null;
-    try {
-      riskBackup = createRiskBackup({ reason: 'before-import-rollback', metadata: { batchId, filename: batch.filename } });
-    } catch (backupError) {
-      sendError(response, sendJson, backupError);
-      return true;
-    }
+    // riskBackup disabled: automatic risk backups are not performed
+    // let riskBackup = null;
+    // try {
+    //   riskBackup = createRiskBackup({ reason: 'before-import-rollback', metadata: { batchId, filename: batch.filename } });
+    // } catch (backupError) {
+    //   sendError(response, sendJson, backupError);
+    //   return true;
+    // }
     rollbackImportBatch(batchId);
-    sendJson(response, 200, { ok: true, backup: riskBackup });
+    sendJson(response, 200, { ok: true });
     return true;
   }
 
