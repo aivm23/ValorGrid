@@ -194,13 +194,14 @@ export function attach(ctx) {
     ctx.elements.importPreviewOutput.innerHTML = '<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>Importando operaciones...</strong><span>Conciliando movimientos y actualizando cartera.</span></div></div>';
     try {
       ensureDefaultRowActions(ctx);
-      let response = await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
+      await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
       ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.importFeedback.textContent = `Importación guardada. Backup automático creado: ${response.backup.file}`;
-      } else {
-        ctx.elements.importFeedback.textContent = 'Importación guardada (sin cambios nuevos).';
-      }
+      // data.backup disabled: automatic risk backups are not performed
+      // if (response?.backup) {
+      //   ctx.elements.importFeedback.textContent = `Importación guardada. Backup automático creado: ${response.backup.file}`;
+      // } else {
+      ctx.elements.importFeedback.textContent = 'Importación guardada (sin cambios nuevos).';
+      // }
       await loadImportBatches();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
@@ -375,14 +376,15 @@ export function attach(ctx) {
     if (!window.confirm('¿Revertir esta importación?')) return;
     button.disabled = true;
     try {
-      ctx.elements.importFeedback.textContent = 'Se creará un backup automático antes de revertir la importación.';
-      let response = await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});
+      // data.backup disabled: automatic risk backups are not performed
+      // ctx.elements.importFeedback.textContent = 'Se creará un backup automático antes de revertir la importación.';
+      await ctx.sendJson(`/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`, 'POST', {});
       ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.importFeedback.textContent = `Importación revertida. Backup automático creado: ${response.backup.file}`;
-      } else {
-        ctx.elements.importFeedback.textContent = 'Importación revertida.';
-      }
+      // if (response?.backup) {
+      //   ctx.elements.importFeedback.textContent = `Importación revertida. Backup automático creado: ${response.backup.file}`;
+      // } else {
+      ctx.elements.importFeedback.textContent = 'Importación revertida.';
+      // }
       await loadImportBatches();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });

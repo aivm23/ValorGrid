@@ -154,10 +154,6 @@ export function attach(ctx) {
   });
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
   elements.backupList?.addEventListener('click', (event) => {
-    const restoreButton = event.target.closest('.restore-btn');
-    if (restoreButton) {
-      handleRestoreBackup(restoreButton.dataset.file);
-    }
     const deleteButton = event.target.closest('.backup-delete-btn');
     if (deleteButton) {
       handleDeleteBackup(deleteButton.dataset.file);
@@ -231,25 +227,26 @@ export function attach(ctx) {
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
 
-  async function handleRestoreBackup(restoreFile) {
-    const confirmed = window.confirm(`Restaurar el backup ${restoreFile}?\n\nSe reemplazará la base de datos actual. Se creará un backup previo automáticamente.`);
-    if (!confirmed) return;
-    const typeConfirmed = window.prompt(`Escribe RESTAURAR para confirmar:`, '');
-    if (typeConfirmed !== 'RESTAURAR') {
-      elements.backupList.textContent = 'Restauración cancelada.';
-      return;
-    }
-    elements.backupList.textContent = 'Restaurando...';
-    try {
-      await ctx.sendJson(`/api/backups/${encodeURIComponent(restoreFile)}/restore`, 'POST', {});
-      const backupData = await ctx.fetchJson('/api/backups');
-      state.backups = backupData.backups || [];
-      ctx.renderBackups();
-      elements.backupList.textContent = 'Backup restaurado correctamente. Recarga la página.';
-    } catch (error) {
-      elements.backupList.textContent = ctx.normalizeErrorMessage(error);
-    }
-  }
+  // handleRestoreBackup disabled: restore from backups is not available
+  // async function handleRestoreBackup(restoreFile) {
+  //   const confirmed = window.confirm(`Restaurar el backup ${restoreFile}?\n\nSe reemplazará la base de datos actual. Se creará un backup previo automáticamente.`);
+  //   if (!confirmed) return;
+  //   const typeConfirmed = window.prompt(`Escribe RESTAURAR para confirmar:`, '');
+  //   if (typeConfirmed !== 'RESTAURAR') {
+  //     elements.backupList.textContent = 'Restauración cancelada.';
+  //     return;
+  //   }
+  //   elements.backupList.textContent = 'Restaurando...';
+  //   try {
+  //     await ctx.sendJson(`/api/backups/${encodeURIComponent(restoreFile)}/restore`, 'POST', {});
+  //     const backupData = await ctx.fetchJson('/api/backups');
+  //     state.backups = backupData.backups || [];
+  //     ctx.renderBackups();
+  //     elements.backupList.textContent = 'Backup restaurado correctamente. Recarga la página.';
+  //   } catch (error) {
+  //     elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+  //   }
+  // }
 
   async function handleDeleteBackup(backupFile) {
     const confirmed = window.confirm(`¿Eliminar el backup ${backupFile}?\n\nEsta acción no se puede deshacer.`);

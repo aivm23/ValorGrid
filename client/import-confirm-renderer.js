@@ -1,13 +1,13 @@
 export function renderConfirmStep(ctx, preview) {
   const impact = preview.impactPreview || { instruments: [] };
   const canCommit = preview.canCommit;
-  const hasNewRows = (preview.summary || {}).buys > 0 || (preview.summary || {}).sells > 0;
+  // hasNewRows unused — automatic backup notices disabled
+  // const hasNewRows = (preview.summary || {}).buys > 0 || (preview.summary || {}).sells > 0;
   const fatalRows = (preview.rows || []).filter((row) => ['error', 'blocked', 'needs_mapping'].includes(row.status));
   const selectedRows = (preview.rows || []).filter((row) => row.status === 'valid');
   const ignoredRows = (preview.rows || []).filter((row) => row.status === 'ignored' || row.status === 'duplicate' || row.status === 'skipped');
 
   return `
-    ${hasNewRows ? '<div class="import-backup-notice"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v12M1 7h10"/><circle cx="7" cy="7" r="6"/></svg>Se creará un backup automático antes de continuar. Podrás restaurar la cartera completa si algo sale mal.</div>' : ''}
     <div class="import-confirm-hero">
       <div>
         <span>Listo para guardar</span>

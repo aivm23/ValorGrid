@@ -345,9 +345,10 @@ export function attach(ctx) {
       ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
       let feedbackMsg = data.warnings?.length ? data.warnings.map((warning) => warning.message).join(' ') : 'Planes de aportación guardados.';
-      if (data.backup) {
-        feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
-      }
+      // data.backup disabled: automatic risk backups are not performed
+      // if (data.backup) {
+      //   feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
+      // }
       ctx.elements.autoFeedback.textContent = feedbackMsg;
       ctx.elements.autoFeedback.dataset.state = 'ok';
       await ctx.refreshDashboard();

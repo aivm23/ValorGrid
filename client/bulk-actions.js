@@ -130,16 +130,17 @@ export function attach(ctx) {
     const ids = ctx.state.pendingTransactionDelete || [];
     if (!ids.length) return;
     try {
-      ctx.elements.instrumentDeletePreview.innerHTML = '<p class="subtle">Eliminando movimientos y creando backup automático...</p>';
-      let response = await ctx.sendJson('/api/transactions', 'DELETE', { ids });
+      ctx.elements.instrumentDeletePreview.innerHTML = '<p class="subtle">Eliminando movimientos...</p>';
+      await ctx.sendJson('/api/transactions', 'DELETE', { ids });
       ctx.state.selectedTransactionIds = [];
       ctx.state.pendingTransactionDelete = [];
       ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Movimientos eliminados. Backup automático creado: ${response.backup.file}</p>`;
-      } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Movimientos eliminados.</p>';
-      }
+      // data.backup disabled: automatic risk backups are not performed
+      // if (response?.backup) {
+      //   ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Movimientos eliminados. Backup automático creado: ${response.backup.file}</p>`;
+      // } else {
+      ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Movimientos eliminados.</p>';
+      // }
       ctx.elements.instrumentDeleteDialog.close();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
@@ -217,15 +218,16 @@ export function attach(ctx) {
     const symbols = ctx.state.pendingInstrumentDelete || [];
     if (!symbols.length) return;
     try {
-      let response = await ctx.sendJson('/api/instruments', 'DELETE', { symbols });
+      await ctx.sendJson('/api/instruments', 'DELETE', { symbols });
       ctx.state.selectedInstrumentSymbols = ctx.state.selectedInstrumentSymbols.filter((s) => !symbols.includes(s));
       ctx.state.pendingInstrumentDelete = [];
       ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Instrumentos eliminados. Backup automático creado: ${response.backup.file}</p>`;
-      } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Instrumentos eliminados.</p>';
-      }
+      // data.backup disabled: automatic risk backups are not performed
+      // if (response?.backup) {
+      //   ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Instrumentos eliminados. Backup automático creado: ${response.backup.file}</p>`;
+      // } else {
+      ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Instrumentos eliminados.</p>';
+      // }
       ctx.elements.instrumentDeleteDialog.close();
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
@@ -254,14 +256,15 @@ export function attach(ctx) {
     if (!ids.length) return;
     if (!ctx.window.confirm(`Eliminar ${ids.length} grupo(s) seleccionado(s)?`)) return;
     try {
-      let response = await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
+      await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
       ctx.state.selectedGroupIds = [];
       ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.backupList.textContent = `Grupos eliminados. Backup automático creado: ${response.backup.file}`;
-      } else {
-        ctx.elements.backupList.textContent = 'Grupos eliminados.';
-      }
+      // data.backup disabled: automatic risk backups are not performed
+      // if (response?.backup) {
+      //   ctx.elements.backupList.textContent = `Grupos eliminados. Backup automático creado: ${response.backup.file}`;
+      // } else {
+      ctx.elements.backupList.textContent = 'Grupos eliminados.';
+      // }
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
     } catch (error) {
