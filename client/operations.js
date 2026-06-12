@@ -98,13 +98,17 @@ export function attach(ctx) {
                 <strong>${ctx.formatCurrency(performance.commissions)}</strong>
                 <small class="metric-micro">${commissionCopy}</small>
               </article>`;
-          case 'simpleReturnPct':
+          case 'simpleReturnPct': {
+            const pct = performance.simpleReturnPct;
+            const displayPct = pct !== null ? ctx.formatPercent(pct) : 'N/D';
+            const microText = pct !== null ? 'retorno sobre aportado' : 'requiere neto aportado > 0';
             return `
-              <article class="${(performance.simpleReturnPct || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}">
-                ${metricInfo('Rentabilidad simple', 'Resultado total como porcentaje del capital aportado. Si es negativo, el retorno sobre lo aportado es negativo.', 'op-simplereturn-info')}
-                <strong>${performance.simpleReturnPct !== null ? ctx.formatPercent(performance.simpleReturnPct) : 'N/D'}</strong>
-                <small class="metric-micro">retorno sobre aportado</small>
+              <article class="${pct !== null && pct >= 0 ? 'has-border-positive' : 'has-border-negative'}">
+                ${metricInfo('Rentabilidad simple', 'Resultado total como porcentaje del capital aportado. No disponible cuando el neto aportado es negativo (has retirado más de lo aportado).', 'op-simplereturn-info')}
+                <strong>${displayPct}</strong>
+                <small class="metric-micro">${microText}</small>
               </article>`;
+          }
           case 'transactionCount':
             return `
               <article>
@@ -114,7 +118,7 @@ export function attach(ctx) {
               </article>`;
           case 'averageCommission':
             return `
-              <article>
+              <article class="has-border-amber">
                 <span>Comisión media</span>
                 <strong>${performance.transactionCount > 0 ? ctx.formatCurrency(performance.commissions / performance.transactionCount) : 'N/D'}</strong>
                 <small class="metric-micro">por movimiento</small>
