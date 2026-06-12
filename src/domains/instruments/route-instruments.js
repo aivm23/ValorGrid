@@ -23,7 +23,8 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     deleteInstrumentGroups,
     updateInstrumentGroup,
     deleteInstrumentGroup,
-    createRiskBackup,
+    // createRiskBackup disabled: automatic risk backups are not performed
+    // createRiskBackup,
   } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/instruments' && request.method === 'GET') {
@@ -76,16 +77,17 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       const body = await readJsonBody(request);
       const symbols = body.symbols || [];
-      let riskBackup = null;
-      if (symbols.length > 0) {
-        try {
-          riskBackup = createRiskBackup({ reason: 'before-instrument-delete', metadata: { count: symbols.length } });
-        } catch (backupError) {
-          sendError(response, sendJson, backupError);
-          return true;
-        }
-      }
-      sendJson(response, 200, { results: deleteInstruments(symbols), backup: riskBackup });
+      // riskBackup disabled: automatic risk backups are not performed
+      // let riskBackup = null;
+      // if (symbols.length > 0) {
+      //   try {
+      //     riskBackup = createRiskBackup({ reason: 'before-instrument-delete', metadata: { count: symbols.length } });
+      //   } catch (backupError) {
+      //     sendError(response, sendJson, backupError);
+      //     return true;
+      //   }
+      // }
+      sendJson(response, 200, { results: deleteInstruments(symbols) });
     } catch (error) {
       sendError(response, sendJson, error);
     }
@@ -125,16 +127,17 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     try {
       const body = await readJsonBody(request);
       const ids = body.ids || [];
-      let riskBackup = null;
-      if (ids.length > 0) {
-        try {
-          riskBackup = createRiskBackup({ reason: 'before-group-delete', metadata: { count: ids.length } });
-        } catch (backupError) {
-          sendError(response, sendJson, backupError);
-          return true;
-        }
-      }
-      sendJson(response, 200, { results: deleteInstrumentGroups(ids), backup: riskBackup });
+      // riskBackup disabled: automatic risk backups are not performed
+      // let riskBackup = null;
+      // if (ids.length > 0) {
+      //   try {
+      //     riskBackup = createRiskBackup({ reason: 'before-group-delete', metadata: { count: ids.length } });
+      //   } catch (backupError) {
+      //     sendError(response, sendJson, backupError);
+      //     return true;
+      //   }
+      // }
+      sendJson(response, 200, { results: deleteInstrumentGroups(ids) });
     } catch (error) {
       sendError(response, sendJson, error);
     }

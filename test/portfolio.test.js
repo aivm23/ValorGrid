@@ -193,6 +193,8 @@ test('backup API creates, lists, and downloads SQLite backups', async () => {
   fs.rmSync(path.join(process.cwd(), '.backups', create.body.backup.file), { force: true });
 });
 
+// Restore endpoint disabled: restore from backups is not available
+/*
 test('POST /api/backups/:file/restore validates backup, creates pre-restore, and restores DB state', async () => {
   const create = await jsonRequest('/api/backups', { method: 'POST' });
   assert.equal(create.response.status, 201);
@@ -228,6 +230,8 @@ test('POST /api/backups/:file/restore rejects non-existent backups', async () =>
   assert.equal(response.status, 404);
   assert.ok(body.error);
 });
+
+*/
 
 test('GET /api/instruments returns configured instruments', async () => {
   const { response, body } = await jsonRequest('/api/instruments');

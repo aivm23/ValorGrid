@@ -2,6 +2,8 @@
 
 Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, reset fresh, restore manual y diagnóstico.
 
+> **Nota:** El restore automático desde backups está deshabilitado. Restaurar manualmente desde un archivo `.sqlite` del directorio `.backups/` sigue siendo posible.
+
 ## Política fresh-only
 
 - `src/schema.js` es el contrato único de creación de schema.
@@ -34,7 +36,7 @@ Compatibilidad:
 npm run backup
 ```
 
-`backup` es alias de `db:backup`.
+`backup` es alias de `db:backup`. (Comentado en package.json — disponible si se descomenta)
 
 Retencion:
 
@@ -42,6 +44,7 @@ Retencion:
 - En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
+- **Restore automático deshabilitado:** `POST /api/backups/:file/restore` no está disponible. Para restaurar, usar el proceso manual de abajo.
 
 ## Flujo recomendado antes de tocar DB real
 
@@ -52,14 +55,16 @@ Retencion:
 
 ## Reset fresh (destructivo)
 
-- `npm run db:reset` crea backup obligatorio si la DB existe.
+> **Nota:** El backup previo al reset ya no se crea automáticamente (función `resetDatabase` con backup comentada). Ejecutar `npm run db:backup` manualmente antes si se necesita un backup previo.
+
+- `npm run db:reset` elimina la DB activa y recrea el schema fresh.
 - El script elimina solo:
   - `*.sqlite` activo
   - `*.sqlite-wal`
   - `*.sqlite-shm`
 - Después recrea la DB fresh y verifica tablas + `app_meta`.
 
-No existe endpoint HTTP para reset por diseño.
+No existe endpoint HTTP para reset por diseño. El restore automático por API está deshabilitado.
 
 ## Restore manual
 

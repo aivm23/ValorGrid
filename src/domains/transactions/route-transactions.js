@@ -18,7 +18,8 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     getAutoPlans,
     previewAutoPlanExecutions,
     replaceAutoPlans,
-    createRiskBackup,
+    // createRiskBackup disabled: automatic risk backups are not performed
+    // createRiskBackup,
   } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/transactions' && request.method === 'GET') {
@@ -78,18 +79,19 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
       const body = await readJsonBody(request);
       const ids = Array.isArray(body?.ids) ? body.ids : [];
       if (!ids.length) {
-        sendJson(response, 200, { ok: true, deleted: 0, backup: null });
+        sendJson(response, 200, { ok: true, deleted: 0 });
         return true;
       }
-      let riskBackup = null;
-      try {
-        riskBackup = createRiskBackup({ reason: 'before-bulk-transaction-delete', metadata: { count: ids.length } });
-      } catch (backupError) {
-        sendError(response, sendJson, backupError);
-        return true;
-      }
+      // riskBackup disabled: automatic risk backups are not performed
+      // let riskBackup = null;
+      // try {
+      //   riskBackup = createRiskBackup({ reason: 'before-bulk-transaction-delete', metadata: { count: ids.length } });
+      // } catch (backupError) {
+      //   sendError(response, sendJson, backupError);
+      //   return true;
+      // }
       const deleted = bulkDeleteTransactions(ids);
-      sendJson(response, 200, { ok: true, deleted, backup: riskBackup });
+      sendJson(response, 200, { ok: true, deleted });
     } catch (error) {
       sendError(response, sendJson, error);
     }
@@ -121,15 +123,16 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
   if (url.pathname === '/api/auto-plans' && request.method === 'PUT') {
     try {
       const body = await readJsonBody(request);
-      let riskBackup = null;
-      try {
-        riskBackup = createRiskBackup({ reason: 'before-auto-plans-replace', metadata: { planCount: (body.autoPlans || []).length } });
-      } catch (backupError) {
-        sendError(response, sendJson, backupError);
-        return true;
-      }
+      // riskBackup disabled: automatic risk backups are not performed
+      // let riskBackup = null;
+      // try {
+      //   riskBackup = createRiskBackup({ reason: 'before-auto-plans-replace', metadata: { planCount: (body.autoPlans || []).length } });
+      // } catch (backupError) {
+      //   sendError(response, sendJson, backupError);
+      //   return true;
+      // }
       const result = replaceAutoPlans(body.autoPlans || []);
-      sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [], backup: riskBackup });
+      sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [] });
     } catch (error) {
       sendError(response, sendJson, error);
     }

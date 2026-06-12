@@ -33,7 +33,6 @@
     "db:backup": "node scripts/db-backup.js",
     "db:reset": "node scripts/db-reset.js",
     "db:doctor": "node scripts/db-doctor.js",
-    "backup": "npm run db:backup",
     "seed:demo": "node scripts/seed-loadtest-db.js",
     "verify:publication": "node scripts/verify-publication.js",
     "prepare": "husky"

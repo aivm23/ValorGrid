@@ -5,7 +5,6 @@ const path = require('node:path');
 const { createConfig } = require('./platform/config');
 const { openDatabase } = require('./platform/db');
 const backups = require('./platform/backups');
-
 function pickCtxFunctions(ctx, names) {
   return names.reduce((picked, name) => {
     if (typeof ctx[name] === 'function') picked[name] = ctx[name];
@@ -393,9 +392,9 @@ const adminServices = {
   listBackups: () => backups.listBackups(root, backupDir),
   createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
-  restoreBackup: ({ targetFile }) => backups.restoreBackup({ db, dbPath, root, backupDir, targetFile }),
-  createRiskBackup: ({ reason, metadata }) => backups.createRiskBackup({ db, dbPath, root, backupDir, reason, metadata }),
-  deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir),
+  // restoreBackup disabled: restore from backups is not available
+  // createRiskBackup disabled: automatic risk backups are not performed
+  deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir)
 };
 
 const uiPreferencesServices = {};

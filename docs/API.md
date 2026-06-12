@@ -152,12 +152,17 @@ Devuelve precio cacheado o consultado al proveedor de mercado. Los resultados se
 GET /api/backups
 POST /api/backups
 GET /api/backups/:file
-POST /api/backups/:file/restore
+DELETE /api/backups/:file
+// POST /api/backups/:file/restore — disabled: restore from backups is not available
 ```
 
 Los backups se guardan en `.backups/` y no deben versionarse.
 
-`POST /api/backups/:file/restore` restaura una base de datos desde el backup indicado. Valida el nombre del archivo, verifica que el backup existe dentro del directorio de backups, crea un backup de seguridad de la DB actual (`pre-restore-<timestamp>.sqlite`) antes de reemplazar, y checkpointea SQLite antes de copiar. Responde con `{ ok: true, restoredFile, preRestoreBackup }`. Rechaza nombres inválidos con 400 y backups inexistentes con 404.
+- `GET /api/backups` — lista todos los backups disponibles.
+- `POST /api/backups` — crea un nuevo backup de la base de datos activa.
+- `GET /api/backups/:file` — descarga un backup específico.
+- `DELETE /api/backups/:file` — elimina un backup específico.
+- **Restore disabled:** `POST /api/backups/:file/restore` no está disponible. Restaurar desde backups está deshabilitado en esta versión.
 
 ## Exportaciones
 
