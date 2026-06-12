@@ -329,27 +329,33 @@ export function attach(ctx) {
       const select = ctx.elements.importSource;
       const bannersContainer = ctx.elements.importProBanners;
       if (!select) return;
+      const edition = ctx.appInfo?.edition || 'community';
       select.innerHTML = sources
-        .filter(s => s.edition === 'community' || s.available)
+        .filter(s => s.edition === 'community' || s.available || edition === 'professional')
         .map(s => {
           if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - Profesional Edition - Próximamente</option>`;
           return `<option value="${s.key}">${s.label}</option>`;
         }).join('');
       if (select.options.length <= 1) select.value = 'valorgrid-xlsx';
       const allPro = sources.filter(s => s.edition === 'professional');
-      const proImplemented = allPro.filter(s => s.available && !s.comingSoon);
+      const proImplemented = allPro.filter(s => !s.comingSoon);
       const proComingSoon = allPro.filter(s => s.comingSoon);
       if (bannersContainer) {
-        if (proImplemented.length || proComingSoon.length) {
-          bannersContainer.hidden = false;
+        if (edition === 'community' && (proImplemented.length || proComingSoon.length)) {
           let html = '';
           if (proImplemented.length) {
-            html += `<span class="import-source-badge import-source-badge-pro">${proImplemented.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
+            const shortLabels = proImplemented.map(s => {
+              if (s.key === 'degiro-csv') return 'DEGIRO';
+              if (s.key === 'ibkr-csv') return 'Interactive Brokers';
+              return s.label;
+            });
+            html += `<span class="import-source-badge import-source-badge-pro">${shortLabels.join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
           }
           if (proComingSoon.length) {
-            html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em>Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
+            html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em style="color: #06b6d4; font-weight: 700;">Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
           }
           bannersContainer.innerHTML = html;
+          bannersContainer.hidden = false;
         } else {
           bannersContainer.hidden = true;
         }

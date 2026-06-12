@@ -75,6 +75,7 @@ function resolveRouteHandlers(ctx) {
     createTransaction: pickServiceFn(transactionServices, 'createTransaction', ctx.createTransaction),
     previewTransaction: pickServiceFn(transactionServices, 'previewTransaction', ctx.previewTransaction),
     deleteTransaction: pickServiceFn(transactionServices, 'deleteTransaction', ctx.deleteTransaction),
+    bulkDeleteTransactions: pickServiceFn(transactionServices, 'bulkDeleteTransactions', ctx.bulkDeleteTransactions),
     getAutoPlans: pickServiceFn(transactionServices, 'getAutoPlans', ctx.getAutoPlans),
     previewAutoPlanExecutions: pickServiceFn(
       transactionServices,

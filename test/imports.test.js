@@ -631,7 +631,7 @@ test('listImportSources includes knownProAdapters with available=false in commun
 
   const ibkr = sources.find((s) => s.key === 'ibkr-csv');
   assert.ok(ibkr);
-  assert.equal(ibkr.label, 'Interactive Brokers Transactions');
+  assert.equal(ibkr.label, 'Interactive Brokers Transactions CSV');
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false);
 

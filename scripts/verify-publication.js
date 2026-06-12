@@ -74,6 +74,8 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
   'src/domains/data-ingestion/ingestion-profiles.js',
   ['test', 'imports.test.js'].join(path.sep),
   'test/imports.test.js',
+  'client/imports.js',
+  ['client', 'imports.js'].join(path.sep),
 ]);
 
 const REQUIRED_GITIGNORE_PATTERNS = [

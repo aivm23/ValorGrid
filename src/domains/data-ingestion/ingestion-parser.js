@@ -41,23 +41,31 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
   if (buffer.length > MAX_XLSX_BYTES) throw new Error('El archivo supera el tamano maximo permitido');
 
   const workbook = new ExcelJS.Workbook();
+  let workbookData;
   try {
     await workbook.xlsx.load(buffer, {
-    ignoreNodes: [
-      'dataValidations',
-      'conditionalFormatting',
-      'extLst',
-      'hyperlinks',
-      'pageMargins',
-      'pageSetup',
-      'printOptions',
-      'drawing',
-      'picture',
-      'legacyDrawing',
-    ],
-  });
+      ignoreNodes: [
+        'dataValidations',
+        'conditionalFormatting',
+        'extLst',
+        'hyperlinks',
+        'pageMargins',
+        'pageSetup',
+        'printOptions',
+        'drawing',
+        'picture',
+        'legacyDrawing',
+      ],
+    });
+    workbookData = { sheets: workbook.worksheets.map((sheet) => sheet.name), getWorksheet: (name) => workbook.getWorksheet(name) };
+  } catch (error) {
+    if (error?.message?.includes('zip') || error?.message?.includes('ZIP') || error?.message?.includes('central directory') || error?.message?.includes('End-of-central-directory')) {
+      throw new Error('El archivo no es un Excel valido (.xlsx). Has intentado cargar un archivo CSV o corrupto en el formato Excel. Quizas no has seleccionado el formato correcto o el archivo esta danado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions');
+    }
+    throw error;
+  }
 
-  const sheets = workbook.worksheets.map((sheet) => sheet.name);
+  const sheets = workbookData.sheets;
   if (!sheets.length) throw new Error('El archivo XLSX no contiene hojas');
   for (const sheet of sheets) {
     if (!ALLOWED_SHEETS.has(sheet)) throw new Error(`Hoja no permitida: ${sheet}`);
@@ -68,7 +76,7 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
   }
 
   const selectedSheet = 'Movimientos';
-  const worksheet = workbook.getWorksheet(selectedSheet);
+  const worksheet = workbookData.getWorksheet(selectedSheet);
   if (!worksheet) throw new Error('Falta la hoja Movimientos');
 
   const matrix = [];
