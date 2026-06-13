@@ -4,6 +4,7 @@
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
+  "main": "apps/desktop/main.js",
   "workspaces": [
     "apps/*",
     "packages/*"

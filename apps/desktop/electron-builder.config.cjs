@@ -5,25 +5,26 @@ module.exports = {
   productName,
   artifactName: '${productName}-Setup-${version}-${arch}.${ext}',
   directories: {
-    output: '../../local/artifacts/desktop',
+    output: 'local/artifacts/desktop',
   },
   files: [
-    'main.js',
-    'installer/**/*',
-    '../server/**/*',
-    '../../apps/web/**/*',
-    '../../assets/brand/valorgrid-logo.png',
-    '../../assets/brand/valorgrid-logo.ico',
-    '../../apps/server/node_modules/**/*',
+    'apps/desktop/main.js',
+    'apps/desktop/installer/**/*',
+    'apps/server/server.js',
+    'apps/server/src/**/*',
+    'apps/web/index.html',
+    'apps/web/src/**/*',
+    'assets/brand/valorgrid-logo.png',
+    'assets/brand/valorgrid-logo.ico',
   ],
   extraResources: [
     {
-      from: '../../assets/brand/valorgrid-logo.ico',
+      from: 'assets/brand/valorgrid-logo.ico',
       to: 'assets/brand/valorgrid-logo.ico',
     },
   ],
   win: {
-    icon: '../../assets/brand/valorgrid-logo.ico',
+    icon: 'assets/brand/valorgrid-logo.ico',
     signAndEditExecutable: false,
     target: [
       {
@@ -33,10 +34,10 @@ module.exports = {
     ],
   },
   nsis: {
-    installerIcon: '../../assets/brand/valorgrid-logo.ico',
-    uninstallerIcon: '../../assets/brand/valorgrid-logo.ico',
-    installerHeaderIcon: '../../assets/brand/valorgrid-logo.ico',
-    include: 'installer/installer.nsh',
+    installerIcon: 'assets/brand/valorgrid-logo.ico',
+    uninstallerIcon: 'assets/brand/valorgrid-logo.ico',
+    installerHeaderIcon: 'assets/brand/valorgrid-logo.ico',
+    include: 'apps/desktop/installer/installer.nsh',
     oneClick: false,
     perMachine: false,
     allowToChangeInstallationDirectory: true,
