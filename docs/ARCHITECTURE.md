@@ -249,6 +249,7 @@ Módulos principales:
 - `forms.js`: helpers de formularios.
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
+- `styles.css`: única hoja de estilos, cargada desde `index.html`. Contiene todos los estilos visuales de la aplicación (temas claro/oscuro, modales, tablas, botones, animaciones, scrollbar, responsive).
 
 Los módulos de frontend ya no usan loaders dinámicos con `new Function`; cada uno exporta `attach(ctx)` y registra su API con `Object.assign(ctx, { ... })`.
 

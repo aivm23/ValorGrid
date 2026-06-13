@@ -46,4 +46,4 @@ En la versión Windows, en la zona privada de datos de la aplicación. En desarr
 
 ## ¿Puedo Restaurar Una Versión Anterior?
 
-Sí. Instala una release anterior y, si hace falta, restaura un backup SQLite manualmente. Revisa [GITHUB_RELEASE.md](GITHUB_RELEASE.md) y [DB_OPERATIONS.md](DB_OPERATIONS.md).
+Sí. Instala una release anterior y, si hace falta, reemplaza manualmente la base de datos por un backup SQLite. Revisa [GITHUB_RELEASE.md](GITHUB_RELEASE.md) y [DB_OPERATIONS.md](DB_OPERATIONS.md).

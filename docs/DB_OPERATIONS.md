@@ -1,8 +1,6 @@
 # Operaciones de Base de Datos
 
-Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, reset fresh, restore manual y diagnóstico.
-
-> **Nota:** El restore automático desde backups está deshabilitado. Restaurar manualmente desde un archivo `.sqlite` del directorio `.backups/` sigue siendo posible.
+Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, reset fresh y diagnóstico.
 
 ## Política fresh-only
 
@@ -44,7 +42,6 @@ Retencion:
 - En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
-- **Restore automático deshabilitado:** `POST /api/backups/:file/restore` no está disponible. Para restaurar, usar el proceso manual de abajo.
 
 ## Flujo recomendado antes de tocar DB real
 
@@ -64,17 +61,7 @@ Retencion:
   - `*.sqlite-shm`
 - Después recrea la DB fresh y verifica tablas + `app_meta`.
 
-No existe endpoint HTTP para reset por diseño. El restore automático por API está deshabilitado.
-
-## Restore manual
-
-Proceso manual guiado:
-
-1. Detener la app/servicio.
-2. Elegir backup en el directorio de backups activo.
-3. Reemplazar el archivo SQLite activo por ese backup.
-4. Iniciar la app.
-5. Ejecutar `npm run db:doctor` y `GET /api/health`.
+No existe endpoint HTTP para reset por diseño.
 
 ## Docker y CasaOS
 

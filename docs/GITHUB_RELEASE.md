@@ -99,14 +99,14 @@ Windows:
 1. Cerrar ValorGrid.
 2. Desinstalar la versión actual si es necesario.
 3. Instalar el `.exe` de la release anterior.
-4. Si hay perdida o corrupción de datos, restaurar un backup SQLite manualmente.
+4. Si hay perdida o corrupción de datos, reemplazar manualmente la base de datos por un backup SQLite.
 
 Docker/CasaOS:
 
 1. Detener la app.
 2. Volver al tag anterior.
 3. Arrancar y comprobar `/api/health`.
-4. Restaurar backup manualmente solo si es necesario.
+4. Restaurar manualmente la base de datos desde un backup solo si es necesario.
 
 ## Checksums
 

@@ -88,9 +88,9 @@ Rollback:
 1. Detener la app en CasaOS.
 2. Volver el tag de imagen a la versión anterior (`vX.Y.Z` estable).
 3. Arrancar de nuevo la app.
-4. Si hubo corrupción o perdida de datos, restaurar backup manualmente (sección siguiente).
+4. Si hubo corrupción o perdida de datos, reinstalar una versión anterior y restaurar manualmente la DB desde el backup.
 
-## Backup y restore
+## Backup
 
 Canal operativo recomendado: scripts locales.
 
@@ -98,14 +98,6 @@ Canal operativo recomendado: scripts locales.
 npm run db:backup
 npm run db:doctor
 ```
-
-Restore manual:
-
-1. Detener la app/servicio.
-2. Seleccionar backup en `.backups/` (o en `/DATA/AppData/valorgrid/backups` en CasaOS).
-3. Sustituir la DB activa `portfolio.sqlite` en `/data`.
-4. Arrancar de nuevo el servicio.
-5. Ejecutar `npm run db:doctor` y comprobar `/api/health`.
 
 ValorGrid conserva automáticamente los 6 backups más recientes en el directorio de backups montado.
 
