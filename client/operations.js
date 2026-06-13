@@ -158,7 +158,9 @@ export function attach(ctx) {
     }
     ctx.elements.backupList.innerHTML = `<h4>Backups recientes</h4>${backups.slice(0, 5).map((backup) => {
       const downloadUrl = `/api/backups/${encodeURIComponent(backup.file)}`;
-      return `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(backup.file)}</strong></span><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact" type="button" title="Descargar este backup">Descargar</a><button type="button" class="button button-compact backup-delete-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Eliminar este backup">Borrar</button></div></div>`;
+      const downloadIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 18h16"></path></svg>';
+      const deleteIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 14h10l1-14"></path><path d="M9 7V4h6v3"></path></svg>';
+      return `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(backup.file)}</strong></span><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact btn-accent" type="button" title="Descargar este backup">${downloadIcon} Descargar</a><button type="button" class="button icon-bulk-delete" data-file="${ctx.escapeHtml(backup.file)}" title="Eliminar este backup">${deleteIcon}<span>Eliminar</span></button></div></div>`;
     }).join('')}`;
   }
 
@@ -244,11 +246,11 @@ export function attach(ctx) {
           </td>
           <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>
           <td data-label="Color"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" /></td>
-          <td data-label="Acciones"><button class="button button-compact" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">Guardar</button></td>
+          <td data-label="Acciones"><button class="button button-compact btn-save" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">Guardar</button></td>
         </tr>`,
           )
           .join('')
-      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact" type="button" data-open-onboarding>Crear valor</button></div></td></tr>';
+      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact btn-save" type="button" data-open-onboarding>Crear valor</button></div></td></tr>';
   }
 
   function renderGroupRows() {
@@ -282,7 +284,7 @@ export function attach(ctx) {
               <label class="switch-field"><input type="checkbox" data-group-field="isExpandable" ${group.isExpandable ? 'checked' : ''} /> Permitir desglose</label>
             </div>
           </details>
-          <button class="button button-compact" type="button" data-save-group="${ctx.escapeHtml(group.id)}">Guardar</button>
+          <button class="button button-compact btn-save" type="button" data-save-group="${ctx.escapeHtml(group.id)}">Guardar</button>
         </article>`,
           )
           .join('')
