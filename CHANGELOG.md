@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.12.0
+
+- feat: reactivate automatic risk backups before high-risk operations (import commit, import rollback, bulk transaction delete, instrument delete, group delete, auto-plans replace).
+- feat: frontend now displays automatic backup confirmation messages after risky operations.
+- feat: add automatic risk backup before import commit endpoint.
+- feat: risk backup threshold for instrument delete set to >5 symbols and group delete set to >2 ids.
+- breaking: remove restoreBackup function from backup module — app, API, UI, and documentation no longer reference restoring SQLite from backups.
+- breaking: remove POST /api/backups/:file/restore endpoint.
+- breaking: remove restoreBackup from route-service-bindings.js.
+- breaking: remove all commented restore code from backend routes and frontend.
+- breaking: remove restore button CSS (.restore-btn) from styles.css.
+- breaking: remove commented restore tests from portfolio.test.js.
+- docs: remove restore references from API.md, DB_OPERATIONS.md, DEPLOY_DOCKER.md, FAQ.md, GITHUB_RELEASE.md.
+- docs: keep automatic retention of 6 most recent backups in all documentation.
+
 ## 3.11.1
 
 - fix: import commit no falla por `createRiskBackup is not a function` al deshabilitar backups automáticos de riesgo.
