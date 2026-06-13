@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.11.1
+
+- fix: import commit no falla por `createRiskBackup is not a function` al deshabilitar backups automáticos de riesgo.
+- fix: corregir detección de extensión de archivo en validación de importación — el regex `match()` sin grupo de captura usa índice `[0]` en lugar de `[1]`.
+- chore: disable backup restore buttons and auto-backup messages in frontend.
+- fix: CI cross-platform compatibility for PowerShell publication check and WAL checkpoint.
+
 ## 3.10.0
 
 - feat: add automatic risk backups before high-risk operations (import commit, import rollback, bulk transaction delete, instrument delete, group delete, auto-plans replace).
