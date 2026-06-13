@@ -3,7 +3,7 @@ const { version, productName } = require('../../package.json');
 module.exports = {
   appId: 'com.valorgrid.app',
   productName,
-  artifactName: `${productName}-Setup-${version}-${arch}.${ext}`,
+  artifactName: '${productName}-Setup-${version}-${arch}.${ext}',
   directories: {
     output: '../../local/artifacts/desktop',
   },
