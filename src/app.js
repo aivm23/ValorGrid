@@ -392,8 +392,7 @@ const adminServices = {
   listBackups: () => backups.listBackups(root, backupDir),
   createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
-  // restoreBackup disabled: restore from backups is not available
-  // createRiskBackup disabled: automatic risk backups are not performed
+  createRiskBackup: ({ reason, metadata }) => backups.createRiskBackup({ db, dbPath, root, backupDir, reason, metadata }),
   deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir)
 };
 

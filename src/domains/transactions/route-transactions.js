@@ -18,8 +18,7 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     getAutoPlans,
     previewAutoPlanExecutions,
     replaceAutoPlans,
-    // createRiskBackup disabled: automatic risk backups are not performed
-    // createRiskBackup,
+    createRiskBackup,
   } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/transactions' && request.method === 'GET') {
@@ -82,16 +81,15 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
         sendJson(response, 200, { ok: true, deleted: 0 });
         return true;
       }
-      // riskBackup disabled: automatic risk backups are not performed
-      // let riskBackup = null;
-      // try {
-      //   riskBackup = createRiskBackup({ reason: 'before-bulk-transaction-delete', metadata: { count: ids.length } });
-      // } catch (backupError) {
-      //   sendError(response, sendJson, backupError);
-      //   return true;
-      // }
+      let riskBackup = null;
+      try {
+        riskBackup = createRiskBackup({ reason: 'before-bulk-transaction-delete', metadata: { count: ids.length } });
+      } catch (backupError) {
+        sendError(response, sendJson, backupError);
+        return true;
+      }
       const deleted = bulkDeleteTransactions(ids);
-      sendJson(response, 200, { ok: true, deleted });
+      sendJson(response, 200, { ok: true, deleted, backup: riskBackup });
     } catch (error) {
       sendError(response, sendJson, error);
     }
@@ -123,16 +121,15 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
   if (url.pathname === '/api/auto-plans' && request.method === 'PUT') {
     try {
       const body = await readJsonBody(request);
-      // riskBackup disabled: automatic risk backups are not performed
-      // let riskBackup = null;
-      // try {
-      //   riskBackup = createRiskBackup({ reason: 'before-auto-plans-replace', metadata: { planCount: (body.autoPlans || []).length } });
-      // } catch (backupError) {
-      //   sendError(response, sendJson, backupError);
-      //   return true;
-      // }
+      let riskBackup = null;
+      try {
+        riskBackup = createRiskBackup({ reason: 'before-auto-plans-replace', metadata: { planCount: (body.autoPlans || []).length } });
+      } catch (backupError) {
+        sendError(response, sendJson, backupError);
+        return true;
+      }
       const result = replaceAutoPlans(body.autoPlans || []);
-      sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [] });
+      sendJson(response, 200, { autoPlans: getAutoPlans(), warnings: result.warnings || [], backup: riskBackup });
     } catch (error) {
       sendError(response, sendJson, error);
     }

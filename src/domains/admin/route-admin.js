@@ -19,8 +19,6 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     listBackups,
     createBackup,
     resolveBackupPath,
-    // restoreBackup disabled: restore from backups is not available
-    // restoreBackup,
     deleteBackupFile,
   } = resolveRouteHandlers(ctx);
 
@@ -52,18 +50,6 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     sendJson(response, 201, { backup: createBackup() });
     return true;
   }
-
-  // restore endpoint disabled: restore from backups is not available
-  // const restoreMatch = url.pathname.match(/^\/api\/backups\/([^/]+)\/restore$/);
-  // if (restoreMatch && request.method === 'POST') {
-  //   try {
-  //     const result = restoreBackup({ targetFile: decodeURIComponent(restoreMatch[1]) });
-  //     sendJson(response, 200, { ok: true, restoredFile: result.restoredFile, preRestoreBackup: result.preRestoreBackup });
-  //   } catch (error) {
-  //     sendError(response, sendJson, error);
-  //   }
-  //   return true;
-  // }
 
   if (url.pathname === '/api/export/transactions.xlsx' && request.method === 'GET') {
     const buffer = await buildTransactionsXlsx();
