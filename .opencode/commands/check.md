@@ -29,11 +29,12 @@ Instrucciones obligatorias:
 4. Verifica versión:
    - Lee `git diff --name-only HEAD~1` o `git diff --cached --name-only` para ver archivos cambiados.
    - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
+   - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` e `image: ...:vX.Y.Z` coincidiendo con `package.json`. Si usa `:latest`, advierte error.
 
 5. Verifica estado Git:
    - Ejecuta `git status --short`.
    - Si hay archivos sin commitear, indícalo.
-   - Si hay archivos que no deberían commitearse (*.sqlite, .env, data/, .backups/), advierte.
+   - Si hay archivos que no deberían commitearse (\*.sqlite, .env, data/, .backups/), advierte.
 
 6. Resultado final:
    - Muestra un resumen con el estado de cada verificación:
@@ -53,6 +54,7 @@ Instrucciones obligatorias:
    - Recomienda al usuario: "Ejecuta `/save` para commitear y pushear" solo si todo está OK.
 
 Restricciones:
+
 - No modifiques código ni documentación.
 - No hagas commit ni push.
 - Solo verifica e informa.

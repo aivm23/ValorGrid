@@ -69,15 +69,17 @@ Solo si todo pasa, procede con el bump.
 
 4. **Aplica el bump**:
    - Actualiza el campo `"version"` en `package.json`.
+   - Actualiza `deploy/docker/compose.casaos.yml`: cambia `x-casaos.version` y el tag de `image` por la nueva version (formato `vX.Y.Z`).
 
 5. **Informa**:
    - Versión anterior → nueva versión.
    - Tipo de bump aplicado (patch/minor/major).
    - Justificación breve basada en los cambios detectados.
+   - Menciona que también se actualizó `compose.casaos.yml`.
 
 ## Restricciones
 
-- No modifiques nada más que el campo `version` de `package.json`.
+- No modifiques nada más que el campo `version` de `package.json` y los campos de version en `compose.casaos.yml`.
 - No hagas commit ni push.
 - Si no hay cambios funcionales, indica que no se necesita bump.
 - Si la versión ya fue bumped en los cambios actuales, verifica que sea correcta y no la cambies de nuevo.

@@ -8,7 +8,7 @@ ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la
 - `SHA256SUMS.txt`: checksums SHA-256 de los artefactos de release.
 - Digests SHA-256 visibles en los assets de GitHub Releases.
 - `ghcr.io/aivm23/valorgrid:vX.Y.Z`: imagen Docker versionada publicada por el workflow Docker.
-- `ghcr.io/aivm23/valorgrid:latest`: etiqueta Docker de uso personal.
+- `ghcr.io/aivm23/valorgrid:latest`: etiqueta Docker de uso personal (no usar en CasaOS; allí usar siempre el tag versionado).
 
 La release no publica bases SQLite, backups, `.env`, ficheros de importación del usuario ni artefactos privados.
 
@@ -90,7 +90,7 @@ npm run db:backup
 
 En Windows, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalación conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
 
-En Docker/CasaOS, comprobar que `compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:latest`, que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
+En Docker/CasaOS, comprobar que `compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z` (tag versionado, nunca `latest`), que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
 
 ## Rollback
 
@@ -104,7 +104,7 @@ Windows:
 Docker/CasaOS:
 
 1. Detener la app.
-2. Volver al tag anterior.
+2. Volver al tag anterior en `compose.casaos.yml`.
 3. Arrancar y comprobar `/api/health`.
 4. Restaurar manualmente la base de datos desde un backup solo si es necesario.
 

@@ -28,7 +28,8 @@
   - **minor** (x.Y.0): new features, meaningful improvements, new functionality that's backward compatible
   - **major** (X.0.0): breaking changes, incompatible API changes, major refactors that change how the app works
 - When the version changes, include it in the same commit as the feature/fix.
-- When the version changes, update `CHANGELOG.md` with the new version section before committing, or run `npm run changelog:update` to auto-generate it from recent git history.
+- When the version changes, update `CHANGELOG.md` con la nueva version antes de commitear, o ejecutar `npm run changelog:update` para auto-generarlo desde el historial reciente de git.
+- Ademas de `package.json` y `CHANGELOG.md`, **sincronizar `deploy/docker/compose.casaos.yml`**: actualizar `x-casaos.version` y el tag de `image` al mismo numero de version.
 - `npm run changelog:check` is part of the pre-push pipeline; commits with version bumps will fail CI if the changelog is not updated.
 - During this migration, each completed phase with real repository changes bumps at least a patch version.
 
@@ -66,10 +67,17 @@
   - This includes `npm test`, `npm run lint`, `npm run typecheck`, `npm run verify:publication`.
   - Before creating a tag or release, run the full CI-equivalent test suite locally.
 - Before commit, verify that the tests you run locally are the same tests CI will run.
+- **Antes de push, ejecutar `npm run check` como simulacion del matrix CI.** Esto cubre lint, format, spellcheck, changelog y tests — el mismo conjunto que CI ejecuta en Linux. Si CI anyade mas pasos en el futuro, actualizar esta regla para reflejarlos.
 
 ## UI & UX
 
 - Avoid horizontal scrolling by default in any new window, modal, or screen.
+
+## Docker / CasaOS
+
+- **En `compose.casaos.yml` el tag de imagen debe ser siempre el numero exacto de version (`vX.Y.Z`), nunca `latest`.**
+- El campo `x-casaos.version` debe coincidir con el tag de la imagen y con `package.json`.
+- Para Docker personal (local, compose local, scripts personales) `latest` es aceptable.
 
 ## Documentation
 
@@ -101,6 +109,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 ## Git
 
 - **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `style:`
+- **Nunca hacer push sin validacion explicita del usuario.** El comando `/save` es la validacion explicita y no requiere pregunta adicional. Cualquier otro flujo que intente push debe preguntar antes.
 - `/save` command reviews changes, runs `npm run check` (lint + format + spellcheck + changelog + tests), and pushes.
   - **RULE: If `npm run check` fails, DO NOT commit or push. Fix the failure first.**
   - **RULE: Before any commit, run ALL tests, not just quick tests.**

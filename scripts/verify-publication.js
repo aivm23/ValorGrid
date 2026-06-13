@@ -342,7 +342,7 @@ function checkCasaosCompose(pkg) {
 
   const compose = fs.readFileSync(composePath, 'utf8');
   const requiredPatterns = [
-    ['image: ghcr.io/aivm23/valorgrid:latest', /^\s*image:\s*ghcr\.io\/aivm23\/valorgrid:latest\s*$/m],
+    ['image: ghcr.io/aivm23/valorgrid:v' + pkg.version, new RegExp('^\\s*image:\\s*ghcr\\.io\\/aivm23\\/valorgrid:v' + pkg.version.replace(/\./g, '\\.') + '\\s*$', 'm')],
     [`PORT=1325`, /^\s*PORT:\s*1325\s*$/m],
     [`target: 1325`, /^\s*-\s*target:\s*1325\s*$/m],
     [`published: "1325"`, /^\s*published:\s*["']?1325["']?\s*$/m],
@@ -355,7 +355,7 @@ function checkCasaosCompose(pkg) {
   if (missing.length) {
     addCheck('fail', 'casaos-compose', 'compose.casaos.yml has stale CasaOS image, version or port metadata', missing);
   } else {
-    addCheck('ok', 'casaos-compose', `compose.casaos.yml tracks latest on port 1325 with metadata v${pkg.version}.`);
+    addCheck('ok', 'casaos-compose', `compose.casaos.yml uses versioned image tag v${pkg.version} on port 1325.`);
   }
 }
 

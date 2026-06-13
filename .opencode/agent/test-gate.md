@@ -55,6 +55,8 @@ Get-Content .github/workflows/*.yml | Select-String "npm test|npm run check|node
 
 Asegurate de que los tests que ejecutas localmente incluyen los mismos que CI ejecuta.
 
+**La simulacion CI local se hace con `npm run check`**, que cubre lint, format, spellcheck, changelog y tests — el mismo conjunto que CI ejecuta en Linux. Si CI anyade mas pasos en el futuro, actualiza esta regla para reflejarlos.
+
 ### Paso 6: Reportar resultados
 
 - Si TODOS los tests pasan: reporta "TEST GATE PASSED — todos los tests aprobados"

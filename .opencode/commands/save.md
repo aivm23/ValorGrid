@@ -51,16 +51,16 @@ Instrucciones obligatorias:
    - Revisa el diff staged con git diff --cached.
    - Si no hay cambios reales para commitear, no ejecutes git add, commit ni push.
    - Si hay conflictos de merge o rebase, detente y explica el estado.
-   - Ejecuta `npm test`. Si los tests fallan, no hagas push.
+   - Ejecuta `npm run check` (lint + format + spellcheck + changelog + tests). Si los tests fallan, no hagas push.
    - Ejecuta `npm run verify:publication`. Si detecta datos privados, no hagas push.
+   - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` y el tag de `image` sincronizados con la version de `package.json`, y que no usa `:latest`.
    - Verifica sincronización de documentación:
      - Compara endpoints en `src/routes.js` con `docs/API.md`.
      - Compara tablas en `src/schema.js` con `docs/DATA_MODEL.md`.
      - Compara módulos en `src/` y `client/` con `docs/ARCHITECTURE.md`.
      - Si hay discrepancias, advierte pero no bloquees el commit (solo informa).
-   - Verifica versión:
-      - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
-     - Si falta bump o hay desincronización, advierte antes de continuar.
+
+- Verifica versión: - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión. - Si falta bump o hay desincronización, advierte antes de continuar. - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` e `image` tag coincidiendo con `package.json`.
 
 6. Ejecuta el flujo Git cuando sea seguro:
    - git add <archivos>
@@ -87,6 +87,7 @@ Instrucciones obligatorias:
     - Si `/check` detectó errores y el usuario intenta `/save` igualmente, recuerda los errores pendientes y pregunta si desea continuar de todos modos.
 
 Restricciones:
+
 - No modifiques código salvo que sea estrictamente necesario para completar el flujo Git.
 - No hagas rebase, reset, force push, amend ni cambios destructivos salvo que se pida explícitamente.
 - No subas archivos con secretos.

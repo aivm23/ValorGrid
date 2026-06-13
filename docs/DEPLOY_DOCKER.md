@@ -30,11 +30,11 @@ http://localhost:1325
 
 ## CasaOS AppStore oficial
 
-El archivo de tienda es `compose.casaos.yml` y usa la imagen estable `latest`:
+El archivo de tienda es `compose.casaos.yml` y usa la imagen con el tag versionado exacto:
 
-- `ghcr.io/aivm23/valorgrid:latest`
+- `ghcr.io/aivm23/valorgrid:vX.Y.Z`
 
-CasaOS mantiene un campo `version` fijo en la metadata (`x-casaos.version`) para identificar la ficha, pero la imagen del contenedor no queda fijada a ese tag.
+**CasaOS exige que el tag de la imagen sea el número exacto de versión (`vX.Y.Z`), nunca `latest`.** El campo `x-casaos.version` debe coincidir con el tag de la imagen y con `package.json`.
 
 ## Login monousuario
 
@@ -69,7 +69,7 @@ El workflow Docker publica también:
 
 - `ghcr.io/aivm23/valorgrid:latest`
 
-El compose de CasaOS y los compose personales pueden consumir `latest`. Mantén `x-casaos.version` sincronizado con `package.json` cuando se actualice la ficha CasaOS.
+Para Docker personal (local, scripts personales) puedes usar `latest` sin problemas. **Para CasaOS el tag debe ser siempre la versión exacta (`vX.Y.Z`).** Mantén `x-casaos.version` sincronizado con `package.json` y con el tag de `image` en `compose.casaos.yml` cuando se actualice la ficha CasaOS.
 
 ## Upgrade y rollback en CasaOS
 
@@ -78,15 +78,15 @@ Checklist de upgrade:
 1. Ejecutar backup antes de actualizar:
    - `npm run db:backup`
    - `npm run db:doctor`
-2. Actualizar el contenedor desde CasaOS para descargar la imagen `latest` publicada.
-3. Comprobar que la ficha CasaOS mantiene `x-casaos.version` sincronizado con `package.json`.
+2. Actualizar el contenedor desde CasaOS para descargar la imagen con el tag versionado (`vX.Y.Z`) publicado.
+3. Comprobar que `compose.casaos.yml` tiene `x-casaos.version` y el tag de `image` sincronizados con `package.json`.
 4. Comprobar salud en `/api/health`.
 5. Revisar que los datos siguen presentes.
 
 Rollback:
 
 1. Detener la app en CasaOS.
-2. Volver el tag de imagen a la versión anterior (`vX.Y.Z` estable).
+2. Volver el tag de imagen a la versión anterior (`vX.Y.Z` estable) en `compose.casaos.yml`.
 3. Arrancar de nuevo la app.
 4. Si hubo corrupción o perdida de datos, reinstalar una versión anterior y restaurar manualmente la DB desde el backup.
 

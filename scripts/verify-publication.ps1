@@ -237,8 +237,9 @@ if (-not (Test-Path $casaosComposePath)) {
 }
 
 $casaosCompose = Get-Content $casaosComposePath -Raw
-if (-not [regex]::IsMatch($casaosCompose, '(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:latest\s*$')) {
-  throw 'compose.casaos.yml image must use ghcr.io/aivm23/valorgrid:latest'
+$expectedVersionTag = "v$version"
+if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:$expectedVersionTag\s*$")) {
+  throw "compose.casaos.yml image must use ghcr.io/aivm23/valorgrid:$expectedVersionTag (versioned tag, never latest)"
 }
 
 $requiredCasaosMounts = @(

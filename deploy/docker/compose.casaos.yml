@@ -2,7 +2,7 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:latest
+    image: ghcr.io/aivm23/valorgrid:v3.13.0
     container_name: valorgrid
     restart: unless-stopped
     environment:
