@@ -25,7 +25,7 @@ function startLocalServer() {
   process.env.PORTFOLIO_DB_PATH = dbPath;
   process.env.VALORGRID_BACKUP_DIR = backupDir;
 
-  const runtime = require('../src/app-core');
+  const runtime = require('../server/src/app-core');
   server = runtime.server;
 
   return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ function createWindow(url) {
     height: 900,
     minWidth: 1120,
     minHeight: 720,
-    icon: path.join(__dirname, '..', 'assets', 'brand', 'valorgrid-logo.png'),
+    icon: path.join(__dirname, '..', '..', 'assets', 'brand', 'valorgrid-logo.png'),
     show: false,
     webPreferences: {
       contextIsolation: true,

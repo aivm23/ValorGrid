@@ -1,14 +1,14 @@
-# Operaciones de Base de Datos
+﻿# Operaciones de Base de Datos
 
 Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, reset fresh y diagnóstico.
 
 ## Política fresh-only
 
-- `src/schema.js` es el contrato único de creación de schema.
+- `apps/server/src/schema.js` es el contrato único de creación de schema.
 - No se permiten migraciones runtime con `ALTER TABLE`.
 - Si cambia el schema durante esta fase, se valida con reset fresh en dev/test.
 - Esta política se verifica en dos niveles:
-  - `test/db-operations.test.js`: escanea `src/` y `scripts/` buscando `ALTER TABLE ... ADD|RENAME|DROP|ALTER`.
+  - `test/db-operations.test.js`: escanea `apps/server/src/` y `scripts/` buscando `ALTER TABLE ... ADD|RENAME|DROP|ALTER`.
   - `scripts/verify-publication.ps1`: repite el escaneo como gate pre-push.
 - **Invariante**: antes de tocar una DB real, ejecutar `npm run db:backup`. El comando `npm run db:reset` lo hace automáticamente si la DB existe.
 
@@ -38,7 +38,7 @@ npm run backup
 
 Retencion:
 
-- Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `src/platform/config.js`.
+- Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `apps/server/src/platform/config.js`.
 - En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.

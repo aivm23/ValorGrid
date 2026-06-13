@@ -3,8 +3,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { createConfig } = require('../src/platform/config');
-const { parseBasicAuth } = require('../src/platform/auth');
+const { createConfig } = require('../apps/server/src/platform/config');
+const { parseBasicAuth } = require('../apps/server/src/platform/auth');
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-auth-'));
 process.env.PORTFOLIO_DB_PATH = path.join(tempDir, 'portfolio.sqlite');
@@ -13,7 +13,7 @@ process.env.HOST = '127.0.0.1';
 process.env.VALORGRID_AUTH_USER = 'owner';
 process.env.VALORGRID_AUTH_PASSWORD = 'correct horse battery staple';
 
-const { db, server } = require('../server.js');
+const { db, server } = require('../apps/server/server.js');
 
 let baseUrl;
 

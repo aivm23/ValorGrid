@@ -93,7 +93,7 @@ function publicFiles() {
 
 function allowsPublicBrokerTeaser(file) {
   const relative = path.relative(root, file);
-  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'test\\frontend-renovation.test.js' || relative === 'test/frontend-renovation.test.js' || relative === 'client/imports.js' || relative === 'client\\imports.js' || relative === 'client/import-workflow.js' || relative === 'client\\import-workflow.js' || relative === 'client/import-workflow-helpers.js' || relative === 'client\\import-workflow-helpers.js';
+  return relative === 'index.html' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'test\\frontend-renovation.test.js' || relative === 'test/frontend-renovation.test.js' || relative === 'apps/web/src/imports.js' || relative === 'apps\\web\\src\\imports.js' || relative === 'apps/web/src/import-workflow.js' || relative === 'apps\\web\\src\\import-workflow.js' || relative === 'apps/web/src/import-workflow-helpers.js' || relative === 'apps\\web\\src\\import-workflow-helpers.js';
 }
 
 function publicDocumentationFiles() {
@@ -233,10 +233,10 @@ test('public XLSX sample files do not contain private broker tokens', async () =
 });
 
 test('fresh install configuration does not bundle personal holdings or plans', () => {
-  const appSource = fs.readFileSync(path.join(root, 'src', 'app.js'), 'utf8');
+  const appSource = fs.readFileSync(path.join(root, 'apps', 'server', 'src', 'app.js'), 'utf8');
   assert.equal(/baseShares:\s*[1-9]/.test(appSource), false);
   assert.match(appSource, /const defaultAutoPlans = \[\];/);
-  const schemaSource = fs.readFileSync(path.join(root, 'src', 'schema.js'), 'utf8');
+  const schemaSource = fs.readFileSync(path.join(root, 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const privateImportToken = ['Lib', 'ro1'].join('');
   assert.equal(schemaSource.includes(privateImportToken), false);
 });

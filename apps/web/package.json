@@ -1,0 +1,7 @@
+{
+  "name": "@valorgrid/web",
+  "private": true,
+  "scripts": {
+    "check:syntax": "node --check src/app.js"
+  }
+}

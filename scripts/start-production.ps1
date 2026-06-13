@@ -9,4 +9,4 @@ if (-not (Test-Path $node)) {
 
 Set-Location $root
 Remove-Item Env:\PORTFOLIO_DB_PATH -ErrorAction SilentlyContinue
-& $node 'server.js'
+& $node 'apps/server/server.js'

@@ -32,7 +32,7 @@ test('operations.js renders KPI cards with semantic border classes and metric-mi
   assert.ok(body.performance.netContributed > 0, 'netContributed is positive');
 
   // Verify the operations.js source uses semantic border classes
-  const ops = read(path.join('client', 'operations.js'));
+  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
   assert.ok(ops.includes('has-border-accent'), 'operations uses has-border-accent');
   assert.ok(ops.includes('has-border-positive'), 'operations uses has-border-positive');
   assert.ok(ops.includes('has-border-amber'), 'operations uses has-border-amber');
@@ -41,7 +41,7 @@ test('operations.js renders KPI cards with semantic border classes and metric-mi
 });
 
 test('monthly.js renders YTD KPI cards with semantic border classes', async () => {
-  const monthly = read(path.join('client', 'monthly.js'));
+  const monthly = read(path.join('apps', 'web', 'src', 'monthly.js'));
   assert.ok(monthly.includes('has-border-accent'), 'monthly uses has-border-accent');
   assert.ok(monthly.includes('has-border-positive'), 'monthly uses has-border-positive');
   assert.ok(monthly.includes('has-border-negative'), 'monthly uses has-border-negative');
@@ -65,7 +65,7 @@ test('charts.js renders SVG with linearGradient for history line and area', asyn
   assert.ok(body.series.length > 0, 'history has series data');
 
   // Verify charts.js source defines SVG gradient elements
-  const charts = read(path.join('client', 'charts.js'));
+  const charts = read(path.join('apps', 'web', 'src', 'charts.js'));
   assert.ok(charts.includes('historyLineGrad'), 'charts defines historyLineGrad ID');
   assert.ok(charts.includes('historyAreaGrad'), 'charts defines historyAreaGrad ID');
   assert.ok(charts.includes('linearGradient'), 'charts uses linearGradient element');
@@ -73,7 +73,7 @@ test('charts.js renders SVG with linearGradient for history line and area', asyn
   assert.ok(charts.includes('history-area'), 'charts defines history-area class');
 
   // Verify CSS references the gradients via url()
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('url(#historyLineGrad)'), 'CSS references line gradient');
   assert.ok(css.includes('url(#historyAreaGrad)'), 'CSS references area gradient');
 });
@@ -95,7 +95,7 @@ test('ledger.js renders type-badge and origin-badge classes for transactions', a
   assert.ok(['manual', 'auto', 'import'].includes(tx.origin), 'transaction has origin');
 
   // Verify ledger.js source uses badge classes
-  const ledger = read(path.join('client', 'ledger.js'));
+  const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
   assert.ok(ledger.includes('type-badge'), 'ledger uses type-badge class');
   assert.ok(ledger.includes('type-sell'), 'ledger uses type-sell class');
   assert.ok(ledger.includes('type-buy'), 'ledger uses type-buy class');
@@ -106,7 +106,7 @@ test('ledger.js renders type-badge and origin-badge classes for transactions', a
 });
 
 test('CSS defines hover states for ledger table rows', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('tbody tr:hover'), 'CSS defines tbody tr:hover');
   assert.ok(css.includes('tbody tr.is-selected'), 'CSS defines is-selected row state');
   assert.ok(css.includes('.type-buy'), 'CSS defines type-buy style');
@@ -118,7 +118,7 @@ test('CSS defines hover states for ledger table rows', () => {
 // ── 4) Modal entrance/exit animations ──
 
 test('CSS defines modal entrance and exit keyframe animations', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes modalIn'), 'CSS defines modalIn animation');
   assert.ok(css.includes('@keyframes modalOut'), 'CSS defines modalOut animation');
   assert.ok(css.includes('.modal.is-closing'), 'CSS uses is-closing class for exit');
@@ -129,14 +129,14 @@ test('CSS defines modal entrance and exit keyframe animations', () => {
 // ── 5) Donut chart entrance animation and radial offset hover ──
 
 test('CSS defines donut chart entrance animation', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes donutIn'), 'CSS defines donutIn animation');
   assert.ok(css.includes('transform: scale(0.88)'), 'donutIn starts with scale down');
   assert.ok(css.includes('opacity: 0'), 'donutIn starts with opacity 0');
 });
 
 test('CSS defines donut chart active segment radial offset', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('.donut-chart-active'), 'CSS defines donut-chart-active class');
   assert.ok(css.includes('--donut-active-x'), 'CSS uses --donut-active-x property');
   assert.ok(css.includes('--donut-active-y'), 'CSS uses --donut-active-y property');
@@ -145,7 +145,7 @@ test('CSS defines donut chart active segment radial offset', () => {
 });
 
 test('summary.js sets CSS custom properties for active donut segment', () => {
-  const summary = read(path.join('client', 'summary.js'));
+  const summary = read(path.join('apps', 'web', 'src', 'summary.js'));
   assert.ok(summary.includes('--donut-active-color'), 'summary sets --donut-active-color');
   assert.ok(summary.includes('--donut-active-start'), 'summary sets --donut-active-start');
   assert.ok(summary.includes('--donut-active-end'), 'summary sets --donut-active-end');
@@ -157,7 +157,7 @@ test('summary.js sets CSS custom properties for active donut segment', () => {
 // ── 6) Sub-chart slide-in animation ──
 
 test('CSS defines sub-chart slide-in keyframe animation', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes subchartIn'), 'CSS defines subchartIn animation');
   assert.ok(css.includes('translateX(16px)'), 'subchartIn starts with translateX offset');
   assert.ok(css.includes('.subchart'), 'CSS targets .subchart with animation');
@@ -176,7 +176,7 @@ test('summary.js computes price freshness with emoji indicators', async () => {
   assert.ok(body.updatedAt, 'summary has updatedAt timestamp');
 
   // Verify summary.js source uses freshness logic
-  const summary = read(path.join('client', 'summary.js'));
+  const summary = read(path.join('apps', 'web', 'src', 'summary.js'));
   assert.ok(summary.includes('freshness'), 'summary computes freshness');
   assert.ok(summary.includes('priceStatus'), 'summary updates priceStatus element');
   assert.ok(summary.includes('Yahoo Finance'), 'summary references Yahoo Finance in status text');
@@ -186,7 +186,7 @@ test('summary.js computes price freshness with emoji indicators', async () => {
 // ── 8) YTD subtitle with month count ──
 
 test('monthly.js sets YTD subtitle with completed month count', async () => {
-  const monthly = read(path.join('client', 'monthly.js'));
+  const monthly = read(path.join('apps', 'web', 'src', 'monthly.js'));
   assert.ok(monthly.includes('ytdSubtitle'), 'monthly references ytdSubtitle element');
   assert.ok(monthly.includes('meses con datos'), 'monthly includes month count text');
   assert.ok(monthly.includes('A la espera del primer movimiento'), 'monthly includes empty state text');
@@ -196,16 +196,16 @@ test('monthly.js sets YTD subtitle with completed month count', async () => {
 // ── 9) History subtitle with first date ──
 
 test('charts.js sets history subtitle with first date', async () => {
-  const charts = read(path.join('client', 'charts.js'));
+  const charts = read(path.join('apps', 'web', 'src', 'charts.js'));
   assert.ok(charts.includes('historySubtitle'), 'charts references historySubtitle element');
   assert.ok(charts.includes('first.date'), 'charts uses first date from series');
   assert.ok(charts.includes('formatPlainDate'), 'charts formats the date');
 });
 
 test('index.html and charts.js render metric info tooltips for visible totals', () => {
-  const index = read('index.html');
-  const charts = read(path.join('client', 'charts.js'));
-  const css = read(path.join('client', 'styles.css'));
+  const index = read('apps/web/index.html');
+  const charts = read(path.join('apps', 'web', 'src', 'charts.js'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
 
   assert.ok(index.includes('Total visible estimado'), 'distribution label updated');
   assert.ok(index.includes('aria-label="Información sobre la métrica"'), 'metric info aria label present in index');
@@ -228,7 +228,7 @@ test('ledger.js shows filtered count X/Y in totals row when filters are active',
   assert.equal(response.status, 200);
   assert.ok(body.transactions.length > 0, 'transactions exist for filtering');
 
-  const ledger = read(path.join('client', 'ledger.js'));
+  const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
   assert.ok(ledger.includes('ledgerFilterInfo'), 'ledger references ledgerFilterInfo element');
   assert.ok(ledger.includes('ledger-filtered-count'), 'ledger uses filtered-count class for highlights');
   assert.ok(ledger.includes('hasFilters'), 'ledger checks for active filters');
@@ -238,7 +238,7 @@ test('ledger.js shows filtered count X/Y in totals row when filters are active',
 // ── 11) Checkbox animation ──
 
 test('CSS defines checkbox check animation with scale and clip-path', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes checkPop'), 'CSS defines checkPop animation');
   assert.ok(css.includes('transform: scale(0)'), 'checkbox starts unchecked with scale 0');
   assert.ok(css.includes('transform: scale(1.2)'), 'checkPop has overshoot scale');
@@ -250,14 +250,14 @@ test('CSS defines checkbox check animation with scale and clip-path', () => {
 // ── 12) Bulk toolbar slide-in and delete button pulse ──
 
 test('CSS defines bulk toolbar slide-in animation', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes bulkToolbarIn'), 'CSS defines bulkToolbarIn animation');
   assert.ok(css.includes('transform: translateY(8px)'), 'bulkToolbarIn starts with translateY offset');
   assert.ok(css.includes('.bulk-toolbar'), 'CSS targets bulk-toolbar with animation');
 });
 
 test('CSS defines delete button pulse animation on hover', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('@keyframes deletePulse'), 'CSS defines deletePulse animation');
   assert.ok(css.includes('.icon-bulk-delete:hover'), 'delete pulse triggers on hover');
   assert.ok(css.includes('box-shadow'), 'delete pulse uses box-shadow');
@@ -267,7 +267,7 @@ test('CSS defines delete button pulse animation on hover', () => {
 // ── 13) Dark mode grid line opacity ──
 
 test('CSS reduces grid line opacity in dark mode', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('[data-theme="dark"] .history-grid-line'), 'CSS targets dark mode grid lines');
   assert.ok(css.includes('opacity: 0.15'), 'dark mode grid lines have reduced opacity');
   assert.ok(css.includes('.history-reference-line'), 'CSS defines reference line style');
@@ -277,14 +277,14 @@ test('CSS reduces grid line opacity in dark mode', () => {
 // ── 14) Legend separator between groups ──
 
 test('charts.js renders legend separator before STOCK group', async () => {
-  const charts = read(path.join('client', 'charts.js'));
+  const charts = read(path.join('apps', 'web', 'src', 'charts.js'));
   assert.ok(charts.includes('legend-separator'), 'charts uses legend-separator class');
   assert.ok(charts.includes('hasSeparator'), 'charts computes hasSeparator flag');
   assert.ok(charts.includes("item.symbol === 'STOCK'"), 'charts checks for STOCK symbol');
 });
 
 test('CSS defines legend separator styling', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('.legend-separator'), 'CSS defines legend-separator class');
   assert.ok(css.includes('height: 1px'), 'separator has height');
   assert.ok(css.includes('background: var(--line)'), 'separator uses line color');
@@ -313,7 +313,7 @@ test('all frontend modules use ES module attach pattern', () => {
   ];
 
   for (const mod of clientModules) {
-    const source = read(path.join('client', mod));
+    const source = read(path.join('apps', 'web', 'src', mod));
     assert.ok(
       source.includes('export function attach') || source.includes('export { attach }'),
       `${mod} exports attach function`,
@@ -322,7 +322,7 @@ test('all frontend modules use ES module attach pattern', () => {
   }
 
   // events.js is the event-wiring module; it uses ctx but does not extend it
-  const eventsSource = read(path.join('client', 'events.js'));
+  const eventsSource = read(path.join('apps', 'web', 'src', 'events.js'));
   assert.ok(eventsSource.includes('export function attach'), 'events.js exports attach function');
   assert.ok(eventsSource.includes('const { elements, state'), 'events.js destructures ctx');
 });
@@ -330,7 +330,7 @@ test('all frontend modules use ES module attach pattern', () => {
 // ── Integration: verify CSS class coverage for all new features ──
 
 test('CSS contains all semantic border classes used by KPI cards', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   const borderClasses = [
     '.metric-grid article.has-border-accent',
     '.metric-grid article.has-border-positive',
@@ -345,15 +345,15 @@ test('CSS contains all semantic border classes used by KPI cards', () => {
 });
 
 test('CSS defines metric-micro styling for KPI micro-info', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('.metric-micro'), 'CSS defines metric-micro class');
   assert.ok(css.includes('font-family: var(--font-mono)'), 'metric-micro uses monospace font');
   assert.ok(css.includes('tabular-nums'), 'metric-micro uses tabular-nums');
 });
 
 test('import-workflow.js renders Pro sources in plain-text options and banners', () => {
-  const workflow = read(path.join('client', 'import-workflow.js'));
-  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
+  const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
   assert.ok(helpers.includes('getImportSourceDisplayName'), 'helpers defines getImportSourceDisplayName');
   assert.ok(helpers.includes('getImportSourceOptionLabel'), 'helpers defines getImportSourceOptionLabel');
   assert.ok(workflow.includes('renderImportSourceOptions'), 'import-workflow.js delegates option rendering');
@@ -366,14 +366,14 @@ test('import-workflow.js renders Pro sources in plain-text options and banners',
 });
 
 test('imports.js loads import sources when opening the import dialog', () => {
-  const importsSource = read(path.join('client', 'imports.js'));
+  const importsSource = read(path.join('apps', 'web', 'src', 'imports.js'));
   assert.ok(importsSource.includes('async function openImportDialog()'), 'openImportDialog can await source loading');
   assert.ok(importsSource.includes('await loadImportSources(ctx);'), 'openImportDialog refreshes import sources before showing modal');
 });
 
 test('import-workflow.js option labels include Pro source names and edition', () => {
-  const workflow = read(path.join('client', 'import-workflow.js'));
-  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
+  const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
   assert.ok(workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml)'), 'workflow escapes options through helper');
   assert.ok(helpers.includes('Professional Edition'), 'option labels include Professional Edition');
   assert.ok(helpers.includes('Pr\\u00f3ximamente'), 'option labels include Próximamente for coming soon');
@@ -383,7 +383,7 @@ test('import-workflow.js option labels include Pro source names and edition', ()
 });
 
 test('import source helper labels are plain text and match Pro teaser copy', () => {
-  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
   assert.ok(helpers.includes("return name + ' - Professional Edition'"), 'Pro source labels use plain-text separator');
   assert.ok(
     helpers.includes("return name + ' - Pr\\u00f3ximamente - Professional Edition'"),
@@ -396,14 +396,14 @@ test('import source helper labels are plain text and match Pro teaser copy', () 
 });
 
 test('import source options keep the Community source first by UI policy', () => {
-  const workflow = read(path.join('client', 'import-workflow.js'));
-  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
+  const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
   assert.ok(helpers.includes("left.edition === 'community' ? -1 : 1"), 'Community sources render before Pro teasers');
   assert.ok(workflow.includes("select.value = 'valorgrid-xlsx'"), 'ValorGrid template remains the default selection');
 });
 
 test('CSS defines import-pro-banner styles', () => {
-  const css = read(path.join('client', 'styles.css'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
   assert.ok(css.includes('.import-pro-banners'), 'CSS defines .import-pro-banners container');
   assert.ok(css.includes('.import-pro-banner'), 'CSS defines .import-pro-banner');
   assert.ok(css.includes('.import-pro-banner-brokers'), 'CSS defines .import-pro-banner-brokers');
@@ -421,7 +421,7 @@ assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap inste
 // ── 15) Operativa section microcopy and tooltips ──
 
 test('operations.js Operativa cards use improved microcopy and tooltips', () => {
-  const ops = read(path.join('client', 'operations.js'));
+  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
 
   // metricInfo helper defined
   assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in operations.js');
@@ -462,7 +462,7 @@ test('operations.js Operativa cards use improved microcopy and tooltips', () => 
 });
 
 test('operations.js Operativa cards handle edge cases without NaN or Infinity', () => {
-  const ops = read(path.join('client', 'operations.js'));
+  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
 
   // Verify the code guards against division by zero for latent pct
   assert.ok(ops.includes('openInvestment > 0'), 'guards latent pct against zero open investment');

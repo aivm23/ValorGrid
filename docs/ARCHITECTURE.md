@@ -1,6 +1,29 @@
-# Arquitectura
+﻿# Arquitectura
 
-ValorGrid es una aplicación local monousuario con backend Node.js, SQLite local y frontend estático modular.
+ValorGrid es una aplicación local monousuario con backend Node.js, SQLite local y frontend estático modular. El proyecto está organizado como un monorepo con workspaces.
+
+## Estructura del monorepo
+
+```
+ValorGrid/
+├── apps/
+│   ├── server/          (backend Node.js)
+│   │   ├── server.js
+│   │   └── src/
+│   ├── web/             (frontend estático)
+│   │   ├── index.html
+│   │   └── src/
+│   └── desktop/         (wrapper Electron)
+│       └── main.js
+├── packages/
+│   └── contracts/       (interfaces TypeScript compartidas)
+│       └── src/
+│           └── index.ts
+├── docs/
+├── scripts/
+├── test/
+└── package.json         (workspaces: ["apps/*", "packages/*"])
+```
 
 ## Objetivos de arquitectura
 
@@ -19,7 +42,7 @@ ValorGrid evoluciona de un monolito modular con `ctx` plano hacia este patrón o
 - **Clean-ish layering** (`routes` -> `services` -> `repositories`).
 - **Dependency Injection explícita** usando un `ctx` agrupado.
 - **TypeScript strict incremental** (migración activa sin big-bang, `tsconfig.json` con `strict: true`, `checkJs: false`).
-- **Carpetas por bounded context** (migración activa de `src/` plano a `src/domains/<domain>/` agrupando service + repository + routes por dominio donde aplica, con `src/platform/` para infraestructura compartida y `src/shared/` para módulos transversales sin dominio propio).
+- **Carpetas por bounded context** (migración activa de `apps/server/src/` plano a `apps/server/src/domains/<domain>/` agrupando service + repository + routes por dominio donde aplica, con `apps/server/src/platform/` para infraestructura compartida y `apps/server/src/shared/` para módulos transversales sin dominio propio).
 
 Principios operativos de la migración:
 
@@ -30,15 +53,16 @@ Principios operativos de la migración:
 
 ## Raíz del proyecto
 
+- `package.json`: gestión de workspaces (`apps/*`, `packages/*`). No contiene runtime propio.
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
-- `desktop/main.js`: wrapper Electron para la distribucion Windows. Arranca el servidor local en `127.0.0.1` con puerto efímero y guarda DB/backups en la carpeta de datos de usuario de la app.
+- `apps/desktop/main.js`: wrapper Electron para la distribución Windows. Arranca el servidor local en `127.0.0.1` con puerto efímero y guarda DB/backups en la carpeta de datos de usuario de la app.
 
 ### Estructura física por dominio (implementada)
 
 Módulos organizados en carpetas por bounded context y plataforma compartida:
 
 ```
-src/
+apps/server/src/
 ├── domains/
 │   ├── instruments/    (instrument-*, route-instruments)
 │   ├── transactions/   (transaction-*, route-transactions)
@@ -52,21 +76,20 @@ src/
 │   └── admin/          (diagnostics-*, route-admin)
 ├── shared/             (operations-metrics, cargado internamente por ui-preferences-service)
 ├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
-├── types.ts
 ├── app.js
 ├── routes.js
 └── ...
 ```
 
-Cada dominio se migra completo: service + repository + routes (cuando aplica). `src/app.js` y `route-*.js` mantienen el wiring externo.
+Cada dominio se migra completo: service + repository + routes (cuando aplica). `apps/server/src/app.js` y `route-*.js` mantienen el wiring externo.
 
 ## Backend
 
-### `server.js`
+### `apps/server/server.js`
 
-Bootstrap mínimo: delega en `src/app.js` para toda la lógica. Solo arranca el listener HTTP cuando se ejecuta directamente.
+Bootstrap mínimo: delega en `apps/server/src/app.js` para toda la lógica. Solo arranca el listener HTTP cuando se ejecuta directamente.
 
-### `src/app.js`
+### `apps/server/src/app.js`
 
 Orquestador del backend:
 
@@ -99,11 +122,11 @@ Reglas de transición:
 - No se reintroduce `with (ctx)` en backend ni frontend.
 - SQL vive exclusivamente en repositories (`ctx.repositories.<domain>`). Services y rutas no ejecutan SQL directo.
 - `backups.js` es la excepción técnica permitida para mantenimiento SQLite (`PRAGMA wal_checkpoint` antes de copiar backups).
-- Las transacciones SQLite deben usar los helpers de `src/platform/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
+- Las transacciones SQLite deben usar los helpers de `apps/server/src/platform/db.js` (`withTransaction` / `withTransactionAsync`), no `BEGIN/COMMIT/ROLLBACK` manuales en services.
 
-### `src/` y `src/platform/`
+### `apps/server/src/` y `apps/server/src/platform/`
 
-**Infraestructura compartida en `src/platform/`:**
+**Infraestructura compartida en `apps/server/src/platform/`:**
 
 - `config.js`: host, puerto, rutas, versión, DB activa y auth opcional.
 - `auth.js`: Basic Auth monousuario opt-in para despliegues Docker/CasaOS (importado por `http.js`, no cargado directamente en `app.js`).
@@ -115,17 +138,18 @@ Reglas de transición:
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
 
-**Archivos raíz en `src/`:**
+**Archivos raíz en `apps/server/src/`:**
 
-- `types.ts`: interfaces de dominio TypeScript.
 - `route-service-bindings.js`: resolución de handlers desde `ctx.services.*`.
 - `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
 - `app.js`: composition root y orquestador de módulos (backend).
-- `app-core.js`: re-export de `src/app.js`.
+- `app-core.js`: re-export de `apps/server/src/app.js`.
 - `schema.js`: creación fresh idempotente de tablas.
 - `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
 
-**Dominios en `src/domains/`**:
+**Interfaces TypeScript compartidas en `packages/contracts/src/index.ts`:** definiciones de tipos de dominio compartidos entre backend y frontend.
+
+**Dominios en `apps/server/src/domains/`**:
 
 La lógica principal vive en módulos. Orden de carga en `app.js`:
 
@@ -181,12 +205,12 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: definicion de la plantilla Community `valorgrid-xlsx` y listado de fuentes disponibles por edición (`listImportSources()`), sin documentar detalles operativos de conectores profesionales en la documentación pública.
+- `ingestion-profiles`: definición de la plantilla Community `valorgrid-xlsx` y listado de fuentes disponibles por edición (`listImportSources()`), sin documentar detalles operativos de conectores profesionales en la documentación pública.
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
 
-`node:sqlite` debe quedar aislado detrás de `src/platform/db.js`.
+`node:sqlite` debe quedar aislado detrás de `apps/server/src/platform/db.js`.
 
 ### Estado actual
 
@@ -195,7 +219,7 @@ La arquitectura vigente es un monolito modular con `ctx` agrupado, repositories 
 Reglas que deben mantenerse en cada cambio estructural:
 
 - no romper API pública ni semántica funcional;
-- mantener SQL en repositories y `node:sqlite` aislado en `src/platform/db.js`;
+- mantener SQL en repositories y `node:sqlite` aislado en `apps/server/src/platform/db.js`;
 - preferir `ctx.services.<domain>` y `ctx.repositories.<domain>` para código nuevo o refactorizado;
 - validar con `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` y `npm run verify:publication`.
 
@@ -203,21 +227,20 @@ Reglas que deben mantenerse en cada cambio estructural:
 
 ## Frontend
 
-### `index.html`
+### `apps/web/index.html`
 
-Punto de entrada del frontend. Carga `./client/app.js` como `<script type="module">`.
+Punto de entrada del frontend. Carga `./src/app.js` como `<script type="module">`.
 
-### `client/app.js`
+### `apps/web/src/app.js`
 
 Orquestador del frontend:
 
-- vive en `client/`,
-
+- vive en `apps/web/src/`,
 - crea `ctx` con primitivas del navegador y helpers API,
-- registra módulos `client/*.js` en orden fijo con `attach(ctx)`,
+- registra módulos `apps/web/src/*.js` en orden fijo con `attach(ctx)`,
 - inicializa tema, privacidad y primer render del dashboard/histórico.
 
-### `client/`
+### `apps/web/src/`
 
 Módulos principales:
 
@@ -313,7 +336,7 @@ La app puede crear copias locales de SQLite con:
 - script PowerShell.
 
 Antes de copiar, se hace checkpoint WAL para reducir riesgo de backup inconsistente.
-La API y los scripts operativos comparten la misma `backupDir` resuelta por `src/platform/config.js`; las rutas admin consumen esta capacidad desde `ctx.services.admin`.
+La API y los scripts operativos comparten la misma `backupDir` resuelta por `apps/server/src/platform/config.js`; las rutas admin consumen esta capacidad desde `ctx.services.admin`.
 
 ## Docker y CasaOS
 

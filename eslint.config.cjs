@@ -9,11 +9,13 @@ module.exports = [
       'dist/**',
       'imports/**',
       'local/**',
+      'tmp/**',
+      'temp/**',
       '.opencode/**',
     ],
   },
   {
-    files: ['server.js', 'scripts/**/*.js', 'src/**/*.js', 'test/**/*.js'],
+    files: ['apps/server/server.js', 'apps/desktop/main.js', 'scripts/**/*.js', 'apps/server/src/**/*.js', 'test/**/*.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'commonjs',
@@ -43,7 +45,7 @@ module.exports = [
           paths: [
             {
               name: 'node:sqlite',
-              message: 'Use SQLite only through src/platform/db.js.',
+              message: 'Use SQLite only through apps/server/src/platform/db.js.',
             },
           ],
         },
@@ -51,7 +53,7 @@ module.exports = [
     },
   },
   {
-    files: ['client/**/*.js'],
+    files: ['apps/web/src/**/*.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
@@ -89,7 +91,7 @@ module.exports = [
           paths: [
             {
               name: 'node:sqlite',
-              message: 'Use SQLite only through src/platform/db.js.',
+              message: 'Use SQLite only through apps/server/src/platform/db.js.',
             },
           ],
         },
@@ -97,7 +99,7 @@ module.exports = [
     },
   },
   {
-    files: ['src/platform/db.js'],
+    files: ['apps/server/src/platform/db.js'],
     rules: {
       'no-restricted-modules': 'off',
     },

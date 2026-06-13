@@ -1,0 +1,5 @@
+{
+  "name": "@valorgrid/contracts",
+  "private": true,
+  "types": "src/index.ts"
+}

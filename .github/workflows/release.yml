@@ -37,9 +37,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
-      - run: node --check server.js
-      - run: node --check client/app.js
-      - run: node --check desktop/main.js
+      - run: node --check apps/server/server.js
+      - run: node --check apps/web/src/app.js
+      - run: node --check apps/desktop/main.js
       - run: npm test
 
       - name: Verify publication safety
@@ -55,15 +55,15 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
-            dist/*.exe
-            dist/SHA256SUMS.txt
+            local/artifacts/desktop/*.exe
+            local/artifacts/desktop/SHA256SUMS.txt
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: release-notes.md
           files: |
-            dist/*.exe
-            dist/*.blockmap
-            dist/latest.yml
-            dist/SHA256SUMS.txt
+            local/artifacts/desktop/*.exe
+            local/artifacts/desktop/*.blockmap
+            local/artifacts/desktop/latest.yml
+            local/artifacts/desktop/SHA256SUMS.txt

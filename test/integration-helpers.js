@@ -88,7 +88,7 @@ const {
   previewImport,
   commitImport,
   rollbackImportBatch,
-} = require('../server.js');
+} = require('../apps/server/server.js');
 
 function cachePrice(yahooSymbol, requestedDate, price, currency = 'EUR', marketDate = requestedDate) {
   db.prepare(

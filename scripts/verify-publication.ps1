@@ -59,8 +59,8 @@ function Get-PublicFiles {
 
 Set-Location $root
 
-Invoke-Checked 'node --check server.js' { & $node --check 'server.js' }
-Invoke-Checked 'node --check client/app.js' { & $node --check 'client/app.js' }
+Invoke-Checked 'node --check apps/server/server.js' { & $node --check 'apps/server/server.js' }
+Invoke-Checked 'node --check apps/web/src/app.js' { & $node --check 'apps/web/src/app.js' }
 Invoke-Checked 'node --test' { & $node --test }
 
 foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlite' + '-shm'), ('portfolio.loadtest.sqlite' + '-wal'))) {
@@ -166,18 +166,18 @@ $publicBrokerTeaserPatterns = @(
 )
 $publicBrokerTeaserFiles = @(
   'index.html',
-  'src\domains\data-ingestion\ingestion-profiles.js',
-  'src/domains/data-ingestion/ingestion-profiles.js',
+  'apps\server\src\domains\data-ingestion\ingestion-profiles.js',
+  'apps/server/src/domains/data-ingestion/ingestion-profiles.js',
   'test\imports.test.js',
   'test/imports.test.js',
   'test\frontend-renovation.test.js',
   'test/frontend-renovation.test.js',
-  'client/imports.js',
-  'client\imports.js',
-  'client/import-workflow.js',
-  'client\import-workflow.js',
-  'client/import-workflow-helpers.js',
-  'client\import-workflow-helpers.js'
+  'apps/web/src/imports.js',
+  'apps\web\src\imports.js',
+  'apps/web/src/import-workflow.js',
+  'apps\web\src\import-workflow.js',
+  'apps/web/src/import-workflow-helpers.js',
+  'apps\web\src\import-workflow-helpers.js'
 )
 
 foreach ($file in $publicFiles) {
@@ -199,7 +199,7 @@ if ($textLeaks.Count -gt 0) {
 }
 
 $runtimeFiles = @(
-  Get-ChildItem -Path (Join-Path $root 'src') -Recurse -File
+  Get-ChildItem -Path (Join-Path $root 'apps/server/src') -Recurse -File
   Get-ChildItem -Path (Join-Path $root 'scripts') -Recurse -File
 ) | Where-Object { $_.Extension -in @('.js', '.ps1', '.sh') }
 

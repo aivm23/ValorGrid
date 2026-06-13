@@ -286,7 +286,7 @@ function bindGroupedCtxNamespaces(ctx) {
 }
 
 const { appInfo, root, dbPath, backupDir, host, port, auth } = createConfig();
-const db = openDatabase(dbPath);
+const staticRoot = path.resolve(root, 'apps', 'web'), db = openDatabase(dbPath);
 const memoryCache = new Map();
 const memoryCacheTtlMs = 5 * 60 * 1000;
 
@@ -330,7 +330,8 @@ const contentTypes = {
 
 const config = {
   appInfo,
-  root,
+  repoRoot: root,
+  staticRoot,
   dbPath,
   backupDir,
   auth,
@@ -405,7 +406,7 @@ const ctx = {
   fsSync,
   path,
   appInfo,
-  root,
+  staticRoot,
   dbPath,
   backupDir,
   host,

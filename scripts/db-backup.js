@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { createConfig } = require('../src/platform/config');
+const { createConfig } = require('../apps/server/src/platform/config');
 
 function run() {
   const root = path.resolve(__dirname, '..');

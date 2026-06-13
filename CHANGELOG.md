@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.13.0
+
+- fix: restore collapsible behavior in pro-preferences for community edition.
+- feat: refactor pro-preferences panel to fixed layout in PRO edition.
+
 ## 3.12.2
 
 - style: refine import-pro-banner styling, colors, and layout adjustments.

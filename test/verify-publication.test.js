@@ -43,6 +43,10 @@ test('verify-publication detects a forbidden text pattern in a temp repo', () =>
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     fs.writeFileSync(path.join(tempDir, 'index.html'), '<html><body>clean</body></html>');
     const forbiddenLiteral = ['Lib', 'ro1'].join('');
@@ -68,6 +72,10 @@ test('verify-publication detects a missing gitignore pattern in a temp repo', ()
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     fs.writeFileSync(path.join(tempDir, '.gitignore'), 'node_modules/\n');
 
@@ -88,6 +96,10 @@ test('verify-publication detects a non-canonical seed:demo entrypoint', () => {
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-demo.js' },
     };
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     fs.writeFileSync(path.join(tempDir, 'index.html'), '<html></html>');
 
@@ -133,11 +145,17 @@ test('verify-publication detects stale CasaOS port metadata', () => {
       'imports',
       'node_modules',
     ].join('\n');
+    fs.mkdirSync(path.join(tempDir, 'deploy', 'docker'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server', 'src', 'platform'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    require('child_process').execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
     fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);
     fs.writeFileSync(
-      path.join(tempDir, 'compose.casaos.yml'),
+      path.join(tempDir, 'deploy', 'docker', 'compose.casaos.yml'),
       [
         'services:',
         '  valorgrid:',
@@ -201,6 +219,10 @@ test('verify-publication scans tracked OpenCode files even when the directory is
     ].join('\n');
     const skillDir = path.join(tempDir, '.opencode', 'skills', 'leak');
     fs.mkdirSync(skillDir, { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
     fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);

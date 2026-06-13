@@ -7,7 +7,7 @@ import { fetchJson, sendJson } from './api.js';
 
 // ── Portfolio ──
 
-/** @returns {Promise<import('../src/types').PortfolioSummary>} */
+/** @returns {Promise<import('@valorgrid/contracts').PortfolioSummary>} */
 export function fetchSummary() {
   return fetchJson('/api/portfolio/summary');
 }
@@ -38,12 +38,12 @@ export function fetchHistory(range, granularity) {
 
 // ── Instruments ──
 
-/** @returns {Promise<{ instruments: import('../src/types').Instrument[] }>} */
+/** @returns {Promise<{ instruments: import('@valorgrid/contracts').Instrument[] }>} */
 export function fetchInstruments() {
   return fetchJson('/api/instruments');
 }
 
-/** @returns {Promise<{ groups: import('../src/types').InstrumentGroup[] }>} */
+/** @returns {Promise<{ groups: import('@valorgrid/contracts').InstrumentGroup[] }>} */
 export function fetchInstrumentGroups() {
   return fetchJson('/api/instrument-groups');
 }
@@ -51,7 +51,7 @@ export function fetchInstrumentGroups() {
 /**
  * @param {string} symbol
  * @param {Record<string, unknown>} payload
- * @returns {Promise<{ instrument: import('../src/types').Instrument }>}
+ * @returns {Promise<{ instrument: import('@valorgrid/contracts').Instrument }>}
  */
 export function updateInstrument(symbol, payload) {
   return sendJson(`/api/instruments/${encodeURIComponent(symbol)}`, 'PUT', payload);
@@ -59,7 +59,7 @@ export function updateInstrument(symbol, payload) {
 
 /**
  * @param {Record<string, unknown>} payload
- * @returns {Promise<{ instrument: import('../src/types').Instrument }>}
+ * @returns {Promise<{ instrument: import('@valorgrid/contracts').Instrument }>}
  */
 export function createInstrument(payload) {
   return sendJson('/api/instruments', 'POST', payload);
@@ -75,7 +75,7 @@ export function deleteInstruments(symbols) {
 
 /**
  * @param {Record<string, unknown>} payload
- * @returns {Promise<{ group: import('../src/types').InstrumentGroup }>}
+ * @returns {Promise<{ group: import('@valorgrid/contracts').InstrumentGroup }>}
  */
 export function createInstrumentGroup(payload) {
   return sendJson('/api/instrument-groups', 'POST', payload);
@@ -83,14 +83,14 @@ export function createInstrumentGroup(payload) {
 
 // ── Transactions ──
 
-/** @returns {Promise<{ transactions: import('../src/types').Transaction[] }>} */
+/** @returns {Promise<{ transactions: import('@valorgrid/contracts').Transaction[] }>} */
 export function fetchTransactions() {
   return fetchJson('/api/transactions');
 }
 
 /**
  * @param {Record<string, unknown>} payload
- * @returns {Promise<{ transaction: import('../src/types').Transaction }>}
+ * @returns {Promise<{ transaction: import('@valorgrid/contracts').Transaction }>}
  */
 export function createTransaction(payload) {
   return sendJson('/api/transactions', 'POST', payload);
@@ -106,13 +106,13 @@ export function previewTransaction(payload) {
 
 // ── Auto Plans ──
 
-/** @returns {Promise<{ autoPlans: import('../src/types').AutoPlan[] }>} */
+/** @returns {Promise<{ autoPlans: import('@valorgrid/contracts').AutoPlan[] }>} */
 export function fetchAutoPlans() {
   return fetchJson('/api/auto-plans');
 }
 
 /**
- * @param {import('../src/types').AutoPlan[]} autoPlans
+ * @param {import('@valorgrid/contracts').AutoPlan[]} autoPlans
  * @returns {Promise<unknown>}
  */
 export function saveAutoPlans(autoPlans) {
@@ -120,7 +120,7 @@ export function saveAutoPlans(autoPlans) {
 }
 
 /**
- * @param {import('../src/types').AutoPlan[]} autoPlans
+ * @param {import('@valorgrid/contracts').AutoPlan[]} autoPlans
  * @returns {Promise<{ preview: unknown }>}
  */
 export function previewAutoPlans(autoPlans) {
@@ -145,7 +145,7 @@ export function commitImport(payload) {
   return sendJson('/api/import/commit', 'POST', payload, { timeoutMs: 60000 });
 }
 
-/** @returns {Promise<{ batches: import('../src/types').ImportBatch[] }>} */
+/** @returns {Promise<{ batches: import('@valorgrid/contracts').ImportBatch[] }>} */
 export function fetchImportBatches() {
   return fetchJson('/api/import/batches');
 }
@@ -165,7 +165,7 @@ export function rollbackImportBatch(batchId) {
 
 // ── Onboarding ──
 
-/** @returns {Promise<import('../src/types').OnboardingStatus>} */
+/** @returns {Promise<import('@valorgrid/contracts').OnboardingStatus>} */
 export function fetchOnboardingStatus() {
   return fetchJson('/api/onboarding/status');
 }

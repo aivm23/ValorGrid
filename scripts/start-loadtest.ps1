@@ -15,4 +15,4 @@ if (-not (Test-Path $dbPath)) {
 
 $env:PORTFOLIO_DB_PATH = $dbPath
 Set-Location $root
-& $node 'server.js'
+& $node 'apps/server/server.js'

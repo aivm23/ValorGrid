@@ -5,7 +5,7 @@ process.env.PORTFOLIO_DB_PATH =
   process.env.PORTFOLIO_DB_PATH || path.join(__dirname, '..', 'portfolio.loadtest.sqlite');
 process.env.PORT = process.env.PORT || '0';
 
-const { db } = require('../server');
+const { db } = require('../apps/server/server');
 
 try {
   const result = seedLoadtestDb(db, {

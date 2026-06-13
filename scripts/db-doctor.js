@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { createConfig } = require('../src/platform/config');
+const { createConfig } = require('../apps/server/src/platform/config');
 
 function repoRoot() {
   return path.resolve(__dirname, '..');
@@ -11,7 +11,7 @@ function resolveRuntimeConfig(env = process.env, root = repoRoot()) {
 }
 
 function withDatabase(dbPath, work) {
-  const { openDatabase } = require('../src/platform/db');
+  const { openDatabase } = require('../apps/server/src/platform/db');
   const db = openDatabase(dbPath);
   try {
     return work(db);
@@ -22,7 +22,7 @@ function withDatabase(dbPath, work) {
 
 function parseSchemaTableNames(schemaSource) {
   const source =
-    schemaSource || fs.readFileSync(path.join(repoRoot(), 'src', 'schema.js'), 'utf8');
+    schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const names = new Set();
   for (const match of source.matchAll(/\bCREATE TABLE IF NOT EXISTS\s+([a-z_][a-z0-9_]*)\s*\(/gi)) {
     names.add(match[1]);

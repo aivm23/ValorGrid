@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const storagePath = path.join(root, 'client', 'storage.js');
+const storagePath = path.join(root, 'apps', 'web', 'src', 'storage.js');
 
 test('storage.js uses default export with getItem, setItem, removeItem', () => {
   const source = fs.readFileSync(storagePath, 'utf8');
@@ -49,7 +49,7 @@ test('storage.js catches exceptions without rethrowing', () => {
 });
 
 test('storage.js validates theme values in theme.js', () => {
-  const themePath = path.join(root, 'client', 'theme.js');
+  const themePath = path.join(root, 'apps', 'web', 'src', 'theme.js');
   const source = fs.readFileSync(themePath, 'utf8');
   assert.ok(source.includes('dark'), 'theme.js must handle dark theme');
   assert.ok(source.includes('light'), 'theme.js must handle light theme');
@@ -57,7 +57,7 @@ test('storage.js validates theme values in theme.js', () => {
 });
 
 test('theme.js does not accept arbitrary values', () => {
-  const themePath = path.join(root, 'client', 'theme.js');
+  const themePath = path.join(root, 'apps', 'web', 'src', 'theme.js');
   const source = fs.readFileSync(themePath, 'utf8');
   // Must have a validation mechanism (set or explicit check)
   assert.ok(

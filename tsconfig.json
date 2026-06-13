@@ -10,7 +10,18 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@valorgrid/contracts": ["./packages/contracts/src"]
+    }
   },
-  "include": ["src/**/*.js", "server.js", "client/app.js", "test/**/*.js", "scripts/**/*.js"]
+  "include": [
+    "apps/server/src/**/*.js",
+    "apps/server/server.js",
+    "apps/web/src/app.js",
+    "apps/web/src/**/*.js",
+    "packages/contracts/src/**/*.ts",
+    "test/**/*.js",
+    "scripts/**/*.js"
+  ]
 }

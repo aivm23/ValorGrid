@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const { MOVIMIENTOS_HEADERS } = require('../src/domains/data-ingestion/template-generator');
+const { MOVIMIENTOS_HEADERS } = require('../apps/server/src/domains/data-ingestion/template-generator');
 const {
   assert,
   appInfo,
@@ -396,12 +396,12 @@ test('legacy export helpers and toolbar ids are removed from source', () => {
   const legacyCsvToolbar = ['toolbar', 'export', 'csv'].join('-');
   const legacyJsonToolbar = ['toolbar', 'export', 'json'].join('-');
   const files = [
-    'src/app.js',
-    'src/route-service-bindings.js',
-    'src/domains/admin/diagnostics-service.js',
-    'src/domains/admin/route-admin.js',
-    'client/dom.js',
-    'index.html',
+    'apps/server/src/app.js',
+    'apps/server/src/route-service-bindings.js',
+    'apps/server/src/domains/admin/diagnostics-service.js',
+    'apps/server/src/domains/admin/route-admin.js',
+    'apps/web/src/dom.js',
+    'apps/web/index.html',
   ];
 
   for (const file of files) {

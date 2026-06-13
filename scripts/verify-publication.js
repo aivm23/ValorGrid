@@ -70,18 +70,18 @@ const PUBLIC_BROKER_TEASER_PATTERNS = new Set([
 
 const PUBLIC_BROKER_TEASER_FILES = new Set([
   'index.html',
-  ['src', 'domains', 'data-ingestion', 'ingestion-profiles.js'].join(path.sep),
-  'src/domains/data-ingestion/ingestion-profiles.js',
+  ['apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-profiles.js'].join(path.sep),
+  'apps/server/src/domains/data-ingestion/ingestion-profiles.js',
   ['test', 'imports.test.js'].join(path.sep),
   'test/imports.test.js',
   ['test', 'frontend-renovation.test.js'].join(path.sep),
   'test/frontend-renovation.test.js',
-  'client/imports.js',
-  ['client', 'imports.js'].join(path.sep),
-  'client/import-workflow.js',
-  ['client', 'import-workflow.js'].join(path.sep),
-  'client/import-workflow-helpers.js',
-  ['client', 'import-workflow-helpers.js'].join(path.sep),
+  'apps/web/src/imports.js',
+  ['apps', 'web', 'src', 'imports.js'].join(path.sep),
+  'apps/web/src/import-workflow.js',
+  ['apps', 'web', 'src', 'import-workflow.js'].join(path.sep),
+  'apps/web/src/import-workflow-helpers.js',
+  ['apps', 'web', 'src', 'import-workflow-helpers.js'].join(path.sep),
 ]);
 
 const REQUIRED_GITIGNORE_PATTERNS = [
@@ -305,7 +305,7 @@ function checkForbiddenText() {
 
 function checkAlterTable() {
   const offenders = [];
-  for (const relative of [...collectRuntimeFiles('src'), ...collectRuntimeFiles('scripts')]) {
+  for (const relative of [...collectRuntimeFiles('apps/server/src'), ...collectRuntimeFiles('scripts')]) {
     const content = fs.readFileSync(path.join(repoRoot, relative), 'utf8');
     if (/\bALTER\s+TABLE\s+[A-Za-z_][A-Za-z0-9_]*\s+(ADD|RENAME|DROP|ALTER)\b/.test(content)) {
       offenders.push(relative);
@@ -334,7 +334,7 @@ function checkSeedDemo() {
 }
 
 function checkCasaosCompose(pkg) {
-  const composePath = path.join(repoRoot, 'compose.casaos.yml');
+  const composePath = path.join(repoRoot, 'deploy', 'docker', 'compose.casaos.yml');
   if (!fs.existsSync(composePath)) {
     addCheck('warn', 'casaos-compose', 'compose.casaos.yml not present; skipped CasaOS checks.');
     return;
@@ -365,8 +365,8 @@ function run() {
     return printReport();
   }
 
-  runNodeSyntaxCheck('server.js');
-  runNodeSyntaxCheck('client/app.js');
+  runNodeSyntaxCheck('apps/server/server.js');
+  runNodeSyntaxCheck('apps/web/src/app.js');
 
   checkGitignore();
   checkDockerignore();

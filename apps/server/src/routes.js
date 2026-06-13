@@ -6,9 +6,9 @@ const handlePortfolioRoutes = require('./domains/portfolio/route-portfolio');
 const handleAdminRoutes = require('./domains/admin/route-admin');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['path', 'root', 'services'], 'routes');
+  assertCtxDeps(ctx, ['path', 'config', 'services'], 'routes');
 
-  const { path, root } = ctx;
+  const { path, config } = ctx;
 
 function monthLabel(month) {
   return [
@@ -29,9 +29,10 @@ function monthLabel(month) {
 
 function resolveRequestPath(urlPath) {
   const cleanPath = decodeURIComponent(urlPath.split('?')[0]);
-  const relativePath = cleanPath === '/' ? 'index.html' : cleanPath.replace(/^\/+/, '');
-  const filePath = path.resolve(root, relativePath);
-  return filePath.startsWith(root + path.sep) || filePath === root ? filePath : null;
+  const relativePath = cleanPath === '/' ? '' : cleanPath.replace(/^\/+/, '');
+  const base = cleanPath === '/' || !cleanPath.startsWith('/assets/') ? config.staticRoot : config.repoRoot;
+  const resolvedPath = cleanPath === '/' ? path.join(base, 'index.html') : path.resolve(base, relativePath);
+  return resolvedPath.startsWith(base + path.sep) || resolvedPath === base ? resolvedPath : null;
 }
 
 async function handleApi(request, response, url) {

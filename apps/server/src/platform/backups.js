@@ -14,10 +14,14 @@ function pruneOldBackups(backupDir, limit = 6) {
   const all = fs
     .readdirSync(backupDir)
     .filter(safeBackupName)
-    .map((file) => ({ file, mtime: fs.statSync(path.join(backupDir, file)).mtimeMs }))
+    .map((file) => {
+      try { return { file, mtime: fs.statSync(path.join(backupDir, file)).mtimeMs }; }
+      catch { return null; }
+    })
+    .filter(Boolean)
     .sort((a, b) => b.mtime - a.mtime);
   for (const old of all.slice(limit)) {
-    fs.unlinkSync(path.join(backupDir, old.file));
+    try { fs.unlinkSync(path.join(backupDir, old.file)); } catch { /* skip */ }
   }
 }
 

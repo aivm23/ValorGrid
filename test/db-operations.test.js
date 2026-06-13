@@ -143,7 +143,7 @@ const root = path.resolve(__dirname, '..');
 
 test('schema tables in DATA_MODEL docs stay synchronized with src/schema.js', () => {
   // parseSchemaTableNames commented out — using inline implementation
-  const source = fs.readFileSync(path.join(root, 'src', 'schema.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const names = new Set();
   for (const match of source.matchAll(/\bCREATE TABLE IF NOT EXISTS\s+([a-z_][a-z0-9_]*)\s*\(/gi)) {
     names.add(match[1]);
@@ -177,7 +177,7 @@ test('runtime code and scripts do not contain ALTER TABLE migrations', () => {
       runtimeFiles.push(childRelative);
     }
   }
-  collectFiles('src');
+  collectFiles('apps/server/src');
   collectFiles('scripts');
 
   const offenders = runtimeFiles.filter((relativePath) =>

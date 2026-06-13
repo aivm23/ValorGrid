@@ -1,4 +1,4 @@
-# Inventario y cobertura de tests
+﻿# Inventario y cobertura de tests
 
 ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla tests de integración con servidor real y tests estáticos de arquitectura, privacidad y frontend.
 
@@ -15,7 +15,7 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 | `test/portfolio.test.js`           | Core CRUD     | Transacciones, instrumentos, grupos, identifiers, auto-plans, backups, health, onboarding, state, quote, export XLSX, endpoints legacy 404 y limpieza de export CSV/JSON.                      |
 | `test/portfolio-history.test.js`   | Histórico     | Materialización daily/weekly, invalidación, cache persistente, restart survival, daily prices/FX, summary, monthly, rangos y dataset demo/loadtest.                                            |
 | `test/privacy.test.js`             | Privacidad    | Artefactos SQLite ignorados, paths locales, etiquetas personales, fresh install limpio, `.gitignore`, `.dockerignore` y XLSX públicos sin tokens privados.                                     |
-| `test/storage.test.js`             | Frontend      | `storage.js`: export default, `getItem`/`setItem`/`removeItem`, referencias a `localStorage` y fallback a cookies.                                                                             |
+| `test/storage.test.js`             | Frontend      | `apps/web/src/storage.js`: export default, `getItem`/`setItem`/`removeItem`, referencias a `localStorage` y fallback a cookies.                                                                |
 | `test/verify-publication.test.js`  | Publicación   | `scripts/verify-publication.js`: éxito en repo limpio, fallo con archivos prohibidos, fallo con ALTER TABLE, scan de scripts PowerShell.                                                       |
 | `test/integration-helpers.js`      | Infra         | Helpers compartidos: mock de `fetch`, helpers ExcelJS, `cachePrice`, `seedTestInstrument`, `startTestServer`, `jsonRequest`, `registerLifecycle`.                                              |
 
@@ -37,8 +37,8 @@ npm run typecheck
 npm run lint
 npm run format:check
 npm run docs:spellcheck
-node --check server.js
-node --check client/app.js
+node --check apps/server/server.js
+node --check apps/web/src/app.js
 npm test
 npm run verify:publication
 npm run seed:demo
@@ -48,7 +48,7 @@ npm run seed:demo
 
 - **Integración**: `portfolio.test.js`, `portfolio-history.test.js`, `imports.test.js`, `financial-semantics.test.js` levantan runtime real con SQLite temporal o en memoria.
 - **Arquitectura**: `architecture.test.js` hace análisis estático de código fuente y contratos públicos.
-- **Frontend**: `frontend-renovation.test.js` valida markup, CSS y patrones de módulos cliente sin navegador real. `storage.test.js` verifica la estructura de `client/storage.js`.
+- **Frontend**: `frontend-renovation.test.js` valida markup, CSS y patrones de módulos cliente sin navegador real. `storage.test.js` verifica la estructura de `apps/web/src/storage.js`.
 - **DB Ops**: `db-operations.test.js` combina análisis estático y DB temporal.
 - **Privacidad**: `privacy.test.js` analiza archivos publicables y fixtures.
 - **Autenticación**: `auth.test.js` valida el comportamiento de Basic Auth con servidor real.

@@ -16,7 +16,7 @@ const {
   request,
   registerLifecycle,
 } = require('./integration-helpers');
-const { listImportSources, loadProAdapters, adapterDefinitions } = require('../src/domains/data-ingestion/ingestion-profiles');
+const { listImportSources, loadProAdapters, adapterDefinitions } = require('../apps/server/src/domains/data-ingestion/ingestion-profiles');
 
 registerLifecycle(test);
 

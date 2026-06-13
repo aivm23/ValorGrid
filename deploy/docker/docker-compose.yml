@@ -1,7 +1,8 @@
 services:
   valorgrid:
     build:
-      context: .
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
     image: valorgrid:local
     container_name: valorgrid
     restart: unless-stopped
@@ -14,5 +15,5 @@ services:
     ports:
       - "1325:1325"
     volumes:
-      - ./data:/data
-      - ./backups:/app/.backups
+      - ../../local/valorgrid/data:/data
+      - ../../local/valorgrid/backups:/app/.backups

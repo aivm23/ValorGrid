@@ -1,26 +1,26 @@
 {
   "name": "valorgrid",
-  "version": "3.12.2",
+  "version": "3.13.0",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
-  "main": "desktop/main.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "engines": {
     "node": ">=24"
-  },
-  "dependencies": {
-    "exceljs": "4.4.0"
   },
   "overrides": {
     "uuid": "11.1.1"
   },
   "scripts": {
-    "start": "node server.js",
-    "desktop:dev": "electron .",
-    "desktop:pack": "electron-builder --dir",
-    "desktop:dist:win": "electron-builder --win nsis --publish never",
+    "start": "node apps/server/server.js",
+    "desktop:dev": "electron apps/desktop/main.js",
+    "desktop:pack": "electron-builder --config apps/desktop/electron-builder.config.cjs --dir",
+    "desktop:dist:win": "electron-builder --config apps/desktop/electron-builder.config.cjs --win nsis --publish never",
     "desktop:dist:win:clean": "powershell -ExecutionPolicy Bypass -File scripts/build-desktop-win.ps1",
-    "release:checksums": "node scripts/generate-release-checksums.js dist",
+    "release:checksums": "node scripts/generate-release-checksums.js local/artifacts/desktop",
     "changelog:update": "node scripts/update-changelog.js",
     "changelog:check": "node scripts/update-changelog.js --check",
     "docs:spellcheck": "node scripts/check-spanish-docs.js",
@@ -34,74 +34,30 @@
     "db:reset": "node scripts/db-reset.js",
     "db:doctor": "node scripts/db-doctor.js",
     "seed:demo": "node scripts/seed-loadtest-db.js",
+    "local:migrate": "node scripts/migrate-local.js --copy",
+    "local:verify": "node scripts/migrate-local.js --verify",
+    "local:status": "node scripts/migrate-local.js",
     "verify:publication": "node scripts/verify-publication.js",
     "prepare": "husky"
   },
   "devDependencies": {
-    "electron": "^42.3.3",
-    "electron-builder": "^26.8.1",
     "eslint": "^10.4.1",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6"
   },
-  "build": {
-    "appId": "com.valorgrid.app",
-    "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "desktop/**/*",
-      "src/**/*",
-      "client/**/*",
-      "assets/brand/valorgrid-logo.png",
-      "assets/brand/valorgrid-logo.ico",
-      "vendor/**/*",
-      "index.html",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "assets/brand/valorgrid-logo.ico",
-        "to": "assets/brand/valorgrid-logo.ico"
-      }
-    ],
-    "win": {
-      "icon": "assets/brand/valorgrid-logo.ico",
-      "signAndEditExecutable": false,
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "installerIcon": "assets/brand/valorgrid-logo.ico",
-      "uninstallerIcon": "assets/brand/valorgrid-logo.ico",
-      "installerHeaderIcon": "assets/brand/valorgrid-logo.ico",
-      "include": "desktop/installer/installer.nsh",
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "ValorGrid"
-    }
-  },
   "lint-staged": {
-    "client/**/*.js": [
+    "apps/server/src/**/*.js": [
       "eslint --fix"
     ],
-    "server.js": [
+    "apps/server/server.js": [
       "eslint --fix"
     ],
-    "src/**/*.js": [
+    "apps/web/src/**/*.js": [
+      "eslint --fix"
+    ],
+    "apps/desktop/main.js": [
       "eslint --fix"
     ],
     "test/**/*.js": [

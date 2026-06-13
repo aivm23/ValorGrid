@@ -21,4 +21,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "const port = process.env.PORT || 1325; fetch('http://127.0.0.1:' + port + '/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1));"
 
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
-CMD ["node", "server.js"]
+CMD ["node", "apps/server/server.js"]
