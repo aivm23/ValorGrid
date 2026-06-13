@@ -34,8 +34,9 @@ function resetImportState(ctx) {
 }
 
 export function attach(ctx) {
-  function openImportDialog() {
+  async function openImportDialog() {
     resetImportDraft(ctx, { resetSource: true });
+    await loadImportSources(ctx);
     syncImportMode(ctx); ctx.elements.importDialog.showModal();
   }
 

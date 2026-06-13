@@ -71,3 +71,65 @@ export function inferInstrumentType(item) {
   const label = String(item?.label || '').toUpperCase();
   return /\b(ETF|ETC|ETN|UCITS|FUND|INDEX)\b/.test(label) ? 'etf' : 'stock';
 }
+
+export function getImportSourceDisplayName(source) {
+  if (source.key === 'degiro-csv') return 'DEGIRO';
+  if (source.key === 'ibkr-csv') return 'Interactive Brokers';
+  if (source.key === 'clicktrade-csv') return 'ClickTrade';
+  return source.label;
+}
+
+export function getImportSourceOptionLabel(source) {
+  const name = getImportSourceDisplayName(source);
+  if (source.comingSoon) return name + ' - Pr\u00f3ximamente - Professional Edition';
+  if (source.edition === 'professional') return name + ' - Professional Edition';
+  return name;
+}
+
+export function renderImportSourceOptions(sources, edition, escapeHtml) {
+  return sources
+    .filter((source) => source.edition === 'community' || edition === 'professional' || !source.available)
+    .sort((left, right) => {
+      if (left.edition === right.edition) return 0;
+      return left.edition === 'community' ? -1 : 1;
+    })
+    .map((source) => {
+      const label = getImportSourceOptionLabel(source);
+      const disabled = !source.available || source.comingSoon;
+      const disabledAttr = disabled ? ' disabled' : '';
+      return `<option value="${escapeHtml(source.key)}"${disabledAttr}>${escapeHtml(label)}</option>`;
+    })
+    .join('');
+}
+
+export function renderImportProBanners(sources, edition, escapeHtml) {
+  const allPro = sources.filter((source) => source.edition === 'professional');
+  if (edition !== 'community' || !allPro.length) return '';
+
+  const proImplemented = allPro.filter((source) => !source.comingSoon);
+  const proComingSoon = allPro.filter((source) => source.comingSoon);
+  let html = '';
+
+  if (proImplemented.length) {
+    const names = proImplemented.map((source) => getImportSourceDisplayName(source)).join(', ');
+      html +=
+        '<div class="import-pro-banner import-pro-banner-brokers">' +
+        '<span class="import-pro-banner-title">' +
+        escapeHtml(names) +
+        '</span> - ' +
+        '<span class="pro-edition-label">Professional Edition</span></div>';
+  }
+
+  if (proComingSoon.length) {
+    const soonNames = proComingSoon.map((source) => getImportSourceDisplayName(source)).join(', ');
+      html +=
+        '<div class="import-pro-banner import-pro-banner-clicktrade">' +
+        '<span class="import-pro-banner-title">' +
+        escapeHtml(soonNames) +
+        '</span> - ' +
+        '<span class="import-soon-label">Próximamente</span> - ' +
+        '<span class="pro-edition-label">Professional Edition</span></div>';
+  }
+
+  return html;
+}

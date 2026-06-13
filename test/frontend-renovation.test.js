@@ -351,13 +351,71 @@ test('CSS defines metric-micro styling for KPI micro-info', () => {
   assert.ok(css.includes('tabular-nums'), 'metric-micro uses tabular-nums');
 });
 
-test('imports.js renders "Próximamente" label for comingSoon sources', () => {
+test('import-workflow.js renders Pro sources in plain-text options and banners', () => {
+  const workflow = read(path.join('client', 'import-workflow.js'));
+  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  assert.ok(helpers.includes('getImportSourceDisplayName'), 'helpers defines getImportSourceDisplayName');
+  assert.ok(helpers.includes('getImportSourceOptionLabel'), 'helpers defines getImportSourceOptionLabel');
+  assert.ok(workflow.includes('renderImportSourceOptions'), 'import-workflow.js delegates option rendering');
+  assert.ok(workflow.includes('renderImportProBanners'), 'import-workflow.js delegates banner rendering');
+  assert.ok(helpers.includes('import-pro-banner-brokers'), 'renders DEGIRO/IBKR banner');
+  assert.ok(helpers.includes('import-pro-banner-clicktrade'), 'renders ClickTrade banner');
+  assert.ok(helpers.includes('import-soon-label'), 'renders Próximamente label');
+  assert.ok(helpers.includes('pro-edition-label'), 'uses pro-edition-label class for Professional Edition');
+  assert.ok(!workflow.includes('" disabled><em class='), 'no HTML tags inside option values');
+});
+
+test('imports.js loads import sources when opening the import dialog', () => {
   const importsSource = read(path.join('client', 'imports.js'));
-  const workflowSource = read(path.join('client', 'import-workflow.js'));
-  assert.ok(importsSource.includes('loadImportSources'), 'imports.js imports loadImportSources');
-  assert.ok(workflowSource.includes('comingSoon'), 'import-workflow.js checks comingSoon flag');
-  assert.ok(workflowSource.includes('Próximamente'), 'import-workflow.js renders "Próximamente" label');
-  assert.ok(workflowSource.includes('loadImportSources'), 'import-workflow.js defines loadImportSources');
+  assert.ok(importsSource.includes('async function openImportDialog()'), 'openImportDialog can await source loading');
+  assert.ok(importsSource.includes('await loadImportSources(ctx);'), 'openImportDialog refreshes import sources before showing modal');
+});
+
+test('import-workflow.js option labels include Pro source names and edition', () => {
+  const workflow = read(path.join('client', 'import-workflow.js'));
+  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  assert.ok(workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml)'), 'workflow escapes options through helper');
+  assert.ok(helpers.includes('Professional Edition'), 'option labels include Professional Edition');
+  assert.ok(helpers.includes('Pr\\u00f3ximamente'), 'option labels include Próximamente for coming soon');
+  assert.ok(helpers.includes('DEGIRO'), 'helpers maps degiro-csv key to DEGIRO');
+  assert.ok(helpers.includes('Interactive Brokers'), 'helpers maps ibkr-csv to Interactive Brokers');
+  assert.ok(helpers.includes('ClickTrade'), 'helpers maps clicktrade-csv to ClickTrade');
+});
+
+test('import source helper labels are plain text and match Pro teaser copy', () => {
+  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  assert.ok(helpers.includes("return name + ' - Professional Edition'"), 'Pro source labels use plain-text separator');
+  assert.ok(
+    helpers.includes("return name + ' - Pr\\u00f3ximamente - Professional Edition'"),
+    'comingSoon source labels include Próximamente and edition',
+  );
+
+  for (const forbidden of ['<em', '<span', '<strong', 'class=']) {
+    assert.ok(!helpers.includes(`return name + '${forbidden}`), `option helper labels must not contain ${forbidden}`);
+  }
+});
+
+test('import source options keep the Community source first by UI policy', () => {
+  const workflow = read(path.join('client', 'import-workflow.js'));
+  const helpers = read(path.join('client', 'import-workflow-helpers.js'));
+  assert.ok(helpers.includes("left.edition === 'community' ? -1 : 1"), 'Community sources render before Pro teasers');
+  assert.ok(workflow.includes("select.value = 'valorgrid-xlsx'"), 'ValorGrid template remains the default selection');
+});
+
+test('CSS defines import-pro-banner styles', () => {
+  const css = read(path.join('client', 'styles.css'));
+  assert.ok(css.includes('.import-pro-banners'), 'CSS defines .import-pro-banners container');
+  assert.ok(css.includes('.import-pro-banner'), 'CSS defines .import-pro-banner');
+  assert.ok(css.includes('.import-pro-banner-brokers'), 'CSS defines .import-pro-banner-brokers');
+  assert.ok(css.includes('.import-pro-banner-clicktrade'), 'CSS defines .import-pro-banner-clicktrade');
+  assert.ok(css.includes('.import-soon-label'), 'CSS defines .import-soon-label');
+  assert.ok(css.includes('#06b6d4'), 'soon label uses cyan #06b6d4');
+assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap instead of grid to fit text');
+  assert.ok(!css.includes('box-shadow: inset 3px 0 0'), 'left colored border removed from all banners');
+  assert.ok(css.includes('#0891b2 8%, var(--card)'), 'both banners use same blue background');
+  assert.ok(!css.includes('f59e0b 9%, var(--card)'), 'no amber background in import banners');
+  assert.ok(!css.includes('dark .import-pro-banner-clicktrade'), 'dark theme clicktrade selector removed');
+  assert.ok(css.includes('color: #06b6d4 !important;'), 'soon label cyan is protected against generic color override');
 });
 
 // ── 15) Operativa section microcopy and tooltips ──

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.12.2
+
+- style: refine import-pro-banner styling, colors, and layout adjustments.
+
+## 3.12.1
+
+- feat: restore Pro import banners in Community edition import dialog.
+- style: replace inline badges with structured banner containers (.import-pro-banner-brokers, .import-pro-banner-clicktrade) using corporate cyan accent and pro-edition-label gradient.
+- fix: verify-publication.ps1 now exempts import-workflow.js from broker teaser patterns (Windows CI compatibility).
+
 ## 3.12.0
 
 - feat: reactivate automatic risk backups before high-risk operations (import commit, import rollback, bulk transaction delete, instrument delete, group delete, auto-plans replace).

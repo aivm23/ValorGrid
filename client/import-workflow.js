@@ -9,10 +9,21 @@ import {
   rowsForDetected,
   shouldOmitInstrumentByDefault,
   inferInstrumentType,
+  renderImportSourceOptions,
+  renderImportProBanners,
 } from './import-workflow-helpers.js';
 import { updateImportFileDisplay } from './import-file-zone.js';
 
-export { toBase64, isXlsxSource, canDownloadTemplate, parseMapping } from './import-workflow-helpers.js';
+export {
+  toBase64,
+  isXlsxSource,
+  canDownloadTemplate,
+  parseMapping,
+  getImportSourceDisplayName,
+  getImportSourceOptionLabel,
+  renderImportSourceOptions,
+  renderImportProBanners,
+} from './import-workflow-helpers.js';
 export { updateImportFileDisplay, clearImportFile } from './import-file-zone.js';
 export function resetImportDraft(ctx, options = {}) {
   if (options.resetSource && ctx.elements.importSource) ctx.elements.importSource.value = 'valorgrid-xlsx';
@@ -355,37 +366,27 @@ export async function loadImportSources(ctx) {
     const bannersContainer = ctx.elements.importProBanners;
     if (!select) return;
     const edition = ctx.state?.edition || 'community';
-    const proLabel = (s) => {
-      if (s.key === 'degiro-csv') return 'DEGIRO';
-      if (s.key === 'ibkr-csv') return 'Interactive Brokers';
-      return s.label;
-    };
-    select.innerHTML = sources
-      .filter(s => s.edition === 'community' || edition === 'professional' || !s.available)
-      .map(s => {
-        const displayLabel = proLabel(s);
-        if (s.comingSoon) return `<option value="${s.key}" disabled>${displayLabel} - <em class="pro-edition-label">Professional Edition</em> - Próximamente</option>`;
-        if (s.edition === 'professional') return `<option value="${s.key}" disabled>${displayLabel} - <em class="pro-edition-label">Professional Edition</em></option>`;
-        return `<option value="${s.key}">${displayLabel}</option>`;
-      }).join('');
-    if (select.options.length <= 1) select.value = 'valorgrid-xlsx';
-    const allPro = sources.filter(s => s.edition === 'professional');
-    const proImplemented = allPro.filter(s => !s.comingSoon);
-    const proComingSoon = allPro.filter(s => s.comingSoon);
+
+    select.innerHTML = renderImportSourceOptions(sources, edition, ctx.escapeHtml);
+    const selectedOption = select.options[select.selectedIndex];
+    if (select.querySelector('option[value="valorgrid-xlsx"]') && (!select.value || selectedOption?.disabled)) {
+      select.value = 'valorgrid-xlsx';
+    }
+
     if (bannersContainer) {
-      if (edition === 'community' && (proImplemented.length || proComingSoon.length)) {
-        let html = '';
-        if (proImplemented.length) {
-          html += `<span class="import-source-badge import-source-badge-pro">${proImplemented.map(s => proLabel(s)).join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
-        }
-        if (proComingSoon.length) {
-          html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(proLabel(s))).join(', ')} - <em style="color: #06b6d4; font-weight: 700;">Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
-        }
+      const html = renderImportProBanners(sources, edition, ctx.escapeHtml);
+      if (html) {
         bannersContainer.innerHTML = html;
         bannersContainer.hidden = false;
       } else {
+        bannersContainer.innerHTML = '';
         bannersContainer.hidden = true;
       }
     }
-  } catch {}
+  } catch {
+    if (ctx.elements.importProBanners) {
+      ctx.elements.importProBanners.innerHTML = '';
+      ctx.elements.importProBanners.hidden = true;
+    }
+  }
 }
