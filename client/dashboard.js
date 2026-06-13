@@ -35,6 +35,7 @@ export function attach(ctx) {
       state.monthly = monthly;
       state.version = appInfo.version;
       state.edition = appInfo.edition || 'community';
+      ctx.appInfo = appInfo;
       state.transactions = transactionData.transactions || [];
       state.instruments = instrumentData.instruments || [];
       state.groups = groupData.groups || [];

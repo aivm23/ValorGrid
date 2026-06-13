@@ -171,7 +171,9 @@ $publicBrokerTeaserFiles = @(
   'test\imports.test.js',
   'test/imports.test.js',
   'client/imports.js',
-  'client\imports.js'
+  'client\imports.js',
+  'client/import-workflow.js',
+  'client\import-workflow.js'
 )
 
 foreach ($file in $publicFiles) {

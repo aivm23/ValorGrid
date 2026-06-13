@@ -354,13 +354,19 @@ export async function loadImportSources(ctx) {
     const select = ctx.elements.importSource;
     const bannersContainer = ctx.elements.importProBanners;
     if (!select) return;
-    const edition = ctx.appInfo?.edition || 'community';
+    const edition = ctx.state?.edition || 'community';
+    const proLabel = (s) => {
+      if (s.key === 'degiro-csv') return 'DEGIRO';
+      if (s.key === 'ibkr-csv') return 'Interactive Brokers';
+      return s.label;
+    };
     select.innerHTML = sources
       .filter(s => s.edition === 'community' || edition === 'professional' || !s.available)
       .map(s => {
-        if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - <em class="pro-edition-label">Professional Edition</em> - Próximamente</option>`;
-        if (s.edition === 'professional') return `<option value="${s.key}" disabled>${s.label} - <em class="pro-edition-label">Professional Edition</em></option>`;
-        return `<option value="${s.key}">${s.label}</option>`;
+        const displayLabel = proLabel(s);
+        if (s.comingSoon) return `<option value="${s.key}" disabled>${displayLabel} - <em class="pro-edition-label">Professional Edition</em> - Próximamente</option>`;
+        if (s.edition === 'professional') return `<option value="${s.key}" disabled>${displayLabel} - <em class="pro-edition-label">Professional Edition</em></option>`;
+        return `<option value="${s.key}">${displayLabel}</option>`;
       }).join('');
     if (select.options.length <= 1) select.value = 'valorgrid-xlsx';
     const allPro = sources.filter(s => s.edition === 'professional');
@@ -370,15 +376,10 @@ export async function loadImportSources(ctx) {
       if (edition === 'community' && (proImplemented.length || proComingSoon.length)) {
         let html = '';
         if (proImplemented.length) {
-          const shortLabels = proImplemented.map(s => {
-            if (s.key === 'degiro-csv') return 'DEGIRO';
-            if (s.key === 'ibkr-csv') return 'Interactive Brokers';
-            return s.label;
-          });
-          html += `<span class="import-source-badge import-source-badge-pro">${shortLabels.join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
+          html += `<span class="import-source-badge import-source-badge-pro">${proImplemented.map(s => proLabel(s)).join(', ')} - <em class="pro-edition-label">Professional Edition</em></span>`;
         }
         if (proComingSoon.length) {
-          html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(s.label)).join(', ')} - <em style="color: #06b6d4; font-weight: 700;">Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
+          html += `<span class="import-source-badge import-source-badge-soon">${proComingSoon.map(s => ctx.escapeHtml(proLabel(s))).join(', ')} - <em style="color: #06b6d4; font-weight: 700;">Próximamente</em> - <em class="pro-edition-label">Professional Edition</em></span>`;
         }
         bannersContainer.innerHTML = html;
         bannersContainer.hidden = false;
