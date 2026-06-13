@@ -50,7 +50,7 @@ src/
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
-├── shared/             (operations-metrics)
+├── shared/             (operations-metrics, cargado internamente por ui-preferences-service)
 ├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
 ├── types.ts
 ├── app.js
@@ -141,31 +141,30 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-5. `domains/meta/ui-preferences-service`: persistencia de preferencias UI en `app_meta` con clave `ui_preferences`. Incluye `operationsMetricIds` y `historyEventFilters` para filtros de marcadores del gráfico Histórico.
-6. `shared/operations-metrics`: catálogo compartido de IDs y métricas de Operativa (backend + frontend).
-7. `utils`: helpers compartidos (formato, validación, fechas).
-8. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-9. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
-10. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-11. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos.
-12. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-13. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
-14. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
-15. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-16. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
-17. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-18. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
-20. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-21. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-22. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-23. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-24. `domains/history/history-core`: motor de materialización de histórico.
-25. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-26. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-27. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-28. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-29. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+5. `domains/meta/ui-preferences-service`: persistencia de preferencias UI en `app_meta` con clave `ui_preferences`. Incluye `operationsMetricIds` y `historyEventFilters` para filtros de marcadores del gráfico Histórico. Carga internamente `shared/operations-metrics` como dependencia.
+6. `utils`: helpers compartidos (formato, validación, fechas).
+7. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+8. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
+9. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
+10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos.
+11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+12. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
+13. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
+14. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
+16. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+17. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+18. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
+19. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+20. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+21. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+22. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+23. `domains/history/history-core`: motor de materialización de histórico.
+24. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+25. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+26. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+27. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+28. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 

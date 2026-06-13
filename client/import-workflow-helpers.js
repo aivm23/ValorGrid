@@ -114,10 +114,10 @@ export function renderImportProBanners(sources, edition, escapeHtml) {
     const names = proImplemented.map((source) => getImportSourceDisplayName(source)).join(', ');
       html +=
         '<div class="import-pro-banner import-pro-banner-brokers">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
         '<span class="import-pro-banner-title">' +
         escapeHtml(names) +
         '</span> ' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
         '<span class="pro-edition-label">Professional Edition</span></div>';
   }
 
@@ -125,11 +125,11 @@ export function renderImportProBanners(sources, edition, escapeHtml) {
     const soonNames = proComingSoon.map((source) => getImportSourceDisplayName(source)).join(', ');
       html +=
         '<div class="import-pro-banner import-pro-banner-clicktrade">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
         '<span class="import-pro-banner-title">' +
         escapeHtml(soonNames) +
         '</span> - ' +
         '<span class="import-soon-label">Próximamente</span> ' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
         '<span class="pro-edition-label">Professional Edition</span></div>';
   }
 
