@@ -54,7 +54,6 @@ export function attach(ctx) {
     operationsPreferenceControls: document.querySelector('#operations-preference-controls'),
     historyPreferenceControls: document.querySelector('#history-preference-controls'),
     proPreferencesCard: document.querySelector('#pro-preferences-card'),
-    proPreferencesHeader: document.querySelector('#pro-preferences-header'),
     importDialog: document.querySelector('#import-dialog'),
     importDialogClose: document.querySelector('#import-dialog-close'),
     importCancel: document.querySelector('#import-cancel'),

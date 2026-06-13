@@ -3077,7 +3077,7 @@ td:last-child {
   max-width: none;
 }
 
-/* ── Professional Preferences Panel ───────────────────── */
+/* ── Professional Preferences Collapsible Card ──────────── */
 
 .pro-preferences-card {
   margin-top: 16px;
@@ -3094,7 +3094,7 @@ td:last-child {
   border-color: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-.pro-preferences-header {
+.pro-preferences-summary {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3102,20 +3102,25 @@ td:last-child {
   font-size: 0.8rem;
   color: var(--muted);
   cursor: pointer;
+  list-style: none;
   user-select: none;
   transition: background 0.15s ease;
 }
 
-.pro-preferences-header:hover {
+.pro-preferences-summary::-webkit-details-marker {
+  display: none;
+}
+
+.pro-preferences-summary:hover {
   background: color-mix(in srgb, var(--accent) 4%, var(--card));
 }
 
-.pro-preferences-header svg:first-of-type {
+.pro-preferences-summary svg:first-of-type {
   color: var(--accent);
   opacity: 0.7;
 }
 
-.pro-preferences-header .pro-edition-label {
+.pro-preferences-summary .pro-edition-label {
   font-size: 0.8rem;
 }
 
@@ -3125,15 +3130,11 @@ td:last-child {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.pro-preferences-card--open .pro-preferences-header {
+.pro-preferences-card[open] .pro-preferences-summary {
   display: none;
 }
 
-.pro-preferences-card--closed .pro-preferences-header {
-  display: flex;
-}
-
-.pro-preferences-card--open .pro-preferences-chevron {
+.pro-preferences-card[open] .pro-preferences-chevron {
   transform: rotate(180deg);
 }
 

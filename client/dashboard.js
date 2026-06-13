@@ -99,13 +99,7 @@ export function attach(ctx) {
 
     const proCard = ctx.elements.proPreferencesCard;
     if (proCard) {
-      if (state.edition === 'professional') {
-        proCard.classList.add('pro-preferences-card--open');
-        proCard.classList.remove('pro-preferences-card--closed');
-      } else {
-        proCard.classList.add('pro-preferences-card--closed');
-        proCard.classList.remove('pro-preferences-card--open');
-      }
+      proCard.open = state.edition === 'professional';
     }
   }
 
