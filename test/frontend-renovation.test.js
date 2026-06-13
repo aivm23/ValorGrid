@@ -353,9 +353,11 @@ test('CSS defines metric-micro styling for KPI micro-info', () => {
 
 test('imports.js renders "Próximamente" label for comingSoon sources', () => {
   const importsSource = read(path.join('client', 'imports.js'));
-  assert.ok(importsSource.includes('comingSoon'), 'imports.js checks comingSoon flag');
-  assert.ok(importsSource.includes('Próximamente'), 'imports.js renders "Próximamente" label');
-  assert.ok(importsSource.includes('loadImportSources'), 'imports.js defines loadImportSources');
+  const workflowSource = read(path.join('client', 'import-workflow.js'));
+  assert.ok(importsSource.includes('loadImportSources'), 'imports.js imports loadImportSources');
+  assert.ok(workflowSource.includes('comingSoon'), 'import-workflow.js checks comingSoon flag');
+  assert.ok(workflowSource.includes('Próximamente'), 'import-workflow.js renders "Próximamente" label');
+  assert.ok(workflowSource.includes('loadImportSources'), 'import-workflow.js defines loadImportSources');
 });
 
 // ── 15) Operativa section microcopy and tooltips ──

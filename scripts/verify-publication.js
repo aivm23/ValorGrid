@@ -76,6 +76,8 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
   'test/imports.test.js',
   'client/imports.js',
   ['client', 'imports.js'].join(path.sep),
+  'client/import-workflow.js',
+  ['client', 'import-workflow.js'].join(path.sep),
 ]);
 
 const REQUIRED_GITIGNORE_PATTERNS = [

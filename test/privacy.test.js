@@ -93,7 +93,7 @@ function publicFiles() {
 
 function allowsPublicBrokerTeaser(file) {
   const relative = path.relative(root, file);
-  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'client/imports.js' || relative === 'client\\imports.js';
+  return relative === 'index.html' || relative === 'src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'client/imports.js' || relative === 'client\\imports.js' || relative === 'client/import-workflow.js' || relative === 'client\\import-workflow.js';
 }
 
 function publicDocumentationFiles() {
