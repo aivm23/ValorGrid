@@ -332,9 +332,9 @@ export function attach(ctx) {
       if (!select) return;
       const edition = ctx.appInfo?.edition || 'community';
       select.innerHTML = sources
-        .filter(s => s.edition === 'community' || s.available || s.comingSoon || edition === 'professional')
+        .filter(s => s.edition === 'community' || edition === 'professional' || !s.available)
         .map(s => {
-          if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - Profesional Edition - Próximamente</option>`;
+          if (s.comingSoon) return `<option value="${s.key}" disabled>${s.label} - <em class="pro-edition-label">Professional Edition</em> - Próximamente</option>`;
           if (s.edition === 'professional') return `<option value="${s.key}" disabled>${s.label} - <em class="pro-edition-label">Professional Edition</em></option>`;
           return `<option value="${s.key}">${s.label}</option>`;
         }).join('');
