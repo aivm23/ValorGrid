@@ -231,7 +231,7 @@ if (-not $backupScript.Contains('scripts\db-backup.js')) {
   throw 'scripts/backup-db.ps1 must route through scripts/db-backup.js'
 }
 
-$casaosComposePath = Join-Path $root 'compose.casaos.yml'
+$casaosComposePath = Join-Path $root 'deploy\docker\compose.casaos.yml'
 if (-not (Test-Path $casaosComposePath)) {
   throw 'compose.casaos.yml is required for CasaOS AppStore publication'
 }
