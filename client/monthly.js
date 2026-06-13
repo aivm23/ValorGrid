@@ -23,7 +23,7 @@ export function attach(ctx) {
       elements.monthlyTracking.innerHTML = `
         <div class="empty-action-state ytd-empty">
           <span class="subtle">Sin movimientos ni valoraciones para el año en curso.</span>
-          <button class="button button-compact" type="button" data-open-onboarding>Crear cartera</button>
+          <button class="button button-compact btn-save" type="button" data-open-onboarding>Crear cartera</button>
         </div>
       `;
       return;

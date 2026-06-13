@@ -58,8 +58,8 @@ function renderWorkflowActions(activeStep, preview, canContinue = true, state = 
   const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
   return `
     <div class="import-workflow-actions">
-      ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button" data-import-back${backDisabled}>Atrás</button>`}
-      <button type="button" class="button button-primary" data-import-next${nextDisabled}>${nextLabel}</button>
+      ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button btn-cancel" data-import-back${backDisabled}>Atrás</button>`}
+      <button type="button" class="button btn-save" data-import-next${nextDisabled}>${nextLabel}</button>
     </div>`;
 }
 
@@ -123,7 +123,7 @@ function renderSuggestions(ctx, item) {
       ${suggestions
         .map(
           (suggestion, index) => `
-            <button type="button" class="button button-compact" data-import-use-suggestion="${ctx.escapeHtml(item.key)}" data-suggestion-index="${index}">
+            <button type="button" class="button button-compact btn-save" data-import-use-suggestion="${ctx.escapeHtml(item.key)}" data-suggestion-index="${index}">
               Usar ${ctx.escapeHtml(suggestion.yahooSymbol)}
               <small>${ctx.escapeHtml(suggestion.confidence || 'media')}</small>
             </button>`,

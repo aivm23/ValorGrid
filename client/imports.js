@@ -308,7 +308,8 @@ export function attach(ctx) {
       ? `<h4>Importaciones recientes</h4>${batches.slice(0, 5).map((batch) => {
           const isRolledBack = rolledBackIds.has(batch.id);
           const range = [batch.firstDate, batch.lastDate].filter(Boolean).map((date) => ctx.formatDate(date)).join(' - ');
-          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">Revertir</button>`}</div>`;
+          const rollbackIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 1 3 6.7"></path><path d="M3 7v5h5"></path></svg>';
+          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact btn-cancel" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">${rollbackIcon} Revertir</button>`}</div>`;
         }).join('')}${rollbackSection}`
       : rollbackSection || '<span class="subtle">Sin importaciones todavía.</span>';
   }

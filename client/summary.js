@@ -304,7 +304,7 @@ export function attach(ctx) {
     } else if (summary.onboarding?.needsSetup) {
       elements.legend.innerHTML = `<div class="empty-action-state">
           <p class="subtle">Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.</p>
-          <button class="button" type="button" data-open-onboarding>Crear cartera</button>
+          <button class="button btn-save" type="button" data-open-onboarding>Crear cartera</button>
         </div>`;
     } else {
       elements.legend.innerHTML = '<p class="subtle">Sin posiciones todavía. Usa Añadir para registrar el primer movimiento.</p>';

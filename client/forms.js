@@ -211,7 +211,7 @@ export function attach(ctx) {
       ctx.elements.autoPlanList.innerHTML = `
         <div class="empty-config-state">
           Sin instrumentos todavía. Crea tu primer instrumento para configurar aportaciones recurrentes.
-          <button class="button button-compact" type="button" data-open-onboarding>Crear instrumento</button>
+          <button class="button button-compact btn-save" type="button" data-open-onboarding>Crear instrumento</button>
         </div>`;
       return;
     }
@@ -221,7 +221,7 @@ export function attach(ctx) {
       .join('');
     ctx.elements.autoPlanList.innerHTML = `
       <div class="auto-plan-toolbar">
-        <button class="button" type="button" data-add-auto-plan>Añadir plan</button>
+        <button class="button btn-save" type="button" data-add-auto-plan>Añadir plan</button>
       </div>
       ${rows || '<p class="subtle">Sin planes de aportación. Añade un plan cuando lo necesites.</p>'}
     `;
@@ -252,7 +252,7 @@ export function attach(ctx) {
           ${ctx.weekdayOptions(plan.weekday)}
         </select></label>
         <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" lang="${ctx.state.weekStart === 'sunday' ? 'en-US' : 'es'}" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
-        <button class="button button-compact" type="button" data-remove-auto-plan="${index}">Quitar</button>
+        <button class="button button-compact btn-cancel" type="button" data-remove-auto-plan="${index}">Quitar</button>
       </div>`;
   }
 
@@ -345,10 +345,9 @@ export function attach(ctx) {
       ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
       let feedbackMsg = data.warnings?.length ? data.warnings.map((warning) => warning.message).join(' ') : 'Planes de aportación guardados.';
-      // data.backup disabled: automatic risk backups are not performed
-      // if (data.backup) {
-      //   feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
-      // }
+      if (data.backup) {
+        feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
+      }
       ctx.elements.autoFeedback.textContent = feedbackMsg;
       ctx.elements.autoFeedback.dataset.state = 'ok';
       await ctx.refreshDashboard();

@@ -207,7 +207,7 @@
                 <h3 id="stock-detail-title">Detalle</h3>
                 <p class="subtle">Desglose del grupo seleccionado.</p>
               </div>
-              <button id="stock-detail-close" class="button" type="button">Cerrar</button>
+              <button id="stock-detail-close" class="button btn-cancel" type="button">Cerrar</button>
             </div>
             <div class="subchart-grid">
               <div
@@ -375,7 +375,7 @@
         </label>
 
         <div class="operation-create-row">
-          <button id="operation-create-instrument" class="button button-compact" type="button">Crear valor nuevo</button>
+          <button id="operation-create-instrument" class="button button-compact btn-save" type="button">Crear valor nuevo</button>
         </div>
 
         <label class="field" id="ticker-input-field">
@@ -421,8 +421,8 @@
         <div id="transaction-preview" class="transaction-preview" hidden></div>
 
         <div class="modal-actions">
-          <button id="add-cancel" class="button" type="button">Cancelar</button>
-          <button id="add-submit" class="button button-primary" type="submit">Guardar compra</button>
+          <button id="add-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="add-submit" class="button btn-save" type="submit">Guardar compra</button>
         </div>
       </form>
     </dialog>
@@ -443,7 +443,7 @@
             <div class="instrument-create-form group-create-form">
               <input id="new-group-name" placeholder="Nombre del grupo" />
               <input id="new-group-color" type="color" value="#16a34a" aria-label="Color del grupo" />
-              <button id="create-group" class="button" type="button">Crear grupo</button>
+              <button id="create-group" class="button btn-save" type="button">Crear grupo</button>
             </div>
             <div class="bulk-toolbar">
               <span id="group-selection-count" class="subtle">0 grupos seleccionados</span>
@@ -491,7 +491,7 @@
                 <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
                 <select id="new-instrument-group"></select>
                 <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
-                <button id="create-instrument" class="button" type="button">Crear valor</button>
+                <button id="create-instrument" class="button btn-save" type="button">Crear valor</button>
               </div>
             </div>
             <div class="instrument-list-heading">
@@ -578,7 +578,7 @@
         </div>
 
         <div class="modal-actions">
-          <button id="instrument-cancel" class="button" type="button">Cerrar</button>
+          <button id="instrument-cancel" class="button btn-cancel" type="button">Cerrar</button>
         </div>
       </div>
     </dialog>
@@ -600,8 +600,8 @@
         <p id="auto-feedback" class="form-feedback" role="status"></p>
 
         <div class="modal-actions">
-          <button id="auto-cancel" class="button" type="button">Cancelar</button>
-          <button id="auto-submit" class="button button-primary" type="submit">Guardar</button>
+          <button id="auto-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="auto-submit" class="button btn-save" type="submit">Guardar</button>
         </div>
       </form>
     </dialog>
@@ -625,7 +625,7 @@
               <div>
                 <strong>Descarga la plantilla</strong>
                 <small>Excel oficial de ValorGrid con instrucciones y ejemplos.</small>
-                <button id="import-download-template" class="button button-accent" type="button">
+                <button id="import-download-template" class="button btn-accent" type="button">
                   <svg
                     width="16"
                     height="16"
@@ -711,7 +711,7 @@
         </div>
 
         <div class="import-file-actions">
-          <button id="import-preview" class="button button-primary" type="button">Analizar archivo</button>
+          <button id="import-preview" class="button btn-save" type="button">Analizar archivo</button>
         </div>
 
         <label class="field" id="import-sheet-field" hidden>
@@ -741,10 +741,10 @@
         <p id="import-feedback" class="form-feedback" role="status"></p>
         <div id="import-preview-output" class="import-preview-output"></div>
         <div class="modal-actions">
-          <button id="import-commit" class="button button-primary" type="button" disabled hidden>
+          <button id="import-commit" class="button btn-save" type="button" disabled hidden>
             Importar operaciones seleccionadas
           </button>
-          <button id="import-cancel" class="button" type="button">Cerrar</button>
+          <button id="import-cancel" class="button btn-cancel" type="button">Cerrar</button>
         </div>
       </form>
     </dialog>
@@ -839,7 +839,7 @@
         </div>
 
         <div class="modal-actions">
-          <button id="admin-cancel" class="button" type="button">Cerrar</button>
+          <button id="admin-cancel" class="button btn-cancel" type="button">Cerrar</button>
         </div>
       </div>
     </dialog>
@@ -855,8 +855,8 @@
         </div>
         <div id="instrument-delete-preview" class="instrument-delete-preview"></div>
         <div class="modal-actions">
-          <button id="instrument-delete-cancel" class="button" type="button">Cancelar</button>
-          <button id="instrument-delete-confirm" class="button button-danger" type="button">
+          <button id="instrument-delete-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="instrument-delete-confirm" class="button btn-danger" type="button">
             Eliminar seleccionados
           </button>
         </div>
@@ -888,7 +888,7 @@
           <p class="subtle">
             Usa el importador para cargar operaciones de broker y resolver mapeos de instrumentos y grupos.
           </p>
-          <button id="wizard-open-import" class="button" type="button">Abrir importador</button>
+          <button id="wizard-open-import" class="button btn-save" type="button">Abrir importador</button>
         </div>
 
         <div class="wizard-grid">
@@ -1066,8 +1066,8 @@
         <p id="wizard-feedback" class="form-feedback" role="status"></p>
 
         <div class="modal-actions">
-          <button id="wizard-cancel" class="button" type="button">Cancelar</button>
-          <button id="wizard-submit" class="button button-primary" type="submit">Crear cartera</button>
+          <button id="wizard-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="wizard-submit" class="button btn-save" type="submit">Crear cartera</button>
         </div>
       </form>
     </dialog>

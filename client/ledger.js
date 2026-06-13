@@ -109,9 +109,9 @@ export function attach(ctx) {
       if (totalPages > 1) {
         elements.ledgerPagination.hidden = false;
         elements.ledgerPagination.innerHTML = `
-          <button class="button button-compact" type="button" data-ledger-page="prev" ${currentPage === 1 ? 'disabled' : ''}>← Anterior</button>
-          <span class="ledger-page-info">Página ${currentPage} de ${totalPages}</span>
-          <button class="button button-compact" type="button" data-ledger-page="next" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente →</button>
+          <button class="button button-compact btn-cancel" type="button" data-ledger-page="prev" ${currentPage === 1 ? 'disabled' : ''}>← Anterior</button>
+          <span class="pagination-info">Página ${currentPage} de ${totalPages}</span>
+          <button class="button button-compact btn-cancel" type="button" data-ledger-page="next" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente →</button>
         `;
       } else {
         elements.ledgerPagination.hidden = true;
