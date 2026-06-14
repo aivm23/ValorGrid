@@ -242,6 +242,7 @@ export function attach(ctx) {
             <select class="instrument-input" data-field="type">
               <option value="etf" ${instrument.type === 'etf' ? 'selected' : ''}>ETF</option>
               <option value="stock" ${instrument.type === 'stock' ? 'selected' : ''}>Stock</option>
+              <option value="crypto" ${instrument.type === 'crypto' ? 'selected' : ''}>Crypto</option>
             </select>
           </td>
           <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>

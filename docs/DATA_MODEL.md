@@ -32,7 +32,7 @@ Campos principales:
 - `symbol`: ticker interno.
 - `yahoo_symbol`: símbolo usado para precios.
 - `name`
-- `type`: `etf`, `stock` o `fx`.
+- `type`: `etf`, `stock`, `crypto` o `fx`.
 - `currency`
 - `color`
 - `base_shares`

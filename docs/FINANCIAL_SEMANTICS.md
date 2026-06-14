@@ -153,6 +153,11 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 Umbral de visibilidad: `0.01` EUR. Definido en `src/app.js`. Las posiciones con valor inferior no se muestran en distribucion ni monthly.
 
+## Notas sobre crypto
+
+- `crypto` puede tener cotización en sábado/domingo si la fuente de precios la devuelve.
+- La app no decide por calendario; decide por disponibilidad de cotización o precio manual.
+
 ## Preview de transaccion
 
 ### `previewTransaction(input)`

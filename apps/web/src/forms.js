@@ -8,13 +8,16 @@ export function attach(ctx) {
     const symbol = type === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
+    const price = Number(ctx.elements.addPrice.value);
     const commission = Number(ctx.elements.addCommission.value);
     const payload = { type, symbol, date: ctx.elements.addDate.value };
     if (includeId) payload.id = ctx.clientRequestId('tx');
-    if (Number.isFinite(euros) && euros > 0 && shares <= 0) {
+    if (Number.isFinite(euros) && euros > 0) {
       payload.euros = euros;
+    } else if (Number.isFinite(shares) && shares > 0) {
+      payload.shares = shares;
+      if (Number.isFinite(price) && price > 0) payload.unitPrice = price;
     }
-    if (Number.isFinite(shares) && shares > 0) payload.shares = shares;
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
     return payload;
   }
@@ -26,10 +29,11 @@ export function attach(ctx) {
   function renderTransactionPreview(preview) {
     ctx.elements.transactionPreview.hidden = false;
     const unitPrice = preview.shares > 0 ? ` - Precio/acción: ${Number(preview.valueEur / preview.shares).toFixed(2)} ${preview.currency}` : '';
+    const manualLabel = preview.manualUnitPrice ? ' - Precio manual' : ' - Mercado';
     ctx.elements.transactionPreview.innerHTML = `
       <span>Preview</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
-      <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}${unitPrice}</small>
+      <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}${unitPrice}${manualLabel}</small>
       <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
       <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;

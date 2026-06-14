@@ -1,4 +1,4 @@
-const DEFAULT_HISTORY_FILTERS = { mode: 'all', assetTypes: ['stock', 'etf'], transactionTypes: ['add', 'remove'] };
+const DEFAULT_HISTORY_FILTERS = { mode: 'all', assetTypes: ['stock', 'etf', 'crypto'], transactionTypes: ['add', 'remove'] };
 
 export function attach(ctx) {
   function renderHistoryPreferenceControls() {
@@ -7,8 +7,8 @@ export function attach(ctx) {
 
     const filters = ctx.state.historyEventFilters || DEFAULT_HISTORY_FILTERS;
     const isEditable = ctx.state.uiPreferencesEditable !== false;
-    const mode = filters.mode || 'all';
-    const assetTypes = filters.assetTypes || ['stock', 'etf'];
+    const mode = filters.mode || (isEditable ? 'all' : 'custom');
+    const assetTypes = filters.assetTypes || ['stock', 'etf', 'crypto'];
     const transactionTypes = filters.transactionTypes || ['add', 'remove'];
 
     const disabledAttr = isEditable ? '' : 'disabled';
@@ -20,9 +20,9 @@ export function attach(ctx) {
       })
       .join('');
 
-    const assetTypeCheckboxes = ['stock', 'etf']
+    const assetTypeCheckboxes = ['stock', 'etf', 'crypto']
       .map((t) => {
-        const labels = { stock: 'Stock', etf: 'ETF' };
+        const labels = { stock: 'Stock', etf: 'ETF', crypto: 'Crypto' };
         const checked = assetTypes.includes(t) ? 'checked' : '';
         return `<label class="history-filter-checkbox"><input type="checkbox" data-filter-asset="${t}" ${checked} ${disabledAttr} /> ${labels[t]}</label>`;
       })

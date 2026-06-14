@@ -11,7 +11,7 @@ module.exports = function attach(ctx) {
       symbol TEXT PRIMARY KEY,
       yahoo_symbol TEXT NOT NULL,
       name TEXT NOT NULL,
-      type TEXT NOT NULL CHECK (type IN ('etf', 'stock', 'fx')),
+      type TEXT NOT NULL CHECK (type IN ('etf', 'stock', 'crypto', 'fx')),
       currency TEXT NOT NULL,
       color TEXT NOT NULL,
       base_shares REAL NOT NULL DEFAULT 0,

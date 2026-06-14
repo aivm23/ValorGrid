@@ -3,7 +3,8 @@
 ## Commands
 
 - `npm test` — run all tests (`node --test`)
-- `npm run lint` — run ESLint flat config checks
+- `npm run lint` — run ESLint flat conf
+- `scripts/run-sql-migration.ps1` automatiza el flujo (backup automático + ejecución SQL + verificación de integridad). Usar `-DryRun` para simular sin modificar la DB.ig checks
 - `npm run format:check` — run Prettier checks for docs/workflows/package manifests
 - `npm run docs:spellcheck` — check Spanish docs for mojibake and common accent mistakes
 - `npm run typecheck` — run TypeScript type checking (`tsc --noEmit`)
@@ -108,6 +109,9 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 ## DB Operations Policy
 
 - Fresh-only DB policy: schema is created from `apps/server/src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
+- SQL manuales versionados permitidos bajo `deploy/sql/` para cambios de schema productivo.
+- Antes de ejecutar un SQL versionado: parar la app, `npm run db:backup`, ejecutar SQL, arrancar, `npm run db:doctor`.
+- `scripts/run-sql-migration.ps1` (Windows) y `scripts/run-sql-migration.js` (Docker/Linux/macOS) automatizan el flujo (backup automático + ejecución SQL + verificación de integridad). Usar `-DryRun` / `--dry-run` para simular sin modificar la DB.
 - Before touching a real DB file, create a backup first with `npm run db:backup`.
 - For schema evolution in test/dev phases, validate with fresh reset (`npm run db:reset`) instead of historical migrations.
 - Restore remains manual and documented; do not add destructive reset endpoints in API/UI.

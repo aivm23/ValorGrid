@@ -65,6 +65,76 @@ Checklist upgrade:
 3. Comprobar salud (`/api/health`).
 4. Si falla, rollback manual reemplazando DB por backup y relanzando.
 
+## Updates SQL versionados
+
+Los cambios de schema productivo se entregan como archivos SQL versionados en `deploy/sql/` con el patrón `update-X-to-Y.sql`.
+No se ejecutan automáticamente al arrancar la app.
+Se aplican manualmente por un operador humano.
+
+### Script automatizado (recomendado)
+
+Hay dos versiones del script, una para cada entorno:
+
+| Entorno         | Script                          | Requisito                    |
+| --------------- | ------------------------------- | ---------------------------- |
+| Windows local   | `scripts/run-sql-migration.ps1` | PowerShell 5.1 + sqlite3.exe |
+| Docker / CasaOS | `scripts/run-sql-migration.js`  | Node.js ≥ 24 (ya incluido)   |
+| Linux / macOS   | `scripts/run-sql-migration.js`  | Node.js ≥ 24                 |
+
+**Windows (PowerShell):**
+
+```
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.15.0-to-3.16.0.sql
+```
+
+**Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
+
+```
+# Local
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
+
+# Docker (ejecutar dentro del contenedor)
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
+
+# Con opciones explícitas
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
+```
+
+**Parámetros del script PowerShell (`run-sql-migration.ps1`):**
+
+| Parámetro   | Descripción                                                       |
+| ----------- | ----------------------------------------------------------------- |
+| `SqlPath`   | Ruta al archivo SQL (obligatorio).                                |
+| `SqliteExe` | Ruta a `sqlite3.exe` (auto-detección si se omite).                |
+| `DbPath`    | Ruta a la DB activa (auto-detección si se omite).                 |
+| `AppRoot`   | Raíz del proyecto (por defecto: directorio padre de `scripts/`).  |
+| `BackupDir` | Directorio de backups (auto-detección junto a la DB si se omite). |
+| `Confirm`   | Ejecuta sin confirmación interactiva (útil para scripts padres).  |
+| `DryRun`    | Simula la operación sin modificar la DB.                          |
+
+**Parámetros del script Node.js (`run-sql-migration.js`):**
+
+| Argumento      | Descripción                                                       |
+| -------------- | ----------------------------------------------------------------- |
+| `--sql`        | Ruta al archivo SQL (obligatorio).                                |
+| `--db`         | Ruta a la DB activa (auto-detección si se omite).                 |
+| `--backup-dir` | Directorio de backups (auto-detección junto a la DB si se omite). |
+| `--dry-run`    | Simula la operación sin modificar la DB.                          |
+| `--yes`        | Omite confirmación interactiva.                                   |
+| `--help`       | Muestra ayuda.                                                    |
+
+**DryRun:** ambos scripts soportan modo simulación para verificar qué archivos SQL y qué DB se usarían sin modificar datos reales.
+
+### Flujo manual
+
+1. Parar la app.
+2. Crear backup (`npm run db:backup` o usar el script que lo hace automáticamente).
+3. Ejecutar SQL contra la DB activa.
+4. Arrancar la app.
+5. Ejecutar `npm run db:doctor` para verificar salud.
+
+Cualquiera de los dos scripts (PowerShell o Node.js) reemplaza los pasos 2, 3 y 5: incluye backup automático, ejecución SQL y verificación de integridad (PRAGMA foreign_key_check + integrity_check).
+
 ## Dataset demo/loadtest
 
 - Existe un único dataset sintético canónico: `scripts/loadtest-data.js`.

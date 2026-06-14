@@ -487,6 +487,7 @@
                 <select id="new-instrument-type">
                   <option value="etf">ETF</option>
                   <option value="stock">Stock</option>
+                  <option value="crypto">Crypto</option>
                 </select>
                 <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
                 <select id="new-instrument-group"></select>
@@ -783,14 +784,14 @@
                   <option value="1000" selected>1000</option>
                 </select>
               </label>
-              <label class="field preference-field">
+              <label class="field preference-field" hidden>
                 <span>Formato de fecha</span>
                 <select id="date-format-select">
                   <option value="dd/mm/yyyy" selected>dd/mm/aaaa</option>
                   <option value="mm/dd/yyyy">mm/dd/aaaa</option>
                 </select>
               </label>
-              <label class="field preference-field">
+              <label class="field preference-field" hidden>
                 <span>Inicio del calendario</span>
                 <select id="week-start-select">
                   <option value="monday" selected>Lunes</option>
@@ -931,6 +932,7 @@
                 <select id="wizard-instrument-type">
                   <option value="etf">ETF</option>
                   <option value="stock">Stock</option>
+                  <option value="crypto">Crypto</option>
                 </select>
               </label>
               <label class="field">

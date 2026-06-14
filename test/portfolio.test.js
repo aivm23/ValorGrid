@@ -826,3 +826,41 @@ test('manual unit price non-EUR: USD instrument with FX', async () => {
   assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -18);
 });
 
+test('crypto instrument buy with cached price on weekend', async () => {
+  seedTestInstrument({ symbol: 'BTC', yahooSymbol: 'BTC-EUR', name: 'Bitcoin', type: 'crypto', currency: 'EUR' });
+  cachePrice('BTC-EUR', '2026-06-13', 65000);
+
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'BTC',
+    date: '2026-06-13',
+    shares: 0.5,
+  });
+
+  assert.equal(transaction.symbol, 'BTC');
+  assert.equal(transaction.marketDate, '2026-06-13');
+  assert.equal(transaction.price, 65000);
+  assert.equal(Number(transaction.valueEur.toFixed(2)), 32500);
+  assert.ok(getPositionShares('BTC', '2026-06-13') > 0.499);
+});
+
+test('crypto instrument buy with manual unitPrice on weekend', async () => {
+  seedTestInstrument({ symbol: 'BTCM', yahooSymbol: 'BTCM-EUR', name: 'Bitcoin Manual', type: 'crypto', currency: 'EUR' });
+
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'BTCM',
+    date: '2026-06-13',
+    shares: 0.5,
+    unitPrice: 62000,
+    commissionEur: 0,
+  });
+
+  assert.equal(transaction.symbol, 'BTCM');
+  assert.equal(transaction.shares, 0.5);
+  assert.equal(transaction.price, 62000);
+  assert.equal(Number(transaction.valueEur.toFixed(2)), 31000);
+  assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -31000);
+  assert.ok(getPositionShares('BTCM', '2026-06-13') > 0.499);
+});
+

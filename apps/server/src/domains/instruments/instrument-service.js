@@ -174,7 +174,7 @@ module.exports = function attach(ctx) {
 
     if (!next.yahooSymbol) throw new Error('Yahoo symbol is required');
     if (!next.name) throw new Error('Name is required');
-    if (!['etf', 'stock', 'fx'].includes(next.type)) throw new Error('Invalid instrument type');
+    if (!['etf', 'stock', 'crypto', 'fx'].includes(next.type)) throw new Error('Invalid instrument type');
     if (!next.currency) throw new Error('Currency is required');
     if (!/^#[0-9a-f]{6}$/i.test(next.color)) throw new Error('Color must be a hex value');
     if (!Number.isFinite(next.fallbackPrice) || next.fallbackPrice < 0) throw new Error('Invalid fallback price');
@@ -295,7 +295,7 @@ module.exports = function attach(ctx) {
     const color = String(input.color || stockColors[listInstruments().length % stockColors.length]).trim();
     const groupId = String(input.groupId || input.group_id || ensureGeneralGroup().id).trim();
     const fallbackPrice = Number(input.fallbackPrice || input.fallback_price || 0);
-    if (!['etf', 'stock', 'fx'].includes(type)) throw new Error('Invalid instrument type');
+    if (!['etf', 'stock', 'crypto', 'fx'].includes(type)) throw new Error('Invalid instrument type');
     if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Color must be a hex value');
     if (!groupExists(groupId)) throw new Error('Instrument group not found');
     insertInstrument({

@@ -162,6 +162,64 @@ test('schema tables in DATA_MODEL docs stay synchronized with src/schema.js', ()
   assert.deepEqual(extraInDocs, [], `Tables not found in schema: ${extraInDocs.join(', ')}`);
 });
 
+test('update 3.15.0 to 3.16.0 allows crypto instrument type without data loss', () => {
+  const { openDatabase } = require('../apps/server/src/platform/db');
+  const tmpPath = path.join(root, 'local', 'valorgrid', 'data', 'tmp-crypto-test.sqlite');
+  try { fs.mkdirSync(path.dirname(tmpPath), { recursive: true }); } catch {}
+  try { fs.unlinkSync(tmpPath); } catch {}
+  const tmpDb = openDatabase(tmpPath);
+  tmpDb.exec(`
+    CREATE TABLE instruments (
+      symbol TEXT PRIMARY KEY,
+      yahoo_symbol TEXT NOT NULL,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('etf', 'stock', 'fx')),
+      currency TEXT NOT NULL,
+      color TEXT NOT NULL,
+      base_shares REAL NOT NULL DEFAULT 0,
+      fallback_price REAL NOT NULL DEFAULT 0,
+      active INTEGER NOT NULL DEFAULT 1,
+      group_id TEXT,
+      display_order INTEGER NOT NULL DEFAULT 0,
+      show_in_distribution INTEGER NOT NULL DEFAULT 1,
+      show_in_monthly INTEGER NOT NULL DEFAULT 1
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruments_type_active ON instruments (type, active);
+    CREATE INDEX IF NOT EXISTS idx_instruments_group_active ON instruments (group_id, active);
+  `);
+  tmpDb.prepare(
+    `INSERT INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, display_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run('OLD', 'OLD.EX', 'Old Stock', 'stock', 'EUR', '#2563eb', 0, 0, 1, 0);
+
+  const sqlPath = path.join(root, 'deploy', 'sql', 'update-3.15.0-to-3.16.0.sql');
+  assert.ok(fs.existsSync(sqlPath), 'SQL update file exists');
+  const sql = fs.readFileSync(sqlPath, 'utf8');
+  tmpDb.exec(sql);
+
+  const oldRow = tmpDb.prepare("SELECT type FROM instruments WHERE symbol = 'OLD'").get();
+  assert.equal(oldRow.type, 'stock', 'old instrument preserved after update');
+
+  assert.doesNotThrow(() => {
+    tmpDb.prepare(
+      `INSERT INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run('BTC', 'BTC-EUR', 'Bitcoin', 'crypto', 'EUR', '#f7931a', 0, 0, 1, 1);
+  }, 'crypto instrument insert succeeds after update');
+
+  const newRow = tmpDb.prepare("SELECT type FROM instruments WHERE symbol = 'BTC'").get();
+  assert.equal(newRow.type, 'crypto', 'crypto instrument stored correctly');
+
+  const indexes = tmpDb.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'instruments'").all().map((row) => row.name);
+  assert.ok(indexes.includes('idx_instruments_type_active'), 'idx_instruments_type_active exists after update');
+  assert.ok(indexes.includes('idx_instruments_group_active'), 'idx_instruments_group_active exists after update');
+
+  tmpDb.close();
+  try { fs.unlinkSync(tmpPath); } catch {}
+  try { fs.unlinkSync(tmpPath + '-wal'); } catch {}
+  try { fs.unlinkSync(tmpPath + '-shm'); } catch {}
+});
+
 test('runtime code and scripts do not contain ALTER TABLE migrations', () => {
   const runtimeFiles = [];
   function collectFiles(relativeDir) {

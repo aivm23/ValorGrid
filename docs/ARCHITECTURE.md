@@ -338,6 +338,8 @@ La app puede crear copias locales de SQLite con:
 Antes de copiar, se hace checkpoint WAL para reducir riesgo de backup inconsistente.
 La API y los scripts operativos comparten la misma `backupDir` resuelta por `apps/server/src/platform/config.js`; las rutas admin consumen esta capacidad desde `ctx.services.admin`.
 
+Para migraciones de schema versionadas, existe `scripts/run-sql-migration.ps1` que automatiza backup + ejecución SQL + verificación de integridad usando los SQL de `deploy/sql/update-X-to-Y.sql`. Ver `docs/DB_OPERATIONS.md` para el flujo completo.
+
 ## Docker y CasaOS
 
 Docker ejecuta la app como servicio local con:
@@ -358,3 +360,5 @@ La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS ex
 - o reverse proxy con HTTPS y `VALORGRID_AUTH_PASSWORD`.
 
 No debe exponerse directamente a Internet sin HTTPS y autenticación.
++-- deploy/
++-- sql/ (SQL versionados: deploy/sql/update-X-to-Y.sql)

@@ -418,6 +418,37 @@ assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap inste
   assert.ok(css.includes('color: #06b6d4 !important;'), 'soon label cyan is protected against generic color override');
 });
 
+test('index.html instrument type selects include crypto option', () => {
+  const index = read('apps/web/index.html');
+  assert.ok(index.includes('<option value="crypto">Crypto</option>'), 'index.html contains crypto option in instrument selects');
+  const cryptoCount = (index.match(/<option value="crypto">Crypto<\/option>/g) || []).length;
+  assert.equal(cryptoCount, 2, 'crypto option appears in both new-instrument-type and wizard-instrument-type selects');
+});
+
+test('operations.js instrument table type select includes crypto', () => {
+  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
+  assert.ok(ops.includes("instrument.type === 'crypto'"), 'operations.js references crypto instrument type');
+});
+
+test('history-preferences.js includes crypto in asset types and labels', () => {
+  const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
+  assert.ok(hp.includes("'crypto'"), 'history-preferences.js includes crypto in arrays');
+  assert.ok(hp.includes("crypto: 'Crypto'"), 'history-preferences.js has Crypto label');
+});
+
+test('forms.js sends unitPrice in transaction payload', () => {
+  const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
+  assert.ok(forms.includes('payload.unitPrice'), 'forms.js sends unitPrice payload');
+});
+
+test('deploy/sql/update-3.15.0-to-3.16.0.sql contains crypto CHECK', () => {
+  const sql = read(path.join('deploy', 'sql', 'update-3.15.0-to-3.16.0.sql'));
+  assert.ok(sql.includes("'crypto'"), 'SQL update includes crypto in CHECK constraint');
+  assert.ok(sql.includes('BEGIN IMMEDIATE'), 'SQL update uses transaction');
+  assert.ok(sql.includes('PRAGMA foreign_keys = OFF'), 'SQL update disables FK constraints');
+  assert.ok(sql.includes('PRAGMA foreign_keys = ON'), 'SQL update re-enables FK constraints');
+});
+
 // ── 15) Operativa section microcopy and tooltips ──
 
 test('operations.js Operativa cards use improved microcopy and tooltips', () => {

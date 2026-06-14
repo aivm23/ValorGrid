@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.16.0
+
+- feat: add `crypto` as a first-class instrument type.
+- feat: add manual SQL update `deploy/sql/update-3.15.0-to-3.16.0.sql` to preserve existing SQLite databases.
+- fix: send manual unit price from the transaction form so weekend/manual-price operations do not require market quotes.
+- docs: document versioned SQL updates and updated DB operations policy.
+
 ## 3.15.0
 
 - feat: include Yahoo ticker (yahoo_symbol) in transactions XLSX export.
