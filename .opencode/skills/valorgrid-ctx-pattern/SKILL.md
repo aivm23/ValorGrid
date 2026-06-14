@@ -1,6 +1,6 @@
 ---
 name: valorgrid-ctx-pattern
-description: Keywords src/app.js, grouped ctx namespaces, Object.assign(ctx), module load order, repositories/services, src/domains/. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
+description: Keywords apps/server/src/app.js, grouped ctx namespaces, Object.assign(ctx), module load order, repositories/services, apps/server/src/domains/. Use ONLY when adding, moving, or debugging backend/frontend modules that depend on ValorGrid shared ctx architecture.
 ---
 
 # ValorGrid ctx Pattern
@@ -9,23 +9,23 @@ Use this skill to work safely with ValorGrid module architecture.
 
 ValorGrid uses a shared `ctx` loaded in order. The current architecture is transitional: legacy flat exports still exist, while new/refactored code should move toward grouped dependencies and cleaner layering.
 
-Active migration: modules are being moved from flat `src/` to `src/domains/<domain>/` by bounded context (instruments, transactions, imports, portfolio, history, market-data, onboarding, admin) and `src/platform/` for shared infrastructure.
+Active migration: modules are being moved from flat \`apps/server/src/\` to `apps/server/src/domains/<domain>/` by bounded context (instruments, transactions, imports, portfolio, history, market-data, onboarding, admin) and `apps/server/src/platform/` for shared infrastructure.
 
 ## When to use
 
-- Creating or splitting backend modules in `src/`
-- Debugging load-order or undefined dependency issues in `src/app.js`
+- Creating or splitting backend modules in `apps/server/src/`
+- Debugging load-order or undefined dependency issues in `apps/server/src/app.js`
 - Moving SQL from services into repositories
-- Wiring new frontend modules in `client/app.js`
+- Wiring new frontend modules in `apps/web/src/app.js`
 - Verifying architecture boundaries and anti-regression tests
 
 ## Source of truth
 
-- Backend loader: `src/app.js`
+- Backend loader: `apps/server/src/app.js`
 - Backend/frontend constraints: `test/architecture.test.js`
 - Agent policies: `AGENTS.md`
-- Route service resolver: `src/route-service-bindings.js`
-- Frontend orchestrator: `client/app.js`
+- Route service resolver: `apps/server/src/route-service-bindings.js`
+- Frontend orchestrator: `apps/web/src/app.js`
 
 Never trust docs first. Confirm with source code in these files.
 
@@ -33,11 +33,11 @@ Never trust docs first. Confirm with source code in these files.
 
 ### Current state
 
-1. `src/app.js` builds a shared `ctx` object.
+1. `apps/server/src/app.js` builds a shared `ctx` object.
 2. Backend modules load in strict sequence.
 3. Modules validate dependencies with `assertCtxDeps`/`getCtxDep`.
 4. Many APIs are still attached with `Object.assign(ctx, { ... })`.
-5. `src/app.js` hydrates grouped aliases (`ctx.services.*`, `ctx.repositories.*`) from legacy APIs.
+5. `apps/server/src/app.js` hydrates grouped aliases (`ctx.services.*`, `ctx.repositories.*`) from legacy APIs.
 6. Load order is part of runtime behavior.
 
 ### Target state
@@ -60,9 +60,9 @@ ctx.services
 
 ## Non-negotiable rules
 
-- `node:sqlite` is allowed only in `src/platform/db.js`.
-- `src/routes.js` must not execute SQL directly.
-- Fresh-only DB policy: schema is created from `src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
+- `node:sqlite` is allowed only in `apps/server/src/platform/db.js`.
+- `apps/server/src/routes.js` must not execute SQL directly.
+- Fresh-only DB policy: schema is created from `apps/server/src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
 - Before touching a real DB file, create a backup first with `npm run db:backup`.
 - Restore remains manual; do not add destructive reset endpoints in API/UI.
 - `market-data` must not own ledger logic.
@@ -78,7 +78,7 @@ ctx.services
 - `diagnostics-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
 - `backups.js` may execute `PRAGMA wal_checkpoint(FULL)` as controlled backup maintenance exception.
-- SQLite transactions must use `withTransaction` / `withTransactionAsync` from `src/platform/db.js`.
+- SQLite transactions must use `withTransaction` / `withTransactionAsync` from `apps/server/src/platform/db.js`.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.
 - New frontend files should stay under 350 lines.
@@ -87,7 +87,7 @@ Architecture tests enforce these constraints.
 
 ## Real backend load order
 
-From `src/app.js`:
+From `apps/server/src/app.js`:
 
 ```text
 schema
@@ -129,7 +129,7 @@ If module B depends on module A, A must load first.
 ### Backend module (current-compatible)
 
 ```js
-const { assertCtxDeps } = require('./ctx-utils');
+const { assertCtxDeps } = require('./platform/ctx-utils');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db'], 'my-module');
@@ -146,7 +146,7 @@ module.exports = function attach(ctx) {
 ### Backend module (target-oriented)
 
 ```js
-const { assertCtxDeps } = require('./ctx-utils');
+const { assertCtxDeps } = require('./platform/ctx-utils');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['repositories', 'services'], 'my-module');
@@ -167,7 +167,7 @@ export function attach(ctx) {
 }
 ```
 
-Register module imports and attach order explicitly in `client/app.js`.
+Register module imports and attach order explicitly in `apps/web/src/app.js`.
 
 ## Safe workflow for architecture changes
 
@@ -189,23 +189,27 @@ Register module imports and attach order explicitly in `client/app.js`.
 ### 1) `ctx.someFn is not a function`
 
 Likely causes:
+
 - export missing from provider module
 - provider loads after consumer
 - naming mismatch between export and usage
 
 Checklist:
+
 - confirm provider exports symbol
-- confirm provider load position in `src/app.js`
+- confirm provider load position in `apps/server/src/app.js`
 - confirm exact symbol name in consumer
 
 ### 2) `ctx.someFn is undefined` after refactor
 
 Likely causes:
+
 - dependency destructured before it exists
 - dependency belongs to a later module
 - missing namespace initialization (`ctx.services.foo ??= {}`)
 
 Fix:
+
 - resolve late dependencies at call time when needed
 - initialize namespaces before assignment
 - move shared primitive to an earlier/lower-level module
@@ -213,16 +217,19 @@ Fix:
 ### 3) Reintroduced cross-domain leakage
 
 Examples:
+
 - SQL added to routes
 - market-data touches ledger tables
 - portfolio-service calls Yahoo directly
 
 Fix:
+
 - enforce ownership boundaries and add regression tests
 
 ### 4) Architecture line limits fail
 
 Fix by extracting pure helpers:
+
 - `x-service.js` -> `x-service-helpers.js`
 - keep orchestration and public API stable in the original module
 
@@ -240,7 +247,7 @@ Fix by extracting pure helpers:
 - `npm run format:check` passes
 - `npm test` passes
 - `npm run verify:publication` passes
-- No direct `node:sqlite` outside `src/db.js`
+- No direct `node:sqlite` outside `apps/server/src/platform/db.js`
 - No SQL in routes
 - Docs and skill synced with code changes
 - Version bumped

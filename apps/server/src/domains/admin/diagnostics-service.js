@@ -127,10 +127,11 @@ function buildHealth() {
 function rowToValorGridExport(row) {
   const type = row.type === 'remove' ? 'venta' : 'compra';
   const shares = Number(row.shares || 0);
-  return [
+return [
     type,
     row.date || '',
     row.symbol || '',
+    row.yahooSymbol || '',
     row.type === 'remove' ? -Math.abs(shares) : Math.abs(shares),
     Number(row.price || 0),
     row.currency || 'EUR',

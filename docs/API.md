@@ -169,7 +169,7 @@ Los backups se guardan en `local/valorgrid/backups/` y no deben versionarse.
 GET /api/export/transactions.xlsx
 ```
 
-Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
+Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Yahoo`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
 
 Las compras se exportan como `compra` con acciones positivas, las ventas como `venta` con acciones negativas, y `Referencia` usa `externalId` si existe o el `id` interno si no existe.
 

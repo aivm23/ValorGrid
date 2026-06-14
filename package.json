@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.14.0",
+  "version": "3.15.0",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -39,6 +39,12 @@
     "local:verify": "node scripts/migrate-local.js --verify",
     "local:status": "node scripts/migrate-local.js",
     "verify:publication": "node scripts/verify-publication.js",
+    "audit:ai": "node scripts/audit/check-ai-surface.js",
+    "audit:packages": "node scripts/audit/check-package-boundaries.js",
+    "audit:artifacts": "node scripts/audit/check-large-local-artifacts.js",
+    "audit:deps": "node scripts/audit/check-dependency-policy.js && npm audit",
+    "audit:release": "npm run check && npm run verify:publication && node scripts/audit/check-release-surface.js",
+    "audit:local": "npm run audit:ai && npm run audit:packages && npm run audit:artifacts",
     "prepare": "husky"
   },
   "devDependencies": {

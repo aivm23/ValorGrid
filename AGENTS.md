@@ -11,12 +11,18 @@
 - `npm run changelog:check` — verify CHANGELOG.md contains current version section
 - `npm run changelog:update` — auto-generate or update CHANGELOG.md entry for current version
 - `node --test --test-name-pattern "test name" test/portfolio.test.js` — run a single test
-- `npm start` — start server (`node server.js`)
+- `npm start` — start server (`node apps/server/server.js`)
 - `npm run db:backup` — create a local SQLite backup using active DB path resolution
 - `npm run db:reset` — backup + fresh reset of the active SQLite DB
 - `npm run db:doctor` — inspect active DB health, schema, WAL/SHM and backups
 - `npm run seed:demo` — seed canonical synthetic demo dataset
 - `npm run verify:publication` — check no private data leaks before publishing
+- `npm run audit:ai` — check opencode commands/skills for outdated paths
+- `npm run audit:packages` — check no cross-boundary imports between workspaces
+- `npm run audit:artifacts` — list large local artifacts (read-only)
+- `npm run audit:deps` — check dependency placement + npm audit
+- `npm run audit:release` — full pre-release audit (check + publication + release surface)
+- `npm run audit:local` — quick local audit (ai + packages + artifacts)
 - Current baseline keeps runtime simple (CommonJS + Node test runner).
 - Typecheck/build are introduced incrementally by migration phase, never as a big-bang rewrite.
 
@@ -36,14 +42,14 @@
 ## Architecture
 
 - **Node.js ≥ 24**, CommonJS, vanilla JS frontend, SQLite via `node:sqlite`
-- **Composition root + staged DI**: `src/app.js` creates `ctx` and loads backend modules in strict sequence with `require(modulePath)(ctx)`.
+- **Composition root + staged DI**: `apps/server/src/app.js` creates `ctx` and loads backend modules in strict sequence with `require(modulePath)(ctx)`.
 - **Current compatibility rule**: legacy exports via `Object.assign(ctx, { ... })` remain valid while refactoring.
 - **Target rule for new/refactored code**: prefer grouped dependencies under `ctx.config`, `ctx.cache`, `ctx.logger`, `ctx.repositories`, and `ctx.services` instead of adding more flat top-level functions. Register new APIs directly in `ctx.services.<domain>` or `ctx.repositories.<domain>`.
-- **Physical domain structure (in migration)**: modules are being moved from flat `src/` to `src/domains/<domain>/` to group service + repository + routes by bounded context. Existing `src/app.js` load order and `route-*.js` delegation remain the entry points.
+- **Physical domain structure (in migration)**: modules are being moved from flat \`apps/server/src/\` to \`apps/server/src/domains/<domain>/\` to group service + repository + routes by bounded context. Existing \`apps/server/src/app.js\` load order and `route-*.js` delegation remain the entry points.
 - **No `with (ctx)`** in backend or frontend modules.
-- **SQLite isolation**: all `node:sqlite` usage goes through `src/platform/db.js`. Never import `node:sqlite` directly elsewhere.
+- **SQLite isolation**: all `node:sqlite` usage goes through `apps/server/src/platform/db.js`. Never import `node:sqlite` directly elsewhere.
 - **SQL ownership**: SQL lives exclusively in repositories under `ctx.repositories.<domain>`. Services and routes never execute SQL directly. Architecture tests enforce this.
-- **Frontend**: vanilla JS modules in `client/`, orchestrated by `client/app.js` loaded from `index.html`. No bundler.
+- **Frontend**: vanilla JS modules in \`apps/web/src/\`, orchestrated by \`apps/web/src/app.js\` loaded from \`index.html\`. No bundler.
 - **History materialization**: portfolio history is pre-computed and cached, not calculated on every request. Ledger changes trigger invalidation from the affected date forward.
 
 ## Testing
@@ -52,9 +58,9 @@
 - **`docs/TESTING.md`** maps each test file to its domain and coverage.
 - CI runs on `windows-latest` and `ubuntu-latest` with Node 24 (matrix). The Linux job covers cross-platform runtime, lint, typecheck, format, tests, `verify:publication` (Node) and `seed:demo`; the Windows job additionally validates `desktop:` flows.
 - Tests spin up a real server with an in-memory SQLite DB — they are integration tests, not unit tests.
-- All changes to `src/` services and routes require accompanying tests.
+- All changes to \`apps/server/src/\` services and routes require accompanying tests.
 - Demo/loadtest data uses one canonical synthetic dataset in `scripts/loadtest-data.js` (`seed:demo`).
-- Group creation and instrument-to-group assignment for demo/loadtest live there, not in `src/schema.js`.
+- Group creation and instrument-to-group assignment for demo/loadtest live there, not in `apps/server/src/schema.js`.
 - Migration checkpoints run in this order:
   1. focused tests for touched domain(s),
   2. `npm run lint` + `npm run format:check`,
@@ -83,13 +89,13 @@
 
 Documentation **must stay in sync with code**. When making changes, verify and update these files in the same commit:
 
-- **`docs/API.md`** — update when adding, removing, or modifying endpoints in `src/routes.js`. Check that every route handler has a matching entry.
-- **`docs/DATA_MODEL.md`** — update when changing `src/schema.js`. Field names in the doc must match the actual `CREATE TABLE` statements exactly. Add new tables.
-- **`docs/ARCHITECTURE.md`** — update when adding/removing `src/*.js` modules or `client/*.js` modules. The module lists must match the actual directory contents and the load order in `src/app.js`.
+- **`docs/API.md`** — update when adding, removing, or modifying endpoints in `apps/server/src/routes.js`. Check that every route handler has a matching entry.
+- **`docs/DATA_MODEL.md`** — update when changing `apps/server/src/schema.js`. Field names in the doc must match the actual `CREATE TABLE` statements exactly. Add new tables.
+- **`docs/ARCHITECTURE.md`** — update when adding/removing `apps/server/src/*.js` modules or \`apps/web/src/\*.js\` modules. The module lists must match the actual directory contents and the load order in `apps/server/src/app.js`.
 - **`docs/DB_OPERATIONS.md`** — update when changing backup/reset/doctor scripts, DB path resolution, or fresh-only policy invariants.
 - **`docs/FINANCIAL_SEMANTICS.md`** — update when changing financial calculations in services. Sign conventions, metric formulas, and helper semantics must match the source code exactly.
 
-**Rule**: never trust docs blindly. If in doubt, read the source (`src/schema.js`, `src/routes.js`, `src/app.js`) as the source of truth, then fix the docs to match.
+**Rule**: never trust docs blindly. If in doubt, read the source (`apps/server/src/schema.js`, `apps/server/src/routes.js`, `apps/server/src/app.js`) as the source of truth, then fix the docs to match.
 
 ## Public / Private Boundary
 
@@ -101,7 +107,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 ## DB Operations Policy
 
-- Fresh-only DB policy: schema is created from `src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
+- Fresh-only DB policy: schema is created from `apps/server/src/schema.js`; runtime `ALTER TABLE` migrations are forbidden.
 - Before touching a real DB file, create a backup first with `npm run db:backup`.
 - For schema evolution in test/dev phases, validate with fresh reset (`npm run db:reset`) instead of historical migrations.
 - Restore remains manual and documented; do not add destructive reset endpoints in API/UI.
@@ -121,7 +127,7 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 ## Migration Roadmap (Active)
 
-Current migration phase: **physical domain structure**. Modules are being moved from flat `src/` to `src/domains/<domain>/` and `src/platform/`.
+Current migration phase: **physical domain structure**. Modules are being moved from flat \`apps/server/src/\` to \`apps/server/src/domains/<domain>/\` and \`apps/server/src/platform/\`.
 
 Architecture achieved:
 
@@ -129,13 +135,13 @@ Architecture achieved:
 - Clean layering (routes -> services -> repositories)
 - SQL exclusively in `ctx.repositories.<domain>`
 - Routes split by domain (`route-*.js`)
-- `withTransaction` centralized in `src/platform/db.js`
+- `withTransaction` centralized in `apps/server/src/platform/db.js`
 - TypeScript strict incremental with JSDoc + `types.ts`
 - `AppError` + validators + `sendError` in all routes
 - `api-client.js` typed frontend wrapper
 
 Active migration goals:
 
-- Move modules to `src/domains/<domain>/` by bounded context
+- Move modules to \`apps/server/src/domains/<domain>/\` by bounded context
 - Reduce flat `ctx` aliases, prefer `ctx.services.<domain>` / `ctx.repositories.<domain>`
 - Extract pure helpers from large modules (>450 lines)

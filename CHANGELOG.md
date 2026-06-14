@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.15.0
+
+- feat: include Yahoo ticker (yahoo_symbol) in transactions XLSX export.
+
 ## 3.14.0
 
 - docs: enforce versioned image tag for CasaOS and add push validation rules.

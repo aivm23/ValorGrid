@@ -9,13 +9,17 @@ module.exports = function attach(ctx) {
   function listTransactions() {
     return db
       .prepare(
-        `SELECT id, type, symbol, name, date, market_date AS marketDate, shares,
-                value_eur AS valueEur, price, currency, fx_to_eur AS fxToEur,
-                commission_eur AS commissionEur, cash_flow_eur AS cashFlowEur,
-                color, origin, auto_key AS autoKey, import_batch_id AS importBatchId,
-                external_id AS externalId, raw_hash AS rawHash, created_at AS createdAt
-         FROM transactions
-         ORDER BY date ASC, created_at ASC`,
+        `SELECT t.id, t.type, t.symbol, t.name, t.date, t.market_date AS marketDate,
+                t.shares, t.value_eur AS valueEur, t.price, t.currency,
+                t.fx_to_eur AS fxToEur, t.commission_eur AS commissionEur,
+                t.cash_flow_eur AS cashFlowEur, t.color, t.origin,
+                t.auto_key AS autoKey, t.import_batch_id AS importBatchId,
+                t.external_id AS externalId, t.raw_hash AS rawHash,
+                t.created_at AS createdAt,
+                i.yahoo_symbol AS yahooSymbol
+         FROM transactions t
+         LEFT JOIN instruments i ON t.symbol = i.symbol
+         ORDER BY t.date ASC, t.created_at ASC`,
       )
       .all();
   }

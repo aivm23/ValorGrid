@@ -55,12 +55,12 @@ Instrucciones obligatorias:
    - Ejecuta `npm run verify:publication`. Si detecta datos privados, no hagas push.
    - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` y el tag de `image` sincronizados con la version de `package.json`, y que no usa `:latest`.
    - Verifica sincronización de documentación:
-     - Compara endpoints en `src/routes.js` con `docs/API.md`.
-     - Compara tablas en `src/schema.js` con `docs/DATA_MODEL.md`.
-     - Compara módulos en `src/` y `client/` con `docs/ARCHITECTURE.md`.
+     - Compara endpoints en `apps/server/src/routes.js` con `docs/API.md`.
+     - Compara tablas en `apps/server/src/schema.js` con `docs/DATA_MODEL.md`.
+     - Compara módulos en \`apps/server/src/\` y \`apps/web/src/\` con \`docs/ARCHITECTURE.md\`.
      - Si hay discrepancias, advierte pero no bloquees el commit (solo informa).
 
-- Verifica versión: - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión. - Si falta bump o hay desincronización, advierte antes de continuar. - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` e `image` tag coincidiendo con `package.json`.
+- Verifica versión: - Si hay cambios funcionales en \`apps/server/src/\`, \`apps/web/src/\` o \`index.html\` y \`package.json\` no está entre los archivos modificados, advierte que falta el bump de versión. - Si falta bump o hay desincronización, advierte antes de continuar. - Verifica que \`deploy/docker/compose.casaos.yml\` tiene \`x-casaos.version\` e \`image\` tag coincidiendo con \`package.json\`.
 
 6. Ejecuta el flujo Git cuando sea seguro:
    - git add <archivos>

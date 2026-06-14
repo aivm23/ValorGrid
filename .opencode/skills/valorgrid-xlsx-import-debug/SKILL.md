@@ -16,10 +16,10 @@ Use this skill for Community import work that stays inside the official ValorGri
 
 ## Source Of Truth
 
-- Parser and source registry: `src/domains/data-ingestion/ingestion-parser.js` and `src/domains/data-ingestion/ingestion-profiles.js`.
-- Template generator: `src/domains/data-ingestion/template-generator.js`.
-- Preview and commit behavior: `src/domains/data-ingestion/ingestion-preview.js`, `ingestion-reconcile.js`, `ingestion-service.js`, `ingestion-repository.js`, and `ingestion-sale-rules.js`.
-- UI entrypoint: `index.html` plus the import workflow modules under `client/`.
+- Parser and source registry: `apps/server/src/domains/data-ingestion/ingestion-parser.js` and `apps/server/src/domains/data-ingestion/ingestion-profiles.js`.
+- Template generator: `apps/server/src/domains/data-ingestion/template-generator.js`.
+- Preview and commit behavior: `apps/server/src/domains/data-ingestion/ingestion-preview.js`, `ingestion-reconcile.js`, `ingestion-service.js`, `ingestion-repository.js`, and `ingestion-sale-rules.js`.
+- UI entrypoint: `apps/web/index.html` plus the import workflow modules under `apps/web/src/`.
 - Public documentation: `docs/IMPORT_EXCEL.md`, `docs/API.md`, `docs/DATA_MODEL.md`, and `docs/ARCHITECTURE.md`.
 - Tests: `test/imports.test.js`, plus publication checks in `test/privacy.test.js` and `test/verify-publication.test.js`.
 
@@ -34,7 +34,6 @@ Use this skill for Community import work that stays inside the official ValorGri
 - Required headers, in exact order: `Tipo`, `Fecha`, `Ticker`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR`, `Referencia`.
 - Formulas are rejected.
 - Community row limit: 500 movement rows.
-- Legacy generic sources are rejected with a message that points users to the official template.
 
 ## Financial Semantics
 

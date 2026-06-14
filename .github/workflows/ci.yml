@@ -19,6 +19,7 @@ jobs:
       - run: npm run docs:spellcheck
       - run: node --check apps/server/server.js
       - run: node --check apps/web/src/app.js
+      - run: node --check apps/desktop/main.js
       - run: npm test
       - run: npm run verify:publication
       - run: npm run seed:demo
@@ -36,6 +37,7 @@ jobs:
       - run: npm run docs:spellcheck
       - run: node --check apps/server/server.js
       - run: node --check apps/web/src/app.js
+      - run: node --check apps/desktop/main.js
       - run: npm test
       - run: npm run verify:publication
       - run: npm run seed:demo

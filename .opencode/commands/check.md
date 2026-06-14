@@ -21,14 +21,14 @@ Instrucciones obligatorias:
    - Si detecta datos privados o archivos que no deberían publicarse, detente e informa.
 
 3. Verifica sincronización de documentación:
-   - Compara los endpoints en `src/routes.js` con los documentados en `docs/API.md`.
-   - Compara las tablas en `src/schema.js` con las documentadas en `docs/DATA_MODEL.md`.
-   - Compara los módulos en `src/` y `client/` con los documentados en `docs/ARCHITECTURE.md`.
+   - Compara los endpoints en `apps/server/src/routes.js` con los documentados en `docs/API.md`.
+   - Compara las tablas en `apps/server/src/schema.js` con las documentadas en `docs/DATA_MODEL.md`.
+   - Compara los módulos en \`apps/server/src/\` y \`apps/web/src/\` con los documentados en `docs/ARCHITECTURE.md`.
    - Si hay discrepancias, lista cada una claramente.
 
 4. Verifica versión:
    - Lee `git diff --name-only HEAD~1` o `git diff --cached --name-only` para ver archivos cambiados.
-   - Si hay cambios funcionales en `src/`, `client/` o `index.html` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
+   - Si hay cambios funcionales en \`apps/server/src/\`, \`apps/web/src/\` o \`index.html\` y `package.json` no está entre los archivos modificados, advierte que falta el bump de versión.
    - Verifica que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` e `image: ...:vX.Y.Z` coincidiendo con `package.json`. Si usa `:latest`, advierte error.
 
 5. Verifica estado Git:

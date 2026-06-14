@@ -1,7 +1,3 @@
-/**
- * Tipos de dominio para ValorGrid --- fase 12 incremental.
- * Definiciones puras sin impacto en runtime.
- */
 
 /** Instrumento financiero almacenado en el ledger. */
 export interface Instrument {

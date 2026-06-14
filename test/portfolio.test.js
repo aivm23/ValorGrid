@@ -375,10 +375,10 @@ test('export endpoint returns ledger XLSX in ValorGrid template format', async (
   const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
   assert.deepEqual(rows[0], MOVIMIENTOS_HEADERS);
 
-  const buy = rows.find((row) => row[9] === 'broker-ref-001');
-  const sell = rows.find((row) => row[9] === 'export-xlsx-sell');
-  assert.deepEqual(buy, ['compra', '2026-06-01', 'XLSXEXP', 2, 100, 'USD', 0.9, 180, 1.5, 'broker-ref-001']);
-  assert.deepEqual(sell, ['venta', '2026-06-02', 'XLSXEXP', -1, 100, 'USD', 0.95, 95, 0.5, 'export-xlsx-sell']);
+  const buy = rows.find((row) => row[10] === 'broker-ref-001');
+  const sell = rows.find((row) => row[10] === 'export-xlsx-sell');
+  assert.deepEqual(buy, ['compra', '2026-06-01', 'XLSXEXP', 'XLSXEXP', 2, 100, 'USD', 0.9, 180, 1.5, 'broker-ref-001']);
+  assert.deepEqual(sell, ['venta', '2026-06-02', 'XLSXEXP', 'XLSXEXP', -1, 100, 'USD', 0.95, 95, 0.5, 'export-xlsx-sell']);
 });
 
 test('legacy CSV and JSON export endpoints are no longer available', async () => {
