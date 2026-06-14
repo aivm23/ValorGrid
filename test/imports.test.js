@@ -17,14 +17,21 @@ const {
   registerLifecycle,
 } = require('./integration-helpers');
 const { listImportSources, loadProAdapters, adapterDefinitions } = require('../apps/server/src/domains/data-ingestion/ingestion-profiles');
+const { MOVIMIENTOS_HEADERS } = require('../apps/server/src/domains/data-ingestion/template-generator');
 
 registerLifecycle(test);
 
 async function valorGridWorkbook(rows, sheetName = 'Movimientos') {
+  // Add Yahoo column value (use Ticker value as default yahoo symbol)
+  const enrichedRows = rows.map((row) => {
+    // row: [Tipo, Fecha, Ticker, Acciones, Precio, Divisa, FX, Valor, Comision, Referencia]
+    // Insert Yahoo after Ticker (index 2)
+    return [...row.slice(0, 3), row[2], ...row.slice(3)];
+  });
   return await createWorkbookBase64({
     [sheetName]: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
-      ...rows,
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ...enrichedRows,
     ],
   });
 }
@@ -130,11 +137,11 @@ test('valorgrid-xlsx import API exposes preview, commit, list, detail and rollba
 
 test('valorgrid-xlsx import supports sheet selection and atomic commit', async () => {
   seedTestInstrument({ symbol: 'IMXE', yahooSymbol: 'IMXE', name: 'Import XLSX', type: 'stock', currency: 'EUR' });
-  const contentBase64 = await createWorkbookBase64({
+const contentBase64 = await createWorkbookBase64({
     Instrucciones: [['No importar'], ['foo']],
     Movimientos: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
-      ['compra', '2026-03-01', 'IMXE', 5, 3, 'EUR', 1, 15, 0, 'sheet-import-1'],
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-01', 'IMXE', 'IMXE', 5, 3, 'EUR', 1, 15, 0, 'sheet-import-1'],
     ],
   });
 
@@ -148,8 +155,8 @@ test('valorgrid-xlsx import supports sheet selection and atomic commit', async (
 test('valorgrid-xlsx parser only accepts the Movimientos sheet', async () => {
   const contentBase64 = await createWorkbookBase64({
     Movimientos: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
-      ['compra', '2026-03-02', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'strict-sheet'],
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-02', 'IMXE', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'strict-sheet'],
     ],
     Datos: [['No permitido']],
   });
@@ -165,8 +172,8 @@ test('valorgrid-xlsx parser rejects non-Movimientos sheet selection', async () =
   const contentBase64 = await createWorkbookBase64({
     Instrucciones: [['No importar']],
     Movimientos: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
-      ['compra', '2026-03-02', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'wrong-sheet'],
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-02', 'IMXE', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'wrong-sheet'],
     ],
   });
 
@@ -179,8 +186,8 @@ test('valorgrid-xlsx parser rejects non-Movimientos sheet selection', async () =
 test('valorgrid-xlsx parser rejects formulas', async () => {
   const contentBase64 = await createWorkbookBase64({
     Movimientos: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
-      ['compra', '2026-03-03', 'IMXE', { formula: '1+1', result: 2 }, 3, 'EUR', 1, 6, 0, 'formula-row'],
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia'],
+      ['compra', '2026-03-03', 'IMXE', 'IMXE', { formula: '1+1', result: 2 }, 3, 'EUR', 1, 6, 0, 'formula-row'],
     ],
   });
 
@@ -190,8 +197,8 @@ test('valorgrid-xlsx parser rejects formulas', async () => {
 test('valorgrid-xlsx parser requires exact ValorGrid headers', async () => {
   const contentBase64 = await createWorkbookBase64({
     Movimientos: [
-      ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'constructor'],
-      ['compra', '2026-03-04', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'bad-header'],
+      ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'constructor'],
+      ['compra', '2026-03-04', 'IMXE', 'IMXE', 1, 3, 'EUR', 1, 3, 0, 'bad-header'],
     ],
   });
 
@@ -384,8 +391,8 @@ test('GET /api/import/template.xlsx returns ValorGrid workbook template', async 
   assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   assert.ok(response.headers.get('content-disposition').includes('ValorGrid_Plantilla_Importacion.xlsx'));
   assert.deepEqual(workbook.worksheets.map((sheet) => sheet.name), ['Movimientos', 'Instrucciones', 'Ejemplos']);
-  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
-  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
+  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
 });
 
 test('synthetic S&P500 sample XLSX has correct structure and Movimientos sheet', async () => {
@@ -394,14 +401,14 @@ test('synthetic S&P500 sample XLSX has correct structure and Movimientos sheet',
   const workbook = await readWorkbook(buffer);
 
   assert.ok(workbook.worksheets.some((sheet) => sheet.name === 'Movimientos'));
-  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
   assert.equal(rows.length, 10);
-  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
+  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
 
   const tickers = rows.slice(1).map((row) => String(row[2]).trim().toUpperCase());
   ['AAPL', 'MSFT', 'NVDA', 'KO', 'JNJ', 'XOM'].forEach((ticker) => assert.ok(tickers.includes(ticker), `should include ${ticker}`));
 
-  const allRefs = rows.slice(1).map((row) => String(row[9]).trim());
+  const allRefs = rows.slice(1).map((row) => String(row[10]).trim());
   assert.ok(allRefs.every((ref) => ref.startsWith('sample-sp500-')), 'all references should use sample-sp500- prefix');
 });
 
@@ -502,10 +509,10 @@ test('template download includes Content-Length and Cache-Control headers', asyn
 test('template Movimientos sheet has only headers and no data rows', async () => {
   const response = await request('/api/import/template.xlsx');
   const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
-  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), 10);
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
 
   assert.equal(rows.length, 1, 'Movimientos must have exactly 1 row (headers only)');
-  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
+  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
 });
 
 test('template Instrucciones sheet contains expected instructional content', async () => {
@@ -527,8 +534,8 @@ test('template Ejemplos sheet has valid example data rows', async () => {
   const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
   assert.ok(workbook.worksheets.some((sheet) => sheet.name === 'Ejemplos'));
 
-  const rows = worksheetRows(workbook.getWorksheet('Ejemplos'), 10);
-  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
+  const rows = worksheetRows(workbook.getWorksheet('Ejemplos'), MOVIMIENTOS_HEADERS.length);
+  assert.deepEqual(rows[0], ['Tipo', 'Fecha', 'Ticker', 'Yahoo', 'Acciones', 'Precio', 'Divisa', 'FX a EUR', 'Valor EUR', 'Comision EUR', 'Referencia']);
   assert.equal(rows.length, 5, 'should have 1 header + 4 example rows');
 
   const dataRows = rows.slice(1);
@@ -539,7 +546,7 @@ test('template Ejemplos sheet has valid example data rows', async () => {
   assert.ok(tickers.includes('AAPL'), 'should include AAPL example (empty Valor EUR)');
 
   const aaplRow = dataRows.find((row) => String(row[2]).trim().toUpperCase() === 'AAPL');
-  assert.equal(String(aaplRow[7]).trim(), '', 'AAPL example should have empty Valor EUR to demo auto-compute');
+  assert.equal(String(aaplRow[8]).trim(), '', 'AAPL example should have empty Valor EUR to demo auto-compute');
 });
 
 test('valorgrid-xlsx auto-computes Valor EUR when empty with valid FX for non-EUR', async () => {
