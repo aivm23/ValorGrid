@@ -5,8 +5,6 @@ const typeAliases = {
   remove: new Set(['remove', 'sell', 'venta', 'vender', 'v']),
 };
 
-const LEGACY_GENERIC_SOURCES = new Set(['csv', 'xlsx', 'generic-csv', 'generic-xlsx']);
-
 const adapterDefinitions = {
   'valorgrid-xlsx': {
     parser: 'exceljs',
@@ -109,7 +107,6 @@ module.exports = {
   typeAliases,
   adapterDefinitions,
   profileOverrides,
-  LEGACY_GENERIC_SOURCES,
   listImportSources,
   loadProAdapters,
 };

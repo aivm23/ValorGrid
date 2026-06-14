@@ -17,29 +17,12 @@ Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, 
 La app y los scripts comparten la misma política:
 
 1. `PORTFOLIO_DB_PATH` si está definido.
-2. `portfolio.sqlite` en raíz si existe (compatibilidad legacy).
-3. `data/portfolio.sqlite` para instalaciones fresh.
+2. `local/valorgrid/data/portfolio.sqlite` como ruta canónica.
 
 ## Comandos operativos
 
-```bash
-npm run db:backup
-npm run db:doctor
-npm run db:reset
-```
-
-Compatibilidad:
-
-```bash
-npm run backup
-```
-
-`backup` es alias de `db:backup`. (Comentado en package.json — disponible si se descomenta)
-
-Retencion:
-
 - Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `apps/server/src/platform/config.js`.
-- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `.backups/`.
+- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `local/valorgrid/backups/`.
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
 
@@ -67,13 +50,13 @@ No existe endpoint HTTP para reset por diseño.
 
 Rutas estándar:
 
-- DB activa en contenedor: `/data/portfolio.sqlite`
-- Backups en contenedor: `/app/.backups`
+- DB activa en contenedor: `/local/valorgrid/data/portfolio.sqlite`
+- Backups en contenedor: `/local/valorgrid/backups/`
 
 Volúmenes recomendados:
 
-- `./data:/data`
-- `./backups:/app/.backups`
+- `./local/valorgrid/data:/local/valorgrid/data`
+- `./local/valorgrid/backups:/local/valorgrid/backups`
 
 Checklist upgrade:
 

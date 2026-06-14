@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.14.0
+
+- docs: enforce versioned image tag for CasaOS and add push validation rules.
+
 ## 3.13.0
 
 - fix: restore collapsible behavior in pro-preferences for community edition.

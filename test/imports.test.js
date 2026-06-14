@@ -251,15 +251,20 @@ test('valorgrid-xlsx type inference from share sign works', async () => {
   assert.equal(preview.rows[1].normalized.type, 'remove');
 });
 
-test('legacy generic sources are rejected with clear message', async () => {
+test('adapterDefinitions community only contains valorgrid-xlsx; unknown sources fail with standard error', async () => {
+  const communityKeys = Object.entries(adapterDefinitions)
+    .filter(([, def]) => def.edition === 'community')
+    .map(([key]) => key);
+  assert.deepStrictEqual(communityKeys, ['valorgrid-xlsx']);
+
   await assert.rejects(
     () => previewImport({ source: 'generic-csv', content: 'type,symbol,date,shares,price\nadd,IMPA,2026-01-01,1,1' }),
-    /plantilla Excel de ValorGrid/,
+    /Origen de importacion no soportado/,
   );
   const contentBase64 = await valorGridWorkbook([['compra', '2026-01-01', 'IMPA', 1, 1, 'EUR', 1, 1, 0, 'legacy']]);
   await assert.rejects(
     () => previewImport({ source: 'generic-xlsx', contentBase64 }),
-    /plantilla Excel de ValorGrid/,
+    /Origen de importacion no soportado/,
   );
 
   const api = await jsonRequest('/api/import/preview', {
@@ -268,7 +273,7 @@ test('legacy generic sources are rejected with clear message', async () => {
     body: JSON.stringify({ source: 'generic-csv', filename: 'legacy.csv', content: 'a,b\n1,2' }),
   });
   assert.equal(api.response.status, 400);
-  assert.match(api.body.error, /plantilla Excel de ValorGrid/);
+  assert.match(api.body.error, /Origen de importacion no soportado/);
 });
 
 test('professional csv adapters load from index.cjs folders and use canonical rows', async () => {

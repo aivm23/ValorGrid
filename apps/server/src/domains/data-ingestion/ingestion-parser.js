@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const ExcelJS = require('exceljs');
-const { typeAliases, adapterDefinitions, profileOverrides, LEGACY_GENERIC_SOURCES } = require('./ingestion-profiles');
+const { typeAliases, adapterDefinitions, profileOverrides } = require('./ingestion-profiles');
 const { MOVIMIENTOS_HEADERS } = require('./template-generator');
 
 const MAX_XLSX_BYTES = 2 * 1024 * 1024;
@@ -169,9 +169,6 @@ function normalizeType(value) {
 
 function resolveAdapter(sourceInput = 'valorgrid-xlsx') {
   const source = String(sourceInput || 'valorgrid-xlsx').trim().toLowerCase();
-  if (LEGACY_GENERIC_SOURCES.has(source)) {
-    throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx). Descarga la plantilla en /api/import/template.xlsx');
-  }
   const adapter = adapterDefinitions[source];
   if (!adapter) throw new Error(`Origen de importacion no soportado: ${sourceInput}`);
   return { source, ...adapter };

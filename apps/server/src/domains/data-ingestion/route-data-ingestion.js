@@ -1,5 +1,5 @@
 const { resolveRouteHandlers } = require('../../route-service-bindings');
-const { LEGACY_GENERIC_SOURCES, listImportSources } = require('./ingestion-profiles');
+const { listImportSources } = require('./ingestion-profiles');
 
 function sendError(response, sendJson, error) {
   const statusCode = error.statusCode || 400;
@@ -8,17 +8,6 @@ function sendError(response, sendJson, error) {
 
 const TEMPLATE_FILENAME = 'ValorGrid_Plantilla_Importacion.xlsx';
 const TEMPLATE_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
-function rejectLegacySource(sendJson, response, body) {
-  const source = String(body?.source || '').trim().toLowerCase();
-  if (LEGACY_GENERIC_SOURCES.has(source)) {
-    sendJson(response, 400, {
-      error: 'Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx). Descárgala en GET /api/import/template.xlsx',
-    });
-    return true;
-  }
-  return false;
-}
 
 module.exports = async function handleImportRoutes(ctx, request, response, url) {
   const {
@@ -61,7 +50,6 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
   if (url.pathname === '/api/import/preview' && request.method === 'POST') {
     try {
       const body = await readJsonBody(request);
-      if (rejectLegacySource(sendJson, response, body)) return true;
       sendJson(response, 200, { preview: await previewImport(body) });
     } catch (error) {
       sendError(response, sendJson, error);
@@ -81,7 +69,6 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
   if (url.pathname === '/api/import/commit' && request.method === 'POST') {
     try {
       const body = await readJsonBody(request);
-      if (rejectLegacySource(sendJson, response, body)) return true;
       let riskBackup = null;
       try {
         riskBackup = createRiskBackup({ reason: 'before-import-commit', metadata: { filename: body.filename || 'unknown' } });

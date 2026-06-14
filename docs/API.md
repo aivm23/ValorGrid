@@ -134,7 +134,7 @@ GET /api/portfolio/history?range=all&granularity=weekly
 
 - `summary`: distribución actual, grupos e instrumentos.
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
-- `monthly`: revisión YTD por meses y grupos.
+- `monthly`: revisión YTD por meses y grupos. La respuesta devuelve `months` (array con insight por mes: `month`, `label`, `total`, `transactions`, `cells`) y `summary` (métricas agregadas: `currentValue`, `netContributed`, `resultYtd`, `valueStart`, `contributions`, `withdrawals`, `commissions`, `completedMonths`, `latestMonth`, `activeGroups`) como contratos canónicos.
 - `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).
 - Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.
 
@@ -155,7 +155,7 @@ GET /api/backups/:file
 DELETE /api/backups/:file
 ```
 
-Los backups se guardan en `.backups/` y no deben versionarse.
+Los backups se guardan en `local/valorgrid/backups/` y no deben versionarse.
 
 - `GET /api/backups` — lista todos los backups disponibles.
 - `POST /api/backups` — crea un nuevo backup de la base de datos activa.
