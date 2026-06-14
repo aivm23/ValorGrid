@@ -93,8 +93,17 @@ console.log(` backup: ${backupDir}`);
 console.log(` dry-run: ${dryRun}`);
 console.log(`${'='.repeat(45)}\n`);
 
+// Helper: pregunta interactiva (solo funciona con TTY real)
+function awaitQuestion(rl, prompt) {
+  return new Promise((resolve) => rl.question(prompt, resolve));
+}
+
 // ── 4. Confirmación ────────────────────────────────────────────────────────
 if (!autoYes && !dryRun) {
+  if (!process.stdin.isTTY) {
+    console.log(`${LABEL.fail} No hay terminal interactiva. Usa --yes para omitir la confirmación.`);
+    process.exit(1);
+  }
   const readline = require('node:readline');
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const answer = awaitQuestion(rl, '¿Ejecutar migración contra la DB activa? (s/N): ');
@@ -102,10 +111,6 @@ if (!autoYes && !dryRun) {
     console.log(`${LABEL.warn} Cancelado por el usuario.`);
     process.exit(0);
   }
-}
-
-function awaitQuestion(rl, prompt) {
-  return new Promise((resolve) => rl.question(prompt, resolve));
 }
 
 // ── 5. Backup ──────────────────────────────────────────────────────────────
