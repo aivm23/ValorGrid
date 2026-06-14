@@ -99,7 +99,7 @@ Consecuencia directa:
 - `Distribucion actual`:
   - `buildSummary().total` suma solo las posiciones con `showInDistribution = true` y `value >= minimumDisplayValueEur`.
   - Los grupos y posiciones ocultos no entran en ese total visible.
-- `Historico`:
+- `Histórico`:
   - La serie materializa la cartera activa sobre el tiempo y no aplica `showInDistribution`.
   - Por eso puede incluir instrumentos que hoy estan ocultos en la distribucion actual.
 - Consecuencia:

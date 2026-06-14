@@ -39,7 +39,7 @@ export function attach(ctx) {
     container.innerHTML = `
       <div class="pro-preference-group">
         <div class="admin-card-head">
-          <h3>Historico</h3>
+          <h3>Histórico</h3>
         </div>
         <div class="history-filter-main">
           <label class="field preference-field">

@@ -162,8 +162,8 @@ export function attach(ctx) {
   function renderHistory() {
     const history = state.history;
     if (!history || history.range !== state.historyRange || !history.series?.length) {
-      elements.historyChart.innerHTML = '<div class="history-empty">Sin datos historicos suficientes.</div>';
-      elements.historyStatus.textContent = 'Historico pendiente';
+      elements.historyChart.innerHTML = '<div class="history-empty">Sin datos históricos suficientes.</div>';
+      elements.historyStatus.textContent = 'Histórico pendiente';
       elements.historyGranularity.textContent = '';
       return;
     }

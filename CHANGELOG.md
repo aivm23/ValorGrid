@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.1
+
+- fix: correct Spanish spelling of "histórico" across UI and docs.
+
 ## 3.16.0
 
 - feat: add `crypto` as a first-class instrument type.
