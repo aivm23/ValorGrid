@@ -271,6 +271,7 @@ Módulos principales:
 - `forms.js`: helpers de formularios.
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
+- `app.js`: orquestador del frontend que crea `ctx`, registra módulos en orden fijo con `attach(ctx)` e inicializa tema, privacidad y render inicial.
 - `styles.css`: única hoja de estilos, cargada desde `index.html`. Contiene todos los estilos visuales de la aplicación (temas claro/oscuro, modales, tablas, botones, animaciones, scrollbar, responsive).
 
 Los módulos de frontend ya no usan loaders dinámicos con `new Function`; cada uno exporta `attach(ctx)` y registra su API con `Object.assign(ctx, { ... })`.
@@ -360,5 +361,3 @@ La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS ex
 - o reverse proxy con HTTPS y `VALORGRID_AUTH_PASSWORD`.
 
 No debe exponerse directamente a Internet sin HTTPS y autenticación.
-+-- deploy/
-+-- sql/ (SQL versionados: deploy/sql/update-X-to-Y.sql)

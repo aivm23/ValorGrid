@@ -9,7 +9,7 @@ Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, 
 - Si cambia el schema durante esta fase, se valida con reset fresh en dev/test.
 - Esta política se verifica en dos niveles:
   - `test/db-operations.test.js`: escanea `apps/server/src/` y `scripts/` buscando `ALTER TABLE ... ADD|RENAME|DROP|ALTER`.
-  - `scripts/verify-publication.ps1`: repite el escaneo como gate pre-push.
+  - `scripts/verify-publication.js`: repite el escaneo como gate pre-push.
 - **Invariante**: antes de tocar una DB real, ejecutar `npm run db:backup`. El comando `npm run db:reset` lo hace automáticamente si la DB existe.
 
 ## Resolución de ruta activa
@@ -46,17 +46,19 @@ La app y los scripts comparten la misma política:
 
 No existe endpoint HTTP para reset por diseño.
 
-## Docker y CasaOS
+## Docker (desarrollo local)
 
-Rutas estándar:
+Rutas estándar (desarrollo local):
 
 - DB activa en contenedor: `/local/valorgrid/data/portfolio.sqlite`
 - Backups en contenedor: `/local/valorgrid/backups/`
 
-Volúmenes recomendados:
+Volúmenes recomendados (desarrollo local):
 
 - `./local/valorgrid/data:/local/valorgrid/data`
 - `./local/valorgrid/backups:/local/valorgrid/backups`
+
+Para despliegue CasaOS, las rutas reales se definen en `deploy/docker/compose.casaos.yml` (DB: `/data/portfolio.sqlite`, backups: `/app/.backups`).
 
 Checklist upgrade:
 
@@ -85,6 +87,7 @@ Hay dos versiones del script, una para cada entorno:
 
 ```
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.15.0-to-3.16.0.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.16.0-to-3.17.0.sql
 ```
 
 **Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
@@ -92,12 +95,15 @@ Hay dos versiones del script, una para cada entorno:
 ```
 # Local
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
 
 # Docker (ejecutar dentro del contenedor)
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
 
 # Con opciones explícitas
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.16.0-to-3.17.0.sql --db /data/portfolio.sqlite
 ```
 
 **Parámetros del script PowerShell (`run-sql-migration.ps1`):**

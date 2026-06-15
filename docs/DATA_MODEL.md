@@ -38,7 +38,7 @@ Campos principales:
 - `base_shares`
 - `fallback_price`: precio de respaldo cuando no hay datos de mercado (REAL, default 0).
 - `active`
-- `group_id`
+- `group_id`: puede ser `NULL` cuando los grupos están deshabilitados.
 - `display_order`: orden de visualización (INTEGER, default 0).
 - `show_in_distribution`: controla si aparece en la distribucion del dashboard (INTEGER, default 1).
 - `show_in_monthly`: controla si aparece en la revisión YTD por grupos (INTEGER, default 1).
@@ -169,7 +169,7 @@ Representa filas de un lote.
 Campos principales:
 
 - `id`: clave primaria (TEXT).
-- `batch_id`
+- `batch_id`: foreign key a `import_batches(id)` con `ON DELETE CASCADE`
 - `row_index`
 - `raw_json`
 - `normalized_json`
@@ -313,11 +313,17 @@ Almacena claves de versión interna para invalidación de cachés y preferencias
 
 Campos:
 
-- `key`: identificador (ej. `ledger_version`, `price_version`, `ui_preferences`).
+- `key`: identificador (ej. `ledger_version`, `price_version`, `ui_preferences`, `instr_groups_enabled`).
 - `value`: valor numérico como texto, o JSON serializado para preferencias (`ui_preferences`).
 - `updated_at`
 
 Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico. La clave `ui_preferences` almacena un JSON con `operationsMetricIds` (array de 6 IDs de métricas de Operativa para personalizar las tarjetas de performance) y `historyEventFilters` (objeto con `mode`, `assetTypes` y `transactionTypes` para filtrar marcadores de movimientos en el gráfico Histórico).
+
+La clave `instr_groups_enabled` controla si los grupos de instrumentos están activos:
+
+- Valor `'1'`: grupos habilitados (valor por defecto).
+- Valor `'0'`: grupos deshabilitados.
+- Si la clave no existe, la aplicación se comporta como si estuviera habilitado (`'1'`).
 
 ## Precios y FX (detalle)
 

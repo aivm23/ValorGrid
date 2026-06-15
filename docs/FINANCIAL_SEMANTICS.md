@@ -5,10 +5,10 @@ No cambia endpoints ni payloads; solo define como interpretar campos y signos.
 
 Fuentes de verdad actuales:
 
-- `src/domains/transactions/transaction-service.js` (`buildLedgerAnalytics`, `buildPortfolioPerformance`, `previewTransaction`, `getPositionShares`)
-- `src/domains/portfolio/portfolio-service.js` (`buildMonthly`, `buildSummary`, `summarizeTransactions`, `withPercentages`, `isEffectiveValuation`, `buildOnboardingStatus`)
-- `src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
-- `src/app.js` (`minimumDisplayValueEur`)
+- `apps/server/src/domains/transactions/transaction-service.js` (`buildLedgerAnalytics`, `buildPortfolioPerformance`, `previewTransaction`, `getPositionShares`)
+- `apps/server/src/domains/portfolio/portfolio-service.js` (`buildMonthly`, `buildSummary`, `summarizeTransactions`, `withPercentages`, `isEffectiveValuation`, `buildOnboardingStatus`)
+- `apps/server/src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
+- `apps/server/src/app.js` (`minimumDisplayValueEur`)
 
 ## Convencion de signos base
 
@@ -113,7 +113,7 @@ Numero total de transacciones en el ledger. Fuente: `getTransactions().length`.
 
 ### `pct` (porcentaje de distribucion)
 
-`(value / total) * 100`. Calculado por `withPercentages` en `src/domains/portfolio/portfolio-service.js:200`. Se aplica a posiciones individuales dentro de un grupo o cartera.
+`(value / total) * 100`. Calculado por `withPercentages` en `apps/server/src/domains/portfolio/portfolio-service.js:200`. Se aplica a posiciones individuales dentro de un grupo o cartera.
 
 ### `variation` (delta mensual)
 
@@ -151,7 +151,7 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 ### `minimumDisplayValueEur`
 
-Umbral de visibilidad: `0.01` EUR. Definido en `src/app.js`. Las posiciones con valor inferior no se muestran en distribucion ni monthly.
+Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las posiciones con valor inferior no se muestran en distribucion ni monthly.
 
 ## Notas sobre crypto
 
@@ -183,5 +183,10 @@ Calcula la vista previa de una operación sin persistirla:
 
 Determina si el wizard de configuración inicial está completo:
 
-- `setupComplete = true` si `instruments > 0 AND transactions > 0 AND groups > 0`.
+- `setupComplete = true` si `instruments > 0 AND transactions > 0`.
+- Si los grupos están habilitados (`useGroup` flag), se requiere además `groups > 0`.
 - Fuente: portfolio-service, se expone en `/api/onboarding/status` y dentro de `buildSummary().onboarding`.
+
+## Agregación de cartera
+
+La cartera puede agregarse por grupos de instrumentos (cuando están habilitados) o directamente por instrumentos. Cuando los grupos están deshabilitados, todas las posiciones se agrupan bajo un único grupo sintético "Sin grupo" y la distribución se muestra plana.

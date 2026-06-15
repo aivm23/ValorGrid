@@ -42,7 +42,7 @@ No. Community importa la plantilla Excel oficial de ValorGrid. Los conectores av
 
 ## ¿Dónde Se Guardan Los Backups?
 
-En la versión Windows, en la zona privada de datos de la aplicación. En desarrollo local, en `.backups/`. En Docker, en el volumen montado para backups.
+En la versión Windows, en la zona privada de datos de la aplicación. En desarrollo local, en `local/valorgrid/backups/`. En Docker, en el volumen montado para backups.
 
 ## ¿Puedo Restaurar Una Versión Anterior?
 

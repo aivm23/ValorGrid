@@ -13,15 +13,15 @@ Inventario completo de tooling AI, comandos, skills y responsabilidades en Valor
 
 ## 2. Inventario de Skills
 
-| Skill                         | Propósito                                                  | Files que cubre                                                                                                              |
-| ----------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `valorgrid-ctx-pattern`       | Trabajar con la arquitectura de módulos `ctx` de ValorGrid | `src/app.js`, `test/architecture.test.js`, `AGENTS.md`, `client/app.js`, `src/route-service-bindings.js`, `src/domains/**/*` |
-| `valorgrid-xlsx-import-debug` | Debug y mantenimiento de importaciones Excel oficiales     | `src/domains/data-ingestion/*.js`, `index.html`, `client/`, `docs/IMPORT_EXCEL.md`, `test/imports.test.js`                   |
-| `documentation-auditor`       | Auditar y podar documentación contra código fuente         | `docs/**/*.md`, `src/schema.js`, `src/routes.js`, `src/app.js`                                                               |
-| `bash-defensive-patterns`     | Patrones defensivos Bash para scripts de producción        | `scripts/*.sh`, `.github/workflows/*.yml`                                                                                    |
-| `frontend-design`             | Crear interfaces frontend de alta calidad                  | `client/`, `index.html`, `apps/web/**/*`                                                                                     |
-| `customize-opencode`          | Editar configuración de opencode                           | `.opencode/**`, `opencode.json`, `~/.config/opencode/**`                                                                     |
-| `find-skills`                 | Descubrir e instalar skills                                | N/A (skill discovery)                                                                                                        |
+| Skill                         | Propósito                                                  | Files que cubre                                                                                                                                                        |
+| ----------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `valorgrid-ctx-pattern`       | Trabajar con la arquitectura de módulos `ctx` de ValorGrid | `apps/server/src/app.js`, `test/architecture.test.js`, `AGENTS.md`, `apps/web/src/app.js`, `apps/server/src/route-service-bindings.js`, `apps/server/src/domains/**/*` |
+| `valorgrid-xlsx-import-debug` | Debug y mantenimiento de importaciones Excel oficiales     | `apps/server/src/domains/data-ingestion/*.js`, `index.html`, `apps/web/src/`, `docs/IMPORT_EXCEL.md`, `test/imports.test.js`                                           |
+| `documentation-auditor`       | Auditar y podar documentación contra código fuente         | `docs/**/*.md`, `apps/server/src/schema.js`, `apps/server/src/routes.js`, `apps/server/src/app.js`                                                                     |
+| `bash-defensive-patterns`     | Patrones defensivos Bash para scripts de producción        | `scripts/*.sh`, `.github/workflows/*.yml`                                                                                                                              |
+| `frontend-design`             | Crear interfaces frontend de alta calidad                  | `apps/web/src/`, `index.html`, `apps/web/**/*`                                                                                                                         |
+| `customize-opencode`          | Editar configuración de opencode                           | `.opencode/**`, `opencode.json`, `~/.config/opencode/**`                                                                                                               |
+| `find-skills`                 | Descubrir e instalar skills                                | N/A (skill discovery)                                                                                                                                                  |
 
 ## 3. Scripts Automatizados
 
@@ -37,16 +37,15 @@ No hay scripts en `scripts/audit/` actualmente. Los siguientes comandos npm simu
 ```json
 {
   "audit:ai": "node scripts/audit/check-ai-surface.js",
-  "audit:docs": "node scripts/audit/check-doc-sync.js",
   "audit:packages": "node scripts/audit/check-package-boundaries.js",
   "audit:artifacts": "node scripts/audit/check-large-local-artifacts.js",
   "audit:deps": "node scripts/audit/check-dependency-policy.js && npm audit",
   "audit:release": "npm run check && npm run verify:publication && node scripts/audit/check-release-surface.js",
-  "audit:local": "npm run audit:ai && npm run audit:packages && npm run audit:docs && npm run audit:artifacts"
+  "audit:local": "npm run audit:ai && npm run audit:packages && npm run audit:artifacts"
 }
 ```
 
-Los scripts de `scripts/audit/` están planificados pero aún no implementados.
+`audit:docs` (node scripts/audit/check-doc-sync.js) está planificado pero aún no implementado.
 
 ## 5. Flujos de Trabajo
 
@@ -87,9 +86,9 @@ Ejecutar `/audit-imports` para verificar:
 
 Ejecutar `/audit-docs` para verificar:
 
-- Endpoints en `src/routes.js` vs `docs/API.md`
-- Tablas en `src/schema.js` vs `docs/DATA_MODEL.md`
-- Módulos en `src/` y `client/` vs `docs/ARCHITECTURE.md`
+- Endpoints en `apps/server/src/routes.js` vs `docs/API.md`
+- Tablas en `apps/server/src/schema.js` vs `docs/DATA_MODEL.md`
+- Módulos en `apps/server/src/` y `apps/web/src/` vs `docs/ARCHITECTURE.md`
 
 ## 6. Responsabilidades
 

@@ -25,16 +25,7 @@ module.exports = function attach(ctx) {
   }
 
   function setMetaValueByKey(key, value) {
-    if (metaRepo.setMetaValueByKey) {
-      return metaRepo.setMetaValueByKey(key, value);
-    }
-    const { db } = ctx;
-    const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
-    db.prepare(
-      `INSERT INTO app_meta (key, value, updated_at)
-       VALUES (?, ?, CURRENT_TIMESTAMP)
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
-    ).run(key, stringValue);
+    return metaRepo.setMetaValueByKey(key, value);
   }
 
   function parseUiPreferences() {

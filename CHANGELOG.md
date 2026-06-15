@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.16.2
+
+- docs: add `app.js` to frontend module list in ARCHITECTURE.md; remove orphan artifact.
+- docs: add `backup-delete.test.js` to TESTING.md.
+- docs: fix stale `client/` references → `apps/web/src/` and path prefixes in AI_TOOLING.md.
+- docs: fix backup path in FAQ.md (`.backups/` → `local/valorgrid/backups/`).
+- docs: fix CasaOS `latest` → versioned tag in ROADMAP.md.
+- docs: fix `verify-publication.ps1` → `.js` and section title in DB_OPERATIONS.md.
+- docs: fix path prefixes in FINANCIAL_SEMANTICS.md (`src/` → `apps/server/src/`).
+- docs: document FK constraint on `import_rows.batch_id` in DATA_MODEL.md.
+- refactor: remove dead SQL fallback branch in `ui-preferences-service.js`.
+
+## 3.17.0
+
+- feat: make instrument groups optional via "Usar grupos de valores" toggle in Valores.
+- feat: add `PUT /api/instrument-groups/settings` endpoint to enable/disable groups.
+- feat: when groups are disabled, dashboard shows instruments directly without group aggregation.
+- feat: when groups are disabled, imports create instruments without group assignment.
+- feat: wizard supports `useGroup` flag — group creation is now optional.
+- feat: when groups are reactivated, ungrouped instruments are auto-assigned to `grupo-cero`.
+- feat: add `groupsEnabled` field to `/api/portfolio/summary` and `/api/onboarding/status`.
+- feat: add `deploy/sql/update-3.16.0-to-3.17.0.sql` to persist the setting in `app_meta`.
+- test: add 12 integration tests for instrument groups settings.
+- docs: update API.md, DATA_MODEL.md, FINANCIAL_SEMANTICS.md, DB_OPERATIONS.md, TESTING.md.
+
 ## 3.16.1
 
 - fix: correct Spanish spelling of "histórico" across UI and docs.
