@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.17.0
+
+- feat: add automatic corporate brand palette for groups and instruments (cyan-to-violet bisection).
+- feat: add `PUT /api/instruments/brand-palette` endpoint with snapshot/restore of manual colors.
+- feat: block color inputs when brand palette is active; restore previous colors on deactivation.
+- feat: add brand palette preview and toggle to Valores dialog with live UI locking.
+- feat: adapt pro-preferences panel behavior per edition (Community vs PRO).
+- fix: add TTY check to migration script so --yes is required in non-interactive environments (Docker, CI).
+- fix: correct Spanish spelling of histórico across UI and docs.
+- feat: add crypto as first-class instrument type with versioned SQL migration.
+- feat: add AI tooling, audit commands, scripts, and CI improvements.
+- feat: include Yahoo ticker in transactions XLSX export and fix purchase modal validation.
+- chore: sync casaos compose version to v3.14.0.
+- refactor: remove legacy compatibility code, paths, and fallbacks.
+- docs: enforce versioned image tag for CasaOS and add push validation rules.
+- fix: electron-builder entry point and paths relative to repo root.
+- fix: use electron-builder macros as plain string in artifactName.
+- fix: update verify-publication.ps1 casaos compose path.
+
 ## 3.16.2
 
 - feat: adapt pro-preferences panel behavior per edition (Community shows closed card with locked controls; PRO shows fixed editable panel).

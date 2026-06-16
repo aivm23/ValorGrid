@@ -44,6 +44,7 @@ export function attach(ctx) {
     negativeRed: true,
     dateFormat: 'dd/mm/yyyy',
     weekStart: 'monday',
+    brandPaletteEnabled: false,
     instrumentPositionFilter: 'all',
     instrumentFilters: {
       symbol: '',

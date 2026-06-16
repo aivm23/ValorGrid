@@ -43,6 +43,10 @@ export function attach(ctx) {
       state.importBatches = importData.batches || [];
       state.autoPlans = summary.autoPlans || state.autoPlans;
 
+      state.brandPaletteEnabled =
+        instrumentData.brandPaletteEnabled === true ||
+        groupData.brandPaletteEnabled === true;
+
       try {
         const prefs = await ctx.fetchJson('/api/preferences/ui');
         state.uiPreferences = prefs.preferences || state.uiPreferences;
@@ -98,6 +102,7 @@ export function attach(ctx) {
     ctx.renderHistoryPreferenceControls?.();
 
     ctx.syncProPreferencesPanel?.();
+    ctx.syncBrandPaletteUi?.();
   }
 
   async function refreshHistory(options = {}) {

@@ -5131,3 +5131,27 @@ td:last-child {
 :root[data-theme="dark"] .modal-panel::-webkit-scrollbar-thumb:hover {
   background: #3a4a6c;
 }
+
+.brand-palette-preview {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.brand-palette-preview span {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--palette-color);
+  border: 1px solid color-mix(in srgb, var(--palette-color) 50%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--palette-color) 14%, transparent);
+}
+
+.brand-palette-locked input[type='color']:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.brand-palette-locked .instrument-color {
+  filter: saturate(1.08);
+}

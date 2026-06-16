@@ -1,31 +1,11 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
+const { brandPaletteColor } = require('../../shared/brand-palette');
+const { attachBrandPalette } = require('./instrument-brand-palette');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(
-    ctx,
-    [
-      'repositories',
-      'normalizeSymbol',
-      'stockColors',
-      'ensureGroup',
-      'groupIdFromName',
-      'invalidatePrices',
-      'invalidateLedger',
-      'getToday',
-    ],
-    'instrument-service',
-  );
+  assertCtxDeps(ctx, ['repositories', 'normalizeSymbol', 'stockColors', 'ensureGroup', 'groupIdFromName', 'invalidatePrices', 'invalidateLedger', 'getToday'], 'instrument-service');
 
-  const {
-    repositories,
-    normalizeSymbol,
-    stockColors,
-    ensureGroup,
-    groupIdFromName,
-    invalidatePrices,
-    invalidateLedger,
-    getToday,
-  } = ctx;
+  const { repositories, normalizeSymbol, stockColors, ensureGroup, groupIdFromName, invalidatePrices, invalidateLedger, getToday } = ctx;
 
   const instrumentRepository = repositories.instruments;
   if (!instrumentRepository) {
@@ -60,6 +40,8 @@ module.exports = function attach(ctx) {
     countStockInstruments,
     countActiveInstruments,
   } = instrumentRepository;
+
+  const brandPalette = attachBrandPalette(ctx);
 
   function getInstrument(symbol) {
     return findInstrumentBySymbol(normalizeSymbol(symbol));
@@ -157,12 +139,14 @@ module.exports = function attach(ctx) {
     const existing = getInstrument(symbol);
     if (!existing) throw new Error('Instrument not found');
 
+    const paletteEnabled = brandPalette.isBrandPaletteEnabled();
+
     const next = {
       yahooSymbol: String(input.yahooSymbol ?? input.yahoo_symbol ?? existing.yahoo_symbol).trim(),
       name: String(input.name ?? existing.name).trim(),
       type: String(input.type ?? existing.type).trim().toLowerCase(),
       currency: String(input.currency ?? existing.currency).trim().toUpperCase(),
-      color: String(input.color ?? existing.color).trim(),
+      color: paletteEnabled ? existing.color : String(input.color ?? existing.color).trim(),
       fallbackPrice: Number(input.fallbackPrice ?? input.fallback_price ?? existing.fallback_price),
       groupId: input.groupId === undefined ? existing.group_id : String(input.groupId || '').trim() || null,
       displayOrder: Number(input.displayOrder ?? input.display_order ?? existing.display_order ?? 0),
@@ -292,7 +276,15 @@ module.exports = function attach(ctx) {
     const name = String(input.name || symbol).trim();
     const type = String(input.type || 'stock').trim().toLowerCase();
     const currency = String(input.currency || 'EUR').trim().toUpperCase();
-    const color = String(input.color || stockColors[listInstruments().length % stockColors.length]).trim();
+
+    const paletteEnabled = brandPalette.isBrandPaletteEnabled();
+    let color;
+    if (paletteEnabled) {
+      color = brandPaletteColor(countActiveInstruments());
+    } else {
+      color = String(input.color || stockColors[listInstruments().length % stockColors.length]).trim();
+    }
+
     const groupId = String(input.groupId || input.group_id || ensureGeneralGroup().id).trim();
     const fallbackPrice = Number(input.fallbackPrice || input.fallback_price || 0);
     if (!['etf', 'stock', 'crypto', 'fx'].includes(type)) throw new Error('Invalid instrument type');
@@ -328,6 +320,11 @@ module.exports = function attach(ctx) {
       currency,
     });
     invalidatePrices(getToday(), 'instrument-create');
+
+    if (paletteEnabled) {
+      brandPalette.applyBrandPaletteToInstruments();
+    }
+
     return listInstruments().find((item) => item.symbol === symbol);
   }
 
@@ -342,7 +339,15 @@ module.exports = function attach(ctx) {
     if (!name) throw new Error('Group name is required');
     const id = String(input.id || groupIdFromName(name)).trim();
     if (groupExists(id)) throw new Error('Group already exists');
-    const color = String(input.color || stockColors[listInstrumentGroups().length % stockColors.length]).trim();
+
+    const paletteEnabled = brandPalette.isBrandPaletteEnabled();
+    let color;
+    if (paletteEnabled) {
+      color = brandPaletteColor(listActiveInstrumentGroups().length);
+    } else {
+      color = String(input.color || stockColors[listInstrumentGroups().length % stockColors.length]).trim();
+    }
+
     if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Color must be a hex value');
     ensureGroup(id, name, color, {
       displayOrder: Number(input.displayOrder ?? listInstrumentGroups().length + 1),
@@ -351,15 +356,23 @@ module.exports = function attach(ctx) {
       isExpandable: Boolean(input.isExpandable),
     });
     invalidateLedger(getToday(), 'group-create');
+
+    if (paletteEnabled) {
+      brandPalette.applyBrandPaletteToGroups();
+    }
+
     return listInstrumentGroups().find((item) => item.id === id);
   }
 
   function updateInstrumentGroup(id, input = {}) {
     const existing = findGroupById(String(id));
     if (!existing) throw new Error('Instrument group not found');
+
+    const paletteEnabled = brandPalette.isBrandPaletteEnabled();
+
     const next = {
       name: String(input.name ?? existing.name).trim(),
-      color: String(input.color ?? existing.color).trim(),
+      color: paletteEnabled ? existing.color : String(input.color ?? existing.color).trim(),
       displayOrder: Number(input.displayOrder ?? input.display_order ?? existing.display_order),
       showInDistribution:
         input.showInDistribution === undefined ? Number(existing.show_in_distribution) : input.showInDistribution ? 1 : 0,
@@ -458,5 +471,15 @@ module.exports = function attach(ctx) {
     deleteInstrumentGroup,
     deleteInstrumentGroups,
     ensureInstrument,
+    isBrandPaletteEnabled: brandPalette.isBrandPaletteEnabled,
+    setBrandPaletteEnabled: brandPalette.setBrandPaletteEnabled,
+    applyBrandPalette: brandPalette.applyBrandPalette,
+    applyBrandPaletteToGroups: brandPalette.applyBrandPaletteToGroups,
+    applyBrandPaletteToInstruments: brandPalette.applyBrandPaletteToInstruments,
+    buildBrandPaletteColorSnapshot: brandPalette.buildBrandPaletteColorSnapshot,
+    getBrandPaletteColorSnapshot: brandPalette.getBrandPaletteColorSnapshot,
+    saveBrandPaletteColorSnapshot: brandPalette.saveBrandPaletteColorSnapshot,
+    clearBrandPaletteColorSnapshot: brandPalette.clearBrandPaletteColorSnapshot,
+    restoreBrandPaletteColorSnapshot: brandPalette.restoreBrandPaletteColorSnapshot,
   });
 };

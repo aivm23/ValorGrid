@@ -40,6 +40,7 @@ export function attach(ctx) {
   elements.autoCalendar.addEventListener('click', ctx.openAutoDialog);
   elements.instrumentManager.addEventListener('click', () => {
     ctx.renderInstruments();
+    ctx.syncBrandPaletteUi?.();
     elements.instrumentDialog.showModal();
   });
   elements.adminManager?.addEventListener('click', () => {
@@ -226,6 +227,7 @@ export function attach(ctx) {
   elements.deselectAllGroups?.addEventListener('click', ctx.deselectAllGroups);
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
+  elements.brandPaletteEnabled?.addEventListener('change', () => ctx.handleBrandPaletteToggle(ctx));
 
   async function handleDeleteBackup(backupFile) {
     const confirmed = window.confirm(`¿Eliminar el backup ${backupFile}?\n\nEsta acción no se puede deshacer.`);
@@ -270,6 +272,7 @@ async function saveInstrument(ctx, event) {
   const row = button.closest('[data-instrument]');
   const payload = {};
   row.querySelectorAll('[data-field]').forEach((input) => {
+    if (input.dataset.field === 'color' && ctx.state.brandPaletteEnabled) return;
     payload[input.dataset.field] = input.value;
   });
   button.disabled = true;
@@ -291,6 +294,7 @@ async function saveGroup(ctx, event) {
   const row = button.closest('[data-group]');
   const payload = {};
   row.querySelectorAll('[data-group-field]').forEach((input) => {
+    if (input.dataset.groupField === 'color' && ctx.state.brandPaletteEnabled) return;
     payload[input.dataset.groupField] = input.type === 'checkbox' ? input.checked : input.value;
   });
   button.disabled = true;
@@ -308,13 +312,16 @@ async function saveGroup(ctx, event) {
 
 async function createGroup(ctx) {
   try {
-    await ctx.sendJson('/api/instrument-groups', 'POST', {
+    const payload = {
       name: ctx.elements.newGroupName.value,
-      color: ctx.elements.newGroupColor.value,
       showInDistribution: true,
       showInMonthly: true,
       isExpandable: false,
-    });
+    };
+    if (!ctx.state.brandPaletteEnabled) {
+      payload.color = ctx.elements.newGroupColor.value;
+    }
+    await ctx.sendJson('/api/instrument-groups', 'POST', payload);
     ctx.elements.newGroupName.value = '';
     await ctx.refreshDashboard();
   } catch (error) {
@@ -325,15 +332,18 @@ async function createGroup(ctx) {
 async function createInstrument(ctx) {
   const symbol = ctx.elements.newInstrumentSymbol.value.trim().toUpperCase();
   try {
-    await ctx.sendJson('/api/instruments', 'POST', {
+    const payload = {
       symbol,
       yahooSymbol: ctx.elements.newInstrumentYahoo.value || ctx.elements.newInstrumentSymbol.value,
       name: ctx.elements.newInstrumentName.value || ctx.elements.newInstrumentSymbol.value,
       type: ctx.elements.newInstrumentType.value,
       currency: ctx.elements.newInstrumentCurrency.value || 'EUR',
       groupId: ctx.elements.newInstrumentGroup.value,
-      color: ctx.elements.newInstrumentColor.value,
-    });
+    };
+    if (!ctx.state.brandPaletteEnabled) {
+      payload.color = ctx.elements.newInstrumentColor.value;
+    }
+    await ctx.sendJson('/api/instruments', 'POST', payload);
     ctx.elements.newInstrumentSymbol.value = '';
     ctx.elements.newInstrumentYahoo.value = '';
     ctx.elements.newInstrumentName.value = '';

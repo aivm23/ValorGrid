@@ -319,6 +319,11 @@ Campos:
 
 Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico. La clave `ui_preferences` almacena un JSON con `operationsMetricIds` (array de 6 IDs de métricas de Operativa para personalizar las tarjetas de performance) y `historyEventFilters` (objeto con `mode`, `assetTypes` y `transactionTypes` para filtrar marcadores de movimientos en el gráfico Histórico).
 
+Claves adicionales de `app_meta`:
+
+- `brand_palette_enabled`: controla la paleta corporativa automática. Valor `'1'` activada, `'0'` desactivada (default). No modifica datos financieros.
+- `brand_palette_previous_colors`: snapshot JSON de colores de grupos e instrumentos antes de activar la paleta. Se usa para restaurar colores al desactivarla. Contiene `createdAt`, `version`, `groups` (mapa de id->color) e `instruments` (mapa de symbol->color).
+
 ## Precios y FX (detalle)
 
 ### `market_prices_daily`

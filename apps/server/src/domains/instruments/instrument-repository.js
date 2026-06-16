@@ -251,6 +251,27 @@ module.exports = function attach(ctx) {
     return db.prepare('SELECT COUNT(*) AS count FROM instruments WHERE active = 1').get().count;
   }
 
+  function updateInstrumentColor(symbol, color) {
+    db.prepare('UPDATE instruments SET color = ? WHERE symbol = ?').run(color, symbol);
+  }
+
+  function updateGroupColor(id, color) {
+    db.prepare('UPDATE instrument_groups SET color = ? WHERE id = ?').run(color, id);
+  }
+
+  function updateTransactionColorBySymbol(symbol, color) {
+    db.prepare('UPDATE transactions SET color = ? WHERE symbol = ?').run(color, symbol);
+  }
+
+  function getOldestTransactionDateForSymbols(symbols) {
+    if (!symbols.length) return null;
+    const placeholders = symbols.map(() => '?').join(',');
+    const row = db
+      .prepare(`SELECT MIN(date) AS minDate FROM transactions WHERE symbol IN (${placeholders})`)
+      .get(...symbols);
+    return row?.minDate || null;
+  }
+
   repositories.instruments = {
     ...(repositories.instruments || {}),
     findInstrumentBySymbol,
@@ -279,5 +300,9 @@ module.exports = function attach(ctx) {
     deleteGroupById,
     countStockInstruments,
     countActiveInstruments,
+    updateInstrumentColor,
+    updateGroupColor,
+    updateTransactionColorBySymbol,
+    getOldestTransactionDateForSymbols,
   };
 };

@@ -74,7 +74,7 @@ apps/server/src/
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
-├── shared/             (operations-metrics, cargado internamente por ui-preferences-service)
+├── shared/             (brand-palette, operations-metrics; cargados internamente por instrument-service y ui-preferences-service respectivamente)
 ├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
 ├── app.js
 ├── routes.js
@@ -143,6 +143,7 @@ Reglas de transición:
 - `route-service-bindings.js`: resolución de handlers desde `ctx.services.*`.
 - `routes.js`: delegador HTTP que despacha a `route-*.js` por dominio.
 - `app.js`: composition root y orquestador de módulos (backend).
+- `bind-ctx-namespaces.js`: agrupación de funciones planas de `ctx` en namespaces `ctx.services.*` y `ctx.repositories.*`. Cargado por `app.js` tras el bucle de módulos.
 - `app-core.js`: re-export de `apps/server/src/app.js`.
 - `schema.js`: creación fresh idempotente de tablas.
 - `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
@@ -170,7 +171,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 7. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
 8. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
 9. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos.
+10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática.
 11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 12. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
 13. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
@@ -258,6 +259,7 @@ Módulos principales:
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `history-preferences.js`: persistencia de preferencias de filtros de eventos en gráfico histórico.
+- `instrument-colors.js`: sincronización de paleta corporativa automática y bloqueo de inputs de color.
 - `dashboard.js`: arranque de UI y boot overlay.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
 - `import-workflow.js`: lógica de flujo y validación de importación.
