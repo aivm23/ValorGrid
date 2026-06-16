@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.16.2
+
+- feat: adapt pro-preferences panel behavior per edition (Community shows closed card with locked controls; PRO shows fixed editable panel).
+
 ## 3.16.1
 
 - fix: correct Spanish spelling of "histórico" across UI and docs.

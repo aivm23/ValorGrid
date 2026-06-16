@@ -3130,8 +3130,26 @@ td:last-child {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.pro-preferences-card[open] .pro-preferences-summary {
+.pro-preferences-card.is-community-edition[open] .pro-preferences-summary {
+  display: flex;
+}
+
+.pro-preferences-card.is-community-edition[open] .pro-preferences-chevron {
+  transform: rotate(180deg);
+}
+
+.pro-preferences-card.is-pro-edition {
+  margin-top: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  background: transparent;
+}
+
+.pro-preferences-card.is-pro-edition .pro-preferences-summary {
   display: none;
+}
+
+.pro-preferences-card.is-pro-edition .pro-preferences-body {
+  padding-top: 12px;
 }
 
 .pro-preferences-card[open] .pro-preferences-chevron {

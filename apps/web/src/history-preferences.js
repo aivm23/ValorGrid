@@ -7,9 +7,10 @@ export function attach(ctx) {
 
     const filters = ctx.state.historyEventFilters || DEFAULT_HISTORY_FILTERS;
     const isEditable = ctx.state.uiPreferencesEditable !== false;
-    const mode = filters.mode || (isEditable ? 'all' : 'custom');
-    const assetTypes = filters.assetTypes || ['stock', 'etf', 'crypto'];
-    const transactionTypes = filters.transactionTypes || ['add', 'remove'];
+    const effectiveFilters = isEditable ? filters : { ...filters, mode: 'custom' };
+    const mode = effectiveFilters.mode || 'custom';
+    const assetTypes = effectiveFilters.assetTypes || ['stock', 'etf', 'crypto'];
+    const transactionTypes = effectiveFilters.transactionTypes || ['add', 'remove'];
 
     const disabledAttr = isEditable ? '' : 'disabled';
 
@@ -107,4 +108,21 @@ export function attach(ctx) {
   ctx.renderHistoryPreferenceControls = renderHistoryPreferenceControls;
   ctx.handleHistoryEventModeChange = handleHistoryEventModeChange;
   ctx.handleHistoryFilterChange = handleHistoryFilterChange;
+
+  ctx.syncProPreferencesPanel = function syncProPreferencesPanel() {
+    const card = ctx.elements.proPreferencesCard;
+    if (!card) return;
+    const isPro = ctx.state.edition === 'professional';
+
+    card.classList.toggle('is-pro-edition', isPro);
+    card.classList.toggle('is-community-edition', !isPro);
+
+    if (isPro) {
+      card.open = true;
+      card.dataset.fixed = 'true';
+    } else {
+      card.open = false;
+      delete card.dataset.fixed;
+    }
+  };
 }
