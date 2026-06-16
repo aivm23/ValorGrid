@@ -1,6 +1,7 @@
 export function attach(ctx) {
   const eurFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
   const sharesFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 });
+  const cryptoSharesFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 });
   const historyRangeConfig = {
     all: { granularity: 'weekly', years: null },
     '5y': { granularity: 'weekly', years: 5 },
@@ -65,5 +66,5 @@ export function attach(ctx) {
     historyEventFilters: { mode: 'custom', assetTypes: ['stock', 'etf', 'crypto'], transactionTypes: ['add', 'remove'] },
   };
 
-  Object.assign(ctx, { eurFormatter, sharesFormatter, historyRangeConfig, assetColors, state });
+  Object.assign(ctx, { eurFormatter, sharesFormatter, cryptoSharesFormatter, historyRangeConfig, assetColors, state });
 }

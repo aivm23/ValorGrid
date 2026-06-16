@@ -123,7 +123,10 @@ export function attach(ctx) {
   function formatShareNumber(value) {
     if (ctx.state.hideBalances) return '••••';
     const shares = Number(value || 0);
-    return Number.isFinite(shares) ? ctx.sharesFormatter.format(shares) : '0';
+    if (!Number.isFinite(shares)) return '0';
+    const hasExtraPrecision = (shares % 1) * 100 % 1 !== 0;
+    const formatter = hasExtraPrecision ? ctx.cryptoSharesFormatter : ctx.sharesFormatter;
+    return formatter.format(shares);
   }
 
   function assetColor(symbol, fallback) {
