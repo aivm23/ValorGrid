@@ -2776,6 +2776,45 @@ td:last-child {
   gap: 22px;
 }
 
+.config-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 8px;
+}
+
+.config-header .switch-field {
+  align-items: start;
+  padding-top: 10px;
+  min-height: auto;
+}
+
+.config-header .config-toggle {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.config-header .config-toggle .subtle {
+  grid-row: 2;
+}
+
+.config-header .config-toggle .brand-palette-preview {
+  grid-row: 3;
+}
+
+.config-header .switch-field > .subtle {
+  margin-top: auto;
+}
+
+.config-toggle {
+  display: grid;
+  gap: 8px;
+  align-self: stretch;
+}
+
 .instrument-config-section {
   display: grid;
   gap: 12px;
@@ -3363,6 +3402,10 @@ td:last-child {
 
 .instrument-create-form-wide {
   grid-template-columns: minmax(110px, 0.8fr) minmax(120px, 1fr) minmax(140px, 1.2fr) 100px 82px minmax(120px, 1fr) 58px auto;
+}
+
+.instrument-create-form-wide.no-groups {
+  grid-template-columns: minmax(110px, 0.8fr) minmax(120px, 1fr) minmax(140px, 1.2fr) 100px 82px 58px auto;
 }
 
 .instrument-create-form input,

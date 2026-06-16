@@ -193,6 +193,7 @@ export function attach(ctx) {
       ? groupOptions(ctx.state.groups[0]?.id)
       : '';
     ctx.elements.newInstrumentGroup.hidden = !groupsEnabled;
+    if (ctx.elements.instrumentCreateForm) ctx.elements.instrumentCreateForm.classList.toggle('no-groups', !groupsEnabled);
     if (ctx.elements.instrumentFilterGroup) {
       const selectedGroup = groupsEnabled ? (ctx.state.instrumentFilters?.group || '') : '';
       ctx.elements.instrumentFilterGroup.innerHTML = groupsEnabled ? `<option value="">Todos</option>${groupOptions(selectedGroup)}` : '<option value="">Todos</option>';
