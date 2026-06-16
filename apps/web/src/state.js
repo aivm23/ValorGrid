@@ -36,6 +36,7 @@ export function attach(ctx) {
     importInstrumentValidationAttempted: false,
     importBatches: [],
     importFileMeta: null,
+    groupsEnabled: true,
     initialLoadComplete: false,
     transactionPreviewOk: false,
     version: null,

@@ -439,6 +439,15 @@
 
         <div class="instrument-config-stack">
           <section class="instrument-config-section">
+            <div class="instrument-groups-toggle">
+              <label class="switch-field">
+                <input id="instrument-groups-enabled" type="checkbox" checked />
+                Usar grupos de valores
+              </label>
+              <p class="subtle">Opcional. Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.</p>
+            </div>
+          </section>
+          <section id="instrument-groups-section" class="instrument-config-section">
             <h3>Grupos</h3>
             <div class="instrument-create-form group-create-form">
               <input id="new-group-name" placeholder="Nombre del grupo" />
@@ -565,7 +574,7 @@
                     <th>Ticker</th>
                     <th>Yahoo</th>
                     <th>Nombre</th>
-                    <th>Grupo</th>
+                    <th id="instrument-th-group">Grupo</th>
                     <th>Tipo</th>
                     <th>Divisa</th>
                     <th>Color</th>
@@ -896,11 +905,15 @@
           <section class="wizard-step">
             <span>Paso 1</span>
             <h3>Grupo</h3>
-            <label class="field">
+            <label class="check-field"
+              ><input id="wizard-use-group" type="checkbox" checked /> <span>Crear un grupo para este instrumento</span></label
+            >
+            <p class="subtle wizard-group-hint">Opcional. Puedes crear solo el instrumento y activar grupos más adelante.</p>
+            <label class="field" id="wizard-group-name-field">
               <span>Nombre del grupo</span>
               <input id="wizard-group-name" required placeholder="Core, Stock picking, ETFs..." />
             </label>
-            <label class="field">
+            <label class="field" id="wizard-group-color-field">
               <span>Color del grupo</span>
               <input id="wizard-group-color" class="color-input" type="color" value="#16a34a" />
             </label>

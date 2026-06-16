@@ -251,6 +251,25 @@ module.exports = function attach(ctx) {
     return db.prepare('SELECT COUNT(*) AS count FROM instruments WHERE active = 1').get().count;
   }
 
+  function countUngroupedActiveInstruments() {
+    return db
+      .prepare(
+        `SELECT COUNT(*) AS count FROM instruments
+         WHERE active = 1 AND (group_id IS NULL OR group_id = '') AND type != 'fx'`,
+      )
+      .get().count;
+  }
+
+  function assignUngroupedActiveInstrumentsToGroup(groupId) {
+    const result = db
+      .prepare(
+        `UPDATE instruments SET group_id = ?
+         WHERE active = 1 AND (group_id IS NULL OR group_id = '') AND type != 'fx'`,
+      )
+      .run(groupId);
+    return result.changes;
+  }
+
   repositories.instruments = {
     ...(repositories.instruments || {}),
     findInstrumentBySymbol,
@@ -279,5 +298,7 @@ module.exports = function attach(ctx) {
     deleteGroupById,
     countStockInstruments,
     countActiveInstruments,
+    countUngroupedActiveInstruments,
+    assignUngroupedActiveInstrumentsToGroup,
   };
 };

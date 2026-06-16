@@ -78,10 +78,12 @@ export function attach(ctx) {
     const angle = (Math.atan2(y, x) * 180) / Math.PI;
     const pct = ((angle + 90 + 360) % 360) / 360;
     let accumulated = 0;
-    return items.find((item) => {
-      accumulated += Number(item.value || 0) / total;
-      return pct <= accumulated + 0.000001;
-    }) || items[items.length - 1];
+    return (
+      items.find((item) => {
+        accumulated += Number(item.value || 0) / total;
+        return pct <= accumulated + 0.000001;
+      }) || items[items.length - 1]
+    );
   }
 
   function portfolioItemsForChart() {
@@ -90,7 +92,11 @@ export function attach(ctx) {
 
   function detailItemsForChart() {
     const group = expandableGroup();
-    return group ? ctx.withAssetColors(ctx.state.summary?.groupedPositions?.[group.groupId] || []).filter((item) => Number(item.value || 0) > 0) : [];
+    return group
+      ? ctx
+          .withAssetColors(ctx.state.summary?.groupedPositions?.[group.groupId] || [])
+          .filter((item) => Number(item.value || 0) > 0)
+      : [];
   }
 
   function portfolioItemFromChartPoint(event) {
@@ -142,9 +148,7 @@ export function attach(ctx) {
 
   function pinDonutTooltip(event) {
     const chartItem = portfolioItemFromChartPoint(event);
-    const item =
-      chartItem ||
-      portfolioItemByGroupId(event.target.closest('[data-group-id]')?.dataset.groupId);
+    const item = chartItem || portfolioItemByGroupId(event.target.closest('[data-group-id]')?.dataset.groupId);
     if (!item) return;
     showDonutTooltipForItem(item, event, {
       pinned: true,
@@ -279,15 +283,22 @@ export function attach(ctx) {
     ctx.elements.donutTooltip.dataset.pinned = 'true';
     setActiveDonutSegment(item, ctx.elements.stockChart, detailItemsForChart());
   }
-
   function renderSummary() {
     const { state, elements } = ctx;
     const summary = state.summary;
     if (!summary) return;
 
+    if (!state.groupsEnabled) {
+      state.expandedGroupId = null;
+    }
+
     const portfolio = ctx.withAssetColors(summary.portfolio || []);
     const group = expandableGroup();
-    const detailPositions = group ? ctx.withAssetColors(summary.groupedPositions?.[group.groupId] || []) : [];
+    const detailPositions = state.groupsEnabled
+      ? group
+        ? ctx.withAssetColors(summary.groupedPositions?.[group.groupId] || [])
+        : []
+      : ctx.withAssetColors(portfolio);
     const detailTotal = detailPositions.reduce((sum, item) => sum + Number(item.value || 0), 0);
 
     elements.portfolioTotal.textContent = ctx.formatCurrency(summary.total);
@@ -297,10 +308,17 @@ export function attach(ctx) {
     elements.stockChart.style.background = ctx.buildConicGradient(detailPositions, detailTotal);
 
     if (portfolio.length) {
+      const groupsEnabled = state.groupsEnabled;
       elements.legend.innerHTML = renderPortfolioLegend(portfolio, summary.total, (item) => {
-          if (item.isExpandable) return 'Desglose disponible';
-          return item.shares == null ? 'Grupo de cartera' : `${item.symbol}: ${ctx.formatCurrency(item.priceEur)} x ${ctx.formatShares(item)}`;
-        });
+        if (item.isExpandable && groupsEnabled) return 'Desglose disponible';
+        if (item.type === 'group' && !item.isExpandable) {
+          return `${ctx.formatCurrency(item.value || 0)}`;
+        }
+        if (!groupsEnabled || item.shares == null) {
+          return `${item.symbol}: ${ctx.formatCurrency(item.priceEur)} x ${ctx.formatShares(item)}`;
+        }
+        return `${item.symbol}: ${ctx.formatCurrency(item.priceEur)} x ${ctx.formatShares(item)}`;
+      });
     } else if (summary.onboarding?.needsSetup) {
       elements.legend.innerHTML = `<div class="empty-action-state">
           <p class="subtle">Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.</p>
@@ -310,7 +328,7 @@ export function attach(ctx) {
       elements.legend.innerHTML = '<p class="subtle">Sin posiciones todavía. Usa Añadir para registrar el primer movimiento.</p>';
     }
 
-    elements.stockDetail.hidden = !state.expandedGroupId || !group;
+    elements.stockDetail.hidden = !state.groupsEnabled || !state.expandedGroupId || !group;
     if (group) {
       elements.stockDetailTitle.textContent = group.name;
     }
@@ -325,7 +343,14 @@ export function attach(ctx) {
     const now = new Date();
     const freshness = updated ? Math.round((now - updated) / 3600000) : null;
     const freshnessIcon = freshness === null ? '⚪' : freshness < 1 ? '🟢' : freshness < 24 ? '🟡' : '🔴';
-    const freshnessLabel = freshness === null ? '' : freshness < 1 ? 'hace <1h' : freshness < 24 ? `hace ${freshness}h` : `hace ${Math.round(freshness / 24)}d`;
+    const freshnessLabel =
+      freshness === null
+        ? ''
+        : freshness < 1
+          ? 'hace <1h'
+          : freshness < 24
+            ? `hace ${freshness}h`
+            : `hace ${Math.round(freshness / 24)}d`;
     elements.priceStatus.textContent = `${freshnessIcon} Precios actualizados desde Yahoo Finance - ${ctx.formatDateTime(summary.updatedAt)} ${freshnessLabel ? `(${freshnessLabel})` : ''}`;
   }
 

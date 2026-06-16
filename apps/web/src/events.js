@@ -42,6 +42,8 @@ export function attach(ctx) {
     ctx.renderInstruments();
     elements.instrumentDialog.showModal();
   });
+
+  elements.instrumentGroupsEnabled.addEventListener('change', () => handleInstrumentGroupsToggle(ctx));
   elements.adminManager?.addEventListener('click', () => {
     ctx.renderBackups();
     ctx.renderImportBatches?.();
@@ -99,6 +101,7 @@ export function attach(ctx) {
   elements.wizardAddTransaction.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardAddPlan.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardPlanFrequency.addEventListener('change', ctx.syncWizardPlanFrequency);
+  elements.wizardUseGroup.addEventListener('change', ctx.syncWizardUseGroup);
   elements.wizardTransactionEuros.addEventListener('input', ctx.syncWizardAmountInputs);
   elements.wizardTransactionShares.addEventListener('input', ctx.syncWizardAmountInputs);
   document.addEventListener('click', (event) => {
@@ -262,6 +265,29 @@ function toggleExpandableGroup(ctx, event) {
   if (!groupId) return;
   ctx.state.expandedGroupId = ctx.state.expandedGroupId === groupId ? null : groupId;
   ctx.renderSummary();
+}
+
+async function handleInstrumentGroupsToggle(ctx) {
+  const enabled = ctx.elements.instrumentGroupsEnabled.checked;
+  ctx.elements.instrumentGroupsEnabled.disabled = true;
+  try {
+    const result = await ctx.sendJson('/api/instrument-groups/settings', 'PUT', { enabled });
+    ctx.state.groupsEnabled = result.groupsEnabled !== false;
+    ctx.state.historyCache = {};
+    if (result.createdDefaultGroup && result.assignedInstrumentCount > 0) {
+      const msg = `Se ha creado grupo cero y se han asignado ${result.assignedInstrumentCount} instrumento${result.assignedInstrumentCount === 1 ? '' : 's'} sin grupo.`;
+      ctx.elements.priceStatus.textContent = msg;
+    } else if (!enabled) {
+      ctx.elements.priceStatus.textContent = 'Grupos desactivados. Los instrumentos se mostrarán directamente en el dashboard.';
+    }
+    await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+  } catch (error) {
+    ctx.elements.instrumentGroupsEnabled.checked = !enabled;
+    const el = ctx.elements.priceStatus;
+    if (el) el.textContent = ctx.normalizeErrorMessage(error);
+  } finally {
+    ctx.elements.instrumentGroupsEnabled.disabled = false;
+  }
 }
 
 async function saveInstrument(ctx, event) {

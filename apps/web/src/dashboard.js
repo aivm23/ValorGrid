@@ -31,6 +31,7 @@ export function attach(ctx) {
         ctx.fetchJson('/api/import/batches'),
       ]);
       state.summary = summary;
+      state.groupsEnabled = summary.groupsEnabled !== false;
       state.onboarding = summary.onboarding || null;
       state.monthly = monthly;
       state.version = appInfo.version;
@@ -58,7 +59,7 @@ export function attach(ctx) {
       renderDashboard();
       state.initialLoadComplete = true;
       setBootState('ready');
-      await ctx.loadImportSources();
+      try { await ctx.loadImportSources(ctx); } catch { /* non-critical */ }
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
       if (!state.initialLoadComplete) setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);

@@ -45,6 +45,7 @@ PUT /api/instruments/:symbol
 DELETE /api/instruments/:symbol
 GET /api/instrument-groups
 POST /api/instrument-groups
+PUT /api/instrument-groups/settings
 DELETE /api/instrument-groups
 PUT /api/instrument-groups/:id
 DELETE /api/instrument-groups/:id
@@ -59,6 +60,7 @@ DELETE /api/instrument-identifiers/:id
 - `instruments` almacena valores visibles de cartera.
 - `instrument_groups` organiza visibilidad por dashboard, revisión YTD y desglose.
 - `instrument_identifiers` guarda identificadores confirmados por el usuario, como ISIN o alias de broker, para futuras importaciones.
+- `PUT /api/instrument-groups/settings`: activa o desactiva el uso de grupos. Request body: `{ "enabled": boolean }` (requerido, debe ser booleano). Al activar, los instrumentos activos sin grupo se asignan automáticamente a "grupo-cero". Response 200: `{ groupsEnabled, createdDefaultGroup, assignedInstrumentCount, defaultGroup }`. Response 400: `{ error: "enabled must be a boolean" }`.
 
 ## Onboarding
 
@@ -68,7 +70,7 @@ POST /api/onboarding/wizard/preview
 POST /api/onboarding/wizard/commit
 ```
 
-El wizard permite crear grupo, instrumento, primera compra opcional y plan automático opcional de forma atómica.
+El wizard permite crear grupo, instrumento, primera compra opcional y plan automático opcional de forma atómica. La respuesta `GET /api/onboarding/status` incluye `groupsEnabled` (boolean) que indica si los grupos de instrumentos están habilitados.
 
 ## Movimientos
 
@@ -132,7 +134,7 @@ GET /api/portfolio/history?range=5y&granularity=weekly
 GET /api/portfolio/history?range=all&granularity=weekly
 ```
 
-- `summary`: distribución actual, grupos e instrumentos.
+- `summary`: distribución actual, grupos e instrumentos. Respuesta incluye `groupsEnabled` (boolean) que indica si los grupos de instrumentos están habilitados.
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
 - `monthly`: revisión YTD por meses y grupos. La respuesta devuelve `months` (array con insight por mes: `month`, `label`, `total`, `transactions`, `cells`) y `summary` (métricas agregadas: `currentValue`, `netContributed`, `resultYtd`, `valueStart`, `contributions`, `withdrawals`, `commissions`, `completedMonths`, `latestMonth`, `activeGroups`) como contratos canónicos.
 - `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).

@@ -28,25 +28,31 @@ function normalizeNewInstruments(input = {}) {
 }
 
 function createImportEntityHelpers(ctx) {
-  const { repositories, getInstrument, createInstrumentGroup, createInstrument, upsertInstrumentIdentifier, groupIdFromName, ensureGeneralGroup } = ctx;
+  const { repositories, getInstrument, createInstrumentGroup, createInstrument, upsertInstrumentIdentifier, groupIdFromName, ensureGeneralGroup, areInstrumentGroupsEnabled } = ctx;
   const instrumentsRepository = repositories?.instruments;
   if (!instrumentsRepository) {
     throw new Error('import-entities requires ctx.repositories.instruments');
   }
 
   function ensureImportEntities(input = {}) {
+    const groupsEnabled = areInstrumentGroupsEnabled();
     const groups = normalizeNewGroups(input);
     const instruments = normalizeNewInstruments(input);
 
-    for (const group of groups) {
-      const groupId = group.id || groupIdFromName(group.name);
-      if (instrumentsRepository.groupExists(groupId)) continue;
-      createInstrumentGroup({ ...group, id: groupId });
+    if (groupsEnabled) {
+      for (const group of groups) {
+        const groupId = group.id || groupIdFromName(group.name);
+        if (instrumentsRepository.groupExists(groupId)) continue;
+        createInstrumentGroup({ ...group, id: groupId });
+      }
     }
 
     for (const instrumentInput of instruments) {
       if (getInstrument(instrumentInput.symbol)) continue;
-      const groupId = instrumentInput.groupId || ensureGeneralGroup().id;
+      let groupId = instrumentInput.groupId || null;
+      if (groupsEnabled) {
+        groupId = groupId || ensureGeneralGroup().id;
+      }
       createInstrument({ ...instrumentInput, groupId });
     }
   }

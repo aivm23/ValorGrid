@@ -182,15 +182,23 @@ export function attach(ctx) {
   }
 
   function renderInstruments() {
-    renderGroupRows();
-    ctx.elements.newInstrumentGroup.innerHTML = groupOptions(ctx.state.groups[0]?.id);
+    const groupsEnabled = ctx.state.groupsEnabled !== false;
+    if (ctx.elements.instrumentGroupsSection) ctx.elements.instrumentGroupsSection.hidden = !groupsEnabled;
+    if (ctx.elements.instrumentGroupsEnabled) ctx.elements.instrumentGroupsEnabled.checked = groupsEnabled;
+    if (ctx.elements.instrumentThGroup) ctx.elements.instrumentThGroup.hidden = !groupsEnabled;
+    if (groupsEnabled) {
+      renderGroupRows();
+    }
+    ctx.elements.newInstrumentGroup.innerHTML = groupsEnabled && ctx.state.groups[0]?.id
+      ? groupOptions(ctx.state.groups[0]?.id)
+      : '';
+    ctx.elements.newInstrumentGroup.hidden = !groupsEnabled;
     if (ctx.elements.instrumentFilterGroup) {
-      const selectedGroup = ctx.state.instrumentFilters?.group || '';
-      ctx.elements.instrumentFilterGroup.innerHTML = `<option value="">Todos</option>${groupOptions(selectedGroup)}`;
+      const selectedGroup = groupsEnabled ? (ctx.state.instrumentFilters?.group || '') : '';
+      ctx.elements.instrumentFilterGroup.innerHTML = groupsEnabled ? `<option value="">Todos</option>${groupOptions(selectedGroup)}` : '<option value="">Todos</option>';
+      ctx.elements.instrumentFilterGroup.closest('.field')?.toggleAttribute('hidden', !groupsEnabled);
     }
-    if (ctx.elements.instrumentPositionFilter) {
-      ctx.elements.instrumentPositionFilter.value = ctx.state.instrumentPositionFilter || 'all';
-    }
+    if (ctx.elements.instrumentPositionFilter) ctx.elements.instrumentPositionFilter.value = ctx.state.instrumentPositionFilter || 'all';
     const filters = ctx.state.instrumentFilters || {};
     const matchesText = (value, filter) =>
       !String(filter || '').trim() ||
@@ -229,15 +237,18 @@ export function attach(ctx) {
         selectedCount === 0 || !ctx.state.visibleInstrumentSymbols.length || selectedCount === ctx.state.visibleInstrumentSymbols.length;
     }
     if (ctx.elements.deselectAllInstruments) ctx.elements.deselectAllInstruments.hidden = selectedCount === 0;
+    const colCount = groupsEnabled ? 8 : 7;
     ctx.elements.instrumentRows.innerHTML = instruments.length
       ? instruments
           .map(
-            (instrument) => `
+            (instrument) => {
+    const groupCol = groupsEnabled ? `<td data-label="Grupo"><select class="instrument-input" data-field="groupId">${groupOptions(instrument.groupId)}</select></td>` : '';
+    return `
         <tr data-instrument="${ctx.escapeHtml(instrument.symbol)}">
           <td data-label="Ticker"><label class="row-select"><input type="checkbox" data-select-instrument="${ctx.escapeHtml(instrument.symbol)}" ${selectedInstruments.has(instrument.symbol) ? 'checked' : ''} aria-label="Seleccionar ${ctx.escapeHtml(instrument.symbol)}" /><strong class="instrument-symbol-label" title="${ctx.escapeHtml(instrument.symbol)}">${ctx.escapeHtml(instrument.symbol)}</strong></label></td>
           <td data-label="Yahoo"><input class="instrument-input" data-field="yahooSymbol" value="${ctx.escapeHtml(instrument.yahooSymbol)}" /></td>
           <td data-label="Nombre"><input class="instrument-input" data-field="name" value="${ctx.escapeHtml(instrument.name)}" /></td>
-          <td data-label="Grupo"><select class="instrument-input" data-field="groupId">${groupOptions(instrument.groupId)}</select></td>
+          ${groupCol}
           <td data-label="Tipo">
             <select class="instrument-input" data-field="type">
               <option value="etf" ${instrument.type === 'etf' ? 'selected' : ''}>ETF</option>
@@ -248,10 +259,10 @@ export function attach(ctx) {
           <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>
           <td data-label="Color"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" /></td>
           <td data-label="Acciones"><button class="button button-compact btn-save" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">Guardar</button></td>
-        </tr>`,
+        </tr>`;}
           )
           .join('')
-      : '<tr><td colspan="8"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact btn-save" type="button" data-open-onboarding>Crear valor</button></div></td></tr>';
+      : `<tr><td colspan="${colCount}"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact btn-save" type="button" data-open-onboarding>Crear valor</button></div></td></tr>`;
   }
 
   function renderGroupRows() {

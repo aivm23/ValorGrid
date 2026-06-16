@@ -30,6 +30,7 @@ export function attach(ctx) {
     ctx.state.wizardPreview = null;
     syncWizardOptionalSections();
     syncWizardMode();
+    syncWizardUseGroup();
     setWizardFeedback('');
     ctx.elements.wizardDialog.showModal();
     ctx.elements.wizardGroupName.focus();
@@ -91,6 +92,16 @@ export function attach(ctx) {
     setWizardFeedback('El modo importación abre la modal de importaciones para cargar operaciones en bloque.');
   }
 
+  function syncWizardUseGroup() {
+    const useGroup = ctx.elements.wizardUseGroup.checked;
+    if (ctx.elements.wizardGroupNameField) ctx.elements.wizardGroupNameField.hidden = !useGroup;
+    if (ctx.elements.wizardGroupColorField) ctx.elements.wizardGroupColorField.hidden = !useGroup;
+    if (ctx.elements.wizardGroupName) {
+      ctx.elements.wizardGroupName.required = useGroup;
+      if (!useGroup) ctx.elements.wizardGroupName.value = '';
+    }
+  }
+
   function buildWizardTransactionPayload(symbol) {
     const payload = {
       id: ctx.clientRequestId('wizard-tx'),
@@ -112,14 +123,16 @@ export function attach(ctx) {
 
   function buildWizardPayload() {
     const symbol = ctx.elements.wizardInstrumentSymbol.value.trim().toUpperCase();
+    const useGroup = ctx.elements.wizardUseGroup.checked;
     const payload = {
-      group: {
+      useGroup,
+      group: useGroup ? {
         name: ctx.elements.wizardGroupName.value.trim(),
         color: ctx.elements.wizardGroupColor.value,
         showInDistribution: true,
         showInMonthly: true,
         isExpandable: false,
-      },
+      } : null,
       instrument: {
         symbol,
         yahooSymbol: ctx.elements.wizardInstrumentYahoo.value.trim() || symbol,
@@ -203,6 +216,7 @@ export function attach(ctx) {
     syncWizardAmountInputs,
     syncWizardOptionalSections,
     syncWizardPlanFrequency,
+    syncWizardUseGroup,
     syncWizardMode,
     buildWizardPayload,
     handleWizardSubmit,

@@ -24,7 +24,7 @@ module.exports = function attach(ctx) {
     'onboarding-service',
   );
 
-  const {
+const {
     repositories,
     normalizeSymbol,
     groupIdFromName,
@@ -41,6 +41,7 @@ module.exports = function attach(ctx) {
     normalizeAutoPlans,
     invalidateLedger,
     getAutoPlans,
+    areInstrumentGroupsEnabled,
   } = ctx;
 
   const onboardingRepository = repositories.onboarding;
@@ -54,24 +55,34 @@ function normalizeWizardPayload(input = {}) {
   const instrument = input.instrument || {};
   const transaction = input.transaction || null;
   const plan = input.autoPlan || input.plan || null;
+  const useGroup = input.useGroup !== false;
   const groupName = String(group.name || '').trim();
   const symbol = normalizeSymbol(instrument.symbol || instrument.ticker);
 
-  if (!groupName) throw new Error('Group name is required');
   if (!symbol) throw new Error('Instrument symbol is required');
-  if (instrumentGroupExistsById(groupIdFromName(groupName))) {
-    throw new Error('Group already exists');
-  }
   if (getInstrument(symbol)) throw new Error('Instrument already exists');
 
+  const groupsEnabled = areInstrumentGroupsEnabled();
+  const effectiveUseGroup = useGroup && groupsEnabled;
+
+  if (effectiveUseGroup) {
+    if (!groupName) throw new Error('Group name is required');
+    if (instrumentGroupExistsById(groupIdFromName(groupName))) {
+      throw new Error('Group already exists');
+    }
+  }
+
   return {
-    group: {
-      name: groupName,
-      color: String(group.color || '#16a34a').trim(),
-      showInDistribution: group.showInDistribution !== false,
-      showInMonthly: group.showInMonthly !== false,
-      isExpandable: Boolean(group.isExpandable),
-    },
+    useGroup: effectiveUseGroup,
+    group: effectiveUseGroup
+      ? {
+          name: groupName,
+          color: String(group.color || '#16a34a').trim(),
+          showInDistribution: group.showInDistribution !== false,
+          showInMonthly: group.showInMonthly !== false,
+          isExpandable: Boolean(group.isExpandable),
+        }
+      : null,
     instrument: {
       symbol,
       yahooSymbol: String(instrument.yahooSymbol || instrument.yahoo_symbol || symbol).trim(),
@@ -172,6 +183,7 @@ async function previewOnboardingWizard(input = {}) {
   return {
     group: payload.group,
     instrument: payload.instrument,
+    useGroup: payload.useGroup,
     transaction: transactionPreview,
     autoPlan: planPreview,
     requiresRetroactiveConfirmation: planPreview.pendingCount > 1,
@@ -186,9 +198,15 @@ async function commitOnboardingWizard(input = {}) {
     throw new Error('Confirm retroactive auto-plan executions before saving');
   }
 
-  return runInTransaction(async () => {
-    const group = createInstrumentGroup(payload.group);
-    const instrument = createInstrument({ ...payload.instrument, groupId: group.id });
+return runInTransaction(async () => {
+    let group = null;
+    if (payload.useGroup && payload.group) {
+      group = createInstrumentGroup(payload.group);
+    }
+    const instrument = createInstrument({
+      ...payload.instrument,
+      groupId: group ? group.id : null,
+    });
 
     let transaction = null;
     if (payload.transaction) {

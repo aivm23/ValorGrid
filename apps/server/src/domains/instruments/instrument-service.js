@@ -1,5 +1,4 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
-
 module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
@@ -157,6 +156,12 @@ module.exports = function attach(ctx) {
     const existing = getInstrument(symbol);
     if (!existing) throw new Error('Instrument not found');
 
+    const groupsEnabled = areInstrumentGroupsEnabled();
+    let groupId = input.groupId === undefined ? existing.group_id : String(input.groupId || '').trim() || null;
+    if (!groupsEnabled) {
+      groupId = existing.group_id;
+    }
+
     const next = {
       yahooSymbol: String(input.yahooSymbol ?? input.yahoo_symbol ?? existing.yahoo_symbol).trim(),
       name: String(input.name ?? existing.name).trim(),
@@ -164,7 +169,7 @@ module.exports = function attach(ctx) {
       currency: String(input.currency ?? existing.currency).trim().toUpperCase(),
       color: String(input.color ?? existing.color).trim(),
       fallbackPrice: Number(input.fallbackPrice ?? input.fallback_price ?? existing.fallback_price),
-      groupId: input.groupId === undefined ? existing.group_id : String(input.groupId || '').trim() || null,
+      groupId,
       displayOrder: Number(input.displayOrder ?? input.display_order ?? existing.display_order ?? 0),
       showInDistribution:
         input.showInDistribution === undefined ? Number(existing.show_in_distribution) : input.showInDistribution ? 1 : 0,
@@ -293,11 +298,14 @@ module.exports = function attach(ctx) {
     const type = String(input.type || 'stock').trim().toLowerCase();
     const currency = String(input.currency || 'EUR').trim().toUpperCase();
     const color = String(input.color || stockColors[listInstruments().length % stockColors.length]).trim();
-    const groupId = String(input.groupId || input.group_id || ensureGeneralGroup().id).trim();
+    const groupsEnabled = areInstrumentGroupsEnabled();
+    const groupId = groupsEnabled
+      ? String(input.groupId || input.group_id || ensureGeneralGroup().id).trim()
+      : null;
     const fallbackPrice = Number(input.fallbackPrice || input.fallback_price || 0);
     if (!['etf', 'stock', 'crypto', 'fx'].includes(type)) throw new Error('Invalid instrument type');
     if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Color must be a hex value');
-    if (!groupExists(groupId)) throw new Error('Instrument group not found');
+    if (groupId && !groupExists(groupId)) throw new Error('Instrument group not found');
     insertInstrument({
       symbol,
       yahooSymbol,
@@ -332,8 +340,7 @@ module.exports = function attach(ctx) {
   }
 
   function ensureGeneralGroup() {
-    const existing = findGroupById('general');
-    if (!existing) ensureGroup('general', 'General', '#64748b', { displayOrder: 90 });
+    if (!findGroupById('general')) ensureGroup('general', 'General', '#64748b', { displayOrder: 90 });
     return findGroupById('general');
   }
 
@@ -397,6 +404,33 @@ module.exports = function attach(ctx) {
     return unique.map((id) => deleteInstrumentGroup(id));
   }
 
+  function areInstrumentGroupsEnabled() {
+    const value = repositories.meta?.getMetaValueByKey?.('instr_groups_enabled');
+    return value === null || value === undefined || value !== '0';
+  }
+
+  function setInstrumentGroupsEnabled(enabled) {
+    const meta = repositories.meta;
+    if (!meta?.setMetaValueByKey) throw new Error('Meta repository not available');
+    meta.setMetaValueByKey('instr_groups_enabled', enabled ? '1' : '0');
+    let createdDefaultGroup = false, assignedInstrumentCount = 0, defaultGroup = null;
+    if (enabled) {
+      const result = ensureGrupoZeroForUngroupedInstruments();
+      createdDefaultGroup = result.created;
+      assignedInstrumentCount = result.assignedCount;
+      defaultGroup = result.group;
+    }
+    return { groupsEnabled: enabled, createdDefaultGroup, assignedInstrumentCount, defaultGroup };
+  }
+  function ensureGrupoZeroForUngroupedInstruments() {
+    const id = 'grupo-cero';
+    let created = !findGroupById(id);
+    if (created) ensureGroup(id, 'grupo cero', '#64748b', { displayOrder: 99 });
+    const assignedCount = instrumentRepository.assignUngroupedActiveInstrumentsToGroup(id);
+    const g = findGroupById(id);
+    return { created, assignedCount, group: g ? { id: g.id, name: g.name, color: g.color } : null };
+  }
+
   function ensureInstrument(symbol, quote = null) {
     const normalized = normalizeSymbol(symbol);
     const existing = getInstrument(normalized);
@@ -458,5 +492,8 @@ module.exports = function attach(ctx) {
     deleteInstrumentGroup,
     deleteInstrumentGroups,
     ensureInstrument,
+    areInstrumentGroupsEnabled,
+    setInstrumentGroupsEnabled,
+    ensureGrupoZeroForUngroupedInstruments,
   });
 };

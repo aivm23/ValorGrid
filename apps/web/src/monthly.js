@@ -68,14 +68,15 @@ export function attach(ctx) {
   }
 
   function renderMonthCard(month, isOpen) {
+    const groupsEnabled = ctx.state.groupsEnabled !== false;
     const variation =
       month.variation !== null && month.variation !== undefined && Number.isFinite(Number(month.variation))
         ? Number(month.variation)
         : null;
     const variationClass = variation === null ? '' : variation >= 0 ? 'is-positive' : 'is-negative';
-    const topGroup = month.topGroup
+    const topGroup = groupsEnabled && month.topGroup
       ? `<span class="ytd-driver-dot" style="--driver-color:${ctx.escapeHtml(month.topGroup.color || '#64748b')}"></span>${ctx.escapeHtml(month.topGroup.label)} ${ctx.formatCurrency(Number(month.topGroup.variation || 0))}`
-      : 'Sin grupo dominante';
+      : groupsEnabled ? 'Sin grupo dominante' : 'Sin desglose por grupo';
 
     return `
       <details class="ytd-month-card" ${isOpen ? 'open' : ''}>
@@ -93,14 +94,14 @@ export function attach(ctx) {
             <span>Motor principal: ${topGroup}</span>
             <span>Comisiones: ${ctx.formatCurrencySpan(Number(month.commissions || 0))}</span>
           </div>
-          ${renderGroupBreakdown(month.groups || [])}
+          ${renderGroupBreakdown(month.groups || [], groupsEnabled)}
         </div>
       </details>
     `;
   }
 
-  function renderGroupBreakdown(groups) {
-    if (!groups.length) return '<p class="subtle">Sin grupos con valor en este mes.</p>';
+  function renderGroupBreakdown(groups, groupsEnabled) {
+    if (!groups.length) return `<p class="subtle">${groupsEnabled ? 'Sin grupos' : 'Sin instrumentos'} con valor en este mes.</p>`;
     return `
       <div class="ytd-group-list">
         ${groups.map((group) => renderGroupRow(group)).join('')}

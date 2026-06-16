@@ -21,6 +21,7 @@ module.exports = function attach(ctx) {
       'listInstrumentGroups',
       'buildLedgerAnalytics',
       'getTransactions',
+      'areInstrumentGroupsEnabled',
     ],
     'portfolio-service',
   );
@@ -43,6 +44,7 @@ module.exports = function attach(ctx) {
     listInstrumentGroups,
     buildLedgerAnalytics,
     getTransactions,
+    areInstrumentGroupsEnabled,
   } = ctx;
   const portfolioRepository = repositories.portfolio || {};
   const {
@@ -150,34 +152,36 @@ async function buildSummary() {
     instruments.map((instrument) => getInstrumentValuation(dbInstrument(instrument.symbol))),
   );
   const visibleValuations = valuations.filter((item) => item.value >= minimumDisplayValueEur);
-  const groups = listInstrumentGroups();
+  const groupsEnabled = areInstrumentGroupsEnabled();
+  const groups = groupsEnabled ? listInstrumentGroups() : [];
   const groupsById = new Map(groups.map((group) => [group.id, group]));
   const groupedPositions = {};
-  const portfolio = groups
-    .filter((group) => group.showInDistribution)
-    .map((group) => {
-      const positions = visibleValuations.filter((item) => item.groupId === group.id && item.showInDistribution);
-      groupedPositions[group.id] = withPercentages(
-        positions,
-        positions.reduce((sum, item) => sum + item.value, 0),
-      );
-      return {
-        symbol: group.isExpandable ? 'STOCK' : `GROUP:${group.id}`,
-        groupId: group.id,
-        name: group.name,
-        type: 'group',
-        color: group.color,
-        isExpandable: group.isExpandable,
-        shares: null,
-        priceEur: null,
-        value: positions.reduce((sum, item) => sum + item.value, 0),
-      };
-    })
-    .filter((item) => item.value >= minimumDisplayValueEur);
 
-  const ungroupedPositions = visibleValuations.filter((item) => !item.groupId || !groupsById.has(item.groupId));
-  portfolio.push(...ungroupedPositions.filter((item) => item.showInDistribution));
-  const total = portfolio.reduce((sum, item) => sum + item.value, 0);
+  let portfolio;
+  if (groupsEnabled) {
+    portfolio = groups
+      .filter((group) => group.showInDistribution)
+      .map((group) => {
+        const positions = visibleValuations.filter((item) => item.groupId === group.id && item.showInDistribution);
+        groupedPositions[group.id] = withPercentages(positions, positions.reduce((sum, item) => sum + item.value, 0));
+        return {
+          symbol: group.isExpandable ? 'STOCK' : `GROUP:${group.id}`, groupId: group.id, name: group.name, type: 'group',
+          color: group.color, isExpandable: group.isExpandable, shares: null, priceEur: null,
+          value: positions.reduce((sum, item) => sum + item.value, 0),
+        };
+      })
+      .filter((item) => item.value >= minimumDisplayValueEur);
+    const ungrouped = visibleValuations.filter((item) => !item.groupId || !groupsById.has(item.groupId));
+    portfolio.push(...ungrouped.filter((item) => item.showInDistribution));
+  } else {
+    portfolio = visibleValuations.filter((i) => i.showInDistribution).map((i) => {
+      const inst = listInstruments().find((m) => m.symbol.toLowerCase() === i.symbol.toLowerCase());
+      return { symbol: i.symbol, name: i.name, type: i.type || 'stock', color: inst?.color || '#0d9488',
+        isExpandable: false, shares: i.shares, priceEur: i.priceEur, currency: i.currency,
+        value: i.value, groupId: null };
+    });
+  }
+  const total = portfolio.reduce((sum, item) => sum + Number(item.value || 0), 0);
   const expandableGroup = portfolio.find((item) => item.isExpandable);
 
   return {
@@ -190,6 +194,7 @@ async function buildSummary() {
     autoPlans: getAutoPlans(),
     performance: buildLedgerAnalytics(total),
     onboarding: buildOnboardingStatus(),
+    groupsEnabled,
   };
 }
 
@@ -210,6 +215,7 @@ function isEffectiveValuation(item) {
 async function buildMonthly(year) {
   await executeDueAutoPlans();
   const monthLabel = getCtxDep(ctx, 'monthLabel', 'portfolio-service');
+  const groupsEnabled = areInstrumentGroupsEnabled();
 
   const today = getToday();
   const currentYearValue = Number(today.slice(0, 4));
@@ -219,8 +225,10 @@ async function buildMonthly(year) {
   const rows = [];
   const monthlyInsights = [];
   const instruments = listInstruments().filter((item) => item.type !== 'fx' && item.showInMonthly);
-  const groups = listInstrumentGroups().filter((group) => group.showInMonthly);
-  const configuredColumns = groups.map((group) => ({ id: group.id, label: group.name, color: group.color }));
+  const groups = groupsEnabled ? listInstrumentGroups().filter((group) => group.showInMonthly) : [];
+  const configuredColumns = groupsEnabled
+    ? groups.map((group) => ({ id: group.id, label: group.name, color: group.color, isGroup: true }))
+    : instruments.map((instr) => ({ id: instr.symbol, label: instr.name, color: instr.color, isGroup: false }));
   const instrumentGroups = new Map(listInstruments().map((instrument) => [instrument.symbol, instrument.groupId]));
   const transactions = getTransactions().filter((transaction) => String(transaction.date || '').startsWith(`${year}-`));
   let previousTotal = null;
@@ -249,7 +257,9 @@ async function buildMonthly(year) {
       }
       const cells = {};
       for (const column of configuredColumns) {
-        const positions = valuations.filter((item) => item.groupId === column.id && isEffectiveValuation(item));
+        const positions = valuations.filter(
+          (item) => (column.isGroup ? item.groupId === column.id : item.symbol === column.id) && isEffectiveValuation(item),
+        );
         if (!positions.length) {
           cells[column.id] = {
             value: null,
@@ -272,7 +282,7 @@ async function buildMonthly(year) {
       const total = Object.values(cells).reduce((sum, cell) => sum + Number(cell?.value || 0), 0);
       const effectiveTotal = total >= minimumDisplayValueEur ? total : 0;
       const monthGroups = buildMonthlyGroups(cells, configuredColumns, total, monthTransactions, instrumentGroups);
-      const topGroup = topMonthlyGroup(monthGroups, previousGroupValues);
+      const topGroup = groupsEnabled ? topMonthlyGroup(monthGroups, previousGroupValues) : null;
 
       rows.push({
         month,
@@ -324,9 +334,11 @@ async function buildMonthly(year) {
     }
   }
 
-  const columns = configuredColumns.filter((column) =>
-    rows.some((row) => Number(row.cells?.[column.id]?.value || 0) >= minimumDisplayValueEur),
-  );
+  const columns = groupsEnabled
+    ? configuredColumns.filter((column) =>
+        rows.some((row) => Number(row.cells?.[column.id]?.value || 0) >= minimumDisplayValueEur),
+      )
+    : configuredColumns;
 
   const completedMonths = monthlyInsights.filter((month) => month.total !== null && Number.isFinite(Number(month.total)));
   const latest = completedMonths[completedMonths.length - 1] || null;
@@ -382,7 +394,9 @@ function buildMonthlyGroups(cells, configuredColumns, total, monthTransactions, 
       const cell = cells[column.id];
       const value = Number(cell?.value || 0);
       if (!cell || cell.empty || value < minimumDisplayValueEur) return null;
-      const flows = summarizeGroupTransactions(monthTransactions, column.id, instrumentGroups);
+      const flows = column.isGroup
+        ? summarizeGroupTransactions(monthTransactions, column.id, instrumentGroups)
+        : summarizeTransactions(monthTransactions.filter((t) => t.symbol === column.id));
       return {
         id: column.id,
         label: column.label,
@@ -477,6 +491,7 @@ function buildOnboardingStatus() {
     groupCount,
     transactionCount,
     autoPlanCount,
+    groupsEnabled: areInstrumentGroupsEnabled(),
   };
 }
 

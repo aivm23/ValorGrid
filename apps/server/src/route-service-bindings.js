@@ -64,6 +64,7 @@ function resolveRouteHandlers(ctx) {
     deleteInstrumentGroups: pickServiceFn(instrumentServices, 'deleteInstrumentGroups', ctx.deleteInstrumentGroups),
     updateInstrumentGroup: pickServiceFn(instrumentServices, 'updateInstrumentGroup', ctx.updateInstrumentGroup),
     deleteInstrumentGroup: pickServiceFn(instrumentServices, 'deleteInstrumentGroup', ctx.deleteInstrumentGroup),
+    setInstrumentGroupsEnabled: pickServiceFn(instrumentServices, 'setInstrumentGroupsEnabled', ctx.setInstrumentGroupsEnabled),
     buildOnboardingStatus: pickServiceFn(onboardingServices, 'buildOnboardingStatus', ctx.buildOnboardingStatus),
     previewOnboardingWizard: pickServiceFn(
       onboardingServices,

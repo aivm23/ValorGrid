@@ -24,6 +24,7 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     updateInstrumentGroup,
     deleteInstrumentGroup,
     createRiskBackup,
+    setInstrumentGroupsEnabled,
   } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/instruments' && request.method === 'GET') {
@@ -101,6 +102,20 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
   if (instrumentMatch && request.method === 'DELETE') {
     try {
       sendJson(response, 200, { result: deleteInstrument(decodeURIComponent(instrumentMatch[1])) });
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/instrument-groups/settings' && request.method === 'PUT') {
+    try {
+      const body = await readJsonBody(request);
+      if (typeof body.enabled !== 'boolean') {
+        sendJson(response, 400, { error: 'enabled must be a boolean' });
+        return true;
+      }
+      sendJson(response, 200, setInstrumentGroupsEnabled(body.enabled));
     } catch (error) {
       sendError(response, sendJson, error);
     }
