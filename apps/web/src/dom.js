@@ -113,6 +113,7 @@ export function attach(ctx) {
     newInstrumentType: document.querySelector('#new-instrument-type'),
     newInstrumentCurrency: document.querySelector('#new-instrument-currency'),
     newInstrumentGroup: document.querySelector('#new-instrument-group'),
+    brandPaletteEnabled: document.querySelector('#brand-palette-enabled'),
     newInstrumentColor: document.querySelector('#new-instrument-color'),
     createInstrument: document.querySelector('#create-instrument'),
     priceStatus: document.querySelector('#price-status'),

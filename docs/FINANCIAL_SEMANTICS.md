@@ -10,6 +10,8 @@ Fuentes de verdad actuales:
 - `apps/server/src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
 - `apps/server/src/app.js` (`minimumDisplayValueEur`)
 
+> Nota: Los cambios de paleta corporativa (`brand_palette_enabled`) son visuales; no alteran importes, acciones, cash-flow, rentabilidad ni FIFO. La restauración de colores al desactivar la paleta tampoco afecta a cálculos financieros.
+
 ## Convencion de signos base
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).

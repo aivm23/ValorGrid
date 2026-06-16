@@ -27,8 +27,18 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     setInstrumentGroupsEnabled,
   } = resolveRouteHandlers(ctx);
 
+  const isBrandPaletteEnabled = typeof ctx.isBrandPaletteEnabled === 'function'
+    ? ctx.isBrandPaletteEnabled
+    : () => false;
+  const setBrandPaletteEnabled = typeof ctx.setBrandPaletteEnabled === 'function'
+    ? ctx.setBrandPaletteEnabled
+    : null;
+
   if (url.pathname === '/api/instruments' && request.method === 'GET') {
-    sendJson(response, 200, { instruments: listInstruments() });
+    sendJson(response, 200, {
+      instruments: listInstruments(),
+      brandPaletteEnabled: isBrandPaletteEnabled(),
+    });
     return true;
   }
 
@@ -93,6 +103,25 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     return true;
   }
 
+  if (url.pathname === '/api/instruments/brand-palette' && request.method === 'PUT') {
+    try {
+      const body = await readJsonBody(request);
+      if (typeof body.enabled !== 'boolean') {
+        sendJson(response, 400, { error: 'enabled must be a boolean' });
+        return true;
+      }
+      if (!setBrandPaletteEnabled) {
+        sendJson(response, 500, { error: 'Brand palette service not available' });
+        return true;
+      }
+      const result = setBrandPaletteEnabled(body.enabled);
+      sendJson(response, 200, result);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
   const instrumentMatch = url.pathname.match(/^\/api\/instruments\/([^/]+)$/);
   if (instrumentMatch && request.method === 'PUT') {
     sendJson(response, 200, { instrument: updateInstrument(decodeURIComponent(instrumentMatch[1]), await readJsonBody(request)) });
@@ -123,7 +152,10 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
   }
 
   if (url.pathname === '/api/instrument-groups' && request.method === 'GET') {
-    sendJson(response, 200, { groups: listInstrumentGroups() });
+    sendJson(response, 200, {
+      groups: listInstrumentGroups(),
+      brandPaletteEnabled: isBrandPaletteEnabled(),
+    });
     return true;
   }
 

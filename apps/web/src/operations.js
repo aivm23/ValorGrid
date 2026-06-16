@@ -257,7 +257,7 @@ export function attach(ctx) {
             </select>
           </td>
           <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>
-          <td data-label="Color"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" /></td>
+          <td data-label="Color"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} /></td>
           <td data-label="Acciones"><button class="button button-compact btn-save" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">Guardar</button></td>
         </tr>`;}
           )
@@ -287,7 +287,7 @@ export function attach(ctx) {
         <article class="group-card" data-group="${ctx.escapeHtml(group.id)}">
           <label class="row-select group-select"><input type="checkbox" data-select-group="${ctx.escapeHtml(group.id)}" ${selectedGroups.has(group.id) ? 'checked' : ''} aria-label="Seleccionar grupo ${ctx.escapeHtml(group.name)}" /><span>Seleccionar</span></label>
           <input class="instrument-input group-name-input" data-group-field="name" value="${ctx.escapeHtml(group.name)}" aria-label="Nombre del grupo" />
-          <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="Color del grupo" />
+          <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="Color del grupo" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} />
           <details class="group-visual-options">
             <summary>Opciones de visualizacion</summary>
             <div class="group-card-options">

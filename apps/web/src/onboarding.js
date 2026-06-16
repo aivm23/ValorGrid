@@ -124,11 +124,11 @@ export function attach(ctx) {
   function buildWizardPayload() {
     const symbol = ctx.elements.wizardInstrumentSymbol.value.trim().toUpperCase();
     const useGroup = ctx.elements.wizardUseGroup.checked;
+    const paletteEnabled = ctx.state.brandPaletteEnabled === true;
     const payload = {
       useGroup,
       group: useGroup ? {
         name: ctx.elements.wizardGroupName.value.trim(),
-        color: ctx.elements.wizardGroupColor.value,
         showInDistribution: true,
         showInMonthly: true,
         isExpandable: false,
@@ -139,10 +139,14 @@ export function attach(ctx) {
         name: ctx.elements.wizardInstrumentName.value.trim() || symbol,
         type: ctx.elements.wizardInstrumentType.value,
         currency: ctx.elements.wizardInstrumentCurrency.value || 'EUR',
-        color: ctx.elements.wizardInstrumentColor.value,
       },
       confirmRetroactive: ctx.elements.wizardPlanConfirmRetroactive.checked,
     };
+
+    if (!paletteEnabled) {
+      payload.group.color = ctx.elements.wizardGroupColor.value;
+      payload.instrument.color = ctx.elements.wizardInstrumentColor.value;
+    }
 
     if (ctx.elements.wizardAddTransaction.checked) {
       payload.transaction = { ...buildWizardTransactionPayload(symbol), enabled: true };

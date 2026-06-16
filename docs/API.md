@@ -52,10 +52,13 @@ DELETE /api/instrument-groups/:id
 GET /api/instrument-identifiers
 POST /api/instrument-identifiers
 DELETE /api/instrument-identifiers/:id
+PUT /api/instruments/brand-palette
 ```
 
 - `POST /api/instruments/preview-delete`: devuelve estado de posición y dependencias antes de eliminar; es una previsualización y no bloquea por sí misma.
 - El bloqueo real por posición o automatizaciones activas se aplica al ejecutar `DELETE /api/instruments/:symbol` o `DELETE /api/instruments`.
+- `PUT /api/instruments/brand-palette`: activa o desactiva la paleta corporativa automática. Cuerpo: `{ "enabled": boolean }`. Si se activa, guarda snapshot de colores actuales, aplica colores corporativos a grupos e instrumentos y actualiza transacciones. Si se desactiva, restaura los colores del snapshot. Respuesta incluye `brandPaletteEnabled`, `snapshotCreated`, `snapshotReused`, `updatedGroups`, `updatedInstruments`, `updatedTransactions`, `restoredGroups`, `restoredInstruments`, `snapshotCleared`.
+- `GET /api/instruments` y `GET /api/instrument-groups` incluyen `brandPaletteEnabled` en la respuesta.
 
 - `instruments` almacena valores visibles de cartera.
 - `instrument_groups` organiza visibilidad por dashboard, revisión YTD y desglose.

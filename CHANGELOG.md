@@ -12,6 +12,10 @@
 - feat: add `deploy/sql/update-3.16.0-to-3.17.0.sql` to persist the setting in `app_meta`.
 - test: add 12 integration tests for instrument groups settings.
 - docs: update API.md, DATA_MODEL.md, FINANCIAL_SEMANTICS.md, DB_OPERATIONS.md, TESTING.md.
+- feat: add automatic corporate brand palette for groups and instruments (cyan-to-violet bisection).
+- feat: add `PUT /api/instruments/brand-palette` endpoint with snapshot/restore of manual colors.
+- feat: block color inputs when brand palette is active; restore previous colors on deactivation.
+- feat: add brand palette preview and toggle to Valores dialog with live UI locking.
 
 ## 3.16.2
 

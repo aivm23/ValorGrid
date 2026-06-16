@@ -325,6 +325,11 @@ La clave `instr_groups_enabled` controla si los grupos de instrumentos están ac
 - Valor `'0'`: grupos deshabilitados.
 - Si la clave no existe, la aplicación se comporta como si estuviera habilitado (`'1'`).
 
+Claves adicionales de `app_meta`:
+
+- `brand_palette_enabled`: controla la paleta corporativa automática. Valor `'1'` activada, `'0'` desactivada (default). No modifica datos financieros.
+- `brand_palette_previous_colors`: snapshot JSON de colores de grupos e instrumentos antes de activar la paleta. Se usa para restaurar colores al desactivarla. Contiene `createdAt`, `version`, `groups` (mapa de id->color) e `instruments` (mapa de symbol->color).
+
 ## Precios y FX (detalle)
 
 ### `market_prices_daily`
