@@ -492,6 +492,46 @@ test('operations.js Operativa cards use improved microcopy and tooltips', () => 
   assert.ok(!ops.includes('>no realizada<'), 'removed old standalone "no realizada" microcopy');
 });
 
+// ── 16) Pro/Community preferences panel ──
+
+test('index.html details is closed by default (no open attribute) with community class', () => {
+  const index = read('apps/web/index.html');
+  const match = index.match(/id="pro-preferences-card"[^>]*>/);
+  assert.ok(match, 'pro-preferences-card element exists');
+  assert.ok(index.includes('id="pro-preferences-card"'), 'card element found');
+  assert.ok(!index.includes('pro-preferences-card" open'), 'details is closed by default');
+  assert.ok(index.includes('is-community-edition'), 'card starts with is-community-edition class');
+});
+
+test('CSS no longer hides pro-preferences-summary unconditionally on open', () => {
+  const css = read('apps/web/src/styles.css');
+  assert.ok(!css.includes('.pro-preferences-card[open] .pro-preferences-summary'), 'old rule removed');
+  assert.ok(css.includes('.pro-preferences-card.is-community-edition[open] .pro-preferences-summary'), 'Community rule keeps summary visible');
+  assert.ok(css.includes('.pro-preferences-card.is-pro-edition .pro-preferences-summary'), 'PRO rule hides summary');
+});
+
+test('history-preferences.js forces custom mode in non-editable state', () => {
+  const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
+  assert.ok(hp.includes('isEditable ? filters : { ...filters, mode: \'custom\' }'), 'forces custom mode when not editable');
+  assert.ok(hp.includes('syncProPreferencesPanel'), 'exports syncProPreferencesPanel');
+});
+
+test('history-preferences.js syncProPreferencesPanel toggles edition classes and open state', () => {
+  const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
+  assert.ok(hp.includes('is-pro-edition'), 'references is-pro-edition class');
+  assert.ok(hp.includes('is-community-edition'), 'references is-community-edition class');
+  assert.ok(hp.includes('card.open = true'), 'PRO opens panel');
+  assert.ok(hp.includes('card.open = false'), 'Community closes panel');
+  assert.ok(hp.includes('card.dataset.fixed'), 'PRO sets data-fixed attribute');
+  assert.ok(hp.includes('delete card.dataset.fixed'), 'Community removes data-fixed attribute');
+});
+
+test('dashboard.js calls syncProPreferencesPanel after edition known', () => {
+  const dash = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  assert.ok(dash.includes('ctx.syncProPreferencesPanel?.()'), 'calls syncProPreferencesPanel');
+  assert.ok(!dash.includes('proCard.open = state.edition'), 'no longer sets proCard.open inline');
+});
+
 test('operations.js Operativa cards handle edge cases without NaN or Infinity', () => {
   const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
 

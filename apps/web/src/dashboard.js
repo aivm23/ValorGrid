@@ -98,10 +98,7 @@ export function attach(ctx) {
     ctx.renderOperationsPreferenceControls?.();
     ctx.renderHistoryPreferenceControls?.();
 
-    const proCard = ctx.elements.proPreferencesCard;
-    if (proCard) {
-      proCard.open = state.edition === 'professional';
-    }
+    ctx.syncProPreferencesPanel?.();
   }
 
   async function refreshHistory(options = {}) {
