@@ -1,4 +1,4 @@
--- ValorGrid update 3.16.2 -> 3.17.0
+-- ValorGrid update 3.17.0 -> 3.18.0
 -- Objetivo: persistir el ajuste de paleta corporativa automática.
 -- Ejecutar solo tras crear backup de la DB productiva.
 -- Idempotente: no modifica colores existentes ni datos financieros.
