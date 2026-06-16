@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.18.1
+
+- fix: restore instrument-repository.js (corrupted in 3e195a5), extract group service, reorganize modal UI.
+
 ## 3.18.0
 
 - feat: add automatic corporate brand palette for groups and instruments (cyan-to-violet bisection).

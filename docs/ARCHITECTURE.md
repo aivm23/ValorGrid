@@ -171,7 +171,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 7. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
 8. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
 9. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática.
+10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática y `instrument-group-service` para operaciones CRUD de grupos.
 11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 12. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
 13. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
