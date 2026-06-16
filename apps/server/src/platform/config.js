@@ -1,8 +1,9 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const { version } = require('../../../../package.json');
+const { version: communityVersion } = require('../../../../package.json');
 
 function createConfig(env = process.env, root = path.resolve(__dirname, '../../../../')) {
+  const version = env.VALORGRID_PRO_VERSION || communityVersion;
   const localRoot = path.join(root, 'local', 'valorgrid');
   const localDataDir = path.join(localRoot, 'data');
   const localBackupDir = path.join(localRoot, 'backups');
