@@ -21,8 +21,9 @@ La app y los scripts comparten la misma política:
 
 ## Comandos operativos
 
-- Los backups creados por la app, la API o los scripts usan la misma `backupDir` resuelta por `apps/server/src/platform/config.js`.
-- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` es `local/valorgrid/backups/`.
+- Los backups creados por la app y la API usan la `backupDir` resuelta por `apps/server/src/platform/config.js`.
+- `npm run db:backup` también usa la misma `backupDir` de `config.js`.
+- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` por defecto es `local/valorgrid/backups/` (si no existe `.backups/` legacy).
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
 
@@ -88,6 +89,7 @@ Hay dos versiones del script, una para cada entorno:
 ```
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.15.0-to-3.16.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.16.0-to-3.17.0.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.17.0-to-3.18.0.sql
 ```
 
 **Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
@@ -96,14 +98,17 @@ Hay dos versiones del script, una para cada entorno:
 # Local
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.17.0-to-3.18.0.sql
 
 # Docker (ejecutar dentro del contenedor)
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.17.0-to-3.18.0.sql
 
 # Con opciones explícitas
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.16.0-to-3.17.0.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.17.0-to-3.18.0.sql --db /data/portfolio.sqlite
 ```
 
 **Parámetros del script PowerShell (`run-sql-migration.ps1`):**
