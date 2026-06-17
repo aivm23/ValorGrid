@@ -75,7 +75,6 @@ export function inferInstrumentType(item) {
 export function getImportSourceDisplayName(source) {
   if (source.key === 'degiro-csv') return 'DEGIRO';
   if (source.key === 'ibkr-csv') return 'Interactive Brokers';
-  if (source.key === 'clicktrade-csv') return 'ClickTrade';
   if (source.key === 'clicktrade-xlsx') return 'ClickTrade';
   return source.label;
 }
