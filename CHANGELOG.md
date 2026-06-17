@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.19.0
+
+- feat: add `pro-xlsx` adapter path for broker XLSX imports — `clicktrade-xlsx` registered as XLSX input source with `inputKind: 'xlsx'`.
+- feat: extend ingestion parser with `pro-xlsx` branch that passes `contentBase64` to PRO adapter `parse()` function.
+- feat: expose `inputKind` in `/api/import/sources` response for frontend file type detection.
+- feat: frontend import helpers recognize `clicktrade-xlsx` as XLSX source — accepts `.xlsx` files, sends base64 payload, no template download.
+- feat: merge ClickTrade into main Professional Edition banner (removes "Próximamente" teaser).
+
 ## 3.18.1
 
 - fix: restore instrument-repository.js (corrupted in 3e195a5), extract group service, reorganize modal UI.

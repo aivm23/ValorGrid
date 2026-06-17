@@ -379,7 +379,7 @@ test('import-workflow.js option labels include Pro source names and edition', ()
   assert.ok(helpers.includes('Pr\\u00f3ximamente'), 'option labels include Próximamente for coming soon');
   assert.ok(helpers.includes('DEGIRO'), 'helpers maps degiro-csv key to DEGIRO');
   assert.ok(helpers.includes('Interactive Brokers'), 'helpers maps ibkr-csv to Interactive Brokers');
-  assert.ok(helpers.includes('ClickTrade'), 'helpers maps clicktrade-csv to ClickTrade');
+  assert.ok(helpers.includes('ClickTrade'), 'helpers maps clicktrade-xlsx to ClickTrade');
 });
 
 test('import source helper labels are plain text and match Pro teaser copy', () => {

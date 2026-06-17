@@ -342,6 +342,22 @@ async function parseImportPayload(input, adapter) {
       fileSubtype: parsed.fileSubtype || adapter.profile || adapter.source,
     };
   }
+  if (adapter.parser === 'pro-xlsx') {
+    if (typeof adapter.parse !== 'function') {
+      throw new Error(`El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`);
+    }
+    const contentBase64 = String(input.contentBase64 || '').trim();
+    if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
+    const parsed = adapter.parse({ contentBase64, filename: input.filename || null, source: adapter.source });
+    return {
+      parsed: { headers: parsed.headers || [], rows: parsed.rows || [] },
+      fileHash: sha256(contentBase64),
+      payloadHash: sha256(`${adapter.source}:${contentBase64}`),
+      sheets: parsed.sheets || [],
+      selectedSheet: parsed.selectedSheet || null,
+      fileSubtype: parsed.fileSubtype || adapter.profile || adapter.source,
+    };
+  }
   if (adapter.parser !== 'exceljs') throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');

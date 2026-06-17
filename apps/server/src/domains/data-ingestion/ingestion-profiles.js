@@ -28,12 +28,12 @@ const knownProAdapters = {
     label: 'Interactive Brokers Transactions CSV',
     edition: 'professional',
   },
-  'clicktrade-csv': {
-    parser: 'pro-csv',
+  'clicktrade-xlsx': {
+    parser: 'pro-xlsx',
     profile: 'clicktrade',
     label: 'ClickTrade',
     edition: 'professional',
-    comingSoon: true,
+    inputKind: 'xlsx',
   },
 };
 
@@ -71,10 +71,11 @@ function loadProAdapters() {
     for (const adapter of proAdapters.adapters) {
       if (!adapter?.source || !adapter?.label) continue;
       adapterDefinitions[adapter.source] = {
-        parser: 'pro-csv',
+        parser: adapter.inputKind === 'xlsx' ? 'pro-xlsx' : 'pro-csv',
         profile: adapter.profile || 'valorgrid',
         label: adapter.label,
         edition: 'professional',
+        inputKind: adapter.inputKind || 'text',
         parse: adapter.parse,
         ...(adapter.comingSoon ? { comingSoon: adapter.comingSoon } : {}),
       };
@@ -96,6 +97,7 @@ function listImportSources(edition = 'community') {
       label: def.label,
       edition: def.edition || 'community',
       available: isAvailable,
+      ...(def.inputKind ? { inputKind: def.inputKind } : {}),
       ...(def.comingSoon ? { comingSoon: true } : {}),
     });
   }

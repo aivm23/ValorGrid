@@ -619,11 +619,11 @@ test('GET /api/import/sources returns community sources when edition is communit
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false, 'ibkr-csv must not be available in community edition');
 
-  const clicktrade = result.body.sources.find((s) => s.key === 'clicktrade-csv');
-  assert.ok(clicktrade, 'clicktrade-csv source must be present in the list');
+  const clicktrade = result.body.sources.find((s) => s.key === 'clicktrade-xlsx');
+  assert.ok(clicktrade, 'clicktrade-xlsx source must be present in the list');
   assert.equal(clicktrade.edition, 'professional');
-  assert.equal(clicktrade.available, false, 'clicktrade-csv must not be available in community edition');
-  assert.equal(clicktrade.comingSoon, true, 'clicktrade-csv must be marked as coming soon');
+  assert.equal(clicktrade.available, false, 'clicktrade-xlsx must not be available in community edition');
+  assert.equal(clicktrade.inputKind, 'xlsx', 'clicktrade-xlsx must have inputKind set to xlsx');
 });
 
 test('listImportSources includes knownProAdapters with available=false in community edition', async () => {
@@ -647,12 +647,12 @@ test('listImportSources includes knownProAdapters with available=false in commun
   assert.equal(ibkr.edition, 'professional');
   assert.equal(ibkr.available, false);
 
-  const clicktrade = sources.find((s) => s.key === 'clicktrade-csv');
+  const clicktrade = sources.find((s) => s.key === 'clicktrade-xlsx');
   assert.ok(clicktrade);
   assert.equal(clicktrade.label, 'ClickTrade');
   assert.equal(clicktrade.edition, 'professional');
   assert.equal(clicktrade.available, false);
-  assert.equal(clicktrade.comingSoon, true, 'clicktrade-csv must be marked as coming soon');
+  assert.equal(clicktrade.inputKind, 'xlsx', 'clicktrade-xlsx must have inputKind set to xlsx');
 });
 
 test('listImportSources marks all sources as available in professional edition, except coming-soon adapters', async () => {

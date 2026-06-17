@@ -1,9 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { createConfig } = require('../src/platform/config');
-const { openDatabase } = require('../src/platform/db');
-const { createBackup, listBackups } = require('../src/platform/backups');
-const attachSchema = require('../src/schema');
+const { createConfig } = require('../apps/server/src/platform/config');
+const { openDatabase } = require('../apps/server/src/platform/db');
+const { createBackup, listBackups } = require('../apps/server/src/platform/backups');
+const attachSchema = require('../apps/server/src/schema');
 
 const DEFAULT_META_KEYS = {
   ledgerVersion: 'ledger_version',
@@ -43,7 +43,7 @@ function resolveDatabaseArtifacts(dbPath) {
 
 function parseSchemaTableNames(schemaSource) {
   const source =
-    schemaSource || fs.readFileSync(path.join(repoRoot(), 'src', 'schema.js'), 'utf8');
+    schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const names = new Set();
   for (const match of source.matchAll(/\bCREATE TABLE IF NOT EXISTS\s+([a-z_][a-z0-9_]*)\s*\(/gi)) {
     names.add(match[1]);

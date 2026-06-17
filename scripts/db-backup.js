@@ -5,13 +5,12 @@ const { createConfig } = require('../apps/server/src/platform/config');
 function run() {
   const root = path.resolve(__dirname, '..');
   const config = createConfig(process.env, root);
-  const { dbPath } = config;
+  const { dbPath, backupDir } = config;
 
   if (!fs.existsSync(dbPath)) {
     throw new Error(`No database found at: ${dbPath}`);
   }
 
-  const backupDir = path.join(root, '.backups');
   fs.mkdirSync(backupDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupName = `portfolio-backup-${stamp}.sqlite`;
