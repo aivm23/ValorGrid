@@ -78,7 +78,19 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
     return true;
   });
   const resolvedByIdentifier = ctx.resolveInstrumentFromIdentifiers(identifierCandidates);
-  if (resolvedByIdentifier) return { instrument: resolvedByIdentifier, resolutionStatus: 'resolved', matchedBy: 'identifier' };
+  if (resolvedByIdentifier) {
+    const tickerCandidate = candidates.find((c) =>
+      String(c.identifierType || '').toLowerCase() === 'ticker'
+    );
+    if (tickerCandidate && resolvedByIdentifier.symbol !== tickerCandidate.identifierValue) {
+      return {
+        instrument: { ...resolvedByIdentifier, symbol: tickerCandidate.identifierValue },
+        resolutionStatus: 'resolved',
+        matchedBy: 'identifier',
+      };
+    }
+    return { instrument: resolvedByIdentifier, resolutionStatus: 'resolved', matchedBy: 'identifier' };
+  }
 
   const resolvedByHeuristic = resolveByHeuristic(ctx, row.normalized, row.raw);
   if (resolvedByHeuristic) return { instrument: resolvedByHeuristic, resolutionStatus: 'resolved', matchedBy: 'name_heuristic' };
