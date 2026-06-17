@@ -161,10 +161,10 @@ test('valorgrid-xlsx parser only accepts the Movimientos sheet', async () => {
     Datos: [['No permitido']],
   });
 
-  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /Hoja no permitida: Datos/);
+  await assert.rejects(() => previewImport({ source: 'valorgrid-xlsx', contentBase64 }), /Hoja no permitida: "Datos"/);
   await assert.rejects(
     () => previewImport({ source: 'valorgrid-xlsx', contentBase64, sheetName: 'Instrucciones' }),
-    /Hoja no permitida: Datos/,
+    /Hoja no permitida: "Datos"/,
   );
 });
 

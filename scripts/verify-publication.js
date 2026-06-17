@@ -72,6 +72,8 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
   'index.html',
   ['apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-profiles.js'].join(path.sep),
   'apps/server/src/domains/data-ingestion/ingestion-profiles.js',
+  ['apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-parser.js'].join(path.sep),
+  'apps/server/src/domains/data-ingestion/ingestion-parser.js',
   ['test', 'imports.test.js'].join(path.sep),
   'test/imports.test.js',
   ['test', 'frontend-renovation.test.js'].join(path.sep),

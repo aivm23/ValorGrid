@@ -86,6 +86,14 @@ export function getImportSourceOptionLabel(source) {
   return name;
 }
 
+function getImportSourceTooltip(source) {
+  if (source.key === 'valorgrid-xlsx') return 'Importar Excel con la plantilla oficial de ValorGrid (hoja Movimientos)';
+  if (source.key === 'degiro-csv') return 'Importar CSV exportado desde DEGIRO';
+  if (source.key === 'ibkr-csv') return 'Importar CSV exportado desde Interactive Brokers (IBKR)';
+  if (source.key === 'clicktrade-xlsx') return 'Importar XLSX exportado desde ClickTrade';
+  return source.label || '';
+}
+
 export function renderImportSourceOptions(sources, edition, escapeHtml) {
   return sources
     .filter((source) => source.edition === 'community' || edition === 'professional' || !source.available)
@@ -97,7 +105,8 @@ export function renderImportSourceOptions(sources, edition, escapeHtml) {
       const label = getImportSourceOptionLabel(source);
       const disabled = !source.available || source.comingSoon;
       const disabledAttr = disabled ? ' disabled' : '';
-      return `<option value="${escapeHtml(source.key)}"${disabledAttr}>${escapeHtml(label)}</option>`;
+      const title = escapeHtml(getImportSourceTooltip(source));
+      return `<option value="${escapeHtml(source.key)}"${disabledAttr} title="${title}">${escapeHtml(label)}</option>`;
     })
     .join('');
 }

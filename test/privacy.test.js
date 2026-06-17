@@ -93,7 +93,7 @@ function publicFiles() {
 
 function allowsPublicBrokerTeaser(file) {
   const relative = path.relative(root, file);
-  return relative === 'index.html' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-profiles.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'test\\frontend-renovation.test.js' || relative === 'test/frontend-renovation.test.js' || relative === 'apps/web/src/imports.js' || relative === 'apps\\web\\src\\imports.js' || relative === 'apps/web/src/import-workflow.js' || relative === 'apps\\web\\src\\import-workflow.js' || relative === 'apps/web/src/import-workflow-helpers.js' || relative === 'apps\\web\\src\\import-workflow-helpers.js';
+  return relative === 'index.html' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-profiles.js' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-parser.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-parser.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'test\\frontend-renovation.test.js' || relative === 'test/frontend-renovation.test.js' || relative === 'apps/web/src/imports.js' || relative === 'apps\\web\\src\\imports.js' || relative === 'apps/web/src/import-workflow.js' || relative === 'apps\\web\\src\\import-workflow.js' || relative === 'apps/web/src/import-workflow-helpers.js' || relative === 'apps\\web\\src\\import-workflow-helpers.js';
 }
 
 function publicDocumentationFiles() {

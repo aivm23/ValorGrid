@@ -68,9 +68,9 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
   const sheets = workbookData.sheets;
   if (!sheets.length) throw new Error('El archivo XLSX no contiene hojas');
   for (const sheet of sheets) {
-    if (!ALLOWED_SHEETS.has(sheet)) throw new Error(`Hoja no permitida: ${sheet}`);
+    if (!ALLOWED_SHEETS.has(sheet)) throw new Error(`Hoja no permitida: "${sheet}". Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no usa esa plantilla. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.`);
   }
-  if (!sheets.includes('Movimientos')) throw new Error('Falta la hoja Movimientos');
+  if (!sheets.includes('Movimientos')) throw new Error('Falta la hoja Movimientos. Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no es un Excel de ValorGrid. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.');
   if (sheetNameInput && sheetNameInput !== 'Movimientos') {
     throw new Error('Solo se permite importar la hoja Movimientos');
   }
