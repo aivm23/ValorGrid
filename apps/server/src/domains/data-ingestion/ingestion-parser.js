@@ -332,7 +332,7 @@ async function parseImportPayload(input, adapter) {
     }
     const content = String(input.content || '').trim();
     if (!content) throw new Error('Contenido CSV obligatorio');
-    const parsed = adapter.parse({ content, filename: input.filename || null, source: adapter.source });
+    const parsed = await adapter.parse({ content, filename: input.filename || null, source: adapter.source });
     return {
       parsed: { headers: parsed.headers || [], rows: parsed.rows || [] },
       fileHash: sha256(content),
@@ -348,7 +348,7 @@ async function parseImportPayload(input, adapter) {
     }
     const contentBase64 = String(input.contentBase64 || '').trim();
     if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
-    const parsed = adapter.parse({ contentBase64, filename: input.filename || null, source: adapter.source });
+    const parsed = await adapter.parse({ contentBase64, filename: input.filename || null, source: adapter.source });
     return {
       parsed: { headers: parsed.headers || [], rows: parsed.rows || [] },
       fileHash: sha256(contentBase64),
