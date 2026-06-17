@@ -54,7 +54,7 @@ export function attach(ctx) {
             <div class="history-filter-checkboxes">${assetTypeCheckboxes}</div>
           </div>
           <div class="history-filter-group">
-            <span class="history-filter-group-label">Operacion</span>
+            <span class="history-filter-group-label">Operación</span>
             <div class="history-filter-checkboxes">${transactionTypeCheckboxes}</div>
           </div>
         </div>

@@ -94,7 +94,7 @@ export function attach(ctx) {
     );
     setDeleteDialogCopy(
       'Eliminar movimientos',
-      'Confirma el impacto antes de borrar. El histórico se recalculara desde el primer movimiento afectado.',
+      'Confirma el impacto antes de borrar. El histórico se recalculará desde el primer movimiento afectado.',
       'Eliminar movimientos',
     );
     ctx.elements.instrumentDeletePreview.innerHTML = `
@@ -107,7 +107,7 @@ export function attach(ctx) {
       </div>
       <div class="delete-preview-section">
         <h3>Impacto en histórico</h3>
-        <p class="subtle">Se invalidara la curva historica desde ${firstDate ? ctx.formatDate(firstDate) : 'la primera fecha afectada'} y se recalcularan dashboard, YTD y ledger.</p>
+        <p class="subtle">Se invalidará la curva histórica desde ${firstDate ? ctx.formatDate(firstDate) : 'la primera fecha afectada'} y se recalcularán dashboard, YTD y ledger.</p>
       </div>
       <ul class="delete-preview-list">
         ${selected
@@ -118,7 +118,7 @@ export function attach(ctx) {
           )
           .join('')}
       </ul>
-      ${selected.length > 8 ? `<p class="subtle">Y ${selected.length - 8} movimientos mas.</p>` : ''}
+      ${selected.length > 8 ? `<p class="subtle">Y ${selected.length - 8} movimientos más.</p>` : ''}
     `;
     ctx.state.pendingTransactionDelete = ids;
     ctx.elements.instrumentDeleteConfirm.disabled = false;

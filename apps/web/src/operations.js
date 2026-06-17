@@ -132,7 +132,7 @@ export function attach(ctx) {
               <small class="metric-micro">capital actualmente invertido</small>`;
           case 'netCashFlow':
             return `
-              ${metricInfo('Cash-flow neto', 'Flujo de caja neto total: aportaciones menos retiraciones. Negativo = neto aportado, positivo = neto retirado.', 'op-netcashflow-info')}
+              ${metricInfo('Cash-flow neto', 'Flujo de caja neto total: aportaciones menos retiradas. Negativo = neto aportado, positivo = neto retirado.', 'op-netcashflow-info')}
               <strong class="${ctx.moneyClass(performance.netCashFlow)}">${ctx.formatCurrency(performance.netCashFlow)}</strong>
               <small class="metric-micro">flujo neto acumulado</small>`;
           case 'grossBought':
@@ -290,10 +290,10 @@ export function attach(ctx) {
           <input class="instrument-input group-name-input" data-group-field="name" value="${ctx.escapeHtml(group.name)}" aria-label="Nombre del grupo" />
           <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="Color del grupo" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} />
           <details class="group-visual-options">
-            <summary>Opciones de visualizacion</summary>
+            <summary>Opciones de visualización</summary>
             <div class="group-card-options">
               <label class="switch-field"><input type="checkbox" data-group-field="showInDistribution" ${group.showInDistribution ? 'checked' : ''} /> Mostrar en dashboard</label>
-              <label class="switch-field"><input type="checkbox" data-group-field="showInMonthly" ${group.showInMonthly ? 'checked' : ''} /> Mostrar en revision YTD</label>
+              <label class="switch-field"><input type="checkbox" data-group-field="showInMonthly" ${group.showInMonthly ? 'checked' : ''} /> Mostrar en revisión YTD</label>
               <label class="switch-field"><input type="checkbox" data-group-field="isExpandable" ${group.isExpandable ? 'checked' : ''} /> Permitir desglose</label>
             </div>
           </details>

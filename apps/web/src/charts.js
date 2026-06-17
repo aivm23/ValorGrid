@@ -119,7 +119,7 @@ export function attach(ctx) {
 
   function eventTooltip(event) {
     const type = event.type === 'remove' ? 'Venta' : 'Compra';
-    const origin = event.origin === 'auto' ? 'automatico' : event.origin === 'import' ? 'importado' : 'manual';
+    const origin = event.origin === 'auto' ? 'automático' : event.origin === 'import' ? 'importado' : 'manual';
     const lines = [
       `${type} ${event.symbol}`,
       formatPlainDate(event.date),
@@ -180,7 +180,7 @@ export function attach(ctx) {
     elements.historyStats.innerHTML = `
     <article class="has-border-accent">${metricInfo(
       'Último valor histórico',
-      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribucion actual.',
+      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribución actual.',
       'history-last-value-info',
     )}<strong>${formatCurrency(last.value)}</strong></article>
     <article class="has-border-accent"><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>

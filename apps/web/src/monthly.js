@@ -48,8 +48,8 @@ export function attach(ctx) {
   function renderYtdZeroNotice(count) {
     return `
       <div class="ytd-zero-notice">
-        <strong>${count} ${count === 1 ? 'mes anterior esta' : 'meses anteriores estan'} a cero</strong>
-        <span>No se muestran para mantener la revision centrada en los meses con cartera o movimientos.</span>
+        <strong>${count} ${count === 1 ? 'mes anterior está' : 'meses anteriores están'} a cero</strong>
+        <span>No se muestran para mantener la revisión centrada en los meses con cartera o movimientos.</span>
       </div>`;
   }
 

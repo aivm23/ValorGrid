@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.19.1
+
+- fix: correct Spanish orthography across all frontend UI — accents, verb conjugations, and removed invented word "retiraciones" (replaced with "retiradas").
+- fix: improve import parser error messages — sheet mismatch now guides user to select the correct importer source.
+- feat: add tooltip descriptions to import source selector dropdown for each broker/template option.
+- chore: add `valorgrid-spanish-orthography` skill to prevent future accent and spelling regressions.
+
 ## 3.19.0
 
 - feat: add `pro-xlsx` adapter path for broker XLSX imports — `clicktrade-xlsx` registered as XLSX input source with `inputKind: 'xlsx'`.

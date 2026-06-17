@@ -115,7 +115,7 @@ export function attach(ctx) {
       ctx.state.transactionPreviewOk = false;
       setAddFeedback(
         isRemove
-          ? 'No hay ninguna posicion abierta. Registra una compra antes de añadir una venta.'
+          ? 'No hay ninguna posición abierta. Registra una compra antes de añadir una venta.'
           : 'No hay valores creados. Crea un valor antes de registrar compras.',
       );
     }
@@ -184,7 +184,7 @@ export function attach(ctx) {
     setAddFeedback('Validando precio y movimiento...');
     try {
       const previewOk = ctx.state.transactionPreviewOk || (await refreshTransactionPreview());
-      if (!previewOk) throw new Error('Revisa la previsualizacion antes de guardar');
+      if (!previewOk) throw new Error('Revisa la previsualización antes de guardar');
       setAddFeedback('Guardando movimiento...');
       const data = await ctx.sendJson('/api/transactions', 'POST', payload);
       setAddFeedback(`${data.transaction.symbol}: movimiento guardado.`);

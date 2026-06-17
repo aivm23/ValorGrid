@@ -179,7 +179,7 @@ export function attach(ctx) {
     ctx.elements.wizardPlanPreview.innerHTML = `
       <span>Plan de aportación</span>
       <strong>${pending} aportaciones pendientes</strong>
-      <small>Primera: ${ctx.formatDate(first?.firstDate)} - Ultima: ${ctx.formatDate(first?.lastDate)}</small>
+      <small>Primera: ${ctx.formatDate(first?.firstDate)} - Última: ${ctx.formatDate(first?.lastDate)}</small>
       <small>Importe estimado: ${ctx.formatCurrency(Number(preview.autoPlan.estimatedTotalEur || 0))}</small>
     `;
     ctx.elements.wizardPlanConfirmField.hidden = pending <= 1;
