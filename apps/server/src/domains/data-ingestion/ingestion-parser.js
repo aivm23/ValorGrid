@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const ExcelJS = require('exceljs');
-const { typeAliases, adapterDefinitions, profileOverrides } = require('./ingestion-profiles');
+const { typeAliases, adapterDefinitions, knownProAdapters, profileOverrides } = require('./ingestion-profiles');
 const { MOVIMIENTOS_HEADERS } = require('./template-generator');
 
 const MAX_XLSX_BYTES = 2 * 1024 * 1024;
@@ -169,7 +169,7 @@ function normalizeType(value) {
 
 function resolveAdapter(sourceInput = 'valorgrid-xlsx') {
   const source = String(sourceInput || 'valorgrid-xlsx').trim().toLowerCase();
-  const adapter = adapterDefinitions[source];
+  const adapter = adapterDefinitions[source] || knownProAdapters[source];
   if (!adapter) throw new Error(`Origen de importacion no soportado: ${sourceInput}`);
   return { source, ...adapter };
 }

@@ -108,6 +108,7 @@ function listImportSources(edition = 'community') {
 module.exports = {
   typeAliases,
   adapterDefinitions,
+  knownProAdapters,
   profileOverrides,
   listImportSources,
   loadProAdapters,
