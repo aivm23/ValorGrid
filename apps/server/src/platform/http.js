@@ -24,7 +24,7 @@ module.exports = function attach(ctx) {
         if (!handled) sendJson(response, 404, { error: 'Not found' });
       } catch (error) {
         console.error(error);
-        sendJson(response, 500, { error: 'Internal server error' });
+        sendJson(response, 500, { error: error.message || 'Internal server error' });
       }
       return;
     }

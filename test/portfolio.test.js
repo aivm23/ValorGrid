@@ -182,7 +182,7 @@ test('backup API creates, lists, and downloads SQLite backups', async () => {
   assert.match(create.body.backup.file, /^portfolio-.+\.sqlite$/);
 
   const list = await jsonRequest('/api/backups');
-  assert.equal(list.response.status, 200);
+  assert.equal(list.response.status, 200, `GET /api/backups returned ${list.response.status}: ${JSON.stringify(list.body)}`);
   assert.ok(list.body.backups.some((backup) => backup.file === create.body.backup.file));
 
   const download = await request(`/api/backups/${encodeURIComponent(create.body.backup.file)}`);
