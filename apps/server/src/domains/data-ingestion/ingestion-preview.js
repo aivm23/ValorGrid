@@ -92,6 +92,18 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
     return { instrument: resolvedByIdentifier, resolutionStatus: 'resolved', matchedBy: 'identifier' };
   }
 
+  // If ticker is not in DB, return needs_mapping with the ticker from the adapter
+  const tickerCandidate = candidates.find((c) =>
+    String(c.identifierType || '').toLowerCase() === 'ticker'
+  );
+  if (tickerCandidate && !ctx.getInstrument(tickerCandidate.identifierValue)) {
+    return {
+      instrument: { symbol: tickerCandidate.identifierValue, type: 'stock', name: '', color: '#2563eb' },
+      resolutionStatus: 'needs_mapping',
+      matchedBy: 'ticker',
+    };
+  }
+
   const resolvedByHeuristic = resolveByHeuristic(ctx, row.normalized, row.raw);
   if (resolvedByHeuristic) return { instrument: resolvedByHeuristic, resolutionStatus: 'resolved', matchedBy: 'name_heuristic' };
 
