@@ -9,14 +9,18 @@ export function attach(ctx) {
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
     const price = Number(ctx.elements.addPrice.value);
+    const fxToEur = Number(ctx.elements.addFx.value);
     const commission = Number(ctx.elements.addCommission.value);
     const payload = { type, symbol, date: ctx.elements.addDate.value };
     if (includeId) payload.id = ctx.clientRequestId('tx');
-    if (Number.isFinite(euros) && euros > 0) {
+    if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0 && !ctx.elements.addShares.disabled) {
+      payload.shares = shares;
+      payload.unitPrice = price;
+      if (Number.isFinite(fxToEur) && fxToEur > 0) payload.fxToEur = fxToEur;
+    } else if (Number.isFinite(euros) && euros > 0) {
       payload.euros = euros;
     } else if (Number.isFinite(shares) && shares > 0) {
       payload.shares = shares;
-      if (Number.isFinite(price) && price > 0) payload.unitPrice = price;
     }
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
     return payload;
@@ -126,16 +130,19 @@ export function attach(ctx) {
     const euros = ctx.elements.addEuros;
     const shares = ctx.elements.addShares;
     const price = ctx.elements.addPrice;
+    const fx = ctx.elements.addFx;
     const hint = ctx.elements.addAmountHint;
 
     if (source === euros) {
       const hasEuros = euros.value && Number(euros.value) > 0;
       shares.disabled = hasEuros;
       price.disabled = hasEuros;
+      fx.disabled = hasEuros;
       hint.hidden = !hasEuros;
       if (hasEuros) {
         shares.value = '';
         price.value = '';
+        fx.value = '';
         hint.textContent = 'Las acciones y el precio se autocalcularan con el precio de mercado al guardar.';
       }
     } else {
@@ -161,6 +168,7 @@ export function attach(ctx) {
     ctx.state.transactionPreviewOk = false;
     ctx.elements.addShares.disabled = false;
     ctx.elements.addPrice.disabled = false;
+    ctx.elements.addFx.disabled = false;
     ctx.elements.addAmountHint.hidden = true;
     setAddFeedback('');
     syncOperationCopy();

@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.20.0
+
+- feat: make read-only portfolio views resilient to Yahoo Finance failures by using local stale prices when available.
+- feat: expose market-data quality metadata in portfolio summary and stale quote responses.
+- fix: keep transaction writes strict when market prices or FX are unavailable; manual non-EUR prices can provide explicit `fxToEur`.
+- fix: preserve manual `shares + unitPrice` payloads in the transaction form even when euros are auto-filled visually.
+
 ## 3.19.1
 
 - fix: correct Spanish orthography across all frontend UI — accents, verb conjugations, and removed invented word "retiraciones" (replaced with "retiradas").

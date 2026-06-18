@@ -92,7 +92,7 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
     const instrumentPriceResults = await Promise.all(
       instruments.map(async (instrument) => ({
         instrument,
-        rows: await getDailyPrices(instrument.yahooSymbol, fromDate, toDate),
+        rows: await getDailyPrices(instrument.yahooSymbol, fromDate, toDate).catch(() => []),
       })),
     );
 

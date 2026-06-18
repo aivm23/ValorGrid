@@ -135,6 +135,66 @@ test('returns quotes from SQLite cache for dated prices', async () => {
   assert.equal(quote.cached, true);
 });
 
+test('portfolio summary uses local stale prices when Yahoo is unavailable', async () => {
+  seedTestInstrument({ symbol: 'STALE', yahooSymbol: 'STALE.DE', name: 'Stale Price Holding', type: 'stock' });
+  cachePrice('STALE.DE', '2026-05-14', 20);
+  await createTransaction({ type: 'add', symbol: 'STALE', date: '2026-05-14', shares: 2 });
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('network down');
+  };
+
+  try {
+    const { response, body } = await jsonRequest('/api/portfolio/summary');
+
+    assert.equal(response.status, 200);
+    const position = JSON.stringify(body).includes('STALE');
+    assert.equal(position, true);
+    assert.equal(body.marketDataStatus.status, 'stale');
+    assert.ok(body.marketDataStatus.stale >= 1);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('GET /api/quote returns stale local quote when Yahoo is unavailable', async () => {
+  seedTestInstrument({ symbol: 'QSTALE', yahooSymbol: 'QSTALE.DE', name: 'Quote Stale', type: 'stock' });
+  cachePrice('QSTALE.DE', '2026-05-14', 12.34);
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('network down');
+  };
+
+  try {
+    const { response, body } = await jsonRequest('/api/quote?symbol=QSTALE&date=2026-06-01');
+
+    assert.equal(response.status, 200);
+    assert.equal(body.quote.price, 12.34);
+    assert.equal(body.quote.stale, true);
+    assert.equal(body.quote.fallbackReason, 'quote-cache');
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('transactions do not use stale prices automatically when Yahoo is unavailable', async () => {
+  seedTestInstrument({ symbol: 'STRICT', yahooSymbol: 'STRICT.DE', name: 'Strict Price Holding', type: 'stock' });
+  cachePrice('STRICT.DE', '2026-05-14', 9.87);
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('network down');
+  };
+
+  try {
+    await assert.rejects(
+      createTransaction({ type: 'add', symbol: 'STRICT', date: '2026-06-01', shares: 1 }),
+      /network down|Yahoo Finance/i,
+    );
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
 test('deletes transactions atomically', async () => {
   seedTestInstrument({ symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock' });
   cachePrice('NOV.DE', '2026-05-15', 41);

@@ -24,6 +24,7 @@ export function attach(ctx) {
   elements.addEuros.addEventListener('input', ctx.syncAmountInputs);
   elements.addShares.addEventListener('input', ctx.syncAmountInputs);
   elements.addPrice.addEventListener('input', ctx.syncAmountInputs);
+  elements.addFx.addEventListener('input', ctx.syncAmountInputs);
   elements.addCommission.addEventListener('input', ctx.syncAmountInputs);
   elements.addTicker.addEventListener('input', ctx.syncAmountInputs);
   elements.addTicker.addEventListener('change', ctx.syncAmountInputs);

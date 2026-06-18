@@ -339,19 +339,15 @@ export function attach(ctx) {
         })
       : '<p class="subtle">Sin posiciones para desglosar.</p>';
 
-    const updated = summary.updatedAt ? new Date(summary.updatedAt) : null;
-    const now = new Date();
-    const freshness = updated ? Math.round((now - updated) / 3600000) : null;
-    const freshnessIcon = freshness === null ? '⚪' : freshness < 1 ? '🟢' : freshness < 24 ? '🟡' : '🔴';
-    const freshnessLabel =
-      freshness === null
-        ? ''
-        : freshness < 1
-          ? 'hace <1h'
-          : freshness < 24
-            ? `hace ${freshness}h`
-            : `hace ${Math.round(freshness / 24)}d`;
-    elements.priceStatus.textContent = `${freshnessIcon} Precios actualizados desde Yahoo Finance - ${ctx.formatDateTime(summary.updatedAt)} ${freshnessLabel ? `(${freshnessLabel})` : ''}`;
+    const status = summary.marketDataStatus || { status: 'ok', stale: 0, missing: 0 };
+    const suffix = summary.updatedAt ? ` - ${ctx.formatDateTime(summary.updatedAt)}` : '';
+    if (status.status === 'missing') {
+      elements.priceStatus.textContent = `Precios incompletos: ${status.missing} valor(es) sin cotizacion local${suffix}`;
+    } else if (status.status === 'stale') {
+      elements.priceStatus.textContent = `Precios desde cache local: ${status.stale} valor(es) con cotizacion antigua${suffix}`;
+    } else {
+      elements.priceStatus.textContent = `Precios actualizados desde proveedor de mercado${suffix}`;
+    }
   }
 
   Object.assign(ctx, {

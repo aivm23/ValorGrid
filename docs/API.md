@@ -113,6 +113,7 @@ Reglas de validación:
 - `euros` y `shares` son XOR (no se permiten ambos).
 - `unitPrice` requiere `shares > 0` y no se permite con `euros`.
 - `unitPrice` requiere un instrumento existente.
+- Para instrumentos no EUR con precio manual, se puede enviar `fxToEur` manual. Si no se envia, la API exige FX de mercado disponible para la fecha; no usa FX antiguo automáticamente en escrituras.
 
 ## Aportaciones automáticas
 
@@ -143,6 +144,8 @@ GET /api/portfolio/history?range=all&granularity=weekly
 - `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).
 - Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.
 
+Las vistas de cartera son tolerantes a fallos del proveedor de mercado: `summary` incluye `marketDataStatus` (`ok`, `stale` o `missing`) y las posiciones pueden incluir `dataQuality`, `priceSource`, `priceAgeDays` y `valuationAvailable`.
+
 ## Precios
 
 ```text
@@ -150,6 +153,8 @@ GET /api/quote?symbol=TICKER&date=2026-05-03
 ```
 
 Devuelve precio cacheado o consultado al proveedor de mercado. Los resultados se persisten localmente.
+
+Si el proveedor no responde y existe un precio local anterior, la respuesta puede ser `200` con `stale: true`, `dataQuality: "stale"`, `fallbackReason` y `priceAgeDays`. Si no hay dato local, devuelve un error accionable.
 
 ## Backups
 

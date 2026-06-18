@@ -102,7 +102,9 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
 
   if (url.pathname === '/api/quote' && request.method === 'GET') {
     try {
-      const quote = await getQuoteForSymbol(url.searchParams.get('symbol'), url.searchParams.get('date'));
+      const quote = await getQuoteForSymbol(url.searchParams.get('symbol'), url.searchParams.get('date'), {
+        allowStale: true,
+      });
       sendJson(response, 200, { quote });
     } catch (error) {
       sendError(response, sendJson, error);

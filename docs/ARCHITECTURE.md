@@ -176,7 +176,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 12. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
 13. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
 14. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos.
+15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
 16. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
 17. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
 18. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
@@ -198,6 +198,11 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `domains/data-ingestion/route-data-ingestion.js`
 - `domains/portfolio/route-portfolio.js`
 - `domains/admin/route-admin.js`
+
+**Sub-módulos de portfolio-service (cargados internamente):**
+
+- `portfolio-market-data`: helpers puros para estado agregado de precios y valoración base degradable.
+- `portfolio-dates`: helpers puros de fechas mensuales y fechas programadas.
 
 **Sub-módulos de import-service (cargados internamente):**
 

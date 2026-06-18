@@ -1,4 +1,11 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
+const { getMonthEndDate, getScheduledDate } = require('./portfolio-dates');
+const {
+  buildBaseValuation,
+  isEffectiveValuation: isEffectiveValuationWithMinimum,
+  summarizeMarketDataStatus,
+  withPercentages,
+} = require('./portfolio-market-data');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -70,14 +77,6 @@ module.exports = function attach(ctx) {
     throw new Error('portfolio-service requires repositories.portfolio.countAutoPlans');
   }
 
-function getMonthEndDate(year, month) {
-  return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
-}
-
-function getScheduledDate(year, month, day) {
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
 async function executeDueAutoPlans() {
   const today = getToday();
   for (const plan of getAutoPlans().filter((item) => item.enabled)) {
@@ -102,45 +101,52 @@ async function executeDueAutoPlans() {
 
 async function getInstrumentValuation(instrument, asOfDate = null) {
   const shares = getPositionShares(instrument.symbol, asOfDate);
+  const baseResult = buildBaseValuation(instrument, shares);
+
   if (Math.abs(shares) <= 0.0000001) {
     return {
-      symbol: instrument.symbol,
-      yahooSymbol: instrument.yahoo_symbol,
-      name: instrument.name,
-      type: instrument.type,
-      groupId: instrument.group_id,
-      showInDistribution: Boolean(instrument.show_in_distribution),
-      showInMonthly: Boolean(instrument.show_in_monthly),
-      color: instrument.color,
+      ...baseResult,
       shares,
-      price: Number(instrument.fallback_price || 0),
-      priceEur: Number(instrument.fallback_price || 0),
-      currency: instrument.currency,
-      marketDate: null,
-      value: 0,
+      dataQuality: 'empty',
+      valuationAvailable: true,
     };
   }
-  const quote = asOfDate
-    ? await getQuoteForSymbol(instrument.symbol, asOfDate)
-    : await getQuoteForSymbol(instrument.symbol);
-  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || asOfDate)) ?? 1;
-  const priceEur = toEur(quote.price, quote.currency, fxToEur);
+
+  let quote;
+  try {
+    quote = asOfDate
+      ? await getQuoteForSymbol(instrument.symbol, asOfDate, { allowStale: true })
+      : await getQuoteForSymbol(instrument.symbol, null, { allowStale: true });
+  } catch {
+    if (Number(instrument.fallback_price || 0) > 0) {
+      return {
+        ...baseResult,
+        value: shares * Number(instrument.fallback_price || 0),
+        dataQuality: 'fallback',
+        valuationAvailable: true,
+      };
+    }
+    return baseResult;
+  }
+
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || asOfDate, { allowStale: true })) ?? null;
+  if (String(quote.currency || 'EUR').toUpperCase() !== 'EUR' && !Number.isFinite(Number(fxToEur))) {
+    return baseResult;
+  }
+  const priceEur = toEur(quote.price, quote.currency, Number.isFinite(Number(fxToEur)) ? fxToEur : 1);
 
   return {
-    symbol: instrument.symbol,
-    yahooSymbol: instrument.yahoo_symbol,
-    name: instrument.name,
-    type: instrument.type,
-    groupId: instrument.group_id,
-    showInDistribution: Boolean(instrument.show_in_distribution),
-    showInMonthly: Boolean(instrument.show_in_monthly),
-    color: instrument.color,
+    ...baseResult,
     shares,
     price: quote.price,
     priceEur,
     currency: quote.currency,
     marketDate: quote.marketDate,
     value: shares * priceEur,
+    dataQuality: quote.dataQuality || (quote.stale ? 'stale' : 'ok'),
+    priceSource: quote.source,
+    priceAgeDays: quote.priceAgeDays ?? null,
+    valuationAvailable: true,
   };
 }
 
@@ -195,6 +201,7 @@ async function buildSummary() {
     performance: buildLedgerAnalytics(total),
     onboarding: buildOnboardingStatus(),
     groupsEnabled,
+    marketDataStatus: summarizeMarketDataStatus(valuations),
   };
 }
 
@@ -202,15 +209,7 @@ function dbInstrument(symbol) {
   return findInstrumentBySymbol(symbol);
 }
 
-function withPercentages(items, total) {
-  return [...items]
-    .map((item) => ({ ...item, pct: total > 0 ? (item.value / total) * 100 : 0 }))
-    .sort((a, b) => (b.value || 0) - (a.value || 0));
-}
-
-function isEffectiveValuation(item) {
-  return Math.abs(Number(item?.shares || 0)) > 0.0000001 && Number(item?.value || 0) >= minimumDisplayValueEur;
-}
+function isEffectiveValuation(item) { return isEffectiveValuationWithMinimum(item, minimumDisplayValueEur); }
 
 async function buildMonthly(year) {
   await executeDueAutoPlans();
@@ -457,8 +456,8 @@ async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {
       value: 0,
     };
   }
-  const quote = await getQuoteForSymbol(instrument.symbol, requestedDate);
-  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || requestedDate)) ?? 1;
+  const quote = await getQuoteForSymbol(instrument.symbol, requestedDate, { allowStale: true });
+  const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || requestedDate, { allowStale: true })) ?? 1;
   const priceEur = toEur(quote.price, quote.currency, fxToEur);
 
   return {
@@ -473,6 +472,7 @@ async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {
     currency: quote.currency,
     marketDate: quote.marketDate,
     value: shares * priceEur,
+    dataQuality: quote.dataQuality || (quote.stale ? 'stale' : 'ok'),
   };
 }
 
@@ -495,5 +495,5 @@ function buildOnboardingStatus() {
   };
 }
 
-  Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
+  Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, summarizeMarketDataStatus, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
 };

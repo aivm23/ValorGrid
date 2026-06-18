@@ -16,6 +16,42 @@ module.exports = function attach(ctx) {
       .get(yahooSymbol, requestedDate);
   }
 
+  function getLatestCachedPriceQuote(yahooSymbol, requestedDate) {
+    return db
+      .prepare(
+        `SELECT price, currency, market_date AS marketDate, source, requested_date AS requestedDate
+         FROM price_cache
+         WHERE yahoo_symbol = ? AND requested_date <= ?
+         ORDER BY requested_date DESC, market_date DESC, created_at DESC
+         LIMIT 1`,
+      )
+      .get(yahooSymbol, requestedDate);
+  }
+
+  function getLatestDailyPrice(yahooSymbol, requestedDate) {
+    return db
+      .prepare(
+        `SELECT price, currency, date AS marketDate, source
+         FROM daily_price_cache
+         WHERE yahoo_symbol = ? AND date <= ?
+         ORDER BY date DESC, created_at DESC
+         LIMIT 1`,
+      )
+      .get(yahooSymbol, requestedDate);
+  }
+
+  function getLatestMaterializedPrice(yahooSymbol, requestedDate) {
+    return db
+      .prepare(
+        `SELECT price, currency, date AS marketDate, source
+         FROM market_prices_daily
+         WHERE yahoo_symbol = ? AND date <= ?
+         ORDER BY date DESC, created_at DESC
+         LIMIT 1`,
+      )
+      .get(yahooSymbol, requestedDate);
+  }
+
   function upsertPriceQuote(yahooSymbol, requestedDate, quote) {
     db.prepare(
       `INSERT OR REPLACE INTO price_cache
@@ -70,6 +106,9 @@ module.exports = function attach(ctx) {
   repositories.marketData = {
     ...(repositories.marketData || {}),
     getCachedPriceQuote,
+    getLatestCachedPriceQuote,
+    getLatestDailyPrice,
+    getLatestMaterializedPrice,
     upsertPriceQuote,
     hasDailyPriceRange,
     getDailyPricesInRange,

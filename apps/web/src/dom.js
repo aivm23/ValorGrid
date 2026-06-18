@@ -183,6 +183,7 @@ export function attach(ctx) {
     addEuros: document.querySelector('#add-euros'),
     addShares: document.querySelector('#add-shares'),
     addPrice: document.querySelector('#add-price'),
+    addFx: document.querySelector('#add-fx'),
     addCommission: document.querySelector('#add-commission'),
     addFeedback: document.querySelector('#add-feedback'),
     addAmountHint: document.querySelector('#add-amount-hint'),

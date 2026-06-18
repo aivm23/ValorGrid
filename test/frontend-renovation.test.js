@@ -165,7 +165,7 @@ test('CSS defines sub-chart slide-in keyframe animation', () => {
 
 // ── 7) Price freshness indicator ──
 
-test('summary.js computes price freshness with emoji indicators', async () => {
+test('summary.js renders market data quality status', async () => {
   seedTestInstrument({ symbol: 'FRESH1', yahooSymbol: 'FRESH1.DE', name: 'Freshness Test', type: 'stock' });
   cachePrice('FRESH1.DE', '2026-05-14', 25);
 
@@ -175,12 +175,12 @@ test('summary.js computes price freshness with emoji indicators', async () => {
   assert.equal(response.status, 200);
   assert.ok(body.updatedAt, 'summary has updatedAt timestamp');
 
-  // Verify summary.js source uses freshness logic
+  // Verify summary.js source uses market-data quality logic.
   const summary = read(path.join('apps', 'web', 'src', 'summary.js'));
-  assert.ok(summary.includes('freshness'), 'summary computes freshness');
+  assert.ok(summary.includes('marketDataStatus'), 'summary reads market data status');
+  assert.ok(summary.includes("status.status === 'missing'"), 'summary handles missing prices');
+  assert.ok(summary.includes("status.status === 'stale'"), 'summary handles stale prices');
   assert.ok(summary.includes('priceStatus'), 'summary updates priceStatus element');
-  assert.ok(summary.includes('Yahoo Finance'), 'summary references Yahoo Finance in status text');
-  assert.ok(summary.includes('hace'), 'summary uses relative time label');
 });
 
 // ── 8) YTD subtitle with month count ──
@@ -439,6 +439,11 @@ test('history-preferences.js includes crypto in asset types and labels', () => {
 test('forms.js sends unitPrice in transaction payload', () => {
   const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
   assert.ok(forms.includes('payload.unitPrice'), 'forms.js sends unitPrice payload');
+  assert.ok(
+    forms.indexOf('payload.unitPrice') < forms.indexOf('payload.euros = euros'),
+    'manual shares + unitPrice path must take precedence over euros',
+  );
+  assert.ok(forms.includes('payload.fxToEur'), 'forms.js sends manual FX payload when provided');
 });
 
 test('deploy/sql/update-3.15.0-to-3.16.0.sql contains crypto CHECK', () => {

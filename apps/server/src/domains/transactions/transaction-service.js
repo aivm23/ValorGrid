@@ -1,4 +1,5 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
+const { resolveFxToEur } = require('./transaction-pricing');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -250,8 +251,6 @@ module.exports = function attach(ctx) {
     );
   }
 
-  function getStockColorsUsed() { return new Set(listStockColors()); }
-
   async function createTransaction(input, options = {}) {
     const preview = await previewTransaction(input);
     const instrument = preview.type === 'add' ? ensureInstrument(preview.symbol, preview.quote) : preview.instrument;
@@ -307,7 +306,7 @@ module.exports = function attach(ctx) {
 
       const instrument = existingInstrument;
       const currency = instrument.currency || 'EUR';
-      const fxToEur = (await getFxToEur(currency, date)) ?? 1;
+      const fxToEur = await resolveFxToEur({ currency, date, inputFxToEur: input.fxToEur ?? input.fx_to_eur, getFxToEur });
       const priceEur = toEur(input.unitPrice, currency, fxToEur);
       const shares = Number(input.shares);
       const valueEur = shares * priceEur;
@@ -345,7 +344,7 @@ module.exports = function attach(ctx) {
     if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
 
     const quote = await getQuoteForSymbol(symbolInput, date);
-    const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || date)) ?? 1;
+    const fxToEur = await resolveFxToEur({ currency: quote.currency, date: quote.marketDate || date, getFxToEur });
     const priceEur = toEur(quote.price, quote.currency, fxToEur);
     const shares = hasShares ? Number(input.shares) : Number(input.euros) / priceEur;
     const valueEur = hasEuros ? Number(input.euros) : shares * priceEur;
@@ -359,7 +358,7 @@ module.exports = function attach(ctx) {
         ? {
             symbol: quote.symbol || symbolInput,
             name: quote.symbol || symbolInput,
-            color: stockColors[getStockColorsUsed().size % stockColors.length],
+            color: stockColors[new Set(listStockColors()).size % stockColors.length],
           }
         : null);
 
@@ -451,7 +450,6 @@ module.exports = function attach(ctx) {
     autoPlanExists,
     previewAutoPlanExecutions,
     getPositionShares,
-    getStockColorsUsed,
     createTransaction,
     previewTransaction,
     deleteTransaction,

@@ -38,6 +38,9 @@ module.exports = function attach(ctx) {
 
   const {
     getCachedPriceQuote,
+    getLatestCachedPriceQuote,
+    getLatestDailyPrice,
+    getLatestMaterializedPrice,
     upsertPriceQuote,
     hasDailyPriceRange,
     getDailyPricesInRange,
@@ -92,6 +95,38 @@ async function fetchLatestYahooPrice(yahooSymbol) {
     source: 'Yahoo Finance',
     stale: false,
   };
+}
+
+function daysBetween(fromDate, toDate) {
+  if (!fromDate || !toDate) return null;
+  const from = dateUtc(fromDate);
+  const to = dateUtc(toDate);
+  return Math.max(0, Math.round((to.getTime() - from.getTime()) / 86400000));
+}
+
+function normalizeLocalQuote(row, requestedDate, fallbackReason) {
+  if (!row) return null;
+  return {
+    price: Number(row.price),
+    currency: row.currency || 'EUR',
+    marketDate: row.marketDate || row.requestedDate || requestedDate,
+    marketTime: null,
+    source: row.source || 'local cache',
+    stale: true,
+    cached: true,
+    dataQuality: 'stale',
+    fallbackReason,
+    priceAgeDays: daysBetween(row.marketDate || row.requestedDate, requestedDate),
+  };
+}
+
+function getBestLocalQuote(yahooSymbol, requestedDate = getToday()) {
+  return (
+    normalizeLocalQuote(getCachedPriceQuote(yahooSymbol, requestedDate), requestedDate, 'exact-cache') ||
+    normalizeLocalQuote(getLatestDailyPrice(yahooSymbol, requestedDate), requestedDate, 'daily-cache') ||
+    normalizeLocalQuote(getLatestMaterializedPrice(yahooSymbol, requestedDate), requestedDate, 'materialized-cache') ||
+    normalizeLocalQuote(getLatestCachedPriceQuote(yahooSymbol, requestedDate), requestedDate, 'quote-cache')
+  );
 }
 
 function firstDailyCloseAtOrAfter(result, requestedDate) {
@@ -156,6 +191,30 @@ async function fetchDatedYahooPrice(yahooSymbol, requestedDate) {
   return quote;
 }
 
+async function fetchDatedYahooPriceWithFallback(yahooSymbol, requestedDate, options = {}) {
+  try {
+    return await fetchDatedYahooPrice(yahooSymbol, requestedDate);
+  } catch (error) {
+    if (!options.allowStale) throw error;
+    const cached = getBestLocalQuote(yahooSymbol, requestedDate);
+    if (cached) return cached;
+    throw error;
+  }
+}
+
+async function fetchLatestYahooPriceWithFallback(yahooSymbol, options = {}) {
+  try {
+    const quote = await fetchLatestYahooPrice(yahooSymbol);
+    upsertPriceQuote(yahooSymbol, getToday(), quote);
+    return quote;
+  } catch (error) {
+    if (!options.allowStale) throw error;
+    const cached = getBestLocalQuote(yahooSymbol, getToday());
+    if (cached) return cached;
+    throw error;
+  }
+}
+
 function dailyCacheHasRange(yahooSymbol, fromDate, toDate) {
   return hasDailyPriceRange(yahooSymbol, fromDate, toDate);
 }
@@ -211,7 +270,7 @@ async function getDailyPrices(yahooSymbol, fromDate, toDate) {
   return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
 }
 
-async function getQuoteForSymbol(inputSymbol, requestedDate = null) {
+async function getQuoteForSymbol(inputSymbol, requestedDate = null, options = {}) {
   const instrument = getInstrumentByInput(inputSymbol);
   const yahooSymbol = instrument?.yahoo_symbol || String(inputSymbol || '').trim();
 
@@ -220,8 +279,8 @@ async function getQuoteForSymbol(inputSymbol, requestedDate = null) {
   }
 
   const quote = requestedDate
-    ? await fetchDatedYahooPrice(yahooSymbol, requestedDate)
-    : await fetchLatestYahooPrice(yahooSymbol);
+    ? await fetchDatedYahooPriceWithFallback(yahooSymbol, requestedDate, options)
+    : await fetchLatestYahooPriceWithFallback(yahooSymbol, options);
 
   return {
     symbol: instrument?.symbol || normalizeSymbol(inputSymbol),
@@ -230,12 +289,12 @@ async function getQuoteForSymbol(inputSymbol, requestedDate = null) {
   };
 }
 
-async function getQuoteForYahooSymbol(symbol, yahooSymbol, requestedDate = null) {
+async function getQuoteForYahooSymbol(symbol, yahooSymbol, requestedDate = null, options = {}) {
   const resolvedYahooSymbol = String(yahooSymbol || symbol || '').trim();
   if (!resolvedYahooSymbol) throw new Error('Missing Yahoo symbol');
   const quote = requestedDate
-    ? await fetchDatedYahooPrice(resolvedYahooSymbol, requestedDate)
-    : await fetchLatestYahooPrice(resolvedYahooSymbol);
+    ? await fetchDatedYahooPriceWithFallback(resolvedYahooSymbol, requestedDate, options)
+    : await fetchLatestYahooPriceWithFallback(resolvedYahooSymbol, options);
   return {
     symbol: normalizeSymbol(symbol || resolvedYahooSymbol),
     yahooSymbol: resolvedYahooSymbol,
@@ -243,23 +302,23 @@ async function getQuoteForYahooSymbol(symbol, yahooSymbol, requestedDate = null)
   };
 }
 
-async function getUsdToEur(requestedDate = null) {
-  const quote = await getQuoteForSymbol('USDEUR', requestedDate);
+async function getUsdToEur(requestedDate = null, options = {}) {
+  const quote = await getQuoteForSymbol('USDEUR', requestedDate, options);
   return quote.price || 1;
 }
 
-async function getFxToEur(currencyInput, requestedDate = null) {
+async function getFxToEur(currencyInput, requestedDate = null, options = {}) {
   const currency = String(currencyInput || 'EUR').trim().toUpperCase();
   if (!currency || currency === 'EUR') return 1;
-  if (currency === 'USD') return getUsdToEur(requestedDate);
+  if (currency === 'USD') return getUsdToEur(requestedDate, options);
   try {
     const yahooSymbol = `${currency}EUR=X`;
-    const quote = await getQuoteForYahooSymbol(`${currency}EUR`, yahooSymbol, requestedDate);
+    const quote = await getQuoteForYahooSymbol(`${currency}EUR`, yahooSymbol, requestedDate, options);
     return Number.isFinite(Number(quote.price)) ? Number(quote.price) : null;
   } catch {
     return null;
   }
 }
 
-  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
+  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, fetchDatedYahooPriceWithFallback, fetchLatestYahooPriceWithFallback, getBestLocalQuote, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
 };

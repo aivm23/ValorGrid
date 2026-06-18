@@ -87,6 +87,16 @@ export interface PortfolioSummary {
   autoPlans: AutoPlan[];
   performance: LedgerAnalytics;
   onboarding: OnboardingStatus;
+  marketDataStatus?: MarketDataStatus;
+}
+
+/** Estado agregado de precios usado por vistas de solo lectura. */
+export interface MarketDataStatus {
+  status: 'ok' | 'stale' | 'missing' | string;
+  priced: number;
+  missing: number;
+  stale: number;
+  missingSymbols: string[];
 }
 
 /** Elemento individual dentro del portfolio. */
@@ -105,6 +115,10 @@ export interface PortfolioItem {
   currency?: string;
   marketDate?: string | null;
   showInDistribution?: boolean;
+  dataQuality?: 'ok' | 'stale' | 'fallback' | 'missing' | 'empty' | string;
+  priceSource?: string;
+  priceAgeDays?: number | null;
+  valuationAvailable?: boolean;
 }
 
 /** Métricas del ledger calculadas por buildLedgerAnalytics. */
@@ -181,6 +195,11 @@ export interface PriceQuote {
   currency: string;
   marketDate: string | null;
   source: string;
+  stale?: boolean;
+  cached?: boolean;
+  dataQuality?: 'ok' | 'stale' | string;
+  fallbackReason?: string;
+  priceAgeDays?: number | null;
 }
 
 /**
@@ -191,7 +210,11 @@ export interface RouteHandlers {
   sendJson: (response: unknown, statusCode: number, payload: unknown) => void;
   readJsonBody: (request: unknown) => Promise<Record<string, unknown>>;
   sendText: (response: unknown, statusCode: number, text: string, contentType?: string, headers?: Record<string, string>) => void;
-  getQuoteForSymbol: (symbol: string, date?: string | null) => Promise<PriceQuote & { symbol: string; yahooSymbol: string; cached?: boolean }>;
+  getQuoteForSymbol: (
+    symbol: string,
+    date?: string | null,
+    options?: { allowStale?: boolean },
+  ) => Promise<PriceQuote & { symbol: string; yahooSymbol: string; cached?: boolean }>;
   buildHealth: () => unknown;
   listInstruments: () => Instrument[];
   listInstrumentIdentifiers: (filters?: Record<string, string | null>) => InstrumentIdentifier[];
