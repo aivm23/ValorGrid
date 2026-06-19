@@ -2,19 +2,20 @@ const defaultFrom = '2023-01-01';
 const defaultTo = '2026-05-16';
 
 const instruments = [
-  { symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock', currency: 'EUR', color: '#0d9488', base: 52 },
-  { symbol: 'GOOG', yahooSymbol: 'GOOG', name: 'Alphabet', type: 'stock', currency: 'USD', color: '#ea580c', base: 118 },
-  { symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD', color: '#16a34a', base: 172 },
-  { symbol: 'MSFT', yahooSymbol: 'MSFT', name: 'Microsoft', type: 'stock', currency: 'USD', color: '#0891b2', base: 214 },
-  { symbol: 'AAPL', yahooSymbol: 'AAPL', name: 'Apple', type: 'stock', currency: 'USD', color: '#be123c', base: 142 },
-  { symbol: 'SPPW', yahooSymbol: 'SPPW.DE', name: 'ETF MSCI World', type: 'etf', currency: 'EUR', color: '#a855f7', base: 36 },
-  { symbol: 'ICGA', yahooSymbol: 'ICGA.DE', name: 'ETF MSCI China', type: 'etf', currency: 'EUR', color: '#dc2626', base: 4.6 },
-  { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 31 },
-  { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 152 },
+  { symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock', currency: 'EUR', color: '#0d9488', base: 39 },
+  { symbol: 'GOOG', yahooSymbol: 'GOOG', name: 'Alphabet', type: 'stock', currency: 'USD', color: '#ea580c', base: 367 },
+  { symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD', color: '#16a34a', base: 577 },
+  { symbol: 'MSFT', yahooSymbol: 'MSFT', name: 'Microsoft', type: 'stock', currency: 'USD', color: '#0891b2', base: 379 },
+  { symbol: 'AAPL', yahooSymbol: 'AAPL', name: 'Apple', type: 'stock', currency: 'USD', color: '#be123c', base: 298 },
+  { symbol: 'SPPW', yahooSymbol: 'SPPW.DE', name: 'ETF MSCI World', type: 'etf', currency: 'EUR', color: '#a855f7', base: 46 },
+  { symbol: 'ICGA', yahooSymbol: 'ICGA.DE', name: 'ETF MSCI China', type: 'etf', currency: 'EUR', color: '#dc2626', base: 5 },
+  { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 48 },
+  { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 660 },
   { symbol: 'USDEUR', yahooSymbol: 'USDEUR=X', name: 'USD/EUR', type: 'fx', currency: 'EUR', color: '#64748b', base: 0.9 },
-  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'etf', currency: 'USD', color: '#eab308', base: 2300, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
-  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'etf', currency: 'USD', color: '#94a3b8', base: 28, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
-  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'etf', currency: 'USD', color: '#f97316', base: 82, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
+  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'etf', currency: 'USD', color: '#eab308', base: 4173, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
+  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'etf', currency: 'USD', color: '#94a3b8', base: 65, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
+  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'etf', currency: 'USD', color: '#f97316', base: 81, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
+  { symbol: 'BTC', yahooSymbol: 'BTC-EUR', name: 'Bitcoin', type: 'crypto', currency: 'EUR', color: '#f7931a', base: 70000 },
 ];
 
 function dateUtc(value) {
@@ -218,12 +219,14 @@ function seedLoadtestDb(db, options = {}) {
 
     for (const [index, { year, month }] of months.entries()) {
       if (index % 7 === 5) continue;
+      const extraSymbols = ['GOLD', 'BTC'];
       const buySymbols = [
         instruments[index % 5].symbol,
         instruments[5 + (index % 3)].symbol,
         instruments[(index + 2) % 5].symbol,
+        extraSymbols[index % 2],
       ];
-      const buyDates = [3, 12, 21].map((day) => monthDate(year, month, day));
+      const buyDates = [3, 12, 21, 28].map((day) => monthDate(year, month, day));
 
       for (let slot = 0; slot < buySymbols.length; slot += 1) {
         const symbol = buySymbols[slot];
@@ -275,6 +278,35 @@ function seedLoadtestDb(db, options = {}) {
             instrument.currency,
             fx,
             instrument.color,
+          );
+        }
+      }
+
+      if (index > 6 && index % 6 === 0) {
+        const extraSymbols = ['GOLD', 'BTC'];
+        const sym = extraSymbols[index % 2];
+        const extraInstrument = bySymbol.get(sym);
+        const held = holdings.get(sym);
+        const shares = Number(Math.min(held * 0.2, held - 0.000001).toFixed(8));
+        if (shares > 0) {
+          const date = addDays(monthDate(year, month, 25), 0) <= to ? monthDate(year, month, 25) : to;
+          const price = deterministicPrice(extraInstrument, date, from);
+          const fx = extraInstrument.currency === 'USD' ? deterministicPrice(bySymbol.get('USDEUR'), date, from) : 1;
+          const valueEur = Number((shares * (extraInstrument.currency === 'USD' ? price * fx : price)).toFixed(2));
+          holdings.set(sym, held - shares);
+          insertTransaction.run(
+            `loadtest-sell-extra-${index}`,
+            'remove',
+            sym,
+            extraInstrument.name,
+            date,
+            date,
+            shares,
+            valueEur,
+            price,
+            extraInstrument.currency,
+            fx,
+            extraInstrument.color,
           );
         }
       }
