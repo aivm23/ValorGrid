@@ -20,6 +20,8 @@ Al abrir una instalación nueva, usa el asistente inicial para crear:
 - una compra inicial opcional;
 - una aportación automática opcional.
 
+Si vas a crear instrumentos con fuentes distintas de Yahoo, consulta [CREATE_INSTRUMENTS.md](CREATE_INSTRUMENTS.md): explica cómo se asigna automáticamente el proveedor según el tipo (Yahoo para ETF/Stock/Crypto, Alpha Vantage para Commodity).
+
 ![Dashboard principal](../assets/screenshots/dashboard-demo.png)
 
 ## 3. Añade Movimientos

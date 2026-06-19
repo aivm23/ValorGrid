@@ -150,11 +150,19 @@ Las vistas de cartera son tolerantes a fallos del proveedor de mercado: `summary
 
 ```text
 GET /api/quote?symbol=TICKER&date=2026-05-03
+GET /api/market-data/sources
 ```
 
-Devuelve precio cacheado o consultado al proveedor de mercado. Los resultados se persisten localmente.
+`GET /api/quote` devuelve precio cacheado o consultado al proveedor de mercado. La selección de proveedor es automática según el tipo de instrumento:
+
+- **ETF, Stock, Crypto**: Yahoo Finance
+- **Commodity**: Alpha Vantage (requiere `VALORGRID_ALPHA_VANTAGE_API_KEY`)
+
+Si el instrumento tiene fuentes configuradas, se consultan por prioridad. Yahoo es el respaldo por defecto si la fuente primaria no responde.
 
 Si el proveedor no responde y existe un precio local anterior, la respuesta puede ser `200` con `stale: true`, `dataQuality: "stale"`, `fallbackReason` y `priceAgeDays`. Si no hay dato local, devuelve un error accionable.
+
+`GET /api/market-data/sources` lista proveedores disponibles y su estado local.
 
 ## Backups
 

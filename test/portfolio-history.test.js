@@ -582,7 +582,7 @@ test('GET /api/preferences/ui returns historyEventFilters defaults', async () =>
   assert.ok(Array.isArray(body.preferences.operationsMetricIds));
   assert.ok(body.preferences.historyEventFilters);
   assert.equal(body.preferences.historyEventFilters.mode, 'all');
-  assert.deepEqual(body.preferences.historyEventFilters.assetTypes, ['stock', 'etf', 'crypto']);
+  assert.deepEqual(body.preferences.historyEventFilters.assetTypes, ['stock', 'etf', 'crypto', 'commodity']);
   assert.deepEqual(body.preferences.historyEventFilters.transactionTypes, ['add', 'remove']);
 });
 

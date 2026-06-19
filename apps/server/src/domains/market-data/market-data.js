@@ -1,4 +1,16 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
+const {
+  PROVIDER_LABELS,
+  alphaKey,
+  alphaUrl,
+  alphaSpotUrl,
+  alphaSpotFunctionForSource,
+  parseAlphaDaily,
+  parseAlphaSpot,
+  makeResolvePriceSources,
+  quoteFromMarketPoint,
+} = require('./market-data-providers');
+const { makeMarketDataAdmin } = require('./market-data-admin');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -45,7 +57,60 @@ module.exports = function attach(ctx) {
     hasDailyPriceRange,
     getDailyPricesInRange,
     replaceDailyPricesRange,
+    listPriceSourcesForInstrument,
+    upsertMarketPricePoint,
+    getLatestMarketPricePoint,
+    listManualPricePoints,
+    listMarketPricePointsInRange,
+    upsertProviderState,
+    listProviderStates,
   } = marketDataRepository;
+
+const resolvePriceSourcesForInstrument = makeResolvePriceSources(listPriceSourcesForInstrument);
+
+async function alphaFetch(url, _source, _instrument) {
+  const response = await fetch(url, {
+    headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0 ValorGrid' },
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!response.ok) throw new Error(`Alpha Vantage responded ${response.status}`);
+  return response.json();
+}
+
+async function fetchAlphaSpotPrice(source, instrument) {
+  const cacheKey = `alpha:spot:${source.providerSymbol}`;
+  const cached = getMemoryCached(cacheKey);
+  if (cached) return cached;
+  const url = alphaSpotUrl(source);
+  if (!url) return null;
+  const payload = await alphaFetch(url, source, instrument);
+  const spot = parseAlphaSpot(payload, source, instrument);
+  upsertMarketPricePoint({ instrumentSymbol: instrument.symbol, provider: source.provider, providerSymbol: source.providerSymbol, date: spot.date, price: spot.price, currency: spot.currency, source: spot.source, quality: 'ok' });
+  upsertProviderState('alpha_vantage', 'ok');
+  return setMemoryCached(cacheKey, spot);
+}
+
+async function fetchAlphaDailyPrices(source, instrument, fromDate, toDate) {
+  const cacheKey = `alpha:${source.providerSymbol}:${fromDate}:${toDate}`;
+  const cached = getMemoryCached(cacheKey);
+  if (cached) return cached;
+  const payload = await alphaFetch(alphaUrl(source), source, instrument);
+  const rows = parseAlphaDaily(payload, source, instrument).filter((row) => row.date >= fromDate && row.date <= toDate);
+  for (const row of rows) {
+    upsertMarketPricePoint({
+      instrumentSymbol: instrument.symbol,
+      provider: source.provider,
+      providerSymbol: source.providerSymbol,
+      date: row.date,
+      price: row.price,
+      currency: row.currency,
+      source: row.source,
+      quality: 'ok',
+    });
+  }
+  upsertProviderState('alpha_vantage', 'ok');
+  return setMemoryCached(cacheKey, rows);
+}
 
 async function fetchYahooChart(yahooSymbol, query) {
   const cacheKey = `${yahooSymbol}:${query}`;
@@ -270,6 +335,75 @@ async function getDailyPrices(yahooSymbol, fromDate, toDate) {
   return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
 }
 
+async function getDailyPricesFromSource(instrument, source, fromDate, toDate) {
+  if (source.provider === 'yahoo') {
+    return getDailyPrices(source.providerSymbol, fromDate, toDate);
+  }
+if (source.provider === 'alpha_vantage') {
+    const existing = listMarketPricePointsInRange(
+      instrument.symbol,
+      source.provider,
+      source.providerSymbol,
+      fromDate,
+      toDate,
+    );
+    if (existing.some((row) => row.date >= fromDate && row.date <= toDate)) {
+      return existing.map((row) => ({
+        date: row.date,
+        price: Number(row.price),
+        currency: row.currency,
+        source: row.source || 'Alpha Vantage',
+      }));
+    }
+    return fetchAlphaDailyPrices(source, instrument, fromDate, toDate);
+  }
+  throw new Error(`Market data provider not supported: ${source.provider}`);
+}
+
+async function getDailyPricesForInstrument(instrumentInput, fromDate, toDate) {
+  const instrument = typeof instrumentInput === 'string' ? getInstrumentByInput(instrumentInput) : instrumentInput;
+  if (!instrument) return getDailyPrices(String(instrumentInput || ''), fromDate, toDate);
+  const sources = resolvePriceSourcesForInstrument(instrument, instrument.yahooSymbol || instrument.yahoo_symbol);
+  for (const source of sources) {
+    try {
+      const rows = await getDailyPricesFromSource(instrument, source, fromDate, toDate);
+      if (rows.length) return rows;
+    } catch (error) {
+      upsertProviderState(source.provider, 'error', error.message);
+    }
+  }
+  return [];
+}
+
+function makeAlphaQuote(quote, date, source) {
+  return { price: quote.price, currency: quote.currency, marketDate: quote.date, marketTime: quote.timestamp || null, source: 'Alpha Vantage', provider: source.provider, stale: quote.date !== date, cached: false, dataQuality: quote.date === date ? 'ok' : 'stale', priceAgeDays: daysBetween(quote.date, date) };
+}
+
+async function quoteFromSource(instrument, source, requestedDate, options = {}) {
+  const date = requestedDate || getToday();
+  if (source.provider === 'alpha_vantage') {
+    const cached = quoteFromMarketPoint(getLatestMarketPricePoint(instrument.symbol, source.provider, source.providerSymbol, date), date, source, instrument, daysBetween);
+    if (cached && (cached.marketDate === date || options.allowStale)) return cached;
+    if (!requestedDate && alphaSpotFunctionForSource(source)) {
+      try {
+        const spot = await fetchAlphaSpotPrice(source, instrument);
+        if (spot && spot.price > 0) return makeAlphaQuote(spot, date, source);
+      } catch { /* fall through to daily history */ }
+    }
+    const lookback = addDays(date, -30);
+    const rows = await fetchAlphaDailyPrices(source, instrument, lookback, date);
+    const exact = rows.find((row) => row.date === date) || rows[rows.length - 1];
+    if (!exact) throw new Error(`Alpha Vantage quote not available for ${source.providerSymbol} at ${date}`);
+    return makeAlphaQuote(exact, date, source);
+  }
+  if (source.provider === 'yahoo') {
+    return requestedDate
+      ? await fetchDatedYahooPriceWithFallback(source.providerSymbol, requestedDate, options)
+      : await fetchLatestYahooPriceWithFallback(source.providerSymbol, options);
+  }
+  throw new Error(`Market data provider not supported: ${source.provider}`);
+}
+
 async function getQuoteForSymbol(inputSymbol, requestedDate = null, options = {}) {
   const instrument = getInstrumentByInput(inputSymbol);
   const yahooSymbol = instrument?.yahoo_symbol || String(inputSymbol || '').trim();
@@ -278,9 +412,22 @@ async function getQuoteForSymbol(inputSymbol, requestedDate = null, options = {}
     throw new Error('Missing symbol');
   }
 
-  const quote = requestedDate
-    ? await fetchDatedYahooPriceWithFallback(yahooSymbol, requestedDate, options)
-    : await fetchLatestYahooPriceWithFallback(yahooSymbol, options);
+  const sources = resolvePriceSourcesForInstrument(instrument, yahooSymbol);
+  const errors = [];
+  let quote = null;
+  for (const source of sources) {
+    try {
+      quote = await quoteFromSource(instrument || { symbol: normalizeSymbol(inputSymbol), yahoo_symbol: yahooSymbol }, source, requestedDate, options);
+      if (quote) break;
+    } catch (error) {
+      errors.push(error);
+      upsertProviderState(source.provider, 'error', error.message);
+    }
+  }
+
+  if (!quote) {
+    throw errors[0] || new Error(`Quote not available for ${yahooSymbol}`);
+  }
 
   return {
     symbol: instrument?.symbol || normalizeSymbol(inputSymbol),
@@ -320,5 +467,17 @@ async function getFxToEur(currencyInput, requestedDate = null, options = {}) {
   }
 }
 
-  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, fetchDatedYahooPriceWithFallback, fetchLatestYahooPriceWithFallback, getBestLocalQuote, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur });
+const { listMarketDataSources } = makeMarketDataAdmin({
+    PROVIDER_LABELS,
+    alphaKey,
+    getInstrumentByInput,
+    normalizeSymbol,
+    upsertMarketPricePoint,
+    listPriceSourcesForInstrument,
+    listManualPricePoints,
+    listProviderStates,
+    invalidatePrices,
+  });
+
+  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, fetchDatedYahooPriceWithFallback, fetchLatestYahooPriceWithFallback, getBestLocalQuote, resolvePriceSourcesForInstrument, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getDailyPricesForInstrument, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur, listMarketDataSources });
 };

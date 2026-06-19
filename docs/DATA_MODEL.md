@@ -32,7 +32,7 @@ Campos principales:
 - `symbol`: ticker interno.
 - `yahoo_symbol`: símbolo usado para precios.
 - `name`
-- `type`: `etf`, `stock`, `crypto` o `fx`.
+- `type`: `etf`, `stock`, `crypto`, `commodity` o `fx`.
 - `currency`
 - `color`
 - `base_shares`
@@ -196,6 +196,64 @@ Campos:
 - `currency`
 - `source`
 - `created_at`
+
+### `instrument_price_sources`
+
+Configura fuentes de precio por instrumento. Permite mantener Yahoo como fuente primaria por defecto y declarar fuentes alternativas como `alpha_vantage` o `manual`.
+
+Campos:
+
+- `instrument_symbol`
+- `provider`
+- `provider_symbol`
+- `priority`
+- `enabled`
+- `pricing_mode`
+- `max_staleness_days`
+- `metadata_json`
+- `updated_at`
+
+### `market_price_points`
+
+Puntos de precio por instrumento y proveedor. Se usa para cachear precios diarios de proveedores alternativos (Alpha Vantage para commodities).
+
+Campos:
+
+- `instrument_symbol`
+- `provider`
+- `provider_symbol`
+- `date`
+- `price`
+- `currency`
+- `source`
+- `quality`
+- `note`
+- `created_at`
+
+### `market_price_ranges`
+
+Registra rangos cubiertos por un proveedor alternativo para evitar peticiones redundantes.
+
+Campos:
+
+- `instrument_symbol`
+- `provider`
+- `provider_symbol`
+- `from_date`
+- `to_date`
+- `created_at`
+
+### `market_data_provider_state`
+
+Estado operativo de cada proveedor externo o manual.
+
+Campos:
+
+- `provider`
+- `status`
+- `reason`
+- `retry_after`
+- `updated_at`
 
 ### `daily_price_cache`
 

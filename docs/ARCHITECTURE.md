@@ -171,10 +171,10 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 7. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
 8. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
 9. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática y `instrument-group-service` para operaciones CRUD de grupos.
+10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
 11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-12. `domains/market-data/market-data-repository`: acceso a `price_cache` y `daily_price_cache`.
-13. `domains/market-data/market-data`: precios, Yahoo Finance, caché y FX.
+12. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
+13. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales y FX. Carga internamente `market-data-providers` y `market-data-admin`.
 14. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
 15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
 16. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
@@ -258,6 +258,7 @@ Módulos principales:
 - `charts.js`: donut e histórico SVG.
 - `format.js`: formato monetario, fechas, porcentajes y privacidad de saldos.
 - `events.js`: eventos de UI.
+- `instrument-create-market-data.js`: helpers de fuente de precio y NAV inicial en creación de instrumentos.
 - `operations.js`: instrumentos, grupos, backups y administración.
 - `operations-metrics.js`: catálogo de métricas de Operativa (registry de tarjetas de performance).
 - `ledger.js`: movimientos y filtros.

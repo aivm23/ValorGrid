@@ -7,8 +7,9 @@ function sendError(response, sendJson, error) {
 
 module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   const {
-    sendJson,
+sendJson,
     getQuoteForSymbol,
+    listMarketDataSources,
     buildHealth,
     getTransactions,
     getAutoPlans,
@@ -109,6 +110,11 @@ module.exports = async function handleAdminRoutes(ctx, request, response, url) {
     } catch (error) {
       sendError(response, sendJson, error);
     }
+    return true;
+  }
+
+  if (url.pathname === '/api/market-data/sources' && request.method === 'GET') {
+sendJson(response, 200, listMarketDataSources());
     return true;
   }
 

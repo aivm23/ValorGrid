@@ -1,3 +1,5 @@
+import { buildInstrumentPayload, setupInstrumentForm, resetInstrumentForm } from './instrument-create-market-data.js';
+
 export function attach(ctx) {
   const { elements, state, document, window, fetchJson, sendJson, normalizeErrorMessage, deleteBackup } = ctx;
   const syncStickyToolbar = () => {
@@ -231,6 +233,8 @@ export function attach(ctx) {
   elements.deselectAllGroups?.addEventListener('click', ctx.deselectAllGroups);
   elements.createGroup.addEventListener('click', () => createGroup(ctx));
   elements.createInstrument.addEventListener('click', () => createInstrument(ctx));
+
+  setupInstrumentForm(elements);
   elements.brandPaletteEnabled?.addEventListener('change', () => ctx.handleBrandPaletteToggle(ctx));
 
   async function handleDeleteBackup(backupFile) {
@@ -357,24 +361,17 @@ async function createGroup(ctx) {
 }
 
 async function createInstrument(ctx) {
-  const symbol = ctx.elements.newInstrumentSymbol.value.trim().toUpperCase();
+  const elements = ctx.elements;
   try {
-    const payload = {
-      symbol,
-      yahooSymbol: ctx.elements.newInstrumentYahoo.value || ctx.elements.newInstrumentSymbol.value,
-      name: ctx.elements.newInstrumentName.value || ctx.elements.newInstrumentSymbol.value,
-      type: ctx.elements.newInstrumentType.value,
-      currency: ctx.elements.newInstrumentCurrency.value || 'EUR',
-      groupId: ctx.elements.newInstrumentGroup.value,
-    };
+    const payload = buildInstrumentPayload(elements);
+    if (!payload.symbol) throw new Error('El símbolo es obligatorio');
     if (!ctx.state.brandPaletteEnabled) {
-      payload.color = ctx.elements.newInstrumentColor.value;
+      payload.color = elements.newInstrumentColor.value;
     }
     await ctx.sendJson('/api/instruments', 'POST', payload);
-    ctx.elements.newInstrumentSymbol.value = '';
-    ctx.elements.newInstrumentYahoo.value = '';
-    ctx.elements.newInstrumentName.value = '';
+    resetInstrumentForm(elements);
     await ctx.refreshDashboard();
+    const symbol = payload.symbol;
     if (ctx.state.returnToOperationDialogAfterInstrumentCreate) {
       ctx.state.returnToOperationDialogAfterInstrumentCreate = false;
       ctx.elements.instrumentDialog.close();
@@ -384,6 +381,10 @@ async function createInstrument(ctx) {
       ctx.syncAmountInputs({ target: ctx.elements.addTicker });
     }
   } catch (error) {
-    ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+    const errEl = document.getElementById('instrument-create-error');
+    if (errEl) {
+      errEl.textContent = ctx.normalizeErrorMessage(error);
+      errEl.hidden = false;
+    }
   }
 }

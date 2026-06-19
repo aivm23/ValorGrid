@@ -188,7 +188,7 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
         action === 'create'
           ? `<div class="import-create-grid">
               <input class="${missingFields.has('symbol') ? 'import-field-missing' : ''}" data-import-create-symbol="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.symbol || '')}" placeholder="Ticker interno" />
-              <input class="${missingFields.has('yahooSymbol') ? 'import-field-missing' : ''}" data-import-create-yahoo="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.yahooSymbol || '')}" placeholder="Ticker Yahoo" />
+              <input class="${missingFields.has('yahooSymbol') ? 'import-field-missing' : ''}" data-import-create-yahoo="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.yahooSymbol || '')}" placeholder="Ref. proveedor" />
               <input class="${missingFields.has('name') ? 'import-field-missing' : ''}" data-import-create-name="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.name || item.label || '')}" placeholder="Nombre" />
               <select data-import-create-type="${ctx.escapeHtml(item.key)}">
                 <option value="etf"${(create.type || 'stock') === 'etf' ? ' selected' : ''}>ETF</option>

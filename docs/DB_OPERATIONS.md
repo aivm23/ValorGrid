@@ -90,6 +90,7 @@ Hay dos versiones del script, una para cada entorno:
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.15.0-to-3.16.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.16.0-to-3.17.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.17.0-to-3.18.0.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.20.0-to-3.21.0.sql
 ```
 
 **Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
@@ -99,16 +100,19 @@ Hay dos versiones del script, una para cada entorno:
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.17.0-to-3.18.0.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.20.0-to-3.21.0.sql
 
 # Docker (ejecutar dentro del contenedor)
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.16.0-to-3.17.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.17.0-to-3.18.0.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.20.0-to-3.21.0.sql
 
 # Con opciones explícitas
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.16.0-to-3.17.0.sql --db /data/portfolio.sqlite
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.17.0-to-3.18.0.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.20.0-to-3.21.0.sql --db /data/portfolio.sqlite
 ```
 
 **Parámetros del script PowerShell (`run-sql-migration.ps1`):**

@@ -3,7 +3,7 @@ export const IMPORTED_GROUP_NAME = 'Importados';
 
 export const FIELD_LABELS = {
   symbol: 'ticker',
-  yahooSymbol: 'ticker Yahoo',
+  yahooSymbol: 'ref. proveedor',
   name: 'nombre',
   type: 'tipo',
   currency: 'divisa',

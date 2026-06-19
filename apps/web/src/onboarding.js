@@ -121,10 +121,37 @@ export function attach(ctx) {
     return payload;
   }
 
+  function syncWizardType() {
+    const type = ctx.elements.wizardInstrumentType?.value || 'etf';
+    const isCommodity = type === 'commodity';
+    const yahooField = document.querySelector('.wizard-yahoo-field');
+    const commodityField = document.querySelector('.wizard-commodity-field');
+    if (yahooField) yahooField.hidden = isCommodity;
+    if (commodityField) commodityField.hidden = !isCommodity;
+    if (isCommodity) {
+      ctx.elements.wizardInstrumentCurrency.value = 'USD';
+    }
+  }
+
+  ctx.elements.wizardInstrumentType?.addEventListener('change', syncWizardType);
+  ctx.elements.wizardInstrumentCommodity?.addEventListener('change', () => {
+    const commodity = ctx.elements.wizardInstrumentCommodity.value;
+    if (commodity) {
+      if (!ctx.elements.wizardInstrumentSymbol.value) ctx.elements.wizardInstrumentSymbol.value = commodity;
+      if (!ctx.elements.wizardInstrumentName.value) {
+        const labels = { GOLD: 'Gold spot', SILVER: 'Silver spot', WTI: 'WTI crude oil', BRENT: 'Brent crude oil', NATURAL_GAS: 'Natural gas' };
+        ctx.elements.wizardInstrumentName.value = labels[commodity] || commodity;
+      }
+      ctx.elements.wizardInstrumentCurrency.value = 'USD';
+    }
+  });
+
   function buildWizardPayload() {
     const symbol = ctx.elements.wizardInstrumentSymbol.value.trim().toUpperCase();
     const useGroup = ctx.elements.wizardUseGroup.checked;
     const paletteEnabled = ctx.state.brandPaletteEnabled === true;
+    const type = ctx.elements.wizardInstrumentType.value;
+    const isCommodity = type === 'commodity';
     const payload = {
       useGroup,
       group: useGroup ? {
@@ -135,13 +162,19 @@ export function attach(ctx) {
       } : null,
       instrument: {
         symbol,
-        yahooSymbol: ctx.elements.wizardInstrumentYahoo.value.trim() || symbol,
+        yahooSymbol: isCommodity ? symbol : (ctx.elements.wizardInstrumentYahoo.value.trim() || symbol),
         name: ctx.elements.wizardInstrumentName.value.trim() || symbol,
-        type: ctx.elements.wizardInstrumentType.value,
-        currency: ctx.elements.wizardInstrumentCurrency.value || 'EUR',
+        type,
+        currency: isCommodity ? 'USD' : (ctx.elements.wizardInstrumentCurrency.value || 'EUR'),
       },
       confirmRetroactive: ctx.elements.wizardPlanConfirmRetroactive.checked,
     };
+
+    if (isCommodity) {
+      const commodity = ctx.elements.wizardInstrumentCommodity?.value;
+      payload.instrument.providerSymbol = commodity;
+      payload.instrument.provider = 'alpha_vantage';
+    }
 
     if (!paletteEnabled) {
       payload.group.color = ctx.elements.wizardGroupColor.value;

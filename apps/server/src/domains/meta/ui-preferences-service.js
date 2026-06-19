@@ -5,12 +5,12 @@ const UI_PREFERENCES_KEY = 'ui_preferences';
 const MAX_METRICS = 6;
 
 const VALID_HISTORY_MODES = new Set(['all', 'none', 'custom']);
-const VALID_ASSET_TYPES = new Set(['stock', 'etf', 'crypto']);
+const VALID_ASSET_TYPES = new Set(['stock', 'etf', 'crypto', 'commodity']);
 const VALID_TRANSACTION_TYPES = new Set(['add', 'remove']);
 
 const DEFAULT_HISTORY_EVENT_FILTERS = {
   mode: 'all',
-  assetTypes: ['stock', 'etf', 'crypto'],
+  assetTypes: ['stock', 'etf', 'crypto', 'commodity'],
   transactionTypes: ['add', 'remove'],
 };
 

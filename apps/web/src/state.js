@@ -64,7 +64,7 @@ export function attach(ctx) {
     ledgerPageSize: 1000,
     pendingTransactionDelete: [],
     returnToOperationDialogAfterInstrumentCreate: false,
-    historyEventFilters: { mode: 'custom', assetTypes: ['stock', 'etf', 'crypto'], transactionTypes: ['add', 'remove'] },
+    historyEventFilters: { mode: 'custom', assetTypes: ['stock', 'etf', 'crypto', 'commodity'], transactionTypes: ['add', 'remove'] },
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, cryptoSharesFormatter, historyRangeConfig, assetColors, state });

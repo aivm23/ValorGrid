@@ -11,6 +11,7 @@ module.exports = function attach(ctx) {
       'markHistoryBuild',
       'getHistoryInstruments',
       'getDailyPrices',
+      'getDailyPricesForInstrument',
       'replaceMarketPrices',
       'replaceFxRates',
       'getHistoryEvents',
@@ -39,6 +40,7 @@ module.exports = function attach(ctx) {
     markHistoryBuild,
     getHistoryInstruments,
     getDailyPrices,
+    getDailyPricesForInstrument,
     replaceMarketPrices,
     replaceFxRates,
     getHistoryEvents,
@@ -92,7 +94,7 @@ async function rebuildDailyPortfolioHistory(fromDate, toDate, versionsBefore, co
     const instrumentPriceResults = await Promise.all(
       instruments.map(async (instrument) => ({
         instrument,
-        rows: await getDailyPrices(instrument.yahooSymbol, fromDate, toDate).catch(() => []),
+        rows: await getDailyPricesForInstrument(instrument, fromDate, toDate).catch(() => []),
       })),
     );
 

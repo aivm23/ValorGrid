@@ -1,6 +1,8 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
+const { brandPaletteColor } = require('../../shared/brand-palette');
 const { attachBrandPalette } = require('./instrument-brand-palette');
 const { attachInstrumentGroupService } = require('./instrument-group-service');
+const { normalizeInstrumentPriceSources, normalizeIsin } = require('./instrument-price-sources');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -110,6 +112,33 @@ module.exports = function attach(ctx) {
     return getIdentifierByLookup(provider, identifierType, identifierValue);
   }
 
+  function hasPriceSourceInput(input = {}) {
+    return Boolean(input.priceSources || input.pricingMode || input.pricing_mode || input.provider || input.priceProvider || input.price_provider);
+  }
+
+  function syncInstrumentMarketDataConfig(symbol, input = {}, fallback = {}, force = false) {
+    const isin = normalizeIsin(input.isin);
+    if (isin) {
+      upsertInstrumentIdentifier({
+        instrumentSymbol: symbol,
+        provider: 'global',
+        identifierType: 'isin',
+        identifierValue: isin,
+        displayName: fallback.name,
+        currency: fallback.currency,
+      });
+    }
+    if (!force && !hasPriceSourceInput(input)) return;
+    repositories.marketData?.replacePriceSourcesForInstrument?.(
+      symbol,
+      normalizeInstrumentPriceSources(input, {
+        symbol,
+        yahooSymbol: fallback.yahooSymbol || symbol,
+        metadata: { assetClass: input.assetClass || input.asset_class || fallback.type },
+      }),
+    );
+  }
+
   function deleteInstrumentIdentifier(id) {
     if (!id) return false;
     return deleteIdentifierById(String(id));
@@ -179,7 +208,7 @@ module.exports = function attach(ctx) {
 
     if (!next.yahooSymbol) throw new Error('Yahoo symbol is required');
     if (!next.name) throw new Error('Name is required');
-    if (!['etf', 'stock', 'crypto', 'fx'].includes(next.type)) throw new Error('Invalid instrument type');
+    if (!['etf', 'stock', 'crypto', 'commodity', 'fx'].includes(next.type)) throw new Error('Invalid instrument type');
     if (!next.currency) throw new Error('Currency is required');
     if (!/^#[0-9a-f]{6}$/i.test(next.color)) throw new Error('Color must be a hex value');
     if (!Number.isFinite(next.fallbackPrice) || next.fallbackPrice < 0) throw new Error('Invalid fallback price');
@@ -204,6 +233,7 @@ module.exports = function attach(ctx) {
       displayName: next.name,
       currency: next.currency,
     });
+    syncInstrumentMarketDataConfig(existing.symbol, input, next);
     invalidatePrices(getToday(), 'instrument-update');
     return listInstruments().find((item) => item.symbol === existing.symbol);
   }
@@ -309,7 +339,7 @@ module.exports = function attach(ctx) {
       ? String(input.groupId || input.group_id || ensureGeneralGroup().id).trim()
       : null;
     const fallbackPrice = Number(input.fallbackPrice || input.fallback_price || 0);
-    if (!['etf', 'stock', 'crypto', 'fx'].includes(type)) throw new Error('Invalid instrument type');
+    if (!['etf', 'stock', 'crypto', 'commodity', 'fx'].includes(type)) throw new Error('Invalid instrument type');
     if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Color must be a hex value');
     if (groupId && !groupExists(groupId)) throw new Error('Instrument group not found');
     insertInstrument({
@@ -341,6 +371,7 @@ module.exports = function attach(ctx) {
       displayName: name,
       currency,
     });
+    syncInstrumentMarketDataConfig(symbol, input, { yahooSymbol, name, type, currency });
     invalidatePrices(getToday(), 'instrument-create');
 
     if (paletteEnabled) {

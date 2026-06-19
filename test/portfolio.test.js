@@ -195,6 +195,55 @@ test('transactions do not use stale prices automatically when Yahoo is unavailab
   }
 });
 
+test('alpha vantage source can quote spot-style commodities when Yahoo is not primary', async () => {
+  const previousFetch = global.fetch;
+  const previousKey = process.env.VALORGRID_ALPHA_VANTAGE_API_KEY;
+  process.env.VALORGRID_ALPHA_VANTAGE_API_KEY = 'test-key';
+
+  try {
+    const created = await jsonRequest('/api/instruments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        symbol: 'XAUTST',
+        yahooSymbol: 'GC=F',
+        name: 'Gold Spot Test',
+        type: 'etf',
+        currency: 'USD',
+        provider: 'alpha_vantage',
+        providerSymbol: 'GOLD',
+        assetClass: 'commodity',
+      }),
+    });
+    assert.equal(created.response.status, 201);
+
+    global.fetch = async (url) => {
+      assert.match(String(url), /alphavantage\.co/);
+      return {
+        ok: true,
+        async json() {
+          return {
+            'Time Series FX (Daily)': {
+              '2026-05-14': { '4. close': '2350.5' },
+            },
+          };
+        },
+      };
+    };
+
+    const { response, body } = await jsonRequest('/api/quote?symbol=XAUTST&date=2026-05-14');
+
+    assert.equal(response.status, 200);
+    assert.equal(body.quote.price, 2350.5);
+    assert.equal(body.quote.provider, 'alpha_vantage');
+    assert.equal(body.quote.currency, 'USD');
+  } finally {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.VALORGRID_ALPHA_VANTAGE_API_KEY;
+    else process.env.VALORGRID_ALPHA_VANTAGE_API_KEY = previousKey;
+  }
+});
+
 test('deletes transactions atomically', async () => {
   seedTestInstrument({ symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock' });
   cachePrice('NOV.DE', '2026-05-15', 41);

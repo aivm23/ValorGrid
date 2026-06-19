@@ -42,7 +42,8 @@ function bindGroupedCtxNamespaces(ctx) {
       'fetchDatedYahooPrice', 'dailyCacheHasRange', 'getCachedDailyPrices',
       'fetchDatedYahooPriceWithFallback', 'fetchLatestYahooPriceWithFallback',
       'getBestLocalQuote', 'parseDailyPrices', 'getDailyPrices', 'getQuoteForSymbol',
-      'getQuoteForYahooSymbol', 'getUsdToEur', 'getFxToEur',
+      'getDailyPricesForInstrument', 'getQuoteForYahooSymbol', 'getUsdToEur', 'getFxToEur',
+      'resolvePriceSourcesForInstrument', 'listMarketDataSources',
     ]),
   );
   Object.assign(
@@ -116,7 +117,7 @@ function bindGroupedCtxNamespaces(ctx) {
   );
   Object.assign(
     ctx.repositories.marketData,
-    pickCtxFunctions(ctx, ['getCachedPriceQuote', 'getLatestCachedPriceQuote', 'getLatestDailyPrice', 'getLatestMaterializedPrice', 'upsertPriceQuote', 'hasDailyPriceRange', 'getDailyPricesInRange', 'replaceDailyPricesRange', 'dailyCacheHasRange', 'getCachedDailyPrices', 'getDailyPrices', 'parseDailyPrices', 'getQuoteForSymbol', 'getQuoteForYahooSymbol']),
+    pickCtxFunctions(ctx, ['getCachedPriceQuote', 'getLatestCachedPriceQuote', 'getLatestDailyPrice', 'getLatestMaterializedPrice', 'upsertPriceQuote', 'hasDailyPriceRange', 'getDailyPricesInRange', 'replaceDailyPricesRange', 'dailyCacheHasRange', 'getCachedDailyPrices', 'getDailyPrices', 'parseDailyPrices', 'getQuoteForSymbol', 'getQuoteForYahooSymbol', 'listPriceSourcesForInstrument', 'replacePriceSourcesForInstrument', 'upsertMarketPricePoint', 'getLatestMarketPricePoint', 'listManualPricePoints', 'listMarketPricePointsInRange', 'upsertProviderState', 'listProviderStates']),
   );
   Object.assign(
     ctx.repositories.meta,

@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const { server, host, port } = require('./src/app-core');
 
 if (require.main === module) {

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.21.0 (2026-06-19)
+
+- feat: add `commodity` instrument type with automatic Alpha Vantage pricing
+- feat: add migration SQL for existing databases (deploy/sql/update-3.20.0-to-3.21.0.sql)
+- feat: add instrument price-source configuration with Yahoo as the default provider
+- fix: Alpha Vantage gold/silver now uses correct GOLD_SILVER_HISTORY/SPOT endpoints instead of FX_DAILY
+- fix: provider selection is now automatic based on type (Yahoo for ETF/Stock/Crypto, Alpha Vantage for Commodity)
+- fix: form restructured — type selector is first, conditional commodity dropdown
+- fix: Alpha Vantage GOLD_SILVER_HISTORY fetches last 30 days to handle stale data
+
 ## 3.20.0
 
 - feat: make read-only portfolio views resilient to Yahoo Finance failures by using local stale prices when available.

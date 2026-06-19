@@ -157,10 +157,20 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las posiciones con valor inferior no se muestran en distribucion ni monthly.
 
-## Notas sobre crypto
+## Fuentes de precio por instrumento
+
+- La selección de proveedor es automática según el tipo de instrumento:
+  - **ETF, Stock, Crypto**: Yahoo Finance (fuente por defecto).
+  - **Commodity**: Alpha Vantage (requiere `VALORGRID_ALPHA_VANTAGE_API_KEY`).
+- Alpha Vantage para commodities usa los endpoints `GOLD_SILVER_HISTORY` y `GOLD_SILVER_SPOT` en lugar de `FX_DAILY`.
+- Los precios de proveedores alternativos se cachean en `market_price_points`.
+- Las escrituras de transacciones siguen siendo estrictas: no usan cache antiguo de Yahoo de forma automatica.
+
+## Notas sobre crypto y commodity
 
 - `crypto` puede tener cotización en sábado/domingo si la fuente de precios la devuelve.
-- La app no decide por calendario; decide por disponibilidad de cotización o precio manual.
+- `commodity` usa Alpha Vantage con los endpoints `GOLD_SILVER_HISTORY`/`GOLD_SILVER_SPOT`. No requiere símbolo Yahoo.
+- La app no decide por calendario; decide por disponibilidad de cotización.
 
 ## Preview de transaccion
 

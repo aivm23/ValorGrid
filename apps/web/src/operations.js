@@ -247,7 +247,7 @@ export function attach(ctx) {
     return `
         <tr data-instrument="${ctx.escapeHtml(instrument.symbol)}">
           <td data-label="Ticker"><label class="row-select"><input type="checkbox" data-select-instrument="${ctx.escapeHtml(instrument.symbol)}" ${selectedInstruments.has(instrument.symbol) ? 'checked' : ''} aria-label="Seleccionar ${ctx.escapeHtml(instrument.symbol)}" /><strong class="instrument-symbol-label" title="${ctx.escapeHtml(instrument.symbol)}">${ctx.escapeHtml(instrument.symbol)}</strong></label></td>
-          <td data-label="Yahoo"><input class="instrument-input" data-field="yahooSymbol" value="${ctx.escapeHtml(instrument.yahooSymbol)}" /></td>
+          <td data-label="${instrument.type === 'commodity' ? 'Alpha Vantage' : 'Ref. Proveedor'}"><input class="instrument-input" data-field="yahooSymbol" value="${ctx.escapeHtml(instrument.yahooSymbol)}" /></td>
           <td data-label="Nombre"><input class="instrument-input" data-field="name" value="${ctx.escapeHtml(instrument.name)}" /></td>
           ${groupCol}
           <td data-label="Tipo">
@@ -255,6 +255,7 @@ export function attach(ctx) {
               <option value="etf" ${instrument.type === 'etf' ? 'selected' : ''}>ETF</option>
               <option value="stock" ${instrument.type === 'stock' ? 'selected' : ''}>Stock</option>
               <option value="crypto" ${instrument.type === 'crypto' ? 'selected' : ''}>Crypto</option>
+              <option value="commodity" ${instrument.type === 'commodity' ? 'selected' : ''}>Commodity</option>
             </select>
           </td>
           <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>

@@ -11,7 +11,7 @@ module.exports = function attach(ctx) {
       symbol TEXT PRIMARY KEY,
       yahoo_symbol TEXT NOT NULL,
       name TEXT NOT NULL,
-      type TEXT NOT NULL CHECK (type IN ('etf', 'stock', 'crypto', 'fx')),
+      type TEXT NOT NULL CHECK (type IN ('etf', 'stock', 'crypto', 'commodity', 'fx')),
       currency TEXT NOT NULL,
       color TEXT NOT NULL,
       base_shares REAL NOT NULL DEFAULT 0,
@@ -90,6 +90,52 @@ module.exports = function attach(ctx) {
       source TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (yahoo_symbol, requested_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS instrument_price_sources (
+      instrument_symbol TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      provider_symbol TEXT NOT NULL,
+      priority INTEGER NOT NULL DEFAULT 0,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      pricing_mode TEXT NOT NULL DEFAULT 'provider' CHECK (pricing_mode IN ('auto', 'provider', 'manual')),
+      max_staleness_days INTEGER,
+      metadata_json TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (instrument_symbol, provider, provider_symbol)
+    );
+
+    CREATE TABLE IF NOT EXISTS market_price_points (
+      instrument_symbol TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      provider_symbol TEXT NOT NULL,
+      date TEXT NOT NULL,
+      price REAL NOT NULL,
+      currency TEXT NOT NULL,
+      source TEXT NOT NULL,
+      quality TEXT NOT NULL DEFAULT 'ok',
+      note TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (instrument_symbol, provider, provider_symbol, date)
+    );
+
+    CREATE TABLE IF NOT EXISTS market_price_ranges (
+      instrument_symbol TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      provider_symbol TEXT NOT NULL,
+      from_date TEXT NOT NULL,
+      to_date TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (instrument_symbol, provider, provider_symbol, from_date, to_date)
+    );
+
+    CREATE TABLE IF NOT EXISTS market_data_provider_state (
+      provider TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      reason TEXT,
+      retry_after TEXT,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS auto_plan_skips (
@@ -270,6 +316,14 @@ module.exports = function attach(ctx) {
       ON instrument_groups (display_order, active);
     CREATE INDEX IF NOT EXISTS idx_market_prices_symbol_date
       ON market_prices_daily (symbol, date);
+    CREATE INDEX IF NOT EXISTS idx_instrument_price_sources_symbol_priority
+      ON instrument_price_sources (instrument_symbol, enabled, priority);
+    CREATE INDEX IF NOT EXISTS idx_market_price_points_symbol_date
+      ON market_price_points (instrument_symbol, date);
+    CREATE INDEX IF NOT EXISTS idx_market_price_points_provider_date
+      ON market_price_points (provider, provider_symbol, date);
+    CREATE INDEX IF NOT EXISTS idx_market_price_ranges_lookup
+      ON market_price_ranges (instrument_symbol, provider, provider_symbol, from_date, to_date);
     CREATE INDEX IF NOT EXISTS idx_fx_rates_pair_date
       ON fx_rates_daily (pair, date);
     CREATE INDEX IF NOT EXISTS idx_portfolio_positions_symbol_date

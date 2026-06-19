@@ -2868,6 +2868,12 @@ td:last-child {
   margin: 0;
 }
 
+.field-error {
+  color: var(--negative);
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+
 .instrument-list-heading {
   margin-top: 18px;
 }
@@ -3401,11 +3407,11 @@ td:last-child {
 }
 
 .instrument-create-form-wide {
-  grid-template-columns: minmax(110px, 0.8fr) minmax(120px, 1fr) minmax(140px, 1.2fr) 100px 82px minmax(120px, 1fr) 58px auto;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 }
 
 .instrument-create-form-wide.no-groups {
-  grid-template-columns: minmax(110px, 0.8fr) minmax(120px, 1fr) minmax(140px, 1.2fr) 100px 82px 58px auto;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 }
 
 .instrument-create-form input,
@@ -3695,10 +3701,6 @@ td:last-child {
 }
 
 @media (max-width: 1180px) {
-  .instrument-create-form-wide {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .instrument-filter-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

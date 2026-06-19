@@ -2,6 +2,7 @@
   "name": "@valorgrid/server",
   "private": true,
   "dependencies": {
+    "dotenv": "^16.4.0",
     "exceljs": "4.4.0"
   }
 }

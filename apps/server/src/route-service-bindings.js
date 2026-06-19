@@ -33,6 +33,7 @@ function resolveRouteHandlers(ctx) {
     readJsonBody: pickServiceFn(sharedServices, 'readJsonBody', ctx.readJsonBody),
     sendText: pickServiceFn(sharedServices, 'sendText', ctx.sendText),
     getQuoteForSymbol: pickServiceFn(marketDataServices, 'getQuoteForSymbol', ctx.getQuoteForSymbol),
+listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources', ctx.listMarketDataSources),
     buildHealth: pickServiceFn(diagnosticsServices, 'buildHealth', ctx.buildHealth),
     listInstruments: pickServiceFn(instrumentServices, 'listInstruments', ctx.listInstruments),
     listInstrumentIdentifiers: pickServiceFn(

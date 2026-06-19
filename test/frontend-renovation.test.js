@@ -430,6 +430,20 @@ test('operations.js instrument table type select includes crypto', () => {
   assert.ok(ops.includes("instrument.type === 'crypto'"), 'operations.js references crypto instrument type');
 });
 
+test('instrument creation form includes commodity type and auto provider', () => {
+  const index = read('apps/web/index.html');
+  assert.ok(index.includes('value="commodity"'), 'create form includes commodity type');
+  assert.ok(index.includes('id="new-instrument-commodity"'), 'create form includes commodity dropdown');
+  assert.ok(!index.includes('id="new-instrument-price-source"'), 'price source selector is removed');
+});
+
+test('instrument-create-market-data.js handles auto provider by type', () => {
+  const source = read(path.join('apps', 'web', 'src', 'instrument-create-market-data.js'));
+  assert.ok(source.includes('buildInstrumentPayload'), 'payload builder is exported');
+  assert.ok(source.includes("payload.provider = 'alpha_vantage'"), 'alternative provider is set for commodities');
+  assert.ok(!source.includes('/api/market-data/manual-prices'), 'manual price endpoint is no longer called');
+});
+
 test('history-preferences.js includes crypto in asset types and labels', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
   assert.ok(hp.includes("'crypto'"), 'history-preferences.js includes crypto in arrays');

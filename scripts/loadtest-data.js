@@ -12,6 +12,9 @@ const instruments = [
   { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 31 },
   { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 152 },
   { symbol: 'USDEUR', yahooSymbol: 'USDEUR=X', name: 'USD/EUR', type: 'fx', currency: 'EUR', color: '#64748b', base: 0.9 },
+  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'etf', currency: 'USD', color: '#eab308', base: 2300, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
+  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'etf', currency: 'USD', color: '#94a3b8', base: 28, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
+  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'etf', currency: 'USD', color: '#f97316', base: 82, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
 ];
 
 function dateUtc(value) {
@@ -83,6 +86,9 @@ function clearLoadtestTables(db) {
     DELETE FROM daily_price_cache_ranges;
     DELETE FROM daily_price_cache;
     DELETE FROM price_cache;
+    DELETE FROM market_price_points;
+    DELETE FROM market_price_ranges;
+    DELETE FROM instrument_price_sources;
     DELETE FROM auto_plan_skips;
     DELETE FROM transactions;
     DELETE FROM auto_plans;
@@ -143,6 +149,16 @@ function seedLoadtestDb(db, options = {}) {
       (symbol, amount_eur, day, enabled, start_date, frequency, weekday)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
+  const insertPriceSource = db.prepare(
+    `INSERT OR REPLACE INTO instrument_price_sources
+      (instrument_symbol, provider, provider_symbol, priority, enabled, pricing_mode, max_staleness_days)
+     VALUES (?, ?, ?, ?, 1, 'provider', ?)`,
+  );
+  const insertMarketPricePoint = db.prepare(
+    `INSERT OR REPLACE INTO market_price_points
+      (instrument_symbol, provider, provider_symbol, date, price, currency, source, quality)
+     VALUES (?, 'alpha_vantage', ?, ?, ?, ?, 'loadtest', 'ok')`,
+  );
 
   clearLoadtestTables(db);
   db.exec('BEGIN');
@@ -160,7 +176,7 @@ function seedLoadtestDb(db, options = {}) {
     function groupFor(symbol, type) {
       if (['SPPW', 'ICGA'].includes(symbol)) return 'core';
       if (['META', 'NVO'].includes(symbol) || type === 'stock') return 'stock-picking';
-      if (symbol === 'U308') return 'specialized';
+      if (['U308', 'GOLD', 'SILVER', 'BRENT'].includes(symbol)) return 'specialized';
       if (type === 'etf') return 'core';
       return 'general';
     }
@@ -184,6 +200,19 @@ function seedLoadtestDb(db, options = {}) {
           deterministicPrice(instrument, date, from),
           instrument.currency,
         );
+      }
+      if (instrument.provider) {
+        insertPriceSource.run(instrument.symbol, instrument.provider, instrument.providerSymbol, 0, 45);
+        insertPriceSource.run(instrument.symbol, 'yahoo', instrument.yahooSymbol, 10, 45);
+        for (const date of dates) {
+          insertMarketPricePoint.run(
+            instrument.symbol,
+            instrument.providerSymbol,
+            date,
+            deterministicPrice(instrument, date, from),
+            instrument.currency,
+          );
+        }
       }
     }
 

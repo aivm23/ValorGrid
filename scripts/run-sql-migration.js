@@ -57,6 +57,16 @@ if (!fs.existsSync(sqlPath)) {
 }
 console.log(`${LABEL.info} SQL:  ${sqlPath}`);
 
+// ── Extraer resumen del encabezado del SQL ────────────────────────────────
+const sqlLines = fs.readFileSync(sqlPath, 'utf8').split('\n');
+const headerLines = sqlLines.filter(l => /^--/.test(l)).slice(0, 4);
+if (headerLines.length) {
+  console.log(`${LABEL.info} Descripción:`);
+  for (const h of headerLines) {
+    console.log(`  ${h.replace(/^--\s*/, '')}`);
+  }
+}
+
 // ── 2. Resolver dbPath ─────────────────────────────────────────────────────
 if (!dbPath) {
   const { createConfig } = require('../apps/server/src/platform/config');
@@ -213,6 +223,8 @@ if (!dryRun) {
     if (schemaRow) {
       const oneLine = schemaRow.sql.replace(/\n\s*/g, ' ').substring(0, 120);
       console.log(`  Schema: ${oneLine}...`);
+      const checkMatch = schemaRow.sql.match(/CHECK\s*\(type IN\s*\([^)]+\)/);
+      if (checkMatch) console.log(`  Tipos permitidos: ${checkMatch[0].replace(/CHECK\s*\(type IN\s*\(/, '').replace(/\)$/, '')}`);
     }
   } catch {}
 

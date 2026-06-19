@@ -504,26 +504,36 @@
 
           <section class="instrument-config-section">
             <h3>Valores</h3>
-            <div class="instrument-create-panel">
-              <div>
-                <h4>Crear valor</h4>
-                <p class="subtle">Añade un valor manualmente si no viene de una importación.</p>
+<div class="instrument-create-panel">
+                <div>
+                  <h4>Crear valor</h4>
+                  <p class="subtle">Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.</p>
+                  <p id="instrument-create-error" class="field-error" hidden></p>
+                </div>
+                <div class="instrument-create-form instrument-create-form-wide">
+                  <select id="new-instrument-type">
+                    <option value="etf">ETF</option>
+                    <option value="stock">Stock</option>
+                    <option value="crypto">Crypto</option>
+                    <option value="commodity">Commodity</option>
+                  </select>
+                  <input id="new-instrument-symbol" placeholder="Ticker interno" />
+                  <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" class="yahoo-field" />
+                  <select id="new-instrument-commodity" class="commodity-field" hidden>
+                    <option value="">— Commodity —</option>
+                    <option value="GOLD">Gold spot (XAU/USD)</option>
+                    <option value="SILVER">Silver spot (XAG/USD)</option>
+                    <option value="WTI">WTI crude oil</option>
+                    <option value="BRENT">Brent crude oil</option>
+                    <option value="NATURAL_GAS">Natural gas</option>
+                  </select>
+                  <input id="new-instrument-name" placeholder="Nombre" />
+                  <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
+                  <select id="new-instrument-group"></select>
+                  <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
+                  <button id="create-instrument" class="button btn-save" type="button">Crear valor</button>
+                </div>
               </div>
-              <div class="instrument-create-form instrument-create-form-wide">
-                <input id="new-instrument-symbol" placeholder="Ticker interno" />
-                <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" />
-                <input id="new-instrument-name" placeholder="Nombre" />
-                <select id="new-instrument-type">
-                  <option value="etf">ETF</option>
-                  <option value="stock">Stock</option>
-                  <option value="crypto">Crypto</option>
-                </select>
-                <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
-                <select id="new-instrument-group"></select>
-                <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
-                <button id="create-instrument" class="button btn-save" type="button">Crear valor</button>
-              </div>
-            </div>
             <div class="instrument-list-heading">
               <div>
                 <h4>Listado de valores</h4>
@@ -544,7 +554,7 @@
                 <input id="instrument-filter-symbol" placeholder="Todos" />
               </label>
               <label class="field">
-                <span>Yahoo</span>
+                <span>Ref. Proveedor</span>
                 <input id="instrument-filter-yahoo" placeholder="Todos" />
               </label>
               <label class="field">
@@ -592,7 +602,7 @@
                 <thead>
                   <tr>
                     <th>Ticker</th>
-                    <th>Yahoo</th>
+                    <th>Ref. Proveedor</th>
                     <th>Nombre</th>
                     <th id="instrument-th-group">Grupo</th>
                     <th>Tipo</th>
@@ -947,12 +957,32 @@
             <h3>Instrumento</h3>
             <div class="field-grid">
               <label class="field">
+                <span>Tipo</span>
+                <select id="wizard-instrument-type">
+                  <option value="etf">ETF</option>
+                  <option value="stock">Stock</option>
+                  <option value="crypto">Crypto</option>
+                  <option value="commodity">Commodity</option>
+                </select>
+              </label>
+              <label class="field">
                 <span>Ticker interno</span>
                 <input id="wizard-instrument-symbol" required placeholder="ETF01, STOCK01..." />
               </label>
-              <label class="field">
-                <span>Ticker Yahoo</span>
-                <input id="wizard-instrument-yahoo" placeholder="ETF01.EX, STOCK01..." />
+              <label class="field wizard-yahoo-field">
+                <span>Ref. Proveedor</span>
+                <input id="wizard-instrument-yahoo" placeholder="SPPW.DE, MSFT..." />
+              </label>
+              <label class="field wizard-commodity-field" hidden>
+                <span>Commodity</span>
+                <select id="wizard-instrument-commodity">
+                  <option value="">— Commodity —</option>
+                  <option value="GOLD">Gold spot (XAU/USD)</option>
+                  <option value="SILVER">Silver spot (XAG/USD)</option>
+                  <option value="WTI">WTI crude oil</option>
+                  <option value="BRENT">Brent crude oil</option>
+                  <option value="NATURAL_GAS">Natural gas</option>
+                </select>
               </label>
             </div>
             <label class="field">
@@ -960,14 +990,6 @@
               <input id="wizard-instrument-name" placeholder="Nombre visible" />
             </label>
             <div class="field-grid">
-              <label class="field">
-                <span>Tipo</span>
-                <select id="wizard-instrument-type">
-                  <option value="etf">ETF</option>
-                  <option value="stock">Stock</option>
-                  <option value="crypto">Crypto</option>
-                </select>
-              </label>
               <label class="field">
                 <span>Divisa</span>
                 <input id="wizard-instrument-currency" value="EUR" />
