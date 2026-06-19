@@ -211,6 +211,7 @@ Campos:
 - `pricing_mode`
 - `max_staleness_days`
 - `metadata_json`
+- `created_at`
 - `updated_at`
 
 ### `market_price_points`
