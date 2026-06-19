@@ -84,6 +84,8 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
   ['apps', 'web', 'src', 'import-workflow.js'].join(path.sep),
   'apps/web/src/import-workflow-helpers.js',
   ['apps', 'web', 'src', 'import-workflow-helpers.js'].join(path.sep),
+  ['apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-parser.js'].join(path.sep),
+  'apps/server/src/domains/data-ingestion/ingestion-parser.js',
 ]);
 
 const REQUIRED_GITIGNORE_PATTERNS = [

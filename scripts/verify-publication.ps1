@@ -177,7 +177,9 @@ $publicBrokerTeaserFiles = @(
   'apps/web/src/import-workflow.js',
   'apps\web\src\import-workflow.js',
   'apps/web/src/import-workflow-helpers.js',
-  'apps\web\src\import-workflow-helpers.js'
+  'apps\web\src\import-workflow-helpers.js',
+  'apps\server\src\domains\data-ingestion\ingestion-parser.js',
+  'apps\server\src\domains\data-ingestion\ingestion-parser.js'
 )
 
 foreach ($file in $publicFiles) {
