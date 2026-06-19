@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.21.0 (2026-06-19)
+## 3.21.0
 
 - feat: add `commodity` instrument type with automatic Alpha Vantage pricing
 - feat: add migration SQL for existing databases (deploy/sql/update-3.20.0-to-3.21.0.sql)
