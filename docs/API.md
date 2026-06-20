@@ -151,18 +151,61 @@ Las vistas de cartera son tolerantes a fallos del proveedor de mercado: `summary
 ```text
 GET /api/quote?symbol=TICKER&date=2026-05-03
 GET /api/market-data/sources
+GET /api/market-data/alpha-vantage/status
+POST /api/market-data/alpha-vantage/key
+DELETE /api/market-data/alpha-vantage/key
 ```
 
 `GET /api/quote` devuelve precio cacheado o consultado al proveedor de mercado. La selección de proveedor es automática según el tipo de instrumento:
 
 - **ETF, Stock, Crypto**: Yahoo Finance
-- **Commodity**: Alpha Vantage (requiere `VALORGRID_ALPHA_VANTAGE_API_KEY`)
+- **Commodity**: Alpha Vantage (requiere clave API configurada)
 
 Si el instrumento tiene fuentes configuradas, se consultan por prioridad. Yahoo es el respaldo por defecto si la fuente primaria no responde.
 
 Si el proveedor no responde y existe un precio local anterior, la respuesta puede ser `200` con `stale: true`, `dataQuality: "stale"`, `fallbackReason` y `priceAgeDays`. Si no hay dato local, devuelve un error accionable.
 
 `GET /api/market-data/sources` lista proveedores disponibles y su estado local.
+
+### Alpha Vantage (commodities)
+
+`GET /api/market-data/alpha-vantage/status` devuelve el estado de la configuración de Alpha Vantage:
+
+```json
+{
+  "configured": false,
+  "mode": "desktop",
+  "source": null,
+  "hint": "Abre https://www.alphavantage.co/support/#api-key para obtener tu clave gratuita"
+}
+```
+
+- `configured`: `true` si hay clave configurada, `false` si no.
+- `mode`: `"desktop"` si se ejecuta como app de escritorio Electron, `"server"` en modo Node puro.
+- `source`: `"local"` si se guardó desde el asistente, `"env"` si se configuró por variable de entorno, `null` si no hay clave.
+- `hint`: mensaje accionable para el usuario según el modo.
+
+`POST /api/market-data/alpha-vantage/key` guarda una nueva clave de Alpha Vantage (solo modo desktop). Validación:
+
+- El campo `apiKey` debe tener 16 caracteres alfanuméricos mayúsculas.
+- Se valida con una llamada real a `GOLD_SILVER_SPOT` antes de guardar.
+- Si la clave es inválida o el límite diario está activo, devuelve `400` con mensaje explicativo.
+- En modo servidor (no desktop), devuelve `400` e indica que use variable de entorno.
+
+Respuesta:
+
+```json
+{
+  "message": "Clave de Alpha Vantage guardada correctamente"
+}
+```
+
+`DELETE /api/market-data/alpha-vantage/key` elimina la clave guardada (solo modo desktop). En modo servidor devuelve `400`.
+
+### Gestión local de la clave
+
+- **Windows Desktop**: la clave se guarda en `secrets.json` junto al directorio de backups dentro de la carpeta privada de Electron (`app.getPath('userData')`). ValorGrid nunca la expone por API ni la envía a servidores externos (salvo a la API oficial de Alpha Vantage para consultar precios).
+- **Docker/dev**: la clave se configura exclusivamente mediante la variable de entorno `VALORGRID_ALPHA_VANTAGE_API_KEY` (también compatible con `ALPHA_VANTAGE_API_KEY`). No hay persistencia local de secretos en este modo.
 
 ## Backups
 

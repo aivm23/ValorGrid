@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { app, BrowserWindow, Menu, shell } = require('electron');
+const { readAlphaVantageKey } = require('../server/src/platform/runtime-secrets');
 
 let mainWindow = null;
 let server = null;
@@ -24,6 +25,11 @@ function startLocalServer() {
   process.env.PORT = '0';
   process.env.PORTFOLIO_DB_PATH = dbPath;
   process.env.VALORGRID_BACKUP_DIR = backupDir;
+  process.env.VALORGRID_RUNTIME_MODE = 'desktop';
+  process.env.VALORGRID_DESKTOP_USER_DATA_DIR = userDataDir;
+
+  const savedKey = readAlphaVantageKey(backupDir);
+  if (savedKey) process.env.VALORGRID_ALPHA_VANTAGE_API_KEY = savedKey;
 
   const runtime = require('../server/src/app-core');
   server = runtime.server;
@@ -81,8 +87,18 @@ if (!gotLock) {
 
   app.whenReady().then(async () => {
     Menu.setApplicationMenu(null);
-    const url = await startLocalServer();
-    createWindow(url);
+    try {
+      const url = await startLocalServer();
+      createWindow(url);
+    } catch (error) {
+      console.error('ValorGrid startup failed:', error);
+      const { dialog } = require('electron');
+      dialog.showErrorBox(
+        'ValorGrid no pudo iniciar',
+        `${error.message}\n\nRuta: ${__dirname}\nRevisa la consola para más detalles.`
+      );
+      app.quit();
+    }
   });
 
   app.on('window-all-closed', () => {

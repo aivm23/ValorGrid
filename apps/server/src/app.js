@@ -6,6 +6,7 @@ const { createConfig } = require('./platform/config');
 const { openDatabase } = require('./platform/db');
 const backups = require('./platform/backups');
 const { bindGroupedCtxNamespaces } = require('./bind-ctx-namespaces');
+const runtimeSecrets = require('./platform/runtime-secrets');
 
 const { appInfo, root, dbPath, backupDir, host, port, auth } = createConfig();
 const staticRoot = path.resolve(root, 'apps', 'web'), db = openDatabase(dbPath);
@@ -68,6 +69,13 @@ const config = {
   defaultInstruments,
   defaultAutoPlans,
   contentTypes,
+  marketData: {
+    alphaVantageApiKey: process.env.VALORGRID_ALPHA_VANTAGE_API_KEY || process.env.ALPHA_VANTAGE_API_KEY || '',
+  },
+  runtime: {
+    mode: process.env.VALORGRID_RUNTIME_MODE || 'server',
+    userDataDir: process.env.VALORGRID_DESKTOP_USER_DATA_DIR || '',
+  },
 };
 
 const cache = {
@@ -152,6 +160,12 @@ const ctx = {
   services,
 };
 
+Object.assign(ctx, {
+  readAlphaVantageKey: runtimeSecrets.readAlphaVantageKey,
+  saveAlphaVantageKey: runtimeSecrets.saveAlphaVantageKey,
+  deleteAlphaVantageKey: runtimeSecrets.deleteAlphaVantageKey,
+});
+
 const modules = [
   './schema',
   './schema-seed',
@@ -166,6 +180,7 @@ const modules = [
   './domains/ticker-suggestions/ticker-suggestions',
   './domains/market-data/market-data-repository',
   './domains/market-data/market-data',
+  './domains/market-data/route-market-data-alpha-vantage',
   './domains/transactions/transaction-repository',
   './domains/transactions/transaction-service',
   './domains/transactions/auto-plan-date-service',

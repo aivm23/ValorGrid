@@ -47,6 +47,15 @@ jobs:
         run: ./scripts/verify-publication.ps1
 
       - run: npm run desktop:dist:win
+
+      - name: Create stable-name installer
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem local/artifacts/desktop -Filter '*-x64.exe' | Select-Object -First 1
+          if (-not $exe) { throw "No installer exe found" }
+          Copy-Item $exe.FullName "local/artifacts/desktop/ValorGrid-Setup-x64.exe"
+          Write-Host "Created stable installer: $($exe.Name) -> ValorGrid-Setup-x64.exe"
+
       - run: npm run release:checksums
 
       - run: node scripts/generate-release-notes.js
@@ -55,7 +64,7 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
-            local/artifacts/desktop/*.exe
+            local/artifacts/desktop/ValorGrid-Setup-x64.exe
             local/artifacts/desktop/SHA256SUMS.txt
 
       - name: Publish GitHub Release
@@ -63,6 +72,7 @@ jobs:
         with:
           body_path: release-notes.md
           files: |
+            local/artifacts/desktop/ValorGrid-Setup-x64.exe
             local/artifacts/desktop/*.exe
             local/artifacts/desktop/*.blockmap
             local/artifacts/desktop/latest.yml

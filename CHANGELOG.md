@@ -1,5 +1,36 @@
 # Changelog
 
+## 3.22.5
+
+- Release workflow now publishes a stable-name installer (ValorGrid-Setup-x64.exe) alongside the versioned one, enabling direct download links from the landing page.
+
+## 3.22.4
+
+- docs: updated FIRST_STEPS.md guide with current UI screenshots and detailed import wizard walkthrough
+
+## 3.22.3
+
+- fix: backup list now uses a two-row layout — filename on top, size and action buttons below — so long names don't push buttons around
+
+## 3.22.2
+
+- fix: purchase form now shows a clear message when online price data is unavailable, prompting the user to enter unit price and quantity manually
+
+## 3.22.1
+
+- fix: backup list button alignment — buttons now stay right-aligned regardless of filename length
+
+## 3.22.0
+
+- feat: desktop secrets management — Alpha Vantage key stored in `secrets.json` alongside backups under Electron userData, read at startup and injected as `VALORGRID_ALPHA_VANTAGE_API_KEY`
+- feat: add `GET /api/market-data/alpha-vantage/status` — returns configured status, runtime mode (desktop/server), and actionable hints
+- feat: add `POST /api/market-data/alpha-vantage/key` — validates key with real Alpha Vantage call before saving; only available in desktop mode
+- feat: add `DELETE /api/market-data/alpha-vantage/key` — removes saved key; only available in desktop mode
+- feat: non-technical Alpha Vantage setup assistant in Windows Desktop — three-step wizard with "Get free key" button, paste field, and automatic validation
+- feat: commodity creation flow checks Alpha Vantage status and opens the assistant if not configured; ETF/Stock/Crypto flows are unaffected
+- feat: add `apps/server/src/platform/runtime-secrets.js` — shared singleton for reading/saving/deleting secrets alongside the backup directory
+- docs: update `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/CREATE_INSTRUMENTS.md`
+
 ## 3.21.0
 
 - feat: add `commodity` instrument type with automatic Alpha Vantage pricing

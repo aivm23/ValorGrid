@@ -61,9 +61,15 @@ export function attach(ctx) {
       renderTransactionPreview(data.preview);
       ctx.state.transactionPreviewOk = true;
       return true;
-    } catch (error) {
+    } catch {
       ctx.elements.transactionPreview.hidden = false;
-      ctx.elements.transactionPreview.innerHTML = `<span>No se pudo previsualizar</span><small>${ctx.normalizeErrorMessage(error)}</small>`;
+      const hasManualAmount = !ctx.elements.addShares.disabled && Number(ctx.elements.addShares.value) > 0 && Number(ctx.elements.addPrice.value) > 0;
+      if (hasManualAmount) {
+        ctx.elements.transactionPreview.innerHTML = `<span>Datos online no disponibles</span><small>No se pudo obtener el precio de mercado. Se guardará con el precio unitario y la cantidad indicados.</small>`;
+        ctx.state.transactionPreviewOk = true;
+        return true;
+      }
+      ctx.elements.transactionPreview.innerHTML = `<span>Datos online no disponibles</span><small>No se pudo obtener el precio de mercado. Introduce precio unitario y cantidad para registrar la operación.</small>`;
       return false;
     }
   }

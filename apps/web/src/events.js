@@ -368,7 +368,12 @@ async function createInstrument(ctx) {
     if (!ctx.state.brandPaletteEnabled) {
       payload.color = elements.newInstrumentColor.value;
     }
-    await ctx.sendJson('/api/instruments', 'POST', payload);
+    if (payload.type === 'commodity' && payload.provider === 'alpha_vantage') {
+      const created = await ctx.createCommodityWithAlphaVantageCheck(payload);
+      if (!created) return;
+    } else {
+      await ctx.sendJson('/api/instruments', 'POST', payload);
+    }
     resetInstrumentForm(elements);
     await ctx.refreshDashboard();
     const symbol = payload.symbol;

@@ -12,6 +12,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'sendJson', 'sendText', 'readJsonBody', 'normalizeSymbol', 'getToday',
       'dateUtc', 'formatDateUtc', 'addDays', 'addYears', 'toUnixSeconds',
       'toEur', 'transactionSign', 'getMemoryCached', 'setMemoryCached',
+      'readAlphaVantageKey', 'saveAlphaVantageKey', 'deleteAlphaVantageKey',
     ]),
   );
   Object.assign(
@@ -90,6 +91,10 @@ function bindGroupedCtxNamespaces(ctx) {
   Object.assign(
     ctx.services.http,
     pickCtxFunctions(ctx, ['monthLabel', 'resolveRequestPath', 'handleApi', 'server']),
+  );
+  Object.assign(
+    ctx.services.marketData,
+    pickCtxFunctions(ctx, ['handleAlphaVantageKeyRoutes']),
   );
   Object.assign(
     ctx.repositories.instruments,

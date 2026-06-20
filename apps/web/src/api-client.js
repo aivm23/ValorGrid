@@ -234,3 +234,23 @@ export function fetchUiPreferences() {
 export function saveUiPreferences(payload) {
   return sendJson('/api/preferences/ui', 'PUT', payload);
 }
+
+// ── Alpha Vantage ──
+
+/** @returns {Promise<{ configured: boolean, mode: string, source: string|null, hint: string|null }>} */
+export function fetchAlphaVantageStatus() {
+  return fetchJson('/api/market-data/alpha-vantage/status');
+}
+
+/**
+ * @param {string} apiKey
+ * @returns {Promise<{ message: string }>}
+ */
+export function saveAlphaVantageKey(apiKey) {
+  return sendJson('/api/market-data/alpha-vantage/key', 'POST', { apiKey });
+}
+
+/** @returns {Promise<{ message: string }>} */
+export function deleteAlphaVantageKey() {
+  return sendJson('/api/market-data/alpha-vantage/key', 'DELETE', {});
+}

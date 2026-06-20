@@ -1129,6 +1129,44 @@
       </form>
     </dialog>
 
+    <dialog id="alpha-vantage-dialog" class="modal">
+      <div class="modal-panel">
+        <div class="admin-header">
+          <div class="admin-header-text">
+            <h2>Activar precios de commodities</h2>
+            <p class="subtle">Alpha Vantage proporciona precios para oro, plata, petróleo y gas natural.</p>
+          </div>
+          <button id="alpha-vantage-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <p class="subtle" id="alpha-vantage-assistant-copy">
+          Para obtener precios de commodities necesitas una clave gratuita de Alpha Vantage.
+        </p>
+        <div class="alpha-vantage-steps">
+          <div class="alpha-vantage-step">
+            <span class="alpha-vantage-step-num">1</span>
+            <span>Haz clic en "Obtener clave gratis" para abrir el formulario de Alpha Vantage.</span>
+            <button id="alpha-vantage-get-key" class="button btn-save" type="button">Obtener clave gratis</button>
+          </div>
+          <div class="alpha-vantage-step">
+            <span class="alpha-vantage-step-num">2</span>
+            <span>Completa el formulario (email, nombre y aceptar términos). Recibirás tu clave por email.</span>
+          </div>
+          <div class="alpha-vantage-step">
+            <span class="alpha-vantage-step-num">3</span>
+            <span>Pega aquí la clave que has recibido:</span>
+          </div>
+        </div>
+        <div class="alpha-vantage-key-form">
+          <input id="alpha-vantage-key-input" type="text" placeholder="Pega aquí tu clave de Alpha Vantage" maxlength="20" autocomplete="off" spellcheck="false" />
+          <button id="alpha-vantage-save-key" class="button btn-save" type="button">Guardar clave</button>
+        </div>
+        <p id="alpha-vantage-feedback" class="form-feedback" role="status"></p>
+        <div class="modal-actions">
+          <button id="alpha-vantage-skip" class="button btn-cancel" type="button">Ahora no</button>
+        </div>
+      </div>
+    </dialog>
+
     <script type="module" src="./src/app.js"></script>
   </body>
 </html>

@@ -69,13 +69,13 @@ apps/server/src/
 │   ├── data-ingestion/ (ingestion-*, route-data-ingestion)
 │   ├── portfolio/      (portfolio-*, route-portfolio)
 │   ├── history/        (history-*)
-│   ├── market-data/    (market-data-*)
+│   ├── market-data/    (market-data-*, route-market-data-alpha-vantage)
 │   ├── meta/           (meta-repository, meta-state)
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
 ├── shared/             (brand-palette, operations-metrics; cargados internamente por instrument-service y ui-preferences-service respectivamente)
-├── platform/           (db, config, auth, http, backups, ctx-utils, validators, app-error, utils)
+├── platform/           (db, config, auth, http, backups, runtime-secrets, ctx-utils, validators, app-error, utils)
 ├── app.js
 ├── routes.js
 └── ...
@@ -137,6 +137,7 @@ Reglas de transición:
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
+- `runtime-secrets.js`: persistencia de claves API (Alpha Vantage) en disco, cifradas con AES-256-GCM. Cargado antes del bucle de módulos.
 
 **Archivos raíz en `apps/server/src/`:**
 
@@ -277,6 +278,7 @@ Módulos principales:
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
 - `forms.js`: helpers de formularios.
+- `alpha-vantage-setup.js`: diálogo de configuración de clave API de Alpha Vantage (input, validación y persistencia via `/api/market-data/alpha-vantage/key`).
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
 - `app.js`: orquestador del frontend que crea `ctx`, registra módulos en orden fijo con `attach(ctx)` e inicializa tema, privacidad y render inicial.

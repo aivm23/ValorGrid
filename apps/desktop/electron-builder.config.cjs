@@ -16,6 +16,10 @@ module.exports = {
     'apps/web/src/**/*',
     'assets/brand/valorgrid-logo.png',
     'assets/brand/valorgrid-logo.ico',
+    'node_modules/**/*.js',
+    'node_modules/**/*.node',
+    'node_modules/**/*.txt',
+    '!node_modules/.cache/**/*',
   ],
   extraResources: [
     {

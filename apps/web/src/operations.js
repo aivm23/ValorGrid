@@ -160,7 +160,7 @@ export function attach(ctx) {
       const downloadUrl = `/api/backups/${encodeURIComponent(backup.file)}`;
       const downloadIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 18h16"></path></svg>';
       const deleteIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 14h10l1-14"></path><path d="M9 7V4h6v3"></path></svg>';
-      return `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(backup.file)}</strong></span><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact btn-accent" type="button" title="Descargar este backup">${downloadIcon} Descargar</a><button type="button" class="button icon-bulk-delete backup-delete-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Eliminar este backup">${deleteIcon}<span>Eliminar</span></button></div></div>`;
+      return `<div class="backup-row"><span class="backup-name"><strong>${ctx.escapeHtml(backup.file)}</strong></span><div class="backup-meta"><small>${ctx.escapeHtml(ctx.formatFileSize(backup.size))}</small><div style="display:flex;gap:6px;align-items:center"><a href="${downloadUrl}" class="button button-compact btn-accent" type="button" title="Descargar este backup">${downloadIcon} Descargar</a><button type="button" class="button icon-bulk-delete backup-delete-btn" data-file="${ctx.escapeHtml(backup.file)}" title="Eliminar este backup">${deleteIcon}<span>Eliminar</span></button></div></div></div>`;
     }).join('')}`;
   }
 

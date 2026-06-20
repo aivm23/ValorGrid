@@ -5,7 +5,7 @@ const { version } = require('../package.json');
 
 const releaseDir = path.resolve(process.argv[2] || 'dist');
 const outputPath = path.join(releaseDir, 'SHA256SUMS.txt');
-const allowedNames = new Set(['latest.yml']);
+const allowedNames = new Set(['latest.yml', 'ValorGrid-Setup-x64.exe']);
 const allowedExtensions = new Set(['.exe', '.blockmap']);
 const versionArtifactPattern = new RegExp(`-${version.replace(/\./g, '\\.')}-`);
 
