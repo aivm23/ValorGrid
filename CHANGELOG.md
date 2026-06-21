@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.23.0
+
+- release: promote the Community/PRO return breakdown boundary to a minor release version.
+
 ## 3.22.12
 
 - feat: add Community teaser and blocked API surface for advanced return breakdown.
