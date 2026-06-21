@@ -9,7 +9,7 @@ const { bindGroupedCtxNamespaces } = require('./bind-ctx-namespaces');
 const runtimeSecrets = require('./platform/runtime-secrets');
 const { createExtensionHost } = require('./platform/extensions');
 
-const { appInfo, root, dbPath, backupDir, host, port, auth } = createConfig();
+const { appInfo, root, extensionPath, dbPath, backupDir, host, port, auth } = createConfig();
 const staticRoot = path.resolve(root, 'apps', 'web'), db = openDatabase(dbPath);
 const memoryCache = new Map();
 const memoryCacheTtlMs = 5 * 60 * 1000;
@@ -55,6 +55,7 @@ const contentTypes = {
 const config = {
   appInfo,
   repoRoot: root,
+  extensionPath,
   staticRoot,
   dbPath,
   backupDir,

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.8
+
+- fix: pass the configured extension path into the server composition root so private extensions load before `/api/extensions` is served.
+
 ## 3.22.7
 
 - feat: add a neutral extension host and `/api/extensions` manifest so private editions can attach server routes and web assets without shipping premium code in Community.
