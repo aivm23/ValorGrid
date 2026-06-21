@@ -65,6 +65,7 @@ export function attach(ctx) {
     pendingTransactionDelete: [],
     returnToOperationDialogAfterInstrumentCreate: false,
     historyEventFilters: { mode: 'custom', assetTypes: ['stock', 'etf', 'crypto', 'commodity'], transactionTypes: ['add', 'remove'] },
+    extensionManifest: null,
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, cryptoSharesFormatter, historyRangeConfig, assetColors, state });

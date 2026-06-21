@@ -25,6 +25,7 @@ import { attach as attachHistoryPreferences } from './history-preferences.js';
 import { attach as attachBulkActions } from './bulk-actions.js';
 import { attach as attachInstrumentColors } from './instrument-colors.js';
 import { attach as attachAlphaVantageSetup } from './alpha-vantage-setup.js';
+import { attach as attachExtensions } from './extensions.js';
 import { attach as attachEvents } from './events.js';
 
 const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
@@ -33,8 +34,10 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, 
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
   attachOnboarding, attachImports, attachPrivacy, attachBulkActions, attachHistoryPreferences,
-  attachInstrumentColors, attachAlphaVantageSetup,
+  attachInstrumentColors, attachAlphaVantageSetup, attachExtensions,
 ].forEach((attach) => attach(ctx));
+
+await ctx.loadExtensions();
 
 attachEvents(ctx);
 ctx.initTheme();

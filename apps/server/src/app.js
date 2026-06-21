@@ -7,6 +7,7 @@ const { openDatabase } = require('./platform/db');
 const backups = require('./platform/backups');
 const { bindGroupedCtxNamespaces } = require('./bind-ctx-namespaces');
 const runtimeSecrets = require('./platform/runtime-secrets');
+const { createExtensionHost } = require('./platform/extensions');
 
 const { appInfo, root, dbPath, backupDir, host, port, auth } = createConfig();
 const staticRoot = path.resolve(root, 'apps', 'web'), db = openDatabase(dbPath);
@@ -89,6 +90,8 @@ const logger = {
   error: (...args) => console.error(...args),
 };
 
+const extensions = createExtensionHost({ config, logger });
+
 const repositories = {
   meta: {},
   suggestions: {},
@@ -158,6 +161,7 @@ const ctx = {
   logger,
   repositories,
   services,
+  extensions,
 };
 
 Object.assign(ctx, {
@@ -194,6 +198,7 @@ const modules = [
   './domains/history/history-service',
   './domains/admin/diagnostics-repository',
   './domains/admin/diagnostics-service',
+  './platform/extensions-runtime',
   './routes',
   './platform/http',
 ];

@@ -2,9 +2,9 @@ const { assertCtxDeps } = require('./ctx-utils');
 const { createBasicAuthGuard } = require('./auth');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['http', 'port', 'handleApi', 'sendJson', 'resolveRequestPath', 'fs', 'path', 'contentTypes', 'config'], 'http');
+  assertCtxDeps(ctx, ['http', 'port', 'handleApi', 'sendJson', 'resolveRequestPath', 'fs', 'path', 'contentTypes', 'config', 'extensions'], 'http');
 
-  const { http, port, handleApi, sendJson, resolveRequestPath, fs, path, contentTypes, config } = ctx;
+  const { http, port, handleApi, sendJson, resolveRequestPath, fs, path, contentTypes, config, extensions } = ctx;
   const authGuard = createBasicAuthGuard(config.auth);
 
   const server = http.createServer(async (request, response) => {
@@ -25,6 +25,23 @@ module.exports = function attach(ctx) {
       } catch (error) {
         console.error(error);
         sendJson(response, 500, { error: error.message || 'Internal server error' });
+      }
+      return;
+    }
+
+    const extensionAssetPath = extensions.resolveAsset(url.pathname);
+    if (extensionAssetPath) {
+      try {
+        const data = await fs.readFile(extensionAssetPath);
+        const ext = path.extname(extensionAssetPath);
+        response.writeHead(200, {
+          'Content-Type': contentTypes[ext] || 'application/octet-stream',
+          'Cache-Control': 'no-store',
+        });
+        response.end(data);
+      } catch {
+        response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        response.end('Not found');
       }
       return;
     }

@@ -36,6 +36,7 @@ function resolveRequestPath(urlPath) {
 }
 
 async function handleApi(request, response, url) {
+  if (await ctx.extensions.handleApiRoute(ctx, request, response, url)) return true;
   if (await ctx.handleAlphaVantageKeyRoutes(ctx, request, response, url)) return true;
   if (await handleInstrumentRoutes(ctx, request, response, url)) return true;
   if (await handleTransactionRoutes(ctx, request, response, url)) return true;

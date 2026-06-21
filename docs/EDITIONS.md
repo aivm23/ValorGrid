@@ -45,6 +45,7 @@ Community no carga código privado por defecto. Cualquier integración Pro/Enter
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
 - La personalización de métricas de Operativa (`PUT /api/preferences/ui`) está deshabilitada en Community y solo activa en Professional Edition. Community muestra el selector como teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
 - La personalización de filtros de marcadores del gráfico Histórico (`historyEventFilters` en `PUT /api/preferences/ui`) también es exclusiva de Professional Edition. Community muestra los controles bloqueados con el mismo banner de Professional Edition.
+- Community puede cargar un manifiesto público de extensión vacío mediante `/api/extensions`; la implementación profesional real vive fuera del repositorio público y se documenta solo en materiales privados.
 
 ## Desarrollo Local
 
@@ -52,7 +53,7 @@ Reglas para no mezclar Community y Pro:
 
 - `imports/` queda reservado a archivos del usuario y está ignorado por Git.
 - El código privado no debe clonarse dentro de `src/`, `test/`, `samples/`, `docs/`, `imports/` ni `data/`.
-- El runtime público solo reconoce `VALORGRID_EDITION` como etiqueta de edición (`community` o `professional`); la carga de adaptadores privados no forma parte del contrato público Community.
+- El runtime público mantiene etiquetas de edición (`community` o `professional`) solo como señal de producto; no deben usarse como protección si la funcionalidad premium estuviera publicada en Community.
 - Las variables, rutas y comandos de carga Pro deben documentarse en la documentación privada, no en este repositorio.
 
 ## Publicación

@@ -36,6 +36,7 @@ function createConfig(env = process.env, root = path.resolve(__dirname, '../../.
   return {
     appInfo: { version, edition },
     root,
+    extensionPath: env.VALORGRID_EXTENSION_PATH || '',
     localRoot,
     port,
     host: env.HOST || '127.0.0.1',

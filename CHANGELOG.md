@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.7
+
+- feat: add a neutral extension host and `/api/extensions` manifest so private editions can attach server routes and web assets without shipping premium code in Community.
+
 ## 3.22.6
 
 - fix: Dockerfile now runs `npm ci --omit=dev` and uses separate COPY layers for package manifests, resolving "Cannot find module 'dotenv'" crash and enabling Docker build cache reuse.
