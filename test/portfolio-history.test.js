@@ -579,7 +579,7 @@ test('GET /api/preferences/ui returns historyEventFilters defaults', async () =>
 
   assert.equal(response.status, 200);
   assert.equal(body.editable, false);
-  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.equal(body.preferences.operationsMetricIds, undefined);
   assert.ok(body.preferences.historyEventFilters);
   assert.equal(body.preferences.historyEventFilters.mode, 'all');
   assert.deepEqual(body.preferences.historyEventFilters.assetTypes, ['stock', 'etf', 'crypto', 'commodity']);
@@ -594,7 +594,7 @@ test('GET /api/preferences/ui tolerates legacy ui_preferences without historyEve
   const { response, body } = await jsonRequest('/api/preferences/ui');
 
   assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.equal(body.preferences.operationsMetricIds, undefined);
   assert.ok(body.preferences.historyEventFilters);
   assert.equal(body.preferences.historyEventFilters.mode, 'all');
 });
@@ -605,7 +605,7 @@ test('GET /api/preferences/ui tolerates corrupt JSON and returns defaults', asyn
   const { response, body } = await jsonRequest('/api/preferences/ui');
 
   assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.preferences.operationsMetricIds));
+  assert.equal(body.preferences.operationsMetricIds, undefined);
   assert.ok(body.preferences.historyEventFilters);
 });
 

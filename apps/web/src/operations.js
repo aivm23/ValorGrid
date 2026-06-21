@@ -15,7 +15,7 @@ export function attach(ctx) {
 
   function renderPerformance() {
     const performance = ctx.state.summary?.performance;
-    const metricIds = ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS;
+    const metricIds = DEFAULT_OPERATION_METRIC_IDS;
 
     if (!performance) {
       ctx.elements.performanceSummary.innerHTML = '<article><span>Rentabilidad</span><strong>Pendiente</strong></article>';
@@ -305,90 +305,18 @@ export function attach(ctx) {
       : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar valores.</div>';
   }
 
-  function getAvailableMetricOptions(_selectedIds) {
-    const available = [
-      { id: 'marketValue', label: 'Valor mercado' },
-      { id: 'netContributed', label: 'Aportado neto' },
-      { id: 'totalGain', label: 'Resultado total' },
-      { id: 'unrealizedGain', label: 'Plusvalía latente' },
-      { id: 'realizedGain', label: 'Plusvalía realizada' },
-      { id: 'commissions', label: 'Comisiones' },
-      { id: 'simpleReturnPct', label: 'Rentabilidad simple' },
-      { id: 'transactionCount', label: 'Nº movimientos' },
-      { id: 'averageCommission', label: 'Comisión media' },
-      { id: 'openInvestment', label: 'Inversión abierta' },
-      { id: 'netCashFlow', label: 'Cash-flow neto' },
-      { id: 'grossBought', label: 'Compras brutas' },
-      { id: 'grossSold', label: 'Ventas brutas' },
-    ];
-    return available;
-  }
-
   function renderOperationsPreferenceControls() {
     const container = ctx.elements.operationsPreferenceControls;
     if (!container) return;
-
-    const selectedIds = ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS;
-    const isEditable = ctx.state.uiPreferencesEditable !== false;
-    const availableMetrics = getAvailableMetricOptions(selectedIds);
-
-    let rowsHtml = '';
-    for (let i = 0; i < 6; i++) {
-      const currentId = selectedIds[i] || DEFAULT_OPERATION_METRIC_IDS[i];
-      const optionsHtml = availableMetrics
-        .map((m) => `<option value="${ctx.escapeHtml(m.id)}" ${m.id === currentId ? 'selected' : ''}>${ctx.escapeHtml(m.label)}</option>`)
-        .join('');
-      const disabledAttr = isEditable ? '' : 'disabled';
-      rowsHtml += `
-        <div class="operations-preference-row">
-          <span class="preference-label">Posición ${i + 1}</span>
-          <select class="preference-select operation-metric-select" data-position="${i}" aria-label="Métrica posición ${i + 1}" ${disabledAttr}>${optionsHtml}</select>
-        </div>`;
-    }
 
     container.innerHTML = `
       <div class="pro-preference-group">
         <div class="admin-card-head">
           <h3>Operativa</h3>
         </div>
-        <div class="operations-preference-list">${rowsHtml}</div>
+        <p class="subtle">Community mantiene 6 resúmenes fijos. Professional Edition permite elegir y reordenar las tarjetas de Operativa.</p>
       </div>`;
-
-    if (isEditable) {
-      container.querySelectorAll('.operation-metric-select').forEach((select) => {
-        select.addEventListener('change', (event) => handleOperationMetricPreferenceChange(event));
-      });
-    }
   }
 
-  async function handleOperationMetricPreferenceChange(event) {
-    const select = event.target;
-    const position = Number(select.dataset.position);
-    const newMetricId = select.value;
-    const currentIds = [...(ctx.state.uiPreferences?.operationsMetricIds || DEFAULT_OPERATION_METRIC_IDS)];
-
-    const oldMetricId = currentIds[position];
-    if (oldMetricId === newMetricId) return;
-
-    currentIds[position] = newMetricId;
-
-    try {
-      await ctx.sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds: currentIds });
-      ctx.state.uiPreferences = { operationsMetricIds: currentIds };
-      ctx.state.uiPreferencesEditable = true;
-      ctx.renderPerformance();
-    } catch {
-      select.value = oldMetricId;
-    }
-  }
-
-  async function applyOperationMetricPreferences(payload) {
-    if (!payload || !Array.isArray(payload.operationsMetricIds)) return;
-    ctx.state.uiPreferences = { operationsMetricIds: [...payload.operationsMetricIds] };
-    ctx.state.uiPreferencesEditable = payload.editable !== false;
-    ctx.renderPerformance();
-    ctx.renderOperationsPreferenceControls?.();
-  }
-
-  Object.assign(ctx, { renderPerformance, renderBackups, renderInstruments, renderGroupRows, renderOperationsPreferenceControls, handleOperationMetricPreferenceChange, applyOperationMetricPreferences });
+  Object.assign(ctx, { renderPerformance, renderBackups, renderInstruments, renderGroupRows, renderOperationsPreferenceControls });
 }

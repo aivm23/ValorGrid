@@ -529,6 +529,14 @@ test('CSS no longer hides pro-preferences-summary unconditionally on open', () =
   assert.ok(css.includes('.pro-preferences-card.is-pro-edition .pro-preferences-summary'), 'PRO rule hides summary');
 });
 
+test('community operations panel keeps fixed summaries and no metric selector wiring', () => {
+  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
+  assert.ok(ops.includes('const metricIds = DEFAULT_OPERATION_METRIC_IDS'), 'performance cards use fixed defaults');
+  assert.ok(ops.includes('Professional Edition permite elegir'), 'keeps Professional Edition teaser copy');
+  assert.ok(!ops.includes('operation-metric-select'), 'does not render metric selector controls');
+  assert.ok(!ops.includes("sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds"), 'does not save metric preferences');
+});
+
 test('history-preferences.js forces custom mode in non-editable state', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
   assert.ok(hp.includes('isEditable ? filters : { ...filters, mode: \'custom\' }'), 'forces custom mode when not editable');

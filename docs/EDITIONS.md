@@ -43,7 +43,7 @@ Community no carga código privado por defecto. Cualquier integración Pro/Enter
 - Sin nombres de fuentes privadas en parser, servicios, endpoints, fixtures, docs técnicas o contratos públicos.
 - Se permite nombrar integraciones Pro en la UI pública solo como teaser comercial, siempre deshabilitadas en Community y sin publicar contratos técnicos privados.
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
-- La personalización de métricas de Operativa (`PUT /api/preferences/ui`) está deshabilitada en Community y solo activa en Professional Edition. Community muestra el selector como teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
+- La personalización de métricas de Operativa vive en la extensión privada Professional Edition. Community mantiene 6 resúmenes fijos y conserva un teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
 - La personalización de filtros de marcadores del gráfico Histórico (`historyEventFilters` en `PUT /api/preferences/ui`) también es exclusiva de Professional Edition. Community muestra los controles bloqueados con el mismo banner de Professional Edition.
 - Community puede cargar un manifiesto público de extensión vacío mediante `/api/extensions`; la implementación profesional real vive fuera del repositorio público y se documenta solo en materiales privados.
 - Las fuentes de importación profesionales se registran mediante extensiones privadas. Community conserva los teasers comerciales, pero no incluye la implementación de adaptadores de pago.

@@ -167,7 +167,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-5. `domains/meta/ui-preferences-service`: persistencia de preferencias UI en `app_meta` con clave `ui_preferences`. Incluye `operationsMetricIds` y `historyEventFilters` para filtros de marcadores del gráfico Histórico. Carga internamente `shared/operations-metrics` como dependencia.
+5. `domains/meta/ui-preferences-service`: lectura de preferencias UI públicas en `app_meta` con clave `ui_preferences`. Community conserva `historyEventFilters` no editables por defecto; las preferencias avanzadas de Operativa configurable se registran desde extensiones profesionales privadas.
 6. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
 7. `utils`: helpers compartidos (formato, validación, fechas).
 8. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.

@@ -51,7 +51,6 @@ export function attach(ctx) {
       try {
         const prefs = await ctx.fetchJson('/api/preferences/ui');
         state.uiPreferences = prefs.preferences || state.uiPreferences;
-        state.availableOperationMetrics = prefs.availableOperationMetrics;
         state.uiPreferencesEditable = prefs.editable !== false;
         if (prefs.preferences?.historyEventFilters) {
           state.historyEventFilters = prefs.preferences.historyEventFilters;

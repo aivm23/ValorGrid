@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.10
+
+- refactor: keep Community Operativa summaries fixed while preserving the Professional Edition teaser surface for private extensions.
+
 ## 3.22.9
 
 - feat: allow private extensions to register professional import adapters through the data ingestion boundary while keeping Community import implementation public-only.
