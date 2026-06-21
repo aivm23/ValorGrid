@@ -573,20 +573,17 @@ test('YTD history starts at the range axis before the first operation', async ()
   assert.equal(ytd.events[0].id, 'axis-start-buy');
 });
 
-test('GET /api/preferences/ui returns historyEventFilters defaults', async () => {
+test('GET /api/preferences/ui returns no editable preference payload in community', async () => {
   db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
   const { response, body } = await jsonRequest('/api/preferences/ui');
 
   assert.equal(response.status, 200);
   assert.equal(body.editable, false);
   assert.equal(body.preferences.operationsMetricIds, undefined);
-  assert.ok(body.preferences.historyEventFilters);
-  assert.equal(body.preferences.historyEventFilters.mode, 'all');
-  assert.deepEqual(body.preferences.historyEventFilters.assetTypes, ['stock', 'etf', 'crypto', 'commodity']);
-  assert.deepEqual(body.preferences.historyEventFilters.transactionTypes, ['add', 'remove']);
+  assert.equal(body.preferences.historyEventFilters, undefined);
 });
 
-test('GET /api/preferences/ui tolerates legacy ui_preferences without historyEventFilters', async () => {
+test('GET /api/preferences/ui ignores legacy ui_preferences in community', async () => {
   db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
   db.prepare("INSERT INTO app_meta (key, value) VALUES ('ui_preferences', ?)").run(
     JSON.stringify({ operationsMetricIds: ['marketValue', 'netContributed', 'totalGain', 'unrealizedGain', 'realizedGain', 'commissions'] }),
@@ -595,8 +592,7 @@ test('GET /api/preferences/ui tolerates legacy ui_preferences without historyEve
 
   assert.equal(response.status, 200);
   assert.equal(body.preferences.operationsMetricIds, undefined);
-  assert.ok(body.preferences.historyEventFilters);
-  assert.equal(body.preferences.historyEventFilters.mode, 'all');
+  assert.equal(body.preferences.historyEventFilters, undefined);
 });
 
 test('GET /api/preferences/ui tolerates corrupt JSON and returns defaults', async () => {
@@ -606,7 +602,7 @@ test('GET /api/preferences/ui tolerates corrupt JSON and returns defaults', asyn
 
   assert.equal(response.status, 200);
   assert.equal(body.preferences.operationsMetricIds, undefined);
-  assert.ok(body.preferences.historyEventFilters);
+  assert.equal(body.preferences.historyEventFilters, undefined);
 });
 
 test('PUT /api/preferences/ui returns 403 in community', async () => {

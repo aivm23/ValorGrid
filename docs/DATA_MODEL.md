@@ -376,7 +376,7 @@ Campos:
 - `value`: valor numérico como texto, o JSON serializado para preferencias (`ui_preferences`).
 - `updated_at`
 
-Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico. En Community, la clave `ui_preferences` almacena un JSON con `historyEventFilters` (objeto con `mode`, `assetTypes` y `transactionTypes` para filtrar marcadores de movimientos en el gráfico Histórico). Las preferencias avanzadas de Operativa configurable pertenecen a extensiones profesionales privadas.
+Se incrementa cada vez que el ledger o los precios cambian, disparando reconstrucción del histórico. En Community, `ui_preferences` no contiene preferencias visuales avanzadas. Las preferencias configurables de Operativa e Histórico pertenecen a extensiones profesionales privadas.
 
 La clave `instr_groups_enabled` controla si los grupos de instrumentos están activos:
 

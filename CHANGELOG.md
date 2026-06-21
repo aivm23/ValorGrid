@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.11
+
+- refactor: keep Community history markers unfiltered while preserving the Professional Edition teaser surface for private extensions.
+
 ## 3.22.10
 
 - refactor: keep Community Operativa summaries fixed while preserving the Professional Edition teaser surface for private extensions.

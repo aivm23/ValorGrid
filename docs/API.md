@@ -33,7 +33,7 @@ GET /api/preferences/ui
 PUT /api/preferences/ui
 ```
 
-- `GET /api/preferences/ui`: en Community devuelve las preferencias de presentación públicas guardadas en `app_meta` con clave `ui_preferences`. Si no existen, devuelve `historyEventFilters` por defecto (modo `all`, tipos de instrumento `stock`/`etf`/`crypto`/`commodity`, tipos de operación `add`/`remove`) y `editable: false`.
+- `GET /api/preferences/ui`: en Community devuelve un objeto de preferencias vacío y `editable: false`. Las preferencias visuales avanzadas no forman parte del contrato público Community.
 - `PUT /api/preferences/ui`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. Las ediciones profesionales pueden registrar una implementación privada mediante extensión para aceptar payloads parciales con preferencias visuales avanzadas sin publicar ese contrato interno en el repositorio Community.
 
 ## Instrumentos y grupos

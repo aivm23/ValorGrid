@@ -167,7 +167,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-5. `domains/meta/ui-preferences-service`: lectura de preferencias UI públicas en `app_meta` con clave `ui_preferences`. Community conserva `historyEventFilters` no editables por defecto; las preferencias avanzadas de Operativa configurable se registran desde extensiones profesionales privadas.
+5. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; Operativa e Histórico configurables se registran desde extensiones profesionales privadas.
 6. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
 7. `utils`: helpers compartidos (formato, validación, fechas).
 8. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
@@ -266,7 +266,7 @@ Módulos principales:
 - `ledger.js`: movimientos y filtros.
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
-- `history-preferences.js`: persistencia de preferencias de filtros de eventos en gráfico histórico.
+- `history-preferences.js`: teaser de preferencias profesionales del gráfico Histórico y sincronización visual del panel de edición.
 - `instrument-colors.js`: sincronización de paleta corporativa automática y bloqueo de inputs de color.
 - `dashboard.js`: arranque de UI y boot overlay.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.

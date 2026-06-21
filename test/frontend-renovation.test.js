@@ -444,10 +444,12 @@ test('instrument-create-market-data.js handles auto provider by type', () => {
   assert.ok(!source.includes('/api/market-data/manual-prices'), 'manual price endpoint is no longer called');
 });
 
-test('history-preferences.js includes crypto in asset types and labels', () => {
+test('history-preferences.js keeps Professional Edition teaser without filter controls', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
-  assert.ok(hp.includes("'crypto'"), 'history-preferences.js includes crypto in arrays');
-  assert.ok(hp.includes("crypto: 'Crypto'"), 'history-preferences.js has Crypto label');
+  assert.ok(hp.includes('Professional Edition permite ocultarlos'), 'keeps Professional Edition teaser copy');
+  assert.ok(!hp.includes('history-event-mode'), 'does not render event mode select in Community');
+  assert.ok(!hp.includes('data-filter-asset'), 'does not render asset filter controls in Community');
+  assert.ok(!hp.includes("sendJson('/api/preferences/ui', 'PUT', { historyEventFilters"), 'does not save history preferences in Community');
 });
 
 test('forms.js sends unitPrice in transaction payload', () => {
@@ -537,9 +539,14 @@ test('community operations panel keeps fixed summaries and no metric selector wi
   assert.ok(!ops.includes("sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds"), 'does not save metric preferences');
 });
 
-test('history-preferences.js forces custom mode in non-editable state', () => {
+test('community history rendering shows all events and no filter predicate', () => {
+  const history = read(path.join('apps', 'web', 'src', 'history.js'));
+  assert.ok(history.includes('return history.events;'), 'Community returns all history events');
+  assert.ok(!history.includes('matchesHistoryEventFilters'), 'Community does not include premium filter predicate');
+});
+
+test('history-preferences.js keeps syncProPreferencesPanel only for edition banner', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
-  assert.ok(hp.includes('isEditable ? filters : { ...filters, mode: \'custom\' }'), 'forces custom mode when not editable');
   assert.ok(hp.includes('syncProPreferencesPanel'), 'exports syncProPreferencesPanel');
 });
 

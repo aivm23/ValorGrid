@@ -52,9 +52,6 @@ export function attach(ctx) {
         const prefs = await ctx.fetchJson('/api/preferences/ui');
         state.uiPreferences = prefs.preferences || state.uiPreferences;
         state.uiPreferencesEditable = prefs.editable !== false;
-        if (prefs.preferences?.historyEventFilters) {
-          state.historyEventFilters = prefs.preferences.historyEventFilters;
-        }
       } catch {
         // If preferences endpoint fails, keep defaults and don't block dashboard.
       }

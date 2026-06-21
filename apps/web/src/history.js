@@ -1,29 +1,9 @@
 export function attach(ctx) {
   const { state, elements } = ctx;
 
-  function matchesHistoryEventFilters(event, filters) {
-    if (!filters) return true;
-    const { mode, assetTypes, transactionTypes } = filters;
-    if (mode === 'all') return true;
-    if (mode === 'none') return false;
-    if (mode === 'custom') {
-      if (!assetTypes || !transactionTypes) return false;
-      const instrumentType = event.instrumentType;
-      if (!instrumentType) return false;
-      const typeMatch = assetTypes.includes(instrumentType);
-      const eventTransactionType = event.type === 'add' ? 'add' : 'remove';
-      const transactionTypeMatch = transactionTypes.includes(eventTransactionType);
-      return typeMatch && transactionTypeMatch;
-    }
-    return true;
-  }
-
   function getVisibleHistoryEvents(history) {
     if (!history || !history.events) return [];
-    const filters = state.historyEventFilters;
-    if (!filters || filters.mode === 'all') return history.events;
-    if (filters.mode === 'none') return [];
-    return history.events.filter((event) => matchesHistoryEventFilters(event, filters));
+    return history.events;
   }
 
   function setHistoryRange(range) {
@@ -62,7 +42,6 @@ export function attach(ctx) {
     showHistoryTooltip,
     moveHistoryTooltip,
     hideHistoryTooltip,
-    matchesHistoryEventFilters,
     getVisibleHistoryEvents,
   });
 }
