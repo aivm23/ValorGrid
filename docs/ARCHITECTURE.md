@@ -181,7 +181,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 16. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
 17. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
 18. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback).
+19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
 20. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
 21. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
 22. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.

@@ -67,24 +67,28 @@ function loadProAdapters() {
       if (error?.code !== 'MODULE_NOT_FOUND') throw error;
       proAdapters = require(path.join(resolvedPath, 'index.cjs'));
     }
-    if (!proAdapters?.adapters?.length) return;
-    for (const adapter of proAdapters.adapters) {
-      if (!adapter?.source || !adapter?.label) continue;
-      adapterDefinitions[adapter.source] = {
-        parser: adapter.inputKind === 'xlsx' ? 'pro-xlsx' : 'pro-csv',
-        profile: adapter.profile || 'valorgrid',
-        label: adapter.label,
-        edition: 'professional',
-        inputKind: adapter.inputKind || 'text',
-        parse: adapter.parse,
-        ...(adapter.comingSoon ? { comingSoon: adapter.comingSoon } : {}),
-      };
-    }
+    registerProAdapters(proAdapters.adapters);
   } catch {
     // PRO adapters not available; continue with community only
   }
 }
 loadProAdapters();
+
+function registerProAdapters(adapters = []) {
+  if (!Array.isArray(adapters)) return;
+  for (const adapter of adapters) {
+    if (!adapter?.source || !adapter?.label) continue;
+    adapterDefinitions[adapter.source] = {
+      parser: adapter.inputKind === 'xlsx' ? 'pro-xlsx' : 'pro-csv',
+      profile: adapter.profile || 'valorgrid',
+      label: adapter.label,
+      edition: 'professional',
+      inputKind: adapter.inputKind || 'text',
+      parse: adapter.parse,
+      ...(adapter.comingSoon ? { comingSoon: adapter.comingSoon } : {}),
+    };
+  }
+}
 
 function listImportSources(edition = 'community') {
   const allAdapters = { ...knownProAdapters, ...adapterDefinitions };
@@ -111,5 +115,6 @@ module.exports = {
   knownProAdapters,
   profileOverrides,
   listImportSources,
+  registerProAdapters,
   loadProAdapters,
 };

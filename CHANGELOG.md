@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.9
+
+- feat: allow private extensions to register professional import adapters through the data ingestion boundary while keeping Community import implementation public-only.
+
 ## 3.22.8
 
 - fix: pass the configured extension path into the server composition root so private extensions load before `/api/extensions` is served.

@@ -286,7 +286,7 @@ Respuesta:
 valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado, siempre disponible)
 ```
 
-Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración, contratos de adaptación y detalles operativos se documentan solo en materiales privados de ValorGrid Pro/Enterprise.
+Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración, contratos de adaptación y detalles operativos se documentan solo en materiales privados de ValorGrid Pro/Enterprise. Cuando una edición privada está cargada mediante el host de extensiones, sus fuentes pueden aparecer como `available: true` sin que Community publique el adaptador ni su contrato interno.
 
 ### Descarga de plantilla
 

@@ -15,6 +15,17 @@ module.exports = {
   id: 'test-pro',
   edition: 'professional',
   features: ['runtime-feature'],
+  registerServer(ctx) {
+    ctx.registerImportAdapters([
+      {
+        source: 'runtime-extension-csv',
+        label: 'Runtime Extension CSV',
+        parse() {
+          return { headers: [], rows: [], fileSubtype: 'runtime-extension' };
+        },
+      },
+    ]);
+  },
 };
 `,
   );
@@ -48,6 +59,13 @@ module.exports = {
     assert.equal(response.status, 200);
     assert.equal(body.edition, 'professional');
     assert.deepEqual(body.extensions, [{ id: 'test-pro', edition: 'professional', features: ['runtime-feature'] }]);
+
+    const importSourcesResponse = await fetch(`${baseUrl}/api/import/sources`);
+    const importSourcesBody = await importSourcesResponse.json();
+    const extensionSource = importSourcesBody.sources.find((source) => source.key === 'runtime-extension-csv');
+    assert.equal(importSourcesResponse.status, 200);
+    assert.equal(extensionSource?.edition, 'professional');
+    assert.equal(extensionSource?.available, true);
   } finally {
     if (app.server.listening) await new Promise((resolve) => app.server.close(resolve));
     app.db.close();
