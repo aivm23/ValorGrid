@@ -17,7 +17,7 @@ COPY --chown=node:node apps/web/package.json apps/web/
 COPY --chown=node:node apps/desktop/package.json apps/desktop/
 COPY --chown=node:node packages/contracts/package.json packages/contracts/
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --chown=node:node . .
 

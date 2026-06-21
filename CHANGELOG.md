@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.23.1
+
+- fix: Docker build failing because prepare script calls husky which is stripped by \`--omit=dev\` — added \`--ignore-scripts\` to npm ci.
+
 ## 3.23.0
 
 - release: promote the Community/PRO return breakdown boundary to a minor release version.
