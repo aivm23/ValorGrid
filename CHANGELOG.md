@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.6
+
+- fix: Dockerfile now runs `npm ci --omit=dev` and uses separate COPY layers for package manifests, resolving "Cannot find module 'dotenv'" crash and enabling Docker build cache reuse.
+
 ## 3.22.5
 
 - Release workflow now publishes a stable-name installer (ValorGrid-Setup-x64.exe) alongside the versioned one, enabling direct download links from the landing page.
