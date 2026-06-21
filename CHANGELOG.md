@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.22.12
+
+- feat: add Community teaser and blocked API surface for advanced return breakdown.
+
 ## 3.22.11
 
 - refactor: keep Community history markers unfiltered while preserving the Professional Edition teaser surface for private extensions.

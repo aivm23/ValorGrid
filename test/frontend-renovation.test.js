@@ -545,6 +545,13 @@ test('community history rendering shows all events and no filter predicate', () 
   assert.ok(!history.includes('matchesHistoryEventFilters'), 'Community does not include premium filter predicate');
 });
 
+test('return-breakdown-preferences.js keeps Professional Edition teaser only', () => {
+  const source = read(path.join('apps', 'web', 'src', 'return-breakdown-preferences.js'));
+  assert.ok(source.includes('Professional Edition permite analizar rentabilidad'), 'keeps Professional Edition teaser copy');
+  assert.ok(!source.includes('sendJson'), 'does not persist return breakdown preferences in Community');
+  assert.ok(!source.includes('/api/portfolio/returns'), 'does not fetch premium return data in Community');
+});
+
 test('history-preferences.js keeps syncProPreferencesPanel only for edition banner', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
   assert.ok(hp.includes('syncProPreferencesPanel'), 'exports syncProPreferencesPanel');

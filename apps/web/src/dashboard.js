@@ -97,6 +97,7 @@ export function attach(ctx) {
     ctx.renderInstruments();
     ctx.renderOperationsPreferenceControls?.();
     ctx.renderHistoryPreferenceControls?.();
+    ctx.renderReturnBreakdownPreferenceControls?.();
 
     ctx.syncProPreferencesPanel?.();
     ctx.syncBrandPaletteUi?.();

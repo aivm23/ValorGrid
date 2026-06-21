@@ -45,6 +45,7 @@ Community no carga código privado por defecto. Cualquier integración Pro/Enter
 - Sin credenciales, rutas locales, exportaciones reales ni datos de cartera.
 - La personalización de métricas de Operativa vive en la extensión privada Professional Edition. Community mantiene 6 resúmenes fijos y conserva un teaser bloqueado con el mensaje "Personalización disponible en Professional Edition".
 - La personalización de filtros de marcadores del gráfico Histórico vive en la extensión privada Professional Edition. Community muestra todos los marcadores y conserva un teaser bloqueado con el mismo banner de Professional Edition.
+- La rentabilidad avanzada por instrumento o grupo vive en la extensión privada Professional Edition. Community devuelve `403` en `GET /api/portfolio/returns` y conserva un teaser bloqueado en preferencias.
 - Community puede cargar un manifiesto público de extensión vacío mediante `/api/extensions`; la implementación profesional real vive fuera del repositorio público y se documenta solo en materiales privados.
 - Las fuentes de importación profesionales se registran mediante extensiones privadas. Community conserva los teasers comerciales, pero no incluye la implementación de adaptadores de pago.
 

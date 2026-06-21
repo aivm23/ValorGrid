@@ -267,6 +267,7 @@ Módulos principales:
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `history-preferences.js`: teaser de preferencias profesionales del gráfico Histórico y sincronización visual del panel de edición.
+- `return-breakdown-preferences.js`: teaser de rentabilidad avanzada Professional Edition.
 - `instrument-colors.js`: sincronización de paleta corporativa automática y bloqueo de inputs de color.
 - `dashboard.js`: arranque de UI y boot overlay.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.

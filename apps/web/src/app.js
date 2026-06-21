@@ -22,6 +22,7 @@ import { attach as attachTheme } from './theme.js';
 import { attach as attachPrivacy } from './privacy.js';
 import { attach as attachHistory } from './history.js';
 import { attach as attachHistoryPreferences } from './history-preferences.js';
+import { attach as attachReturnBreakdownPreferences } from './return-breakdown-preferences.js';
 import { attach as attachBulkActions } from './bulk-actions.js';
 import { attach as attachInstrumentColors } from './instrument-colors.js';
 import { attach as attachAlphaVantageSetup } from './alpha-vantage-setup.js';
@@ -34,6 +35,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, 
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
   attachOnboarding, attachImports, attachPrivacy, attachBulkActions, attachHistoryPreferences,
+  attachReturnBreakdownPreferences,
   attachInstrumentColors, attachAlphaVantageSetup, attachExtensions,
 ].forEach((attach) => attach(ctx));
 

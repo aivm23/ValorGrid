@@ -132,6 +132,7 @@ Los planes soportan frecuencia diaria, semanal, bisemanal y mensual. Cada plan t
 ```text
 GET /api/portfolio/summary
 GET /api/portfolio/performance
+GET /api/portfolio/returns
 GET /api/portfolio/monthly?year=2026
 GET /api/portfolio/history?range=ytd&granularity=auto
 GET /api/portfolio/history?range=1y
@@ -142,6 +143,7 @@ GET /api/portfolio/history?range=all&granularity=weekly
 
 - `summary`: distribución actual, grupos e instrumentos. Respuesta incluye `groupsEnabled` (boolean) que indica si los grupos de instrumentos están habilitados.
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
+- `returns`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. Las ediciones profesionales pueden registrar una implementación privada para rentabilidad por instrumento o grupo sin publicar ese contrato interno en el repositorio Community.
 - `monthly`: revisión YTD por meses y grupos. La respuesta devuelve `months` (array con insight por mes: `month`, `label`, `total`, `transactions`, `cells`) y `summary` (métricas agregadas: `currentValue`, `netContributed`, `resultYtd`, `valueStart`, `contributions`, `withdrawals`, `commissions`, `completedMonths`, `latestMonth`, `activeGroups`) como contratos canónicos.
 - `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).
 - Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.

@@ -53,6 +53,7 @@ export function attach(ctx) {
     weekStartSelect: document.querySelector('#week-start-select'),
     operationsPreferenceControls: document.querySelector('#operations-preference-controls'),
     historyPreferenceControls: document.querySelector('#history-preference-controls'),
+    returnBreakdownPreferenceControls: document.querySelector('#return-breakdown-preference-controls'),
     proPreferencesCard: document.querySelector('#pro-preferences-card'),
     importDialog: document.querySelector('#import-dialog'),
     importDialogClose: document.querySelector('#import-dialog-close'),

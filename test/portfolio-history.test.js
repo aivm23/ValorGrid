@@ -38,6 +38,13 @@ test('GET /api/portfolio/performance returns ledger-derived return metrics', asy
   assert.ok(Number.isFinite(body.unrealizedGain));
 });
 
+test('GET /api/portfolio/returns returns 403 in community', async () => {
+  const { response, body } = await jsonRequest('/api/portfolio/returns');
+
+  assert.equal(response.status, 403);
+  assert.match(body.error, /Professional Edition/i);
+});
+
 test('deleting an automatic transaction prevents same month auto recreation', async () => {
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
