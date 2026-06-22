@@ -20,12 +20,12 @@ const stableArtifacts = {
     {
       label: 'Linux AppImage',
       stableName: 'ValorGrid-Linux-x64.AppImage',
-      test: (name) => name.endsWith('.AppImage') && name.includes(version) && /x64|amd64/.test(name),
+      test: (name) => name.endsWith('.AppImage') && (name.includes(version) || name.includes('ValorGrid')),
     },
     {
       label: 'Linux deb package',
       stableName: 'ValorGrid-Linux-x64.deb',
-      test: (name) => name.endsWith('.deb') && name.includes(version) && /x64|amd64/.test(name),
+      test: (name) => name.endsWith('.deb') && (name.includes(version) || name.includes('ValorGrid')),
     },
   ],
   darwin: [
@@ -49,8 +49,7 @@ function listFiles() {
   return fs
     .readdirSync(releaseDir, { withFileTypes: true })
     .filter((entry) => entry.isFile())
-    .map((entry) => entry.name)
-    .filter((name) => !Object.values(stableArtifacts).flat().some((artifact) => artifact.stableName === name));
+    .map((entry) => entry.name);
 }
 
 function createStableArtifacts() {

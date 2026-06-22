@@ -43,8 +43,8 @@ test('stable desktop artifact names are generated per platform', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-desktop-artifacts-'));
   try {
     createFile(path.join(tempDir, `ValorGrid-Setup-${pkg.version}-x64.exe`));
-    createFile(path.join(tempDir, `ValorGrid-Setup-${pkg.version}-x64.AppImage`));
-    createFile(path.join(tempDir, `valorgrid_${pkg.version}_amd64.deb`));
+    createFile(path.join(tempDir, `ValorGrid-Linux-${pkg.version}-x64.AppImage`));
+    createFile(path.join(tempDir, `ValorGrid-Linux-${pkg.version}-x64.deb`));
     createFile(path.join(tempDir, `ValorGrid-macOS-${pkg.version}-x64.dmg`));
     createFile(path.join(tempDir, `ValorGrid-macOS-${pkg.version}-arm64.dmg`));
 

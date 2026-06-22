@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.24.3
+
+- fix: desktop release stable artifact naming uses correct electron-builder pattern per platform (Linux AppImage/deb no longer require arch in filename).
+
 ## 3.24.2
 
 - style: refine the admin preferences layout and Professional Edition label placement.
