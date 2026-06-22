@@ -64,7 +64,7 @@ Para despliegue CasaOS, las rutas reales se definen en `deploy/docker/compose.ca
 Checklist upgrade:
 
 1. `npm run db:backup` (o backup del volumen).
-2. `docker compose pull` / `docker compose up -d --build`.
+2. `docker compose -f deploy/docker/docker-compose.yml pull` / `docker compose -f deploy/docker/docker-compose.yml up -d --build`.
 3. Comprobar salud (`/api/health`).
 4. Si falla, rollback manual reemplazando DB por backup y relanzando.
 

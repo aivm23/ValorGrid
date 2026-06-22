@@ -208,7 +208,7 @@ Respuesta:
 
 ### Gestión local de la clave
 
-- **Windows Desktop**: la clave se guarda en `secrets.json` junto al directorio de backups dentro de la carpeta privada de Electron (`app.getPath('userData')`). ValorGrid nunca la expone por API ni la envía a servidores externos (salvo a la API oficial de Alpha Vantage para consultar precios).
+- **App de escritorio**: la clave se guarda en `secrets.json` junto al directorio de backups dentro de la carpeta privada de Electron (`app.getPath('userData')`). ValorGrid nunca la expone por API ni la envía a servidores externos (salvo a la API oficial de Alpha Vantage para consultar precios).
 - **Docker/dev**: la clave se configura exclusivamente mediante la variable de entorno `VALORGRID_ALPHA_VANTAGE_API_KEY` (también compatible con `ALPHA_VANTAGE_API_KEY`). No hay persistencia local de secretos en este modo.
 
 ## Backups

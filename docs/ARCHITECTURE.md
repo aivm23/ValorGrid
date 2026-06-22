@@ -55,7 +55,7 @@ Principios operativos de la migración:
 
 - `package.json`: gestión de workspaces (`apps/*`, `packages/*`). No contiene runtime propio.
 - `tsconfig.json`: configuración de TypeScript incremental (`strict`, `allowJs`, `checkJs: false`, `noEmit`).
-- `apps/desktop/main.js`: wrapper Electron para la distribución Windows. Arranca el servidor local en `127.0.0.1` con puerto efímero y guarda DB/backups en la carpeta de datos de usuario de la app.
+- `apps/desktop/main.js`: wrapper Electron para la distribución de escritorio Windows/Linux/macOS. Arranca el servidor local en `127.0.0.1` con puerto efímero y guarda DB/backups en la carpeta de datos de usuario de la app.
 
 ### Estructura física por dominio (implementada)
 
@@ -138,6 +138,8 @@ Reglas de transición:
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
 - `runtime-secrets.js`: persistencia de claves API (Alpha Vantage) en disco, cifradas con AES-256-GCM. Cargado antes del bucle de módulos.
+- `extensions.js`: fábrica `createExtensionHost` que normaliza extensiones, resuelve assets web y registra adaptadores de importación profesionales.
+- `extensions-runtime.js`: carga la extensión configurada en `VALORGRID_EXTENSION_PATH` y la registra en el host de extensiones antes de montar rutas HTTP. Cargado en paso 28 del bucle.
 
 **Archivos raíz en `apps/server/src/`:**
 
@@ -168,28 +170,28 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
 5. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; Operativa e Histórico configurables se registran desde extensiones profesionales privadas.
-6. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
-7. `utils`: helpers compartidos (formato, validación, fechas).
-8. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-9. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
-10. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-11. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
-12. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-13. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
-14. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales y FX. Carga internamente `market-data-providers` y `market-data-admin`.
-15. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-16. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
-17. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-18. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
-20. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-21. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-22. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-23. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-24. `domains/history/history-core`: motor de materialización de histórico.
-25. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-26. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-27. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+6. `utils`: helpers compartidos (formato, validación, fechas).
+7. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+8. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
+9. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
+10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
+11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+12. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
+13. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales y FX. Carga internamente `market-data-providers` y `market-data-admin`.
+14. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
+16. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+17. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+18. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+19. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+20. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+21. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+22. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+23. `domains/history/history-core`: motor de materialización de histórico.
+24. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+25. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+26. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+27. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
 28. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 29. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
@@ -257,6 +259,7 @@ Módulos principales:
 - `api-client.js`: wrapper HTTP tipado con JSDoc para cada endpoint de la API.
 - `state.js`: estado global de UI.
 - `dom.js`: referencias a nodos.
+- `extensions.js`: carga módulos web de extensiones profesionales registradas por el host de extensiones.
 - `charts.js`: donut e histórico SVG.
 - `format.js`: formato monetario, fechas, porcentajes y privacidad de saldos.
 - `events.js`: eventos de UI.

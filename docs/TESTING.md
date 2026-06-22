@@ -11,6 +11,7 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 | `test/brand-palette.test.js`       | Paleta        | Algoritmo de paleta corporativa: posiciones, interpolación, colores hex válidos, sin duplicados en primeros 20.                                                                                           |
 | `test/auth.test.js`                | Autenticación | Basic Auth: parseo de cabeceras, activación con password, rechazo de credenciales incorrectas, endpoints protegidos.                                                                                      |
 | `test/db-operations.test.js`       | DB Ops        | Resolución de path activo, reset con backup, recreación fresh, doctor, sincronía `DATA_MODEL.md` -> `schema.js`, prohibición `ALTER TABLE`, validación de SQL versionados y canonicalidad de `seed:demo`. |
+| `test/desktop-release.test.js`     | Release       | Scripts y configuración de distribución desktop: targets Windows/Linux/macOS, nombres estables, checksums y workflow de GitHub Release.                                                                   |
 | `test/financial-semantics.test.js` | Cálculos      | `buildPortfolioPerformance`, FIFO realized gain, signos de cash-flow, fórmulas YTD y `history.series[].contributed`.                                                                                      |
 | `test/frontend-renovation.test.js` | Frontend      | Checks de renderizado/markup/CSS: KPI cards, badges, animaciones, tooltips, módulos ESM y clases semánticas usadas por la UI.                                                                             |
 | `test/imports.test.js`             | Importación   | Plantilla XLSX Community con parser ExcelJS, preview, commit, rollback, controles de seguridad, rechazo de fuentes legacy, headers de descarga y sample sintético S&P 500.                                |
@@ -42,6 +43,7 @@ npm run format:check
 npm run docs:spellcheck
 node --check apps/server/server.js
 node --check apps/web/src/app.js
+node --check apps/desktop/main.js
 npm test
 npm run verify:publication
 npm run seed:demo

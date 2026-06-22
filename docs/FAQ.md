@@ -6,15 +6,19 @@ No. ValorGrid guarda la cartera en SQLite local. La app no sincroniza tu ledger 
 
 Puede consultar Yahoo Finance para precios de símbolos concretos y cachea los resultados localmente.
 
-## ¿Necesito Node.js Para Usarlo En Windows?
+## ¿Necesito Node.js Para Usarlo En Escritorio?
 
-No si instalas la versión Windows desde GitHub Releases. El instalador incluye lo necesario para ejecutar la app.
+No si instalas la versión de escritorio desde GitHub Releases. Los instaladores Windows, Linux y macOS incluyen lo necesario para ejecutar la app.
 
 Node.js solo es necesario para desarrollo local desde el repositorio.
 
 ## Windows SmartScreen Me Muestra Un Aviso. ¿Es Normal?
 
 Puede ocurrir en apps nuevas o sin firma de código con reputación acumulada. Descarga ValorGrid solo desde la release oficial de GitHub y verifica `SHA256SUMS.txt` si quieres comprobar el archivo.
+
+## macOS Gatekeeper Me Muestra Un Aviso. ¿Es Normal?
+
+Sí. Los DMG macOS se publican sin firma/notarización en esta fase. Descarga ValorGrid solo desde GitHub Releases y verifica `SHA256SUMS.txt` si quieres comprobar el archivo.
 
 ## ¿ValorGrid Da Recomendaciones De Inversión?
 
@@ -25,14 +29,14 @@ No. ValorGrid no recomienda comprar, vender ni mantener activos. Es una herramie
 Sí. Docker es la vía recomendada para usuarios self-hosted:
 
 ```bash
-docker compose up -d --build
+docker compose -f deploy/docker/docker-compose.yml up -d --build
 ```
 
 También existen imágenes GHCR versionadas. Más detalle en [DEPLOY_DOCKER.md](DEPLOY_DOCKER.md).
 
 ## ¿Qué Diferencia Hay Entre Community Y Pro?
 
-Community es la edición pública y gratuita del repositorio. Incluye gestión local, dashboard, movimientos, plantilla Excel, exportación, backups, Windows y Docker.
+Community es la edición pública y gratuita del repositorio. Incluye gestión local, dashboard, movimientos, plantilla Excel, exportación, backups, escritorio y Docker.
 
 Pro/Enterprise queda reservado para conectores avanzados, importaciones privadas y funcionalidades comerciales. Su código y documentación operativa no se publican en este repositorio.
 
@@ -42,7 +46,7 @@ No. Community importa la plantilla Excel oficial de ValorGrid. Los conectores av
 
 ## ¿Dónde Se Guardan Los Backups?
 
-En la versión Windows, en la zona privada de datos de la aplicación. En desarrollo local, en `local/valorgrid/backups/`. En Docker, en el volumen montado para backups.
+En la versión de escritorio, en la zona privada de datos de la aplicación. En desarrollo local, en `local/valorgrid/backups/`. En Docker, en el volumen montado para backups.
 
 ## ¿Puedo Restaurar Una Versión Anterior?
 
