@@ -309,12 +309,16 @@ export function attach(ctx) {
     const container = ctx.elements.operationsPreferenceControls;
     if (!container) return;
 
+    const options = ['Valor mercado', 'Aportado neto', 'Resultado total', 'Plusvalía latente', 'Plusvalía realizada', 'Comisiones'];
     container.innerHTML = `
       <div class="pro-preference-group">
-        <div class="admin-card-head">
-          <h3>Operativa</h3>
-        </div>
-        <p class="subtle">Community mantiene 6 resúmenes fijos. Professional Edition permite elegir y reordenar las tarjetas de Operativa.</p>
+        ${options.map((opt, i) => `
+          <div class="pref-row">
+            <span class="pref-label">Posición ${i + 1}</span>
+            <select disabled>
+              ${options.map(o => `<option${o === opt ? ' selected' : ''}>${o}</option>`).join('')}
+            </select>
+          </div>`).join('')}
       </div>`;
   }
 

@@ -446,7 +446,6 @@ test('instrument-create-market-data.js handles auto provider by type', () => {
 
 test('history-preferences.js keeps Professional Edition teaser without filter controls', () => {
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
-  assert.ok(hp.includes('Professional Edition permite ocultarlos'), 'keeps Professional Edition teaser copy');
   assert.ok(!hp.includes('history-event-mode'), 'does not render event mode select in Community');
   assert.ok(!hp.includes('data-filter-asset'), 'does not render asset filter controls in Community');
   assert.ok(!hp.includes("sendJson('/api/preferences/ui', 'PUT', { historyEventFilters"), 'does not save history preferences in Community');
@@ -537,7 +536,6 @@ test('CSS keeps Community teaser styles and no active PRO preference styles', ()
 test('community operations panel keeps fixed summaries and no metric selector wiring', () => {
   const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
   assert.ok(ops.includes('const metricIds = DEFAULT_OPERATION_METRIC_IDS'), 'performance cards use fixed defaults');
-  assert.ok(ops.includes('Professional Edition permite elegir'), 'keeps Professional Edition teaser copy');
   assert.ok(!ops.includes('operation-metric-select'), 'does not render metric selector controls');
   assert.ok(!ops.includes("sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds"), 'does not save metric preferences');
 });
@@ -550,7 +548,6 @@ test('community history rendering shows all events and no filter predicate', () 
 
 test('return-breakdown-preferences.js keeps Professional Edition teaser only', () => {
   const source = read(path.join('apps', 'web', 'src', 'return-breakdown-preferences.js'));
-  assert.ok(source.includes('Professional Edition permite analizar rentabilidad'), 'keeps Professional Edition teaser copy');
   assert.ok(!source.includes('sendJson'), 'does not persist return breakdown preferences in Community');
   assert.ok(!source.includes('/api/portfolio/returns'), 'does not fetch premium return data in Community');
 });

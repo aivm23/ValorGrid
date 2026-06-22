@@ -3156,7 +3156,7 @@ td:last-child {
 .admin-prefs-section-body--3col {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .pref-column-label {
@@ -3167,8 +3167,8 @@ td:last-child {
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+  padding-bottom: 5px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 25%, transparent);
 }
 
 /* ── Pro Preference Columns ─────────────────────────────── */
@@ -3288,6 +3288,131 @@ td:last-child {
 
 .pro-preference-group .admin-card-head {
   margin-bottom: 10px;
+}
+
+/* ── PRO Preference Controls (frozen UI) ────────────────── */
+
+.pref-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pref-row:last-child {
+  margin-bottom: 0;
+}
+
+.pref-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.pref-row select {
+  flex: 1;
+  min-width: 0;
+  background: color-mix(in srgb, var(--muted) 6%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--line) 20%, transparent);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pref-row select option {
+  background: var(--card);
+  color: var(--text);
+}
+
+.pref-section {
+  margin-bottom: 6px;
+}
+
+.pref-section:last-child {
+  margin-bottom: 0;
+}
+
+.pref-section-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.pref-section select {
+  width: 100%;
+  max-width: 200px;
+  background: color-mix(in srgb, var(--muted) 6%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--line) 20%, transparent);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pref-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.pref-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pref-filter-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 1px;
+}
+
+.pref-filter-group .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: default;
+  user-select: none;
+}
+
+.pref-filter-group .checkbox-label input[type="checkbox"] {
+  cursor: default;
+  accent-color: var(--accent);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: default;
+  user-select: none;
+  margin-bottom: 5px;
+}
+
+.checkbox-label:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: default;
+  accent-color: var(--accent);
+}
+
+.pro-preference-group .admin-card-head h3 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .pro-preference-group .admin-card-head h3 {

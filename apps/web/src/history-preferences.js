@@ -5,10 +5,27 @@ export function attach(ctx) {
 
     container.innerHTML = `
       <div class="pro-preference-group">
-        <div class="admin-card-head">
-          <h3>Histórico</h3>
+        <div class="pref-section">
+          <span class="pref-section-title">Marcadores de movimientos</span>
+          <select disabled>
+            <option>Personalizados</option>
+            <option>Por defecto</option>
+          </select>
         </div>
-        <p class="subtle">Community muestra todos los marcadores de movimientos. Professional Edition permite ocultarlos o filtrarlos por instrumento y operación.</p>
+        <div class="pref-filters">
+          <div class="pref-filter-group">
+            <span class="pref-filter-label">Instrumento</span>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> Stock</label>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> ETF</label>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> Crypto</label>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> Commodity</label>
+          </div>
+          <div class="pref-filter-group">
+            <span class="pref-filter-label">Operación</span>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> Compras</label>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> Ventas</label>
+          </div>
+        </div>
       </div>`;
   }
 

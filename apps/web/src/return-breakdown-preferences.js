@@ -5,10 +5,23 @@ export function attach(ctx) {
 
     container.innerHTML = `
       <div class="pro-preference-group">
-        <div class="admin-card-head">
-          <h3>Rentabilidad avanzada</h3>
+        <label class="checkbox-label"><input type="checkbox" disabled checked /> Mostrar Rentabilidad avanzada</label>
+        <div class="pref-section">
+          <span class="pref-section-title">Vista inicial</span>
+          <select disabled>
+            <option>Grupos</option>
+            <option>Instrumentos</option>
+          </select>
         </div>
-        <p class="subtle">Community mantiene el resumen global. Professional Edition permite analizar rentabilidad por instrumento y por grupo.</p>
+        <div class="pref-section">
+          <span class="pref-section-title">Ordenar por</span>
+          <select disabled>
+            <option selected>Resultado total</option>
+            <option>Aportado</option>
+            <option>Plusvalía</option>
+          </select>
+        </div>
+        <label class="checkbox-label"><input type="checkbox" disabled checked /> Incluir posiciones cerradas</label>
       </div>`;
   }
 
