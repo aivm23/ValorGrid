@@ -11,7 +11,7 @@ Use this skill for Community import work that stays inside the official ValorGri
 
 - Work only with the public `valorgrid-xlsx` source.
 - Do not add broker-specific adapter ids, fixture names, parser contracts, environment variables, private paths, or setup details to Community files.
-- If a task needs a professional broker adapter, stop Community editing and use the private professional import skill in the PRO repository.
+- If a task needs a professional broker adapter, stop Community editing and use the private professional import skill and documentation outside the public Community repository.
 - Keep public docs at contract level: edition semantics are allowed, connector internals are not.
 
 ## Source Of Truth

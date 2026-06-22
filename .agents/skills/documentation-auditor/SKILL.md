@@ -14,10 +14,10 @@ Use this skill to audit documentation as an engineering artifact, not as prose i
    - Count rough size and headings to identify overlap and stale inventories.
 
 2. Ground every claim in source of truth.
-   - API: compare `docs/API.md` with `src/routes.js` and `src/domains/**/route-*.js`.
-   - Data model: compare `docs/DATA_MODEL.md` with `src/schema.js`.
-   - Architecture: compare module lists and load order with `src/app.js`, `app.js`, `client/`, `src/domains/`, and `src/platform/`.
-   - DB operations: compare docs with `scripts/db-*.js`, `scripts/*.ps1`, `src/platform/config.js`, and `src/platform/backups.js`.
+   - API: compare `docs/API.md` with `apps/server/src/routes.js` and `apps/server/src/domains/**/route-*.js`.
+   - Data model: compare `docs/DATA_MODEL.md` with `apps/server/src/schema.js`.
+   - Architecture: compare module lists and load order with `apps/server/src/app.js`, `apps/web/src/app.js`, `apps/web/src/`, `apps/server/src/domains/`, `apps/server/src/platform/`, and `packages/contracts/`.
+   - DB operations: compare docs with `scripts/db-*.js`, `scripts/*.ps1`, `apps/server/src/platform/config.js`, and `apps/server/src/platform/backups.js`.
    - Testing: compare `docs/TESTING.md` with `test/*.js` and `.github/workflows/*.yml`.
    - Release/privacy: compare public docs with `.gitignore`, `.dockerignore`, `scripts/verify-publication.ps1`, and `test/privacy.test.js`.
 
@@ -34,7 +34,7 @@ Use this skill to audit documentation as an engineering artifact, not as prose i
 5. Apply edits when requested.
    - Keep changes scoped and do not rewrite docs just for style.
    - Update version metadata when repository instructions require it.
-   - Sync version-dependent files such as `package.json`, `package-lock.json`, `compose.casaos.yml`, and deployment docs.
+   - Sync version-dependent files such as `package.json`, `package-lock.json`, `deploy/docker/compose.casaos.yml`, and deployment docs.
 
 6. Verify.
    - Always run the repository Prettier gate before finishing. In ValorGrid Community this is `npm run format:check`; if it fails, run the repo formatter and re-run the check because GitHub CI enforces it.

@@ -82,7 +82,7 @@
 
 ## Docker / CasaOS
 
-- **En `compose.casaos.yml` el tag de imagen debe ser siempre el numero exacto de version (`vX.Y.Z`), nunca `latest`.**
+- **En `deploy/docker/compose.casaos.yml` el tag de imagen debe ser siempre el numero exacto de version (`vX.Y.Z`), nunca `latest`.**
 - El campo `x-casaos.version` debe coincidir con el tag de la imagen y con `package.json`.
 - Para Docker personal (local, compose local, scripts personales) `latest` es aceptable.
 

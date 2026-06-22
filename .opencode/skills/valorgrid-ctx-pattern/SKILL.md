@@ -78,6 +78,7 @@ ctx.services
 - `diagnostics-service` must not execute SQL directly.
 - `portfolio-service` must not call Yahoo directly.
 - `backups.js` may execute `PRAGMA wal_checkpoint(FULL)` as controlled backup maintenance exception.
+- Professional broker adapters are loaded via the extension host (`platform/extensions-runtime.js`) from private professional code outside the public Community repository. This repo only contains the extension host and the Community `valorgrid-xlsx` source.
 - SQLite transactions must use `withTransaction` / `withTransactionAsync` from `apps/server/src/platform/db.js`.
 - `with (ctx)` is prohibited in backend and frontend modules.
 - New backend files should stay under 500 lines.

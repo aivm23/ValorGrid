@@ -42,9 +42,9 @@ Devuelve informe estructurado con discrepancias.
 
 ## Archivos a verificar
 
-### 1. `docs/API.md` vs `src/routes.js`
+### 1. `docs/API.md` vs `apps/server/src/routes.js`
 
-- Lee `src/routes.js` y extrae todos los endpoints registrados (método + ruta).
+- Lee `apps/server/src/routes.js` y `apps/server/src/domains/**/route-*.js` y extrae todos los endpoints registrados (método + ruta).
 - Lee `docs/API.md` y extrae todos los endpoints documentados.
 - Compara ambas listas:
   - Endpoints en código pero no documentados.
@@ -52,9 +52,9 @@ Devuelve informe estructurado con discrepancias.
   - Endpoints con método HTTP incorrecto.
 - Verifica que las descripciones de cada endpoint reflejan lo que realmente hace el handler.
 
-### 2. `docs/DATA_MODEL.md` vs `src/schema.js`
+### 2. `docs/DATA_MODEL.md` vs `apps/server/src/schema.js`
 
-- Lee `src/schema.js` y extrae todas las tablas (`CREATE TABLE`) con sus columnas.
+- Lee `apps/server/src/schema.js` y extrae todas las tablas (`CREATE TABLE`) con sus columnas.
 - Lee `docs/DATA_MODEL.md` y extrae todas las tablas y campos documentados.
 - Compara:
   - Tablas en código pero no documentadas.
@@ -64,9 +64,9 @@ Devuelve informe estructurado con discrepancias.
 
 ### 3. `docs/ARCHITECTURE.md` vs estructura real
 
-- Lista los archivos `.js` en `src/` y `client/`.
+- Lista los archivos `.js` en `apps/server/src/` y `apps/web/src/`.
 - Lee `docs/ARCHITECTURE.md` y extrae la lista de módulos documentados.
-- Lee `src/app.js` y verifica el orden de carga de módulos.
+- Lee `apps/server/src/app.js` y verifica el orden de carga de módulos.
 - Compara:
   - Módulos en disco pero no documentados.
   - Módulos documentados pero inexistentes.
