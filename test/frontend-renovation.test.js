@@ -524,11 +524,14 @@ test('index.html details is closed by default (no open attribute) with community
   assert.ok(index.includes('is-community-edition'), 'card starts with is-community-edition class');
 });
 
-test('CSS no longer hides pro-preferences-summary unconditionally on open', () => {
+test('CSS keeps Community teaser styles and no active PRO preference styles', () => {
   const css = read('apps/web/src/styles.css');
   assert.ok(!css.includes('.pro-preferences-card[open] .pro-preferences-summary'), 'old rule removed');
   assert.ok(css.includes('.pro-preferences-card.is-community-edition[open] .pro-preferences-summary'), 'Community rule keeps summary visible');
-  assert.ok(css.includes('.pro-preferences-card.is-pro-edition .pro-preferences-summary'), 'PRO rule hides summary');
+  assert.ok(!css.includes('.pro-preferences-card.is-pro-edition'), 'active PRO card styles live outside Community');
+  assert.ok(!css.includes('.operations-preference-row'), 'active PRO operations styles live outside Community');
+  assert.ok(!css.includes('.history-filter-checkbox'), 'active PRO history filter styles live outside Community');
+  assert.ok(!css.includes('.return-breakdown-visibility-toggle'), 'active PRO return breakdown styles live outside Community');
 });
 
 test('community operations panel keeps fixed summaries and no metric selector wiring', () => {

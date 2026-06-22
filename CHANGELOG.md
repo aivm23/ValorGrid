@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.24.1
+
+- refactor: keep active Professional Edition preference styles private while preserving Community teaser layout.
+
 ## 3.24.0
 
 - feat: add Linux AppImage/deb and unsigned macOS DMG desktop release builds alongside the Windows installer.
