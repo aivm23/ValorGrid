@@ -52,6 +52,7 @@ export function attach(ctx) {
     ctx.renderBackups();
     ctx.renderImportBatches?.();
     ctx.renderOperationsPreferenceControls?.();
+    ctx.initReturnBreakdownToggle?.();
     elements.adminDialog.showModal();
   });
   elements.adminDialogClose?.addEventListener('click', () => elements.adminDialog.close());

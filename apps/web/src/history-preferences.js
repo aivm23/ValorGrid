@@ -29,5 +29,6 @@ export function attach(ctx) {
       card.open = false;
       delete card.dataset.fixed;
     }
+    ctx.initReturnBreakdownToggle?.();
   };
 }

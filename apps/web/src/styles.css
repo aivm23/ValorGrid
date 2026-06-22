@@ -29,8 +29,8 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-full: 999px;
-  --gradient-pro: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  --gradient-pro-text: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  --gradient-pro: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  --gradient-pro-text: linear-gradient(135deg, #06b6d4, #8b5cf6);
 }
 
 :root[data-theme="dark"] {
@@ -54,8 +54,8 @@
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   --gradient-brand: linear-gradient(135deg, #06b6d4, #8b5cf6);
-  --gradient-pro: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  --gradient-pro-text: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  --gradient-pro: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  --gradient-pro-text: linear-gradient(135deg, #06b6d4, #8b5cf6);
 }
 
 * {
@@ -3090,10 +3090,9 @@ td:last-child {
 /* ── Preferences Grid ───────────────────────────────────── */
 
 .admin-prefs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .admin-preference {
@@ -3106,6 +3105,98 @@ td:last-child {
   font-size: 0.78rem;
   padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+/* ── Admin Preferences Sections ─────────────────────────── */
+
+.admin-prefs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-prefs-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+
+.admin-prefs-section-title h3 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pro-preferences-card.is-pro-edition .admin-prefs-section {
+  gap: 0;
+}
+
+.pro-preferences-card.is-pro-edition .admin-prefs-section-title {
+  border-bottom-color: transparent;
+  position: relative;
+  padding-left: 14px;
+  padding-bottom: 4px;
+}
+
+.pro-preferences-card.is-pro-edition .admin-prefs-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--gradient-pro);
+}
+
+.pro-edition-appendix {
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: var(--gradient-pro);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+  line-height: 1;
+  display: block;
+  margin-bottom: 12px;
+  padding-left: 14px;
+}
+
+.admin-prefs-section-body--2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-prefs-section-body--3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.pref-column-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 35%, transparent);
+}
+
+/* ── Pro Preference Columns ─────────────────────────────── */
+
+.pref-column {
+  min-width: 0;
 }
 
 /* ── Admin Action Button ────────────────────────────────── */
@@ -3204,9 +3295,10 @@ td:last-child {
 }
 
 .pro-preferences-card.is-pro-edition {
-  margin-top: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  margin-top: 0;
+  border: none;
   background: transparent;
+  box-shadow: none;
 }
 
 .pro-preferences-card.is-pro-edition .pro-preferences-summary {
@@ -3266,42 +3358,84 @@ td:last-child {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
-  background: var(--card);
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
-  border-radius: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  transition: background 150ms ease;
+}
+
+.operations-preference-row:not(:last-child) {
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
+}
+
+.operations-preference-row:hover {
+  background: color-mix(in srgb, var(--accent) 2%, var(--card));
 }
 
 .operations-preference-row .preference-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--muted);
-  min-width: 90px;
+  min-width: 80px;
   flex-shrink: 0;
 }
 
 .operations-preference-row .preference-select {
   flex: 1;
   min-width: 0;
-  padding: 4px 8px;
-  font-size: 0.85rem;
+  padding: 5px 8px;
+  font-size: 0.82rem;
   font-family: inherit;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .operations-preference-row .preference-select:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+}
+
+.operations-preference-row .preference-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .operations-preference-row .preference-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: color-mix(in srgb, var(--muted) 8%, var(--bg));
+  background: color-mix(in srgb, var(--muted) 6%, var(--bg));
+}
+
+/* ── Return Breakdown Visibility Toggle ─────────────────── */
+
+.return-breakdown-visibility-toggle {
+  flex-shrink: 0;
+  border-color: color-mix(in srgb, var(--accent) 10%, var(--line));
+  background: color-mix(in srgb, var(--accent) 2%, var(--card));
+  gap: 6px;
+}
+
+.return-breakdown-visibility-toggle span {
+  font-size: 0.76rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.return-breakdown-closed-toggle {
+  border-color: color-mix(in srgb, var(--accent) 8%, var(--line));
+  background: transparent;
+  font-size: 0.78rem;
+  gap: 6px;
+}
+
+.return-breakdown-closed-toggle span {
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .history-filter-main {
@@ -3347,9 +3481,45 @@ td:last-child {
 }
 
 .history-filter-checkbox input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 14px;
-  height: 14px;
+  appearance: none;
+  border: 1px solid var(--button-border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--card) 82%, var(--line));
+  width: 16px;
+  height: 16px;
+  display: inline-grid;
+  place-content: center;
+  flex: 0 0 auto;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.history-filter-checkbox input[type="checkbox"]::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  transform: scale(0);
+  transition: transform 0.12s ease;
+  background: #ffffff;
+  clip-path: polygon(14% 44%, 0 58%, 38% 96%, 100% 20%, 85% 6%, 36% 68%);
+}
+
+.history-filter-checkbox input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: scale(1.08);
+}
+
+.history-filter-checkbox input[type="checkbox"]:checked::before {
+  transform: scale(1);
+  animation: checkPop 200ms ease;
+}
+
+.history-filter-main .field select {
+  border-color: color-mix(in srgb, var(--line) 50%, transparent);
 }
 
 .history-filter-checkbox input[type="checkbox"]:disabled {
@@ -3898,6 +4068,36 @@ td:last-child {
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--line) 70%, transparent);
+  font-size: 0.84rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.field select:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--button-border));
+}
+
+.field select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .field input[type='date'] {
   min-width: 0;
   font-family: var(--font-mono);
@@ -4184,10 +4384,6 @@ td:last-child {
 
   .admin-card--full {
     grid-column: auto;
-  }
-
-  .admin-prefs-grid {
-    grid-template-columns: 1fr;
   }
 
   .field-grid {
