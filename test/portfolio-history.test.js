@@ -467,7 +467,7 @@ test('GET /api/portfolio/history works for every range', async () => {
 });
 
 test('portfolio history uses the canonical demo dataset for long-range cache performance', async () => {
-  seedLoadtestDb(db, { from: '2021-06-01', to: '2026-05-16' });
+  seedLoadtestDb(db, { from: '2020-01-01', to: '2026-05-16' });
 
   const firstStarted = performance.now();
   const first = await buildPortfolioHistory('5y');
@@ -478,20 +478,20 @@ test('portfolio history uses the canonical demo dataset for long-range cache per
   const all = await buildPortfolioHistory('all');
   const ytd = await buildPortfolioHistory('ytd');
 
-  assert.ok(first.series.length > 150, `expected many weekly points, got ${first.series.length}`);
-  assert.ok(first.events.length >= 180, `expected synthetic events, got ${first.events.length}`);
+  assert.ok(first.series.length > 200, `expected many weekly points, got ${first.series.length}`);
+  assert.ok(first.events.length >= 250, `expected synthetic events, got ${first.events.length}`);
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
   assert.ok(secondElapsed < 300, `warm history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
   assert.equal(all.granularity, 'weekly');
   assert.equal(ytd.granularity, 'daily');
-  assert.ok(all.events.some((event) => event.date === '2021-06-12'));
+  assert.ok(all.events.some((event) => event.date === '2020-01-12'));
 });
 
 test('loadtest dataset covers real stock tickers, range event boundaries, and cached history performance', async () => {
-  const result = seedLoadtestDb(db, { from: '2023-01-01', to: '2026-05-16' });
-  assert.ok(result.transactions >= 100);
-  assert.ok(result.prices > 9000);
+  const result = seedLoadtestDb(db, { from: '2020-01-01', to: '2026-05-16' });
+  assert.ok(result.transactions >= 200);
+  assert.ok(result.prices > 25000);
 
   const started = performance.now();
   const first = await buildPortfolioHistory('5y');
@@ -517,10 +517,10 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   assert.ok(first.events.some((event) => event.symbol === 'GOOG'));
   assert.ok(first.events.some((event) => event.symbol === 'META'));
   assert.ok(first.events.some((event) => event.symbol === 'SPPW'));
-  assert.ok(first.events.some((event) => event.symbol === 'SEMI'));
+  assert.ok(first.events.some((event) => event.symbol === 'GOLD'));
   assert.ok(first.events.some((event) => event.type === 'remove'));
-  assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'SEMI'").get().frequency, 'monthly');
-  assert.ok(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'SEMI' AND origin = 'auto'").get().count >= 24);
+  assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'GOLD'").get().frequency, 'monthly');
+  assert.ok(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'GOLD' AND origin = 'auto'").get().count >= 20);
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
   assert.ok(secondElapsed < 300, `warm 5y loadtest history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
@@ -529,7 +529,7 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
 });
 
 test('portfolio history uses SQLite daily cache when Yahoo is unavailable', async () => {
-  seedLoadtestDb(db, { from: '2023-01-01', to: '2026-05-16' });
+  seedLoadtestDb(db, { from: '2020-01-01', to: '2026-05-16' });
   db.exec('DELETE FROM daily_price_cache_ranges; DELETE FROM history_builds; DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_invalidations;');
   const previousFetch = global.fetch;
   global.fetch = async () => {

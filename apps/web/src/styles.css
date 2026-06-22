@@ -3135,16 +3135,16 @@ td:last-child {
 .pro-edition-appendix {
   font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   background: var(--gradient-pro);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
   line-height: 1;
-  display: block;
-  margin-bottom: 12px;
-  padding-left: 14px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .admin-prefs-section-body--2col {
@@ -3274,6 +3274,12 @@ td:last-child {
 
 .pro-preferences-card[open] .pro-preferences-chevron {
   transform: rotate(180deg);
+}
+
+.admin-prefs-grid .switch-field {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
 }
 
 .pro-preference-group {

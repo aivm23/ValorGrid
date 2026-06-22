@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $node = Join-Path $env:LOCALAPPDATA 'OpenAI\Codex\bin\node.exe'
-$dbPath = Join-Path $root 'portfolio.loadtest.sqlite'
+$dbPath = Join-Path $root 'local\valorgrid\data\portfolio.loadtest.sqlite'
 
 if (-not (Test-Path $node)) {
   $node = 'node'

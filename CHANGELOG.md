@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.24.2
+
+- style: refine the admin preferences layout and Professional Edition label placement.
+- test: align the canonical demo dataset checks with the commodity demo portfolio.
+
 ## 3.24.1
 
 - refactor: keep active Professional Edition preference styles private while preserving Community teaser layout.

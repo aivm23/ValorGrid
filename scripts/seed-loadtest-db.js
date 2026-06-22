@@ -2,7 +2,7 @@ const path = require('node:path');
 const { seedLoadtestDb } = require('./loadtest-data');
 
 process.env.PORTFOLIO_DB_PATH =
-  process.env.PORTFOLIO_DB_PATH || path.join(__dirname, '..', 'portfolio.loadtest.sqlite');
+  process.env.PORTFOLIO_DB_PATH || path.join(__dirname, '..', 'local', 'valorgrid', 'data', 'portfolio.loadtest.sqlite');
 process.env.PORT = process.env.PORT || '0';
 
 const { db } = require('../apps/server/server');

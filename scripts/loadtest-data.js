@@ -1,4 +1,4 @@
-const defaultFrom = '2023-01-01';
+const defaultFrom = '2020-01-01';
 const defaultTo = '2026-05-16';
 
 const instruments = [
@@ -12,9 +12,9 @@ const instruments = [
   { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 48 },
   { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 660 },
   { symbol: 'USDEUR', yahooSymbol: 'USDEUR=X', name: 'USD/EUR', type: 'fx', currency: 'EUR', color: '#64748b', base: 0.9 },
-  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'etf', currency: 'USD', color: '#eab308', base: 4173, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
-  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'etf', currency: 'USD', color: '#94a3b8', base: 65, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
-  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'etf', currency: 'USD', color: '#f97316', base: 81, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
+  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'commodity', currency: 'USD', color: '#eab308', base: 4173, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
+  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'commodity', currency: 'USD', color: '#94a3b8', base: 65, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
+  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'commodity', currency: 'USD', color: '#f97316', base: 81, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
   { symbol: 'BTC', yahooSymbol: 'BTC-EUR', name: 'Bitcoin', type: 'crypto', currency: 'EUR', color: '#f7931a', base: 70000 },
 ];
 
@@ -312,29 +312,30 @@ function seedLoadtestDb(db, options = {}) {
       }
     }
 
-    insertAutoPlan.run('SEMI', 100, 3, 1, '2024-01-01', 'monthly', null);
-    const semi = bySymbol.get('SEMI');
-    for (const { year, month } of monthsBetween('2024-01-01', to)) {
-      const date = monthDate(year, month, 3);
+    insertAutoPlan.run('GOLD', 50, 15, 1, '2024-06-01', 'monthly', null);
+    const gold = bySymbol.get('GOLD');
+    for (const { year, month } of monthsBetween('2024-06-01', to)) {
+      const date = monthDate(year, month, 15);
       if (date > to) continue;
-      const price = deterministicPrice(semi, date, from);
+      const price = deterministicPrice(gold, date, from);
       const fx = deterministicPrice(bySymbol.get('USDEUR'), date, from);
+      const valueEur = 50;
       const priceEur = price * fx;
-      const shares = Number((100 / priceEur).toFixed(8));
-      holdings.set('SEMI', holdings.get('SEMI') + shares);
+      const shares = Number((valueEur / priceEur).toFixed(8));
+      holdings.set('GOLD', holdings.get('GOLD') + shares);
       insertAutoTransaction.run(
-        `loadtest-auto-semi-${date}`,
-        'SEMI',
-        semi.name,
+        `loadtest-auto-gold-${date}`,
+        'GOLD',
+        gold.name,
         date,
         date,
         shares,
-        100,
+        valueEur,
         price,
-        semi.currency,
+        gold.currency,
         fx,
-        semi.color,
-        `auto:SEMI:${date}`,
+        gold.color,
+        `auto:GOLD:${date}`,
       );
     }
 

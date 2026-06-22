@@ -258,9 +258,6 @@ function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
     'portfolio.sqlite',
     ['portfolio.sqlite', 'wal'].join('-'),
     ['portfolio.sqlite', 'shm'].join('-'),
-    'portfolio.loadtest.sqlite',
-    ['portfolio.loadtest.sqlite', 'wal'].join('-'),
-    ['portfolio.loadtest.sqlite', 'shm'].join('-'),
   ]);
   const unexpectedRootSqlite = rootPrivateSqlite.filter((name) => !allowedRootSqlite.has(name));
   if (unexpectedRootSqlite.length) {
@@ -274,11 +271,11 @@ function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
     addCheck('ok', 'root-private-artifacts', 'No unexpected SQLite artifacts at repository root.');
   }
 
-  if (fs.existsSync(path.join(root, 'portfolio.loadtest.sqlite'))) {
+  if (fs.existsSync(path.join(root, 'local', 'valorgrid', 'data', 'portfolio.loadtest.sqlite'))) {
     addCheck(
       'warn',
       'demo-dataset-present',
-      'Demo/loadtest SQLite file exists at repository root. Keep it out of commits.',
+      'Demo/loadtest SQLite file exists at local/valorgrid/data/. Safe from commits.',
     );
   }
 

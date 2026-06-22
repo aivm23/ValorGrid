@@ -64,7 +64,7 @@ Invoke-Checked 'node --check apps/web/src/app.js' { & $node --check 'apps/web/sr
 Invoke-Checked 'node --test' { & $node --test }
 
 foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlite' + '-shm'), ('portfolio.loadtest.sqlite' + '-wal'))) {
-  $generatedPath = Join-Path $root $generated
+  $generatedPath = Join-Path $root 'local\valorgrid\data' $generated
   if (Test-Path $generatedPath) {
     Remove-Item -LiteralPath $generatedPath -Force
   }
