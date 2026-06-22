@@ -57,6 +57,26 @@ check(
   '.github/workflows/release.yml exists'
 );
 
+if (fs.existsSync(workflowPath)) {
+  const workflow = fs.readFileSync(workflowPath, 'utf8');
+  for (const requiredReleasePattern of [
+    'windows-installer:',
+    'linux-installer:',
+    'macos-installer:',
+    'publish-release:',
+    'ValorGrid-Setup-x64.exe',
+    'ValorGrid-Linux-x64.AppImage',
+    'ValorGrid-Linux-x64.deb',
+    'ValorGrid-macOS-x64.dmg',
+    'ValorGrid-macOS-arm64.dmg',
+  ]) {
+    check(
+      workflow.includes(requiredReleasePattern),
+      `.github/workflows/release.yml includes ${requiredReleasePattern}`
+    );
+  }
+}
+
 if (exitCode === 0) {
   console.log('All release surface checks passed.');
 }

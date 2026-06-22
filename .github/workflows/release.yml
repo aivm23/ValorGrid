@@ -11,8 +11,8 @@ permissions:
   attestations: write
 
 jobs:
-  windows-installer:
-    runs-on: windows-latest
+  validate-release:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -21,50 +21,119 @@ jobs:
           node-version: '24'
 
       - name: Validate release tag
-        shell: pwsh
         run: |
-          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $tag = "${{ github.ref_name }}"
-          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
-            throw "Release tag must use vX.Y.Z format. Got $tag"
-          }
-          if ($tag -ne "v$version") {
-            throw "Release tag $tag does not match package.json version v$version"
-          }
+          node -e "const pkg=require('./package.json'); const tag=process.env.GITHUB_REF_NAME; if(!/^v\\d+\\.\\d+\\.\\d+$/.test(tag)) throw new Error('Release tag must use vX.Y.Z format. Got '+tag); if(tag !== 'v'+pkg.version) throw new Error('Release tag '+tag+' does not match package.json version v'+pkg.version);"
 
       - run: npm ci
-
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run docs:spellcheck
       - run: node --check apps/server/server.js
       - run: node --check apps/web/src/app.js
       - run: node --check apps/desktop/main.js
       - run: npm test
+      - run: npm run verify:publication
+      - run: npm run seed:demo
 
-      - name: Verify publication safety
-        shell: pwsh
-        run: ./scripts/verify-publication.ps1
+  windows-installer:
+    needs: validate-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - run: npm ci
       - run: npm run desktop:dist:win
+      - run: npm run release:desktop:stable -- local/artifacts/desktop win32
 
-      - name: Create stable-name installer
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem local/artifacts/desktop -Filter '*-x64.exe' | Select-Object -First 1
-          if (-not $exe) { throw "No installer exe found" }
-          Copy-Item $exe.FullName "local/artifacts/desktop/ValorGrid-Setup-x64.exe"
-          Write-Host "Created stable installer: $($exe.Name) -> ValorGrid-Setup-x64.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: |
+            local/artifacts/desktop/*.exe
+            local/artifacts/desktop/*.blockmap
+            local/artifacts/desktop/latest*.yml
+
+  linux-installer:
+    needs: validate-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - run: npm ci
+      - run: npm run desktop:dist:linux
+      - run: npm run release:desktop:stable -- local/artifacts/desktop linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: |
+            local/artifacts/desktop/*.AppImage
+            local/artifacts/desktop/*.deb
+            local/artifacts/desktop/*.blockmap
+            local/artifacts/desktop/latest*.yml
+
+  macos-installer:
+    needs: validate-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - run: npm ci
+      - run: bash scripts/prepare-desktop-mac-icon.sh
+      - run: npm run desktop:dist:mac
+      - run: npm run release:desktop:stable -- local/artifacts/desktop darwin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: |
+            local/artifacts/desktop/*.dmg
+            local/artifacts/desktop/*.blockmap
+            local/artifacts/desktop/latest*.yml
+
+  publish-release:
+    needs:
+      - windows-installer
+      - linux-installer
+      - macos-installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: local/artifacts/desktop
+          merge-multiple: true
 
       - run: npm run release:checksums
-
       - run: node scripts/generate-release-notes.js
 
-      - name: Attest installer
+      - name: Attest desktop artifacts
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
             local/artifacts/desktop/ValorGrid-Setup-x64.exe
+            local/artifacts/desktop/ValorGrid-Linux-x64.AppImage
+            local/artifacts/desktop/ValorGrid-Linux-x64.deb
+            local/artifacts/desktop/ValorGrid-macOS-x64.dmg
+            local/artifacts/desktop/ValorGrid-macOS-arm64.dmg
             local/artifacts/desktop/SHA256SUMS.txt
 
       - name: Publish GitHub Release
@@ -72,8 +141,10 @@ jobs:
         with:
           body_path: release-notes.md
           files: |
-            local/artifacts/desktop/ValorGrid-Setup-x64.exe
             local/artifacts/desktop/*.exe
+            local/artifacts/desktop/*.AppImage
+            local/artifacts/desktop/*.deb
+            local/artifacts/desktop/*.dmg
             local/artifacts/desktop/*.blockmap
-            local/artifacts/desktop/latest.yml
+            local/artifacts/desktop/latest*.yml
             local/artifacts/desktop/SHA256SUMS.txt

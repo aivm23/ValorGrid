@@ -27,6 +27,19 @@ module.exports = {
       to: 'assets/brand/valorgrid-logo.ico',
     },
   ],
+  mac: {
+    icon: 'local/artifacts/desktop/valorgrid-logo.icns',
+    identity: null,
+    target: [
+      {
+        target: 'dmg',
+        arch: ['x64', 'arm64'],
+      },
+    ],
+  },
+  dmg: {
+    artifactName: '${productName}-macOS-${version}-${arch}.${ext}',
+  },
   win: {
     icon: 'assets/brand/valorgrid-logo.ico',
     signAndEditExecutable: false,
@@ -48,5 +61,21 @@ module.exports = {
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: productName,
+  },
+  linux: {
+    icon: 'assets/brand/valorgrid-logo.png',
+    artifactName: '${productName}-Linux-${version}-${arch}.${ext}',
+    category: 'Office;Finance;',
+    maintainer: 'ValorGrid',
+    target: [
+      {
+        target: 'AppImage',
+        arch: ['x64'],
+      },
+      {
+        target: 'deb',
+        arch: ['x64'],
+      },
+    ],
   },
 };

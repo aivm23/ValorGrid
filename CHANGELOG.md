@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.24.0
+
+- feat: add Linux AppImage/deb and unsigned macOS DMG desktop release builds alongside the Windows installer.
+- ci: split desktop release packaging by OS, publish stable artifact names, and checksum all desktop installers.
+- test: cover desktop release scripts, electron-builder targets, stable artifact naming and release workflow wiring.
+
 ## 3.23.1
 
 - fix: Docker build failing because prepare script calls husky which is stripped by \`--omit=dev\` — added \`--ignore-scripts\` to npm ci.

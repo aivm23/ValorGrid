@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.23.1",
+  "version": "3.24.0",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -20,7 +20,10 @@
     "desktop:dev": "electron apps/desktop/main.js",
     "desktop:pack": "electron-builder --config apps/desktop/electron-builder.config.cjs --dir",
     "desktop:dist:win": "electron-builder --config apps/desktop/electron-builder.config.cjs --win nsis --publish never",
+    "desktop:dist:linux": "electron-builder --config apps/desktop/electron-builder.config.cjs --linux AppImage deb --x64 --publish never",
+    "desktop:dist:mac": "electron-builder --config apps/desktop/electron-builder.config.cjs --mac dmg --x64 --arm64 --publish never",
     "desktop:dist:win:clean": "powershell -ExecutionPolicy Bypass -File scripts/build-desktop-win.ps1",
+    "release:desktop:stable": "node scripts/prepare-desktop-release-artifacts.js",
     "release:checksums": "node scripts/generate-release-checksums.js local/artifacts/desktop",
     "changelog:update": "node scripts/update-changelog.js",
     "changelog:check": "node scripts/update-changelog.js --check",
@@ -82,8 +85,5 @@
     "*.json": [
       "prettier --write"
     ]
-  },
-  "dependencies": {
-    "exceljs": "^4.4.0"
   }
 }

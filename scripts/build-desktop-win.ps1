@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-$dist = Join-Path $root 'dist'
+$artifactsDir = Join-Path $root 'local\artifacts\desktop'
 $npm = 'npm.cmd'
 
 if (-not (Get-Command $npm -ErrorAction SilentlyContinue)) {
@@ -20,25 +20,31 @@ function Invoke-NpmScript {
 }
 
 $resolvedRoot = [System.IO.Path]::GetFullPath($root.Path)
-$resolvedDist = [System.IO.Path]::GetFullPath($dist)
-if (-not $resolvedDist.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar)) {
-  throw "Refusing to clean dist outside repository: $resolvedDist"
+$resolvedArtifactsDir = [System.IO.Path]::GetFullPath($artifactsDir)
+if (-not $resolvedArtifactsDir.StartsWith($resolvedRoot + [System.IO.Path]::DirectorySeparatorChar)) {
+  throw "Refusing to clean artifacts outside repository: $resolvedArtifactsDir"
 }
 
-if (Test-Path $dist) {
-  Write-Output "Cleaning $dist"
-  Remove-Item -LiteralPath $dist -Recurse -Force
+if (Test-Path $artifactsDir) {
+  Write-Output "Cleaning $artifactsDir"
+  Remove-Item -LiteralPath $artifactsDir -Recurse -Force
 }
 
 Write-Output 'Building ValorGrid Windows installer'
 Invoke-NpmScript 'desktop:dist:win'
+
+Write-Output 'Creating stable release artifact name'
+& $npm run release:desktop:stable -- local/artifacts/desktop win32
+if ($LASTEXITCODE -ne 0) {
+  throw 'stable release artifact naming failed'
+}
 
 Write-Output 'Generating release checksums'
 Invoke-NpmScript 'release:checksums'
 
 Write-Output ''
 Write-Output 'Windows installer build complete:'
-Get-ChildItem -Path $dist -File |
+Get-ChildItem -Path $artifactsDir -File |
   Where-Object { $_.Name -like 'ValorGrid-Setup-*.exe' -or $_.Name -eq 'SHA256SUMS.txt' -or $_.Name -eq 'latest.yml' } |
   Sort-Object Name |
   ForEach-Object { Write-Output " - $($_.FullName)" }
