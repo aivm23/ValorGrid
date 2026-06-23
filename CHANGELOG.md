@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.25.0
+
+- feat: Alpha Vantage key management with local secrets persistence (secrets.json).
+- fix: harden secrets.json against data leakage — block static serving, add to gitignore/dockerignore, sanitize 500 errors, add 1MB body limit.
+- test: POSIX permissions, security architecture, and Alpha Vantage key tests.
+- docs: sync Alpha Vantage secrets, deploy, and API documentation.
+- chore: update screenshots and Docker compose sync.
+
 ## 3.24.4
 
 - feat: allow Docker and CasaOS users to save the Alpha Vantage key from the existing setup assistant without restarting the container.
