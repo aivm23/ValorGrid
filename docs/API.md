@@ -180,6 +180,7 @@ Si el proveedor no responde y existe un precio local anterior, la respuesta pued
   "configured": false,
   "mode": "desktop",
   "source": null,
+  "canSaveKey": true,
   "hint": "Abre https://www.alphavantage.co/support/#api-key para obtener tu clave gratuita"
 }
 ```
@@ -187,14 +188,15 @@ Si el proveedor no responde y existe un precio local anterior, la respuesta pued
 - `configured`: `true` si hay clave configurada, `false` si no.
 - `mode`: `"desktop"` si se ejecuta como app de escritorio Electron, `"server"` en modo Node puro.
 - `source`: `"local"` si se guardó desde el asistente, `"env"` si se configuró por variable de entorno, `null` si no hay clave.
+- `canSaveKey`: `true` si la API puede guardar una clave local en caliente. Es `false` cuando la clave está gestionada por variable de entorno.
 - `hint`: mensaje accionable para el usuario según el modo.
 
-`POST /api/market-data/alpha-vantage/key` guarda una nueva clave de Alpha Vantage (solo modo desktop). Validación:
+`POST /api/market-data/alpha-vantage/key` guarda una nueva clave de Alpha Vantage desde el asistente local. Funciona en desktop y en Docker/CasaOS cuando la clave no está gestionada por variable de entorno. Validación:
 
 - El campo `apiKey` debe tener 16 caracteres alfanuméricos mayúsculas.
 - Se valida con una llamada real a `GOLD_SILVER_SPOT` antes de guardar.
 - Si la clave es inválida o el límite diario está activo, devuelve `400` con mensaje explicativo.
-- En modo servidor (no desktop), devuelve `400` e indica que use variable de entorno.
+- Si `VALORGRID_ALPHA_VANTAGE_API_KEY` está configurada por entorno, devuelve `400` e indica que la clave se cambie en la configuración del contenedor o proceso.
 
 Respuesta:
 
@@ -204,12 +206,13 @@ Respuesta:
 }
 ```
 
-`DELETE /api/market-data/alpha-vantage/key` elimina la clave guardada (solo modo desktop). En modo servidor devuelve `400`.
+`DELETE /api/market-data/alpha-vantage/key` elimina la clave guardada localmente. Si la clave viene de variable de entorno, devuelve `400`.
 
 ### Gestión local de la clave
 
 - **App de escritorio**: la clave se guarda en `secrets.json` junto al directorio de backups dentro de la carpeta privada de Electron (`app.getPath('userData')`). ValorGrid nunca la expone por API ni la envía a servidores externos (salvo a la API oficial de Alpha Vantage para consultar precios).
-- **Docker/dev**: la clave se configura exclusivamente mediante la variable de entorno `VALORGRID_ALPHA_VANTAGE_API_KEY` (también compatible con `ALPHA_VANTAGE_API_KEY`). No hay persistencia local de secretos en este modo.
+- **Docker/CasaOS**: si no se configura variable de entorno, la misma vista de configuración permite pegar la clave y guardarla en el volumen persistente de datos (`/data/secrets.json`) sin reiniciar el contenedor.
+- **Servidor/dev avanzado**: `VALORGRID_ALPHA_VANTAGE_API_KEY` tiene prioridad sobre la clave local persistida. `ALPHA_VANTAGE_API_KEY` sigue aceptada por compatibilidad.
 
 ## Backups
 

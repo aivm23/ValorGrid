@@ -67,9 +67,3 @@ npm run verify:publication
 ```
 
 La verificacion de publicación y `test/privacy.test.js` deben fallar si aparecen nombres de adaptadores privados conocidos, muestras privadas, rutas locales o datos de cartera.
-
-## ESM
-
-La decision actual se mantiene: backend CommonJS y frontend ESM nativo del navegador. Migrar el backend a ESM no es requisito para separar Community y Pro/Enterprise.
-
-Una migracion ESM solo deberia abrirse como fase independiente si aporta una ventaja concreta: empaquetado TS real, dual packages, plugin loading formal o distribucion npm privada. Mientras la app siga siendo monolito modular local con Node 24, CommonJS reduce riesgo operativo.

@@ -21,8 +21,10 @@ http://localhost:1325
 - `HOST=0.0.0.0`
 - `PORT=1325`
 - `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
+- `VALORGRID_BACKUP_DIR=/app/.backups`
 - `VALORGRID_AUTH_USER=valorgrid`
 - `VALORGRID_AUTH_PASSWORD=` (vacío: login desactivado)
+- `VALORGRID_ALPHA_VANTAGE_API_KEY=` (opcional)
 - `./data:/data`
 - `./backups:/app/.backups`
 
@@ -48,6 +50,15 @@ VALORGRID_AUTH_PASSWORD=usa-una-contraseña-larga
 Si `VALORGRID_AUTH_PASSWORD` está vacío o no existe, el login queda desactivado. Si está configurado, ValorGrid protege toda la app: pantalla principal, assets, API, exportaciones, backups, `/api/health` y `/api/version`.
 
 Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
+
+## Alpha Vantage para commodities
+
+Las commodities usan Alpha Vantage. En Docker y CasaOS hay dos formas de configurar la clave:
+
+- Recomendado para usuarios no técnicos: abre ValorGrid, crea una commodity y pega la clave en el asistente. La clave se guarda en `/data/secrets.json`, dentro del volumen persistente, y queda activa sin reiniciar el contenedor.
+- Avanzado: define `VALORGRID_ALPHA_VANTAGE_API_KEY` en la configuración del contenedor. Esta variable tiene prioridad sobre la clave local y requiere recrear/reiniciar el contenedor para cambiarla.
+
+La API nunca devuelve el valor de la clave; solo informa si Alpha Vantage está configurado y si la clave viene de entorno o de almacenamiento local.
 
 Pasos de prueba previos al envío a AppStore:
 

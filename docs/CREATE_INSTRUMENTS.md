@@ -55,7 +55,7 @@ Si no hay clave de Alpha Vantage configurada, ValorGrid te mostrará un asistent
 2. Completa el formulario (email + aceptar términos).
 3. Pega la clave recibida y confirma.
 
-La clave se valida automáticamente con una llamada de prueba a la API. Solo se guarda si es válida. Este flujo está disponible en la app de escritorio. En Docker/servidor, configura `VALORGRID_ALPHA_VANTAGE_API_KEY` como variable de entorno.
+La clave se valida automáticamente con una llamada de prueba a la API. Solo se guarda si es válida. Este flujo está disponible en la app de escritorio y en Docker/CasaOS cuando la clave no viene de variable de entorno. En Docker/servidor también puedes configurar `VALORGRID_ALPHA_VANTAGE_API_KEY` como variable de entorno.
 
 La divisa `USD` es fija para todas las commodities. ValorGrid convertirá los precios a EUR mediante el tipo de cambio diario.
 
@@ -72,4 +72,4 @@ El precio manual de operación es puntual y no crea una fuente persistente.
 
 - Usa tickers internos simples y estables.
 - Commodities en USD: ValorGrid convierte a EUR automáticamente con el FX del día.
-- Alpha Vantage requiere clave API. En la app de escritorio puedes configurarla desde el asistente. En Docker/servidor, usa `VALORGRID_ALPHA_VANTAGE_API_KEY`.
+- Alpha Vantage requiere clave API. En la app de escritorio y en Docker/CasaOS puedes configurarla desde el mismo asistente. En despliegues avanzados, usa `VALORGRID_ALPHA_VANTAGE_API_KEY`.

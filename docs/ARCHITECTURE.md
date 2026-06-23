@@ -137,7 +137,7 @@ Reglas de transición:
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
-- `runtime-secrets.js`: persistencia de claves API (Alpha Vantage) en disco, cifradas con AES-256-GCM. Cargado antes del bucle de módulos.
+- `runtime-secrets.js`: persistencia local de claves API (Alpha Vantage) en `secrets.json`, fuera de SQLite. En desktop vive bajo `app.getPath('userData')`; en Docker/CasaOS vive en el volumen de datos (`/data/secrets.json`). Cargado antes del bucle de módulos.
 - `extensions.js`: fábrica `createExtensionHost` que normaliza extensiones, resuelve assets web y registra adaptadores de importación profesionales.
 - `extensions-runtime.js`: carga la extensión configurada en `VALORGRID_EXTENSION_PATH` y la registra en el host de extensiones antes de montar rutas HTTP. Cargado en paso 28 del bucle.
 

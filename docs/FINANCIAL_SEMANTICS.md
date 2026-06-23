@@ -159,7 +159,7 @@ Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las pos
 
 - La selección de proveedor es automática según el tipo de instrumento:
   - **ETF, Stock, Crypto**: Yahoo Finance (fuente por defecto).
-  - **Commodity**: Alpha Vantage (requiere `VALORGRID_ALPHA_VANTAGE_API_KEY`).
+  - **Commodity**: Alpha Vantage (requiere clave API guardada desde el asistente o `VALORGRID_ALPHA_VANTAGE_API_KEY`).
 - Alpha Vantage para commodities usa los endpoints `GOLD_SILVER_HISTORY` y `GOLD_SILVER_SPOT` en lugar de `FX_DAILY`.
 - Los precios de proveedores alternativos se cachean en `market_price_points`.
 - Las escrituras de transacciones siguen siendo estrictas: no usan cache antiguo de Yahoo de forma automatica.
