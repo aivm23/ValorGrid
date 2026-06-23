@@ -96,6 +96,7 @@ const REQUIRED_GITIGNORE_PATTERNS = [
   '.backups/',
   'dist/',
   '.env',
+  'secrets.json',
   'local/',
   'imports/',
   'downloads/',
@@ -110,6 +111,7 @@ const REQUIRED_DOCKERIGNORE_PATTERNS = [
   '.backups',
   'backups',
   '.env',
+  'secrets.json',
   'local',
   'imports',
   'node_modules',
@@ -272,6 +274,7 @@ function checkForbiddenFiles() {
       name.endsWith('.log') ||
       name.endsWith('.out') ||
       name.endsWith('.err') ||
+      name === 'secrets.json' ||
       name.startsWith('debug-') ||
       /^PLAN.*\.md$/i.test(name) ||
       /^Plan_.*\.md$/i.test(name)

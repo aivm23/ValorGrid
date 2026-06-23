@@ -32,7 +32,9 @@ function resolveRequestPath(urlPath) {
   const relativePath = cleanPath === '/' ? '' : cleanPath.replace(/^\/+/, '');
   const base = cleanPath === '/' || !cleanPath.startsWith('/assets/') ? config.staticRoot : config.repoRoot;
   const resolvedPath = cleanPath === '/' ? path.join(base, 'index.html') : path.resolve(base, relativePath);
-  return resolvedPath.startsWith(base + path.sep) || resolvedPath === base ? resolvedPath : null;
+  if (!resolvedPath.startsWith(base + path.sep) && resolvedPath !== base) return null;
+  if (path.basename(resolvedPath) === 'secrets.json') return null;
+  return resolvedPath;
 }
 
 async function handleApi(request, response, url) {

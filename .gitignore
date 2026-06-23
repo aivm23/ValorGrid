@@ -6,6 +6,9 @@ data/
 .backups/
 backups/
 
+# Secrets and API keys
+secrets.json
+
 # Local configuration and user import files
 .env
 .env.*

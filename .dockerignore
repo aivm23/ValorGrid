@@ -18,6 +18,7 @@ temp
 *.sqlite-shm
 *.log
 *.out
+secrets.json
 *.err
 debug-*
 
