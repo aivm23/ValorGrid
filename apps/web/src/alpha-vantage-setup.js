@@ -36,14 +36,18 @@ export function attach(ctx) {
       }
       return;
     }
-    if (status.mode !== 'desktop') {
-      elements.copy.textContent = 'Alpha Vantage no está configurado. En modo servidor, configura VALORGRID_ALPHA_VANTAGE_API_KEY en las variables de entorno.';
+    if (!status.canSaveKey) {
+      elements.copy.textContent =
+        'Alpha Vantage no está configurado. En modo servidor, configura VALORGRID_ALPHA_VANTAGE_API_KEY en las variables de entorno.';
       elements.getKey.hidden = true;
       elements.keyInput.hidden = true;
       elements.saveKey.hidden = true;
       elements.skip.textContent = 'Cerrar';
     } else {
-      elements.copy.textContent = 'Para obtener precios de commodities necesitas una clave gratuita de Alpha Vantage.';
+      elements.copy.textContent =
+        status.mode === 'desktop'
+          ? 'Para obtener precios de commodities necesitas una clave gratuita de Alpha Vantage.'
+          : 'Para obtener precios de commodities en Docker o CasaOS puedes guardar aquí tu clave gratuita de Alpha Vantage sin reiniciar el contenedor.';
       elements.getKey.hidden = false;
       elements.keyInput.hidden = false;
       elements.saveKey.hidden = false;
@@ -121,5 +125,10 @@ export function attach(ctx) {
     });
   }
 
-  Object.assign(ctx, { openAlphaVantageAssistant, closeAlphaVantageAssistant, checkAlphaVantageStatus, createCommodityWithAlphaVantageCheck });
+  Object.assign(ctx, {
+    openAlphaVantageAssistant,
+    closeAlphaVantageAssistant,
+    checkAlphaVantageStatus,
+    createCommodityWithAlphaVantageCheck,
+  });
 }

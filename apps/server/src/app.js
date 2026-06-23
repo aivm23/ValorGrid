@@ -9,8 +9,17 @@ const { bindGroupedCtxNamespaces } = require('./bind-ctx-namespaces');
 const runtimeSecrets = require('./platform/runtime-secrets');
 const { createExtensionHost } = require('./platform/extensions');
 
-const { appInfo, root, extensionPath, dbPath, backupDir, host, port, auth } = createConfig();
-const staticRoot = path.resolve(root, 'apps', 'web'), db = openDatabase(dbPath);
+const { appInfo, root, extensionPath, dbPath, backupDir, secretsDir, host, port, auth } = createConfig();
+const alphaVantageEnvKey = process.env.VALORGRID_ALPHA_VANTAGE_API_KEY || process.env.ALPHA_VANTAGE_API_KEY || '';
+const savedAlphaVantageKey = alphaVantageEnvKey ? '' : runtimeSecrets.readAlphaVantageKey(secretsDir);
+if (savedAlphaVantageKey) {
+  process.env.VALORGRID_ALPHA_VANTAGE_API_KEY = savedAlphaVantageKey;
+  process.env.VALORGRID_ALPHA_VANTAGE_API_KEY_SOURCE = 'local';
+} else if (alphaVantageEnvKey) {
+  process.env.VALORGRID_ALPHA_VANTAGE_API_KEY_SOURCE = 'env';
+}
+const staticRoot = path.resolve(root, 'apps', 'web'),
+  db = openDatabase(dbPath);
 const memoryCache = new Map();
 const memoryCacheTtlMs = 5 * 60 * 1000;
 
@@ -59,6 +68,7 @@ const config = {
   staticRoot,
   dbPath,
   backupDir,
+  secretsDir,
   auth,
   host,
   port,
@@ -127,8 +137,9 @@ const adminServices = {
   listBackups: () => backups.listBackups(root, backupDir),
   createBackup: () => backups.createBackup({ db, dbPath, root, backupDir }),
   resolveBackupPath: (file) => backups.resolveBackupPath(root, file, backupDir),
-  createRiskBackup: ({ reason, metadata }) => backups.createRiskBackup({ db, dbPath, root, backupDir, reason, metadata }),
-  deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir)
+  createRiskBackup: ({ reason, metadata }) =>
+    backups.createRiskBackup({ db, dbPath, root, backupDir, reason, metadata }),
+  deleteBackupFile: (file) => backups.deleteBackupFile(root, file, backupDir),
 };
 
 const uiPreferencesServices = {};
@@ -143,6 +154,7 @@ const ctx = {
   staticRoot,
   dbPath,
   backupDir,
+  secretsDir,
   host,
   port,
   db,
