@@ -2,18 +2,20 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:v3.24.3
+    image: ghcr.io/aivm23/valorgrid:v3.24.4
     container_name: valorgrid
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0
       PORT: 1325
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+      VALORGRID_BACKUP_DIR: /app/.backups
       VALORGRID_AUTH_USER: valorgrid
-      VALORGRID_AUTH_PASSWORD: ""
+      VALORGRID_AUTH_PASSWORD: ''
+      VALORGRID_ALPHA_VANTAGE_API_KEY: ''
     ports:
       - target: 1325
-        published: "1325"
+        published: '1325'
         protocol: tcp
     volumes:
       - type: bind
@@ -36,6 +38,10 @@ services:
           description:
             en_US: SQLite database file path inside the container.
             es_ES: Ruta del archivo SQLite dentro del contenedor.
+        - container: VALORGRID_BACKUP_DIR
+          description:
+            en_US: Backup directory path inside the container.
+            es_ES: Ruta del directorio de copias de seguridad dentro del contenedor.
         - container: VALORGRID_AUTH_USER
           description:
             en_US: Basic Auth username when VALORGRID_AUTH_PASSWORD is set.
@@ -44,8 +50,12 @@ services:
           description:
             en_US: Set a strong password before exposing ValorGrid outside your private LAN.
             es_ES: Configura una contrasena fuerte antes de exponer ValorGrid fuera de tu LAN privada.
+        - container: VALORGRID_ALPHA_VANTAGE_API_KEY
+          description:
+            en_US: Optional Alpha Vantage API key for commodities. You can also save it from the ValorGrid UI.
+            es_ES: Clave API opcional de Alpha Vantage para commodities. Tambien puedes guardarla desde la interfaz de ValorGrid.
       ports:
-        - container: "1325"
+        - container: '1325'
           description:
             en_US: ValorGrid Web UI HTTP port.
             es_ES: Puerto HTTP de la interfaz web de ValorGrid.
@@ -67,8 +77,8 @@ x-casaos:
   author: alvarovalderramamolina
   developer: alvarovalderramamolina
   category: Finance
-  version: "v3.24.3"
-  updateAt: "2026-06-22"
+  version: 'v3.24.4'
+  updateAt: '2026-06-23'
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues
   repo: https://github.com/aivm23/ValorGrid
@@ -79,7 +89,7 @@ x-casaos:
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/historico-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/movimientos-demo.png
     - https://raw.githubusercontent.com/aivm23/ValorGrid/main/assets/screenshots/valores-grupos-demo.png
-  port_map: "1325"
+  port_map: '1325'
   scheme: http
   index: /
   title:

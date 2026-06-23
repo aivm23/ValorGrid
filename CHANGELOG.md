@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.24.4
+
+- feat: allow Docker and CasaOS users to save the Alpha Vantage key from the existing setup assistant without restarting the container.
+- docs: document Alpha Vantage setup paths for desktop, Docker and CasaOS.
+
 ## 3.24.3
 
 - fix: desktop release stable artifact naming uses correct electron-builder pattern per platform (Linux AppImage/deb no longer require arch in filename).

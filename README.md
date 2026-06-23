@@ -95,7 +95,7 @@ Requisitos: Node.js 24+, `node:sqlite`.
 - [DB_OPERATIONS.md](docs/DB_OPERATIONS.md) — backups, doctor, reset
 - [SECURITY.md](SECURITY.md) — privacidad y seguridad
 
-Consulta también [CREATE_INSTRUMENTS.md](docs/CREATE_INSTRUMENTS.md) para crear valores con Yahoo, Alpha Vantage o Manual/NAV.
+Consulta también [CREATE_INSTRUMENTS.md](docs/CREATE_INSTRUMENTS.md) para crear valores con Yahoo o Alpha Vantage.
 
 ## Licencia
 
