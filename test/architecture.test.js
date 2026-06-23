@@ -135,6 +135,10 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'import-repository must expose runInTransaction wrapper',
   );
   assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('apps', 'server', 'src', 'domains', 'portfolio', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
+  assert.ok(
+    read(path.join('apps', 'server', 'src', 'routes.js')).includes("path.basename(resolvedPath) === 'secrets.json'"),
+    'resolveRequestPath must block secrets.json from being served as a static asset',
+  );
 });
 
 test('app composition root initializes grouped ctx namespaces', () => {
