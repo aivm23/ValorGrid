@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.25.1
+
+- refactor: expose a neutral Professional Edition dashboard layout preference anchor while keeping Community dashboard behavior fixed.
+
 ## 3.25.0
 
 - feat: Alpha Vantage key management with local secrets persistence (secrets.json).

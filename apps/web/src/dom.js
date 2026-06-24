@@ -54,6 +54,7 @@ export function attach(ctx) {
     operationsPreferenceControls: document.querySelector('#operations-preference-controls'),
     historyPreferenceControls: document.querySelector('#history-preference-controls'),
     returnBreakdownPreferenceControls: document.querySelector('#return-breakdown-preference-controls'),
+    dashboardLayoutPreferenceControls: document.querySelector('#dashboard-layout-preference-controls'),
     returnBreakdownSectionWrapper: document.querySelector('#return-breakdown-section-wrapper'),
     returnBreakdownToggle: document.querySelector('#return-breakdown-toggle'),
     proPreferencesCard: document.querySelector('#pro-preferences-card'),

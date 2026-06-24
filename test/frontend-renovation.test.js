@@ -521,6 +521,7 @@ test('index.html details is closed by default (no open attribute) with community
   assert.ok(index.includes('id="pro-preferences-card"'), 'card element found');
   assert.ok(!index.includes('pro-preferences-card" open'), 'details is closed by default');
   assert.ok(index.includes('is-community-edition'), 'card starts with is-community-edition class');
+  assert.ok(index.includes('id="dashboard-layout-preference-controls"'), 'PRO dashboard layout anchor exists');
 });
 
 test('CSS keeps Community teaser styles and no active PRO preference styles', () => {
@@ -531,6 +532,7 @@ test('CSS keeps Community teaser styles and no active PRO preference styles', ()
   assert.ok(!css.includes('.operations-preference-row'), 'active PRO operations styles live outside Community');
   assert.ok(!css.includes('.history-filter-checkbox'), 'active PRO history filter styles live outside Community');
   assert.ok(!css.includes('.return-breakdown-visibility-toggle'), 'active PRO return breakdown styles live outside Community');
+  assert.ok(!css.includes('.dashboard-layout-row'), 'active PRO dashboard layout styles live outside Community');
 });
 
 test('community operations panel keeps fixed summaries and no metric selector wiring', () => {
