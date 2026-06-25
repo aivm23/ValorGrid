@@ -46,6 +46,7 @@ function writeFile(file, content) {
   const normalized = `${content.trimEnd()}\n`;
   if (checkOnly) {
     if (!fs.existsSync(file)) fail(`Missing generated Umbrel file: ${path.relative(ROOT, file)}`);
+    if (path.basename(file) === '.gitkeep') return;
     const current = fs.readFileSync(file, 'utf8');
     if (current !== normalized) fail(`Umbrel file is stale: ${path.relative(ROOT, file)}`);
     return;
