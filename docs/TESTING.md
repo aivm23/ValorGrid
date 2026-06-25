@@ -20,6 +20,7 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 | `test/portfolio-history.test.js`   | Histórico     | Materialización daily/weekly, invalidación, cache persistente, restart survival, daily prices/FX, summary, monthly, rangos y dataset demo/loadtest.                                                       |
 | `test/privacy.test.js`             | Privacidad    | Artefactos SQLite ignorados, paths locales, etiquetas personales, fresh install limpio, `.gitignore`, `.dockerignore` y XLSX públicos sin tokens privados.                                                |
 | `test/storage.test.js`             | Frontend      | `apps/web/src/storage.js`: export default, `getItem`/`setItem`/`removeItem`, referencias a `localStorage` y fallback a cookies.                                                                           |
+| `test/umbrel-package.test.js`      | Despliegue    | Paquete Umbrel: generador sincronizado, compose independiente con `app_proxy`, imagen versionada con digest, persistencia en `${APP_DATA_DIR}` e id comunitario con prefijo de store.                     |
 | `test/verify-publication.test.js`  | Publicación   | `scripts/verify-publication.js`: éxito en repo limpio, fallo con archivos prohibidos, fallo con ALTER TABLE, scan de scripts PowerShell.                                                                  |
 | `test/integration-helpers.js`      | Infra         | Helpers compartidos: mock de `fetch`, helpers ExcelJS, `cachePrice`, `seedTestInstrument`, `startTestServer`, `jsonRequest`, `registerLifecycle`.                                                         |
 
@@ -57,5 +58,5 @@ npm run seed:demo
 - **DB Ops**: `db-operations.test.js` combina análisis estático y DB temporal.
 - **Privacidad**: `privacy.test.js` analiza archivos publicables y fixtures.
 - **Autenticación**: `auth.test.js` valida el comportamiento de Basic Auth con servidor real.
-- **Publicación**: `verify-publication.test.js` ejecuta `scripts/verify-publication.js` en contexto de prueba.
+- **Publicación**: `verify-publication.test.js` ejecuta `scripts/verify-publication.js` en contexto de prueba; `umbrel-package.test.js` valida el paquete Umbrel independiente.
 - **Helper**: `integration-helpers.js` no es un test; es infraestructura compartida.

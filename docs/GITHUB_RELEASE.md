@@ -14,6 +14,7 @@ ValorGrid Community se publica con tags `vX.Y.Z`. Cada tag debe coincidir con la
 - Digests SHA-256 visibles en los assets de GitHub Releases.
 - `ghcr.io/aivm23/valorgrid:vX.Y.Z`: imagen Docker versionada publicada por el workflow Docker.
 - `ghcr.io/aivm23/valorgrid:latest`: etiqueta Docker de uso personal (no usar en CasaOS; allí usar siempre el tag versionado).
+- Paquete Umbrel en `deploy/umbrel/` sincronizado con `vX.Y.Z` y pendiente de digest real tras publicar GHCR.
 
 La release no publica bases SQLite, backups, `.env`, ficheros de importación del usuario ni artefactos privados.
 
@@ -89,7 +90,14 @@ macOS publica DMG x64 y arm64 desde el runner `macos-latest`. En esta fase los b
 
 5. Verificar que la release contiene los instaladores de escritorio, `SHA256SUMS.txt` y notas de release.
 6. Verificar que GHCR contiene la imagen `vX.Y.Z`.
-7. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md` y `docs/LEGAL_NOTICE.md`.
+7. Obtener el digest multiarch de `ghcr.io/aivm23/valorgrid:vX.Y.Z` y sincronizar Umbrel:
+
+   ```powershell
+   npm run umbrel:sync -- --digest sha256:<digest-multiarch>
+   npm run umbrel:check
+   ```
+
+8. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md`, `docs/LEGAL_NOTICE.md` y `docs/DEPLOY_UMBREL.md`.
 
 ## Upgrade
 
@@ -102,6 +110,8 @@ npm run db:backup
 En escritorio, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalación conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
 
 En Docker/CasaOS, comprobar que `deploy/docker/compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z` (tag versionado, nunca `latest`), que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
+
+En Umbrel, comprobar que `deploy/umbrel/official/valorgrid/docker-compose.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z@sha256:<digest-multiarch>` y que no declara `ports:` ni `build:`.
 
 ## Rollback
 
@@ -158,3 +168,4 @@ Cada release estable debe mantener actualizados:
 - `docs/IMPORT_EXCEL.md`: plantilla Excel y errores comunes.
 - `docs/FAQ.md`: preguntas frecuentes.
 - `docs/LEGAL_NOTICE.md`: aviso legal ampliado.
+- `docs/DEPLOY_UMBREL.md`: paquete Umbrel, community store, digest y pruebas.

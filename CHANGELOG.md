@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.26.0
+
+- feat: add an independent Umbrel package and community store template for self-hosted distribution.
+- chore: add Umbrel package synchronization and publication safety checks.
+- docs: document the Umbrel packaging, testing and official submission workflow.
+
 ## 3.25.1
 
 - refactor: expose a neutral Professional Edition dashboard layout preference anchor while keeping Community dashboard behavior fixed.

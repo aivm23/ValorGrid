@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.25.1",
+  "version": "3.26.0",
   "private": true,
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
@@ -41,6 +41,8 @@
     "local:migrate": "node scripts/migrate-local.js --copy",
     "local:verify": "node scripts/migrate-local.js --verify",
     "local:status": "node scripts/migrate-local.js",
+    "umbrel:sync": "node scripts/update-umbrel-package.js",
+    "umbrel:check": "node scripts/update-umbrel-package.js --check",
     "verify:publication": "node scripts/verify-publication.js",
     "audit:ai": "node scripts/audit/check-ai-surface.js",
     "audit:packages": "node scripts/audit/check-package-boundaries.js",

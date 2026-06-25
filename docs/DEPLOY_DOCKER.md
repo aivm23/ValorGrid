@@ -2,6 +2,8 @@
 
 ValorGrid puede ejecutarse como servicio local monousuario con Docker. La base SQLite y los backups viven fuera del contenedor en volumenes persistentes.
 
+Umbrel usa un paquete separado en `deploy/umbrel/`; no reutiliza ni `deploy/docker/docker-compose.yml` ni `deploy/docker/compose.casaos.yml`. Ver [DEPLOY_UMBREL.md](DEPLOY_UMBREL.md).
+
 ## Docker Compose local (build desde repositorio)
 
 Desde la raíz del repositorio:

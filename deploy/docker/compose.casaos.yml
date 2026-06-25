@@ -2,7 +2,7 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:v3.25.1
+    image: ghcr.io/aivm23/valorgrid:v3.26.0
     container_name: valorgrid
     restart: unless-stopped
     environment:
@@ -77,8 +77,8 @@ x-casaos:
   author: alvarovalderramamolina
   developer: alvarovalderramamolina
   category: Finance
-  version: 'v3.25.1'
-  updateAt: '2026-06-23'
+  version: 'v3.26.0'
+  updateAt: '2026-06-25'
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues
   repo: https://github.com/aivm23/ValorGrid

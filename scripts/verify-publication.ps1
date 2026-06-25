@@ -64,7 +64,7 @@ Invoke-Checked 'node --check apps/web/src/app.js' { & $node --check 'apps/web/sr
 Invoke-Checked 'node --test' { & $node --test }
 
 foreach ($generated in @('portfolio.loadtest.sqlite', ('portfolio.loadtest.sqlite' + '-shm'), ('portfolio.loadtest.sqlite' + '-wal'))) {
-  $generatedPath = Join-Path $root 'local\valorgrid\data' $generated
+  $generatedPath = Join-Path (Join-Path $root 'local\valorgrid\data') $generated
   if (Test-Path $generatedPath) {
     Remove-Item -LiteralPath $generatedPath -Force
   }
@@ -287,6 +287,76 @@ foreach ($pattern in $requiredCasaosPatterns) {
 $expectedVersionPattern = [regex]::Escape("v$version")
 if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*version:\s*[""']?$expectedVersionPattern[""']?\s*$")) {
   throw "compose.casaos.yml version must match package.json version: v$version"
+}
+
+$umbrelOfficialDir = Join-Path $root 'deploy\umbrel\official\valorgrid'
+$umbrelCommunityDir = Join-Path $root 'deploy\umbrel\community-store\valorgrid-store-valorgrid'
+$umbrelStorePath = Join-Path $root 'deploy\umbrel\community-store\umbrel-app-store.yml'
+foreach ($requiredUmbrelFile in @(
+  (Join-Path $umbrelOfficialDir 'umbrel-app.yml'),
+  (Join-Path $umbrelOfficialDir 'docker-compose.yml'),
+  (Join-Path $umbrelOfficialDir 'data\.gitkeep'),
+  $umbrelStorePath,
+  (Join-Path $umbrelCommunityDir 'umbrel-app.yml'),
+  (Join-Path $umbrelCommunityDir 'docker-compose.yml'),
+  (Join-Path $umbrelCommunityDir 'data\.gitkeep')
+)) {
+  if (-not (Test-Path $requiredUmbrelFile)) {
+    throw "Umbrel package file is missing: $requiredUmbrelFile"
+  }
+}
+
+$umbrelStore = Get-Content $umbrelStorePath -Raw
+if (-not [regex]::IsMatch($umbrelStore, '(?m)^id:\s*valorgrid-store\s*$')) {
+  throw 'Umbrel community store id must be valorgrid-store'
+}
+
+$umbrelPackages = @(
+  @{ Label = 'official'; Id = 'valorgrid'; Dir = $umbrelOfficialDir },
+  @{ Label = 'community'; Id = 'valorgrid-store-valorgrid'; Dir = $umbrelCommunityDir }
+)
+
+foreach ($umbrelPackage in $umbrelPackages) {
+  $manifest = Get-Content (Join-Path $umbrelPackage.Dir 'umbrel-app.yml') -Raw
+  $compose = Get-Content (Join-Path $umbrelPackage.Dir 'docker-compose.yml') -Raw
+  $packageLabel = $umbrelPackage.Label
+  $packageId = $umbrelPackage.Id
+
+  foreach ($pattern in @(
+    "(?m)^id:\s*$packageId\s*$",
+    "(?m)^version:\s*[""']?$version[""']?\s*$",
+    '(?m)^manifestVersion:\s*1\s*$',
+    '(?m)^category:\s*finance\s*$',
+    '(?m)^port:\s*1325\s*$',
+    '(?m)^path:\s*""\s*$',
+    '(?m)^gallery:\s*\[\]\s*$'
+  )) {
+    if (-not [regex]::IsMatch($manifest, $pattern)) {
+      throw "Umbrel $packageLabel manifest is missing required pattern: $pattern"
+    }
+  }
+
+  foreach ($pattern in @(
+    '(?m)^\s*app_proxy:\s*$',
+    '(?m)^\s*APP_HOST:\s*valorgrid_app_1\s*$',
+    '(?m)^\s*APP_PORT:\s*1325\s*$',
+    '(?m)^\s*PORTFOLIO_DB_PATH:\s*/data/portfolio\.sqlite\s*$',
+    '(?m)^\s*VALORGRID_BACKUP_DIR:\s*/data/backups\s*$',
+    '(?m)^\s*-\s*\$\{APP_DATA_DIR\}/data:/data\s*$'
+  )) {
+    if (-not [regex]::IsMatch($compose, $pattern)) {
+      throw "Umbrel $packageLabel compose is missing required pattern: $pattern"
+    }
+  }
+
+  if (-not [regex]::IsMatch($compose, "(?m)^\s*image:\s*ghcr\.io/aivm23/valorgrid:v$version@sha256:[a-f0-9]{64}\s*$")) {
+    throw "Umbrel $packageLabel compose must use ghcr.io/aivm23/valorgrid:v$version pinned by sha256 digest"
+  }
+  foreach ($forbiddenUmbrelPattern in @('(?m)^\s*build:\s*$', '(?m)^\s*ports:\s*$', 'latest\b', 'docker\.sock', '(?m)^volumes:\s*$')) {
+    if ([regex]::IsMatch($compose, $forbiddenUmbrelPattern)) {
+      throw "Umbrel $packageLabel compose contains forbidden pattern: $forbiddenUmbrelPattern"
+    }
+  }
 }
 
 $dockerWorkflowPath = Join-Path $root '.github\workflows\docker.yml'

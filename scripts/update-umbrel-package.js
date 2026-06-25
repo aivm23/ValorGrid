@@ -1,0 +1,136 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = path.resolve(__dirname, '..');
+const PACKAGE_ID = 'valorgrid';
+const COMMUNITY_STORE_ID = 'valorgrid-store';
+const COMMUNITY_PACKAGE_ID = `${COMMUNITY_STORE_ID}-valorgrid`;
+const PORT = 1325;
+const ZERO_DIGEST = `sha256:${'0'.repeat(64)}`;
+
+const args = process.argv.slice(2);
+const checkOnly = args.includes('--check');
+const digestArg = readArg('--digest') || process.env.UMBREL_IMAGE_DIGEST || ZERO_DIGEST;
+
+function readArg(name) {
+  const index = args.indexOf(name);
+  if (index === -1) return '';
+  return args[index + 1] || '';
+}
+
+function fail(message) {
+  process.stderr.write(`${message}\n`);
+  process.exit(1);
+}
+
+function assertDigest(digest) {
+  if (!/^sha256:[a-f0-9]{64}$/i.test(digest)) {
+    fail(`Invalid Umbrel image digest: ${digest}`);
+  }
+}
+
+function readVersion() {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  if (!pkg.version) fail('package.json does not contain a version');
+  return pkg.version;
+}
+
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function writeFile(file, content) {
+  const normalized = `${content.trimEnd()}\n`;
+  if (checkOnly) {
+    if (!fs.existsSync(file)) fail(`Missing generated Umbrel file: ${path.relative(ROOT, file)}`);
+    const current = fs.readFileSync(file, 'utf8');
+    if (current !== normalized) fail(`Umbrel file is stale: ${path.relative(ROOT, file)}`);
+    return;
+  }
+  ensureDir(path.dirname(file));
+  fs.writeFileSync(file, normalized);
+}
+
+function manifest({ id, version }) {
+  return `manifestVersion: 1
+id: ${id}
+category: finance
+name: ValorGrid
+version: "${version}"
+tagline: Private and auditable investment portfolio tracking
+description: >-
+  ValorGrid is a local-first portfolio tracker for recording, importing and
+  analysing investment movements with SQLite persistence, local backups and a
+  browser UI. Portfolio data stays on your Umbrel server; market price lookups
+  are sent only to the configured market data provider for the requested symbol.
+releaseNotes: ""
+
+developer: alvarovalderramamolina
+website: https://valorgrid.app
+dependencies: []
+repo: https://github.com/aivm23/ValorGrid
+support: https://github.com/aivm23/ValorGrid/issues
+
+port: ${PORT}
+gallery: []
+path: ""
+
+defaultUsername: ""
+defaultPassword: ""
+
+submitter: alvarovalderramamolina
+submission: ""`;
+}
+
+function compose({ version, digest }) {
+  return `services:
+  app_proxy:
+    environment:
+      APP_HOST: valorgrid_app_1
+      APP_PORT: ${PORT}
+
+  app:
+    image: ghcr.io/aivm23/valorgrid:v${version}@${digest}
+    restart: on-failure
+    environment:
+      HOST: 0.0.0.0
+      PORT: ${PORT}
+      PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+      VALORGRID_BACKUP_DIR: /data/backups
+      VALORGRID_AUTH_USER: valorgrid
+      VALORGRID_AUTH_PASSWORD: ""
+      VALORGRID_ALPHA_VANTAGE_API_KEY: ""
+    volumes:
+      - \${APP_DATA_DIR}/data:/data`;
+}
+
+function storeManifest() {
+  return `id: ${COMMUNITY_STORE_ID}
+name: ValorGrid Community App Store`;
+}
+
+function writePackage(baseDir, id, version, digest) {
+  writeFile(path.join(baseDir, id, 'umbrel-app.yml'), manifest({ id, version }));
+  writeFile(path.join(baseDir, id, 'docker-compose.yml'), compose({ version, digest }));
+  writeFile(path.join(baseDir, id, 'data', '.gitkeep'), '');
+}
+
+function run() {
+  assertDigest(digestArg);
+  const version = readVersion();
+  const officialRoot = path.join(ROOT, 'deploy', 'umbrel', 'official');
+  const communityRoot = path.join(ROOT, 'deploy', 'umbrel', 'community-store');
+
+  writePackage(officialRoot, PACKAGE_ID, version, digestArg);
+  writeFile(path.join(communityRoot, 'umbrel-app-store.yml'), storeManifest());
+  writePackage(communityRoot, COMMUNITY_PACKAGE_ID, version, digestArg);
+
+  const mode = checkOnly ? 'checked' : 'updated';
+  const digestLabel = digestArg === ZERO_DIGEST ? 'placeholder digest' : digestArg;
+  process.stdout.write(`Umbrel package ${mode} for v${version} using ${digestLabel}.\n`);
+}
+
+run();

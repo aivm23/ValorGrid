@@ -3,6 +3,8 @@
 *.sqlite-wal
 *.sqlite-shm
 data/
+!deploy/umbrel/**/data/
+!deploy/umbrel/**/data/.gitkeep
 .backups/
 backups/
 

@@ -178,22 +178,23 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 12. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
 13. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales y FX. Carga internamente `market-data-providers` y `market-data-admin`.
-14. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-15. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
-16. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-17. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-18. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
-19. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-20. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-21. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-22. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-23. `domains/history/history-core`: motor de materialización de histórico.
-24. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-25. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-26. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-27. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
-28. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-29. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+14. `domains/market-data/route-market-data-alpha-vantage`: ruta HTTP para status, guardado y borrado de claves Alpha Vantage. Se carga en el bucle principal (no vía `routes.js`) y se invoca desde `routes.js` a través de `ctx.handleAlphaVantageKeyRoutes`.
+15. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+16. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
+17. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+18. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+20. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+21. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+22. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+23. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+24. `domains/history/history-core`: motor de materialización de histórico.
+25. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+26. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+27. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+28. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
+29. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+30. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 
@@ -202,6 +203,10 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `domains/data-ingestion/route-data-ingestion.js`
 - `domains/portfolio/route-portfolio.js`
 - `domains/admin/route-admin.js`
+
+**Route modules (cargados en el bucle principal, invocados desde `routes.js`):**
+
+- `domains/market-data/route-market-data-alpha-vantage.js` — se registra vía `ctx.handleAlphaVantageKeyRoutes` en `routes.js`.
 
 **Sub-módulos de portfolio-service (cargados internamente):**
 
@@ -356,19 +361,22 @@ La API y los scripts operativos comparten la misma `backupDir` resuelta por `app
 
 Para migraciones de schema versionadas, existe `scripts/run-sql-migration.ps1` que automatiza backup + ejecución SQL + verificación de integridad usando los SQL de `deploy/sql/update-X-to-Y.sql`. Ver `docs/DB_OPERATIONS.md` para el flujo completo.
 
-## Docker y CasaOS
+## Docker, CasaOS y Umbrel
 
 Docker ejecuta la app como servicio local con:
 
 - `HOST=0.0.0.0`
 - `PORT=1325`
 - `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
+- `VALORGRID_BACKUP_DIR=/app/.backups`
 
 Los volúmenes guardan datos y backups fuera del contenedor.
 
+Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>` y persiste todo bajo `${APP_DATA_DIR}/data`. En Umbrel, `VALORGRID_BACKUP_DIR=/data/backups` para que backups y `secrets.json` queden dentro del volumen principal de la app.
+
 ## Seguridad
 
-La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. Para uso doméstico sin `VALORGRID_AUTH_PASSWORD`, debe quedarse en:
+La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. En Umbrel queda desactivado porque la autenticación la aporta `app_proxy`. Para uso doméstico sin `VALORGRID_AUTH_PASSWORD`, debe quedarse en:
 
 - localhost,
 - LAN privada,

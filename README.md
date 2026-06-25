@@ -27,7 +27,7 @@ Descarga el instalador de tu plataforma desde [GitHub Releases](https://github.c
 
 La versión de escritorio incluye el runtime. No requiere Node.js. Los builds macOS son unsigned en esta fase, por lo que Gatekeeper puede pedir aprobación manual en el primer arranque.
 
-## Docker / CasaOS
+## Docker / CasaOS / Umbrel
 
 ```bash
 docker compose -f deploy/docker/docker-compose.yml up -d --build
@@ -39,6 +39,13 @@ Datos en `./data`, backups en `./backups`. Imágenes GHCR:
 ghcr.io/aivm23/valorgrid:vX.Y.Z
 ghcr.io/aivm23/valorgrid:latest
 ```
+
+Umbrel usa un paquete independiente:
+
+- Oficial: `deploy/umbrel/official/valorgrid/`
+- Community App Store: `deploy/umbrel/community-store/`
+
+Guía Umbrel: [docs/DEPLOY_UMBREL.md](docs/DEPLOY_UMBREL.md).
 
 Guía completa: [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md).
 

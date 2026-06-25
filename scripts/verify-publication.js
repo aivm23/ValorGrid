@@ -366,6 +366,98 @@ function checkCasaosCompose(pkg) {
   }
 }
 
+function checkUmbrelPackage(pkg) {
+  const officialDir = path.join(repoRoot, 'deploy', 'umbrel', 'official', 'valorgrid');
+  const communityRoot = path.join(repoRoot, 'deploy', 'umbrel', 'community-store');
+  const communityDir = path.join(communityRoot, 'valorgrid-store-valorgrid');
+  const expectedVersion = pkg.version;
+  const expectedImage = `ghcr.io/aivm23/valorgrid:v${expectedVersion}@sha256:`;
+  const zeroDigest = `sha256:${'0'.repeat(64)}`;
+
+  const packageDefs = [
+    { label: 'official', dir: officialDir, id: 'valorgrid' },
+    { label: 'community', dir: communityDir, id: 'valorgrid-store-valorgrid' },
+  ];
+
+  const missing = [];
+  const errors = [];
+  const warnings = [];
+
+  const storePath = path.join(communityRoot, 'umbrel-app-store.yml');
+  if (!fs.existsSync(storePath)) {
+    missing.push('deploy/umbrel/community-store/umbrel-app-store.yml');
+  } else {
+    const store = fs.readFileSync(storePath, 'utf8');
+    if (!/^id:\s*valorgrid-store\s*$/m.test(store)) errors.push('community store id must be valorgrid-store');
+  }
+
+  for (const { label, dir, id } of packageDefs) {
+    const manifestPath = path.join(dir, 'umbrel-app.yml');
+    const composePath = path.join(dir, 'docker-compose.yml');
+    const dataKeepPath = path.join(dir, 'data', '.gitkeep');
+
+    if (!fs.existsSync(manifestPath)) missing.push(`${label} umbrel-app.yml`);
+    if (!fs.existsSync(composePath)) missing.push(`${label} docker-compose.yml`);
+    if (!fs.existsSync(dataKeepPath)) missing.push(`${label} data/.gitkeep`);
+    if (!fs.existsSync(manifestPath) || !fs.existsSync(composePath)) continue;
+
+    const manifest = fs.readFileSync(manifestPath, 'utf8');
+    const compose = fs.readFileSync(composePath, 'utf8');
+
+    const requiredManifestPatterns = [
+      [`id: ${id}`, new RegExp(`^id:\\s*${id}\\s*$`, 'm')],
+      [`version: ${expectedVersion}`, new RegExp(`^version:\\s*["']?${expectedVersion.replace(/\./g, '\\.')}["']?\\s*$`, 'm')],
+      ['manifestVersion: 1', /^manifestVersion:\s*1\s*$/m],
+      ['category: finance', /^category:\s*finance\s*$/m],
+      ['port: 1325', /^port:\s*1325\s*$/m],
+      ['path: ""', /^path:\s*""\s*$/m],
+      ['gallery: []', /^gallery:\s*\[\]\s*$/m],
+      ['defaultUsername: ""', /^defaultUsername:\s*""\s*$/m],
+      ['defaultPassword: ""', /^defaultPassword:\s*""\s*$/m],
+    ];
+
+    for (const [name, pattern] of requiredManifestPatterns) {
+      if (!pattern.test(manifest)) errors.push(`${label} manifest missing ${name}`);
+    }
+
+    const requiredComposePatterns = [
+      ['app_proxy service', /^\s*app_proxy:\s*$/m],
+      ['APP_HOST: valorgrid_app_1', /^\s*APP_HOST:\s*valorgrid_app_1\s*$/m],
+      ['APP_PORT: 1325', /^\s*APP_PORT:\s*1325\s*$/m],
+      ['PORTFOLIO_DB_PATH: /data/portfolio.sqlite', /^\s*PORTFOLIO_DB_PATH:\s*\/data\/portfolio\.sqlite\s*$/m],
+      ['VALORGRID_BACKUP_DIR: /data/backups', /^\s*VALORGRID_BACKUP_DIR:\s*\/data\/backups\s*$/m],
+      ['APP_DATA_DIR data bind mount', /^\s*-\s*\$\{APP_DATA_DIR\}\/data:\/data\s*$/m],
+    ];
+
+    for (const [name, pattern] of requiredComposePatterns) {
+      if (!pattern.test(compose)) errors.push(`${label} compose missing ${name}`);
+    }
+
+    const imageMatch = compose.match(/image:\s*(ghcr\.io\/aivm23\/valorgrid:v\d+\.\d+\.\d+@sha256:[a-f0-9]{64})/i);
+    if (!imageMatch) {
+      errors.push(`${label} compose image must use a versioned GHCR image pinned by sha256 digest`);
+    } else {
+      const image = imageMatch[1];
+      if (!image.startsWith(expectedImage)) errors.push(`${label} compose image tag must match package.json version v${expectedVersion}`);
+      if (image.endsWith(zeroDigest)) warnings.push(`${label} compose still uses the placeholder Umbrel digest`);
+    }
+
+    for (const forbidden of [/^\s*build:\s*$/m, /^\s*ports:\s*$/m, /latest\b/, /docker\.sock/, /^volumes:\s*$/m]) {
+      if (forbidden.test(compose)) errors.push(`${label} compose contains forbidden Umbrel pattern: ${forbidden}`);
+    }
+  }
+
+  if (missing.length) {
+    addCheck('fail', 'umbrel-package', 'Umbrel package files are missing', missing);
+  } else if (errors.length) {
+    addCheck('fail', 'umbrel-package', 'Umbrel package is not publication-safe', errors);
+  } else if (warnings.length) {
+    addCheck('warn', 'umbrel-package', 'Umbrel package is locally valid but still needs the release digest before App Store submission', warnings);
+  } else {
+    addCheck('ok', 'umbrel-package', `Umbrel package uses v${expectedVersion}, app_proxy and APP_DATA_DIR persistence.`);
+  }
+}
+
 function run() {
   const pkg = readVersion();
   if (!pkg) {
@@ -382,6 +474,7 @@ function run() {
   checkAlterTable();
   checkSeedDemo();
   checkCasaosCompose(pkg);
+  checkUmbrelPackage(pkg);
 
   return printReport();
 }
