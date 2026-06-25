@@ -420,9 +420,10 @@ function checkUmbrelPackage(pkg) {
       if (!pattern.test(manifest)) errors.push(`${label} manifest missing ${name}`);
     }
 
+    const expectedAppHost = `${id}_app_1`;
     const requiredComposePatterns = [
       ['app_proxy service', /^\s*app_proxy:\s*$/m],
-      ['APP_HOST: valorgrid_app_1', /^\s*APP_HOST:\s*valorgrid_app_1\s*$/m],
+      [`APP_HOST: ${expectedAppHost}`, new RegExp(`^\\s*APP_HOST:\\s*${expectedAppHost}\\s*$`, 'm')],
       ['APP_PORT: 1325', /^\s*APP_PORT:\s*1325\s*$/m],
       ['PORTFOLIO_DB_PATH: /data/portfolio.sqlite', /^\s*PORTFOLIO_DB_PATH:\s*\/data\/portfolio\.sqlite\s*$/m],
       ['VALORGRID_BACKUP_DIR: /data/backups', /^\s*VALORGRID_BACKUP_DIR:\s*\/data\/backups\s*$/m],

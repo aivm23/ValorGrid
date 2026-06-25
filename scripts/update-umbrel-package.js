@@ -13,7 +13,8 @@ const ZERO_DIGEST = `sha256:${'0'.repeat(64)}`;
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const digestArg = readArg('--digest') || process.env.UMBREL_IMAGE_DIGEST || ZERO_DIGEST;
+const digestOverride = readArg('--digest') || process.env.UMBREL_IMAGE_DIGEST || '';
+const digestArg = digestOverride || (checkOnly ? readExistingDigest() : ZERO_DIGEST);
 
 function readArg(name) {
   const index = args.indexOf(name);
@@ -36,6 +37,14 @@ function readVersion() {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   if (!pkg.version) fail('package.json does not contain a version');
   return pkg.version;
+}
+
+function readExistingDigest() {
+  const composePath = path.join(ROOT, 'deploy', 'umbrel', 'official', PACKAGE_ID, 'docker-compose.yml');
+  if (!fs.existsSync(composePath)) return ZERO_DIGEST;
+  const compose = fs.readFileSync(composePath, 'utf8');
+  const match = compose.match(/@(?<digest>sha256:[a-f0-9]{64})/i);
+  return match?.groups?.digest || ZERO_DIGEST;
 }
 
 function ensureDir(dir) {
@@ -86,11 +95,11 @@ submitter: alvarovalderramamolina
 submission: ""`;
 }
 
-function compose({ version, digest }) {
+function compose({ id, version, digest }) {
   return `services:
   app_proxy:
     environment:
-      APP_HOST: valorgrid_app_1
+      APP_HOST: ${id}_app_1
       APP_PORT: ${PORT}
 
   app:
@@ -115,7 +124,7 @@ name: ValorGrid Community App Store`;
 
 function writePackage(baseDir, id, version, digest) {
   writeFile(path.join(baseDir, id, 'umbrel-app.yml'), manifest({ id, version }));
-  writeFile(path.join(baseDir, id, 'docker-compose.yml'), compose({ version, digest }));
+  writeFile(path.join(baseDir, id, 'docker-compose.yml'), compose({ id, version, digest }));
   writeFile(path.join(baseDir, id, 'data', '.gitkeep'), '');
 }
 

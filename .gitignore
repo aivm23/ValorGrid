@@ -32,6 +32,7 @@ release-notes.md
 debug-*.js
 debug-*.json
 tmp/
+.tmp/
 temp/
 .cache/
 dist/
