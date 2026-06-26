@@ -18,6 +18,7 @@ import { attach as attachDashboard } from './dashboard.js';
 import { attach as attachForms } from './forms.js';
 import { attach as attachOnboarding } from './onboarding.js';
 import { attach as attachImports } from './imports.js';
+import { attach as attachDividends } from './dividends.js';
 import { attach as attachTheme } from './theme.js';
 import { attach as attachPrivacy } from './privacy.js';
 import { attach as attachHistory } from './history.js';
@@ -34,7 +35,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, 
 [
   attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
-  attachOnboarding, attachImports, attachPrivacy, attachBulkActions, attachHistoryPreferences,
+  attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
   attachReturnBreakdownPreferences,
   attachInstrumentColors, attachAlphaVantageSetup, attachExtensions,
 ].forEach((attach) => attach(ctx));

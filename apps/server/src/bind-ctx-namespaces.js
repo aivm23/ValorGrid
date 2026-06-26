@@ -40,6 +40,7 @@ function bindGroupedCtxNamespaces(ctx) {
     ctx.services.marketData,
     pickCtxFunctions(ctx, [
       'fetchYahooChart', 'fetchLatestYahooPrice', 'firstDailyCloseAtOrAfter',
+      'getYahooDividendEvents',
       'fetchDatedYahooPrice', 'dailyCacheHasRange', 'getCachedDailyPrices',
       'fetchDatedYahooPriceWithFallback', 'fetchLatestYahooPriceWithFallback',
       'getBestLocalQuote', 'parseDailyPrices', 'getDailyPrices', 'getQuoteForSymbol',
@@ -55,6 +56,14 @@ function bindGroupedCtxNamespaces(ctx) {
       'autoPlanMateriallyChanged', 'applyAutoPlanEditPolicy', 'getAutoPlanScheduledDates',
       'autoKeyForPlan', 'autoPlanExists', 'previewAutoPlanExecutions', 'getPositionShares',
       'createTransaction', 'previewTransaction', 'deleteTransaction', 'isAutoPlanSkipped',
+    ]),
+  );
+  Object.assign(
+    ctx.services.dividends,
+    pickCtxFunctions(ctx, [
+      'scanDividendEvents', 'listDividendDrafts', 'getDividendSummary',
+      'updateDividendDraft', 'confirmDividendDraft', 'ignoreDividendDraft',
+      'setDividendAutoInclude', 'runStartupDividendScan',
     ]),
   );
   Object.assign(

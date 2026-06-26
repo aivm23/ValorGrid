@@ -6,6 +6,7 @@ const {
   summarizeMarketDataStatus,
   withPercentages,
 } = require('./portfolio-market-data');
+const { summarizeTransactions } = require('./portfolio-flows');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -297,11 +298,14 @@ async function buildMonthly(year) {
         total: effectiveTotal,
         contributions: monthFlows.contributions,
         withdrawals: monthFlows.withdrawals,
+        dividends: monthFlows.dividends,
+        dividendCount: monthFlows.dividendCount,
         commissions: monthFlows.commissions,
         netContribution: monthFlows.netContribution,
         variation: previousTotal === null ? null : effectiveTotal - previousTotal,
         topGroup,
         autoContributions: monthFlows.autoContributions,
+        autoDividends: monthFlows.autoDividends,
         autoStatus: monthFlows.autoContributions > 0 ? `${monthFlows.autoContributions} automáticas` : 'Sin automáticas',
         groups: monthGroups,
       });
@@ -322,11 +326,14 @@ async function buildMonthly(year) {
         total: null,
         contributions: monthFlows.contributions,
         withdrawals: monthFlows.withdrawals,
+        dividends: monthFlows.dividends,
+        dividendCount: monthFlows.dividendCount,
         commissions: monthFlows.commissions,
         netContribution: monthFlows.netContribution,
         variation: null,
         topGroup: null,
         autoContributions: monthFlows.autoContributions,
+        autoDividends: monthFlows.autoDividends,
         autoStatus: 'Pendiente',
         groups: [],
       });
@@ -355,6 +362,8 @@ async function buildMonthly(year) {
       currentValue,
       contributions: ytdFlows.contributions,
       withdrawals: ytdFlows.withdrawals,
+      dividends: ytdFlows.dividends,
+      dividendCount: ytdFlows.dividendCount,
       commissions: ytdFlows.commissions,
       netContributed: ytdFlows.netContribution,
       resultYtd,
@@ -364,23 +373,6 @@ async function buildMonthly(year) {
     },
     months: monthlyInsights,
   };
-}
-
-function summarizeTransactions(transactions) {
-  return transactions.reduce(
-    (summary, transaction) => {
-      const valueEur = Number(transaction.valueEur || 0);
-      const commissionEur = Number(transaction.commissionEur || 0);
-      const cashFlowEur = Number(transaction.cashFlowEur || 0);
-      summary.commissions += commissionEur;
-      summary.netContribution -= cashFlowEur;
-      if (transaction.type === 'remove') summary.withdrawals += valueEur;
-      else summary.contributions += valueEur;
-      if (transaction.origin === 'auto') summary.autoContributions += 1;
-      return summary;
-    },
-    { contributions: 0, withdrawals: 0, commissions: 0, netContribution: 0, autoContributions: 0 },
-  );
 }
 
 function summarizeGroupTransactions(transactions, groupId, instrumentGroups) {
@@ -404,6 +396,8 @@ function buildMonthlyGroups(cells, configuredColumns, total, monthTransactions, 
         pct: total > 0 ? (value / total) * 100 : 0,
         contributions: flows.contributions,
         withdrawals: flows.withdrawals,
+        dividends: flows.dividends,
+        dividendCount: flows.dividendCount,
         commissions: flows.commissions,
         netContribution: flows.netContribution,
         positions: cell.positions || [],

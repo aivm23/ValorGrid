@@ -11,7 +11,10 @@ const {
   getPositionShares,
   getTransactions,
   getQuoteForSymbol,
+  buildPortfolioPerformance,
   cachePrice,
+  mockDividendEvents,
+  mockSplitEvents,
   seedTestInstrument,
   readWorkbook,
   worksheetRows,
@@ -133,6 +136,129 @@ test('returns quotes from SQLite cache for dated prices', async () => {
   assert.equal(quote.yahooSymbol, 'ICGA.DE');
   assert.equal(quote.price, 5.12);
   assert.equal(quote.cached, true);
+});
+
+test('dividend scan creates editable draft and confirmation stores dividend movement', async () => {
+  seedTestInstrument({ symbol: 'DIVT', yahooSymbol: 'DIVT.DE', name: 'Dividend Test', type: 'stock' });
+  cachePrice('DIVT.DE', '2026-01-10', 10);
+  const buy = await createTransaction({
+    type: 'add',
+    symbol: 'DIVT',
+    date: '2026-01-10',
+    shares: 10,
+  });
+  assert.equal(Number(buy.shares), 10);
+
+  mockDividendEvents.set('DIVT.DE', [{ exDate: '2026-02-10', amount: 0.5 }]);
+  const scan = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-02-01', toDate: '2026-02-28', symbols: ['DIVT'] }),
+  });
+  assert.equal(scan.response.status, 200);
+  assert.equal(scan.body.summary.createdDrafts, 1);
+
+  const drafts = await jsonRequest('/api/dividends/drafts');
+  assert.equal(drafts.body.drafts.length, 1);
+  const draft = drafts.body.drafts[0];
+  assert.equal(draft.symbol, 'DIVT');
+  assert.equal(Number(draft.effectiveShares), 10);
+  assert.equal(Number(draft.effectiveAmountPerShare), 0.5);
+  assert.equal(Number(draft.effectiveTotalEur), 5);
+
+  const edit = await jsonRequest(`/api/dividends/drafts/${encodeURIComponent(draft.id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amountPerShare: 0.55, shares: 10, totalEur: 5.5 }),
+  });
+  assert.equal(edit.response.status, 200);
+  assert.equal(Number(edit.body.draft.effectiveTotalEur), 5.5);
+
+  const confirm = await jsonRequest(`/api/dividends/drafts/${encodeURIComponent(draft.id)}/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoIncludeNext: true }),
+  });
+  assert.equal(confirm.response.status, 200);
+  const dividend = getTransactions().find((transaction) => transaction.symbol === 'DIVT' && transaction.type === 'dividend');
+  assert.ok(dividend);
+  assert.equal(Number(dividend.shares), 10);
+  assert.equal(Number(dividend.valueEur), 5.5);
+  assert.equal(Number(dividend.cashFlowEur), 5.5);
+  assert.equal(Number(getPositionShares('DIVT', '2026-02-10')), 10);
+
+  const performance = await buildPortfolioPerformance();
+  assert.equal(Number(performance.dividendIncomeEur.toFixed(2)), 5.5);
+  assert.equal(performance.dividendCount >= 1, true);
+});
+
+test('dividend scan does not duplicate and auto includes next dividend unless split notice exists', async () => {
+  seedTestInstrument({ symbol: 'DIVA', yahooSymbol: 'DIVA.DE', name: 'Dividend Auto', type: 'stock' });
+  cachePrice('DIVA.DE', '2026-01-10', 20);
+  await createTransaction({ type: 'add', symbol: 'DIVA', date: '2026-01-10', shares: 4 });
+  mockDividendEvents.set('DIVA.DE', [{ exDate: '2026-02-10', amount: 1 }]);
+
+  const first = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-02-01', toDate: '2026-02-28', symbols: ['DIVA'] }),
+  });
+  const second = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-02-01', toDate: '2026-02-28', symbols: ['DIVA'] }),
+  });
+  assert.equal(first.body.summary.createdDrafts, 1);
+  assert.equal(second.body.summary.createdDrafts, 0);
+
+  const drafts = await jsonRequest('/api/dividends/drafts');
+  const draft = drafts.body.drafts.find((item) => item.symbol === 'DIVA');
+  assert.ok(draft);
+  await jsonRequest(`/api/dividends/settings/${encodeURIComponent('DIVA')}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoInclude: true }),
+  });
+  await jsonRequest(`/api/dividends/drafts/${encodeURIComponent(draft.id)}/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+
+  mockDividendEvents.set('DIVA.DE', [
+    { exDate: '2026-02-10', amount: 1 },
+    { exDate: '2026-03-10', amount: 1.25 },
+  ]);
+  const auto = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-03-01', toDate: '2026-03-31', symbols: ['DIVA'] }),
+  });
+  assert.equal(auto.body.summary.autoConfirmed, 1);
+  assert.equal(getTransactions().filter((transaction) => transaction.symbol === 'DIVA' && transaction.type === 'dividend').length, 2);
+
+  mockDividendEvents.set('DIVA.DE', [
+    { exDate: '2026-04-10', amount: 1.5 },
+  ]);
+  mockSplitEvents.set('DIVA.DE', [{ date: '2026-04-10', numerator: 2, denominator: 1 }]);
+  const split = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-04-01', toDate: '2026-04-30', symbols: ['DIVA'] }),
+  });
+  assert.equal(split.body.summary.autoConfirmed, 0);
+  assert.equal(split.body.summary.createdDrafts, 1);
+  mockSplitEvents.delete('DIVA.DE');
+});
+
+test('manual dividend transaction is rejected', async () => {
+  const { response, body } = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'dividend', symbol: 'META', date: '2026-05-14', shares: 1 }),
+  });
+  assert.equal(response.status, 400);
+  assert.match(body.error, /Yahoo Finance/);
 });
 
 test('portfolio summary uses local stale prices when Yahoo is unavailable', async () => {

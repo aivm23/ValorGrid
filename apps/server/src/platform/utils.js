@@ -135,7 +135,9 @@ module.exports = function attach(ctx) {
    * @returns {number}
    */
   function transactionSign(type) {
-    return type === 'remove' ? -1 : 1;
+    if (type === 'remove') return -1;
+    if (type === 'dividend') return 0;
+    return 1;
   }
 
   /**

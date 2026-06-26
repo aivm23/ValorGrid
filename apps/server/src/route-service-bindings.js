@@ -20,6 +20,7 @@ function resolveRouteHandlers(ctx) {
   const instrumentServices = ctx.services?.instruments || {};
   const onboardingServices = ctx.services?.onboarding || {};
   const transactionServices = ctx.services?.transactions || {};
+  const dividendServices = ctx.services?.dividends || {};
   const importServices = ctx.services?.dataIngestion || {};
   const suggestionServices = ctx.services?.suggestions || {};
   const portfolioServices = ctx.services?.portfolio || {};
@@ -85,6 +86,14 @@ listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources'
       ctx.previewAutoPlanExecutions,
     ),
     replaceAutoPlans: pickServiceFn(transactionServices, 'replaceAutoPlans', ctx.replaceAutoPlans),
+    scanDividendEvents: pickServiceFn(dividendServices, 'scanDividendEvents', ctx.scanDividendEvents),
+    runStartupDividendScan: pickServiceFn(dividendServices, 'runStartupDividendScan', ctx.runStartupDividendScan),
+    listDividendDrafts: pickServiceFn(dividendServices, 'listDividendDrafts', ctx.listDividendDrafts),
+    getDividendSummary: pickServiceFn(dividendServices, 'getDividendSummary', ctx.getDividendSummary),
+    updateDividendDraft: pickServiceFn(dividendServices, 'updateDividendDraft', ctx.updateDividendDraft),
+    confirmDividendDraft: pickServiceFn(dividendServices, 'confirmDividendDraft', ctx.confirmDividendDraft),
+    ignoreDividendDraft: pickServiceFn(dividendServices, 'ignoreDividendDraft', ctx.ignoreDividendDraft),
+    setDividendAutoInclude: pickServiceFn(dividendServices, 'setDividendAutoInclude', ctx.setDividendAutoInclude),
     previewImport: pickServiceFn(importServices, 'previewImport', ctx.previewImport),
     searchTickerSuggestions: pickServiceFn(
       suggestionServices,

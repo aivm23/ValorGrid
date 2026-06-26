@@ -164,6 +164,7 @@ function normalizeType(value) {
   const key = normalizeHeader(value);
   if (typeAliases.add.has(key)) return 'add';
   if (typeAliases.remove.has(key)) return 'remove';
+  if (typeAliases.dividend.has(key)) return 'dividend';
   return null;
 }
 
@@ -229,6 +230,9 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   const warnings = [];
 
   if (!inferredType) errors.push('Tipo no reconocido');
+  if (inferredType === 'dividend') {
+    errors.push('Los dividendos se generan desde eventos de Yahoo Finance; en esta version no se importan manualmente');
+  }
   if (!date) errors.push('Fecha invalida');
   if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
   if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');

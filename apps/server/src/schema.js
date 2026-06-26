@@ -50,7 +50,7 @@ module.exports = function attach(ctx) {
 
     CREATE TABLE IF NOT EXISTS transactions (
       id TEXT PRIMARY KEY,
-      type TEXT NOT NULL CHECK (type IN ('add', 'remove')),
+      type TEXT NOT NULL CHECK (type IN ('add', 'remove', 'dividend')),
       symbol TEXT NOT NULL,
       name TEXT,
       date TEXT NOT NULL,
@@ -136,6 +136,62 @@ module.exports = function attach(ctx) {
       reason TEXT,
       retry_after TEXT,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS dividend_events (
+      id TEXT PRIMARY KEY,
+      symbol TEXT NOT NULL,
+      yahoo_symbol TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'Yahoo Finance',
+      source_event_id TEXT NOT NULL,
+      ex_date TEXT NOT NULL,
+      pay_date TEXT,
+      currency TEXT NOT NULL,
+      detected_amount_per_share REAL NOT NULL,
+      detected_shares REAL NOT NULL,
+      detected_total_original REAL NOT NULL,
+      detected_total_eur REAL NOT NULL,
+      effective_amount_per_share REAL NOT NULL,
+      effective_shares REAL NOT NULL,
+      effective_total_eur REAL NOT NULL,
+      fx_to_eur REAL NOT NULL DEFAULT 1,
+      status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ignored', 'confirmed')),
+      confirmed_automatically INTEGER NOT NULL DEFAULT 0,
+      transaction_id TEXT,
+      has_split_notice INTEGER NOT NULL DEFAULT 0,
+      split_notice TEXT,
+      raw_json TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      confirmed_at TEXT,
+      ignored_at TEXT,
+      UNIQUE(symbol, source_event_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS dividend_instrument_settings (
+      symbol TEXT PRIMARY KEY,
+      auto_include INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS dividend_scan_runs (
+      id TEXT PRIMARY KEY,
+      mode TEXT NOT NULL DEFAULT 'startup' CHECK (mode IN ('startup', 'api', 'test')),
+      status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'failed')),
+      started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      completed_at TEXT,
+      from_date TEXT NOT NULL,
+      to_date TEXT NOT NULL,
+      scanned_symbols INTEGER NOT NULL DEFAULT 0,
+      detected_events INTEGER NOT NULL DEFAULT 0,
+      created_drafts INTEGER NOT NULL DEFAULT 0,
+      updated_drafts INTEGER NOT NULL DEFAULT 0,
+      auto_confirmed INTEGER NOT NULL DEFAULT 0,
+      ignored_no_shares INTEGER NOT NULL DEFAULT 0,
+      split_notice_count INTEGER NOT NULL DEFAULT 0,
+      failed_symbols_json TEXT,
+      error TEXT
     );
 
     CREATE TABLE IF NOT EXISTS auto_plan_skips (
@@ -324,6 +380,14 @@ module.exports = function attach(ctx) {
       ON market_price_points (provider, provider_symbol, date);
     CREATE INDEX IF NOT EXISTS idx_market_price_ranges_lookup
       ON market_price_ranges (instrument_symbol, provider, provider_symbol, from_date, to_date);
+    CREATE INDEX IF NOT EXISTS idx_dividend_events_symbol_date
+      ON dividend_events (symbol, ex_date);
+    CREATE INDEX IF NOT EXISTS idx_dividend_events_status_date
+      ON dividend_events (status, ex_date);
+    CREATE INDEX IF NOT EXISTS idx_dividend_events_transaction
+      ON dividend_events (transaction_id);
+    CREATE INDEX IF NOT EXISTS idx_dividend_scan_runs_started
+      ON dividend_scan_runs (started_at);
     CREATE INDEX IF NOT EXISTS idx_fx_rates_pair_date
       ON fx_rates_daily (pair, date);
     CREATE INDEX IF NOT EXISTS idx_portfolio_positions_symbol_date

@@ -125,7 +125,7 @@ function buildHealth() {
 }
 
 function rowToValorGridExport(row) {
-  const type = row.type === 'remove' ? 'venta' : 'compra';
+  const type = row.type === 'dividend' ? 'dividendo' : row.type === 'remove' ? 'venta' : 'compra';
   const shares = Number(row.shares || 0);
 return [
     type,

@@ -99,6 +99,8 @@ test('ledger.js renders type-badge and origin-badge classes for transactions', a
   assert.ok(ledger.includes('type-badge'), 'ledger uses type-badge class');
   assert.ok(ledger.includes('type-sell'), 'ledger uses type-sell class');
   assert.ok(ledger.includes('type-buy'), 'ledger uses type-buy class');
+  assert.ok(ledger.includes('type-dividend'), 'ledger uses type-dividend class');
+  assert.ok(ledger.includes('Dividendo'), 'ledger labels dividend transactions');
   assert.ok(ledger.includes('origin-badge'), 'ledger uses origin-badge class');
   assert.ok(ledger.includes('origin-auto'), 'ledger uses origin-auto class');
   assert.ok(ledger.includes('origin-import'), 'ledger uses origin-import class');
@@ -111,8 +113,31 @@ test('CSS defines hover states for ledger table rows', () => {
   assert.ok(css.includes('tbody tr.is-selected'), 'CSS defines is-selected row state');
   assert.ok(css.includes('.type-buy'), 'CSS defines type-buy style');
   assert.ok(css.includes('.type-sell'), 'CSS defines type-sell style');
+  assert.ok(css.includes('.type-dividend'), 'CSS defines type-dividend style');
   assert.ok(css.includes('.origin-auto'), 'CSS defines origin-auto style');
   assert.ok(css.includes('.origin-import'), 'CSS defines origin-import style');
+});
+
+test('dividend review UI uses toolbar alert and automatic startup scan', () => {
+  const html = read(path.join('apps', 'web', 'index.html'));
+  const app = read(path.join('apps', 'web', 'src', 'app.js'));
+  const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  const dividends = read(path.join('apps', 'web', 'src', 'dividends.js'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
+
+  assert.ok(html.includes('id="dividend-alert"'), 'toolbar contains dividend alert');
+  assert.ok(html.includes('id="dividend-draft-dialog"'), 'HTML contains dividend draft dialog');
+  assert.ok(html.includes('Dividendos pendientes'), 'dialog title is visible');
+  assert.ok(app.includes("from './dividends.js'"), 'app imports dividends module');
+  assert.ok(dashboard.includes('startDividendStartupScan'), 'dashboard starts dividend scan after load');
+  assert.ok(dividends.includes('/api/dividends/scan'), 'dividend module calls scan API');
+  assert.ok(dividends.includes("mode: 'startup'"), 'scan is startup-driven');
+  assert.equal(dividends.includes('Buscar dividendos'), false, 'UI does not expose manual search button');
+  assert.ok(dividends.includes('Confirmar dividendo'), 'draft modal can confirm dividend');
+  assert.ok(dividends.includes('Incluir proximos dividendos automaticamente'), 'draft modal exposes auto include checkbox');
+  assert.ok(dividends.includes('split o dividend split'), 'draft modal informs split limitation');
+  assert.ok(css.includes('.dividend-draft-card'), 'CSS styles dividend draft cards');
+  assert.ok(css.includes('.toolbar-badge'), 'CSS styles alert badge');
 });
 
 // ── 4) Modal entrance/exit animations ──

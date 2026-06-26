@@ -47,6 +47,11 @@ export function attach(ctx) {
     dateFormat: 'dd/mm/yyyy',
     weekStart: 'monday',
     brandPaletteEnabled: false,
+    dividendSummary: null,
+    dividendDrafts: [],
+    dividendScanInProgress: false,
+    dividendStartupScanRequested: false,
+    dividendDraftDialogOpen: false,
     instrumentPositionFilter: 'all',
     instrumentFilters: {
       symbol: '',

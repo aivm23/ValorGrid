@@ -78,8 +78,9 @@ module.exports = function attach(ctx) {
     db.prepare(
       `INSERT INTO transactions
         (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-          fx_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          fx_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key,
+          import_batch_id, external_id, raw_hash)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       row.id,
       row.type,
@@ -97,6 +98,9 @@ module.exports = function attach(ctx) {
       row.color,
       row.origin,
       row.autoKey,
+      row.importBatchId || null,
+      row.externalId || null,
+      row.rawHash || null,
     );
   }
 

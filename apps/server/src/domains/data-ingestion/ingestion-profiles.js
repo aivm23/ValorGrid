@@ -3,6 +3,7 @@ const path = require('node:path');
 const typeAliases = {
   add: new Set(['add', 'buy', 'compra', 'comprar', 'c']),
   remove: new Set(['remove', 'sell', 'venta', 'vender', 'v']),
+  dividend: new Set(['dividend', 'dividendo']),
 };
 
 const adapterDefinitions = {

@@ -99,6 +99,22 @@
               <span class="toolbar-label">Exportar</span>
             </a>
             <button
+              id="dividend-alert"
+              class="calendar-button dividend-alert"
+              type="button"
+              aria-label="Revisar dividendos pendientes"
+              title="Dividendos pendientes"
+              hidden
+            >
+              <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 3v5"></path>
+                <path d="M7 9a5 5 0 0 1 10 0c0 5 3 6 3 8H4c0-2 3-3 3-8Z"></path>
+                <path d="M10 20a2 2 0 0 0 4 0"></path>
+              </svg>
+              <span class="toolbar-label">Dividendos</span>
+              <span id="dividend-alert-count" class="toolbar-badge"></span>
+            </button>
+            <button
               id="admin-manager"
               class="balance-toggle"
               type="button"
@@ -295,6 +311,7 @@
               <option value="">Todos</option>
               <option value="add">Compra</option>
               <option value="remove">Venta</option>
+              <option value="dividend">Dividendo</option>
             </select>
           </label>
           <label class="field">
@@ -1187,6 +1204,20 @@
         <div class="modal-actions">
           <button id="alpha-vantage-skip" class="button btn-cancel" type="button">Ahora no</button>
         </div>
+      </div>
+    </dialog>
+
+    <dialog id="dividend-draft-dialog" class="modal">
+      <div class="modal-panel dividend-modal-panel">
+        <div class="admin-header">
+          <div class="admin-header-text">
+            <h2>Dividendos pendientes</h2>
+            <p class="subtle">Revisa los dividendos detectados desde Yahoo Finance antes de incorporarlos a movimientos.</p>
+          </div>
+          <button id="dividend-draft-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <div id="dividend-draft-summary" class="dividend-draft-summary"></div>
+        <div id="dividend-draft-rows" class="dividend-draft-list"></div>
       </div>
     </dialog>
 

@@ -11,6 +11,7 @@ const {
   quoteFromMarketPoint,
 } = require('./market-data-providers');
 const { makeMarketDataAdmin } = require('./market-data-admin');
+const { makeGetYahooDividendEvents } = require('./market-data-dividends');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -478,6 +479,7 @@ const { listMarketDataSources } = makeMarketDataAdmin({
     listProviderStates,
     invalidatePrices,
   });
+  const getYahooDividendEvents = makeGetYahooDividendEvents({ fetchYahooChart, dateUtc, addDays, toUnixSeconds });
 
-  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, fetchDatedYahooPriceWithFallback, fetchLatestYahooPriceWithFallback, getBestLocalQuote, resolvePriceSourcesForInstrument, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getDailyPricesForInstrument, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur, listMarketDataSources });
+  Object.assign(ctx, { fetchYahooChart, fetchLatestYahooPrice, getYahooDividendEvents, firstDailyCloseAtOrAfter, fetchDatedYahooPrice, fetchDatedYahooPriceWithFallback, fetchLatestYahooPriceWithFallback, getBestLocalQuote, resolvePriceSourcesForInstrument, dailyCacheHasRange, getCachedDailyPrices, parseDailyPrices, getDailyPrices, getDailyPricesForInstrument, getQuoteForSymbol, getQuoteForYahooSymbol, getUsdToEur, getFxToEur, listMarketDataSources });
 };

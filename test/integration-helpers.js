@@ -21,6 +21,8 @@ const mockPrices = {
   'USDEUR=X': { price: 0.8566, currency: 'EUR' },
 };
 const mockDatedPrices = new Map();
+const mockDividendEvents = new Map();
+const mockSplitEvents = new Map();
 
 global.fetch = async (url) => {
   const parsed = new URL(String(url));
@@ -52,6 +54,25 @@ global.fetch = async (url) => {
   return {
     ok: true,
     async json() {
+      const events = {};
+      const dividends = mockDividendEvents.get(yahooSymbol) || [];
+      const splits = mockSplitEvents.get(yahooSymbol) || [];
+      if (dividends.length) {
+        events.dividends = Object.fromEntries(
+          dividends.map((event) => {
+            const timestamp = Date.parse(`${event.exDate}T00:00:00Z`) / 1000;
+            return [String(timestamp), { amount: event.amount, date: timestamp }];
+          }),
+        );
+      }
+      if (splits.length) {
+        events.splits = Object.fromEntries(
+          splits.map((event) => {
+            const timestamp = Date.parse(`${event.date}T00:00:00Z`) / 1000;
+            return [String(timestamp), { date: timestamp, numerator: event.numerator || 1, denominator: event.denominator || 1 }];
+          }),
+        );
+      }
       return {
         chart: {
           result: [
@@ -66,6 +87,7 @@ global.fetch = async (url) => {
               indicators: {
                 quote: [{ close: closes }],
               },
+              events,
             },
           ],
         },
@@ -219,6 +241,8 @@ module.exports = {
   commitImport,
   rollbackImportBatch,
   cachePrice,
+  mockDividendEvents,
+  mockSplitEvents,
   seedTestInstrument,
   createWorkbookBase64,
   readWorkbook,
