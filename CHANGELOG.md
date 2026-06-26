@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.26.1
+
+- fix: prevent weekend/holiday crypto-only rebuilds from zeroing stock and ETF positions by seeding the last available price before the rebuild start date.
+- fix: carry forward stale FX rates for non-EUR instruments when rebuilding history from a non-trading day.
+- test: add regression tests for weekend crypto not zeroing stock positions and FX carry-forward.
+
 ## 3.26.0
 
 - feat: add an independent Umbrel package and community store template for self-hosted distribution.

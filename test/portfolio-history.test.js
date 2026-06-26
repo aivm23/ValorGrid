@@ -20,7 +20,13 @@ const {
 
 registerLifecycle(test);
 test.before(async () => {
-  seedTestInstrument({ symbol: 'HIST1', yahooSymbol: 'HIST1', name: 'History Baseline One', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'HIST1',
+    yahooSymbol: 'HIST1',
+    name: 'History Baseline One',
+    type: 'stock',
+    currency: 'EUR',
+  });
   cachePrice('HIST1', '2026-05-01', 10);
   cachePrice('HIST1', '2026-05-02', 11);
   await createTransaction({ type: 'add', symbol: 'HIST1', date: '2026-05-01', shares: 2 });
@@ -64,7 +70,10 @@ test('deleting an automatic transaction prevents same month auto recreation', as
 
   const { response } = await jsonRequest('/api/portfolio/summary');
   assert.equal(response.status, 200);
-  assert.equal(getTransactions().some((item) => item.autoKey === autoKey), false);
+  assert.equal(
+    getTransactions().some((item) => item.autoKey === autoKey),
+    false,
+  );
 });
 
 test('automatic plans respect startDate before creating monthly transactions', async () => {
@@ -87,14 +96,19 @@ test('automatic plans respect startDate before creating monthly transactions', a
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: futureStartDate }],
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: futureStartDate },
+      ],
     }),
   });
   assert.equal(futurePlan.response.status, 200);
 
   const futureStart = await jsonRequest('/api/portfolio/summary');
   assert.equal(futureStart.response.status, 200);
-  assert.equal(getTransactions().some((item) => item.autoKey === autoKey), false);
+  assert.equal(
+    getTransactions().some((item) => item.autoKey === autoKey),
+    false,
+  );
 
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',
@@ -106,7 +120,9 @@ test('automatic plans respect startDate before creating monthly transactions', a
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }],
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` },
+      ],
     }),
   });
   assert.equal(activePlan.response.status, 200);
@@ -139,7 +155,11 @@ test('automatic plans do not duplicate legacy monthly auto keys', async () => {
   await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` },
+      ],
+    }),
   });
   await jsonRequest('/api/portfolio/summary');
 
@@ -191,16 +211,29 @@ test('automatic plans support weekly, biweekly, monthly backfill, and stable aut
 
   const beforeCount = autoKeys.length;
   await jsonRequest('/api/portfolio/summary');
-  const afterCount = getTransactions()
-    .filter((transaction) => ['WEEK1', 'WEEK2', 'BIW1', 'MON1'].includes(transaction.symbol))
-    .length;
+  const afterCount = getTransactions().filter((transaction) =>
+    ['WEEK1', 'WEEK2', 'BIW1', 'MON1'].includes(transaction.symbol),
+  ).length;
   assert.equal(afterCount, beforeCount);
 });
 
 test('onboarding wizard preview is read-only and commit is atomic', async () => {
   const payload = {
-    group: { name: 'Wizard Atomic', color: '#16a34a', showInDistribution: true, showInMonthly: true, isExpandable: false },
-    instrument: { symbol: 'WIZA', yahooSymbol: 'WIZA', name: 'Wizard Asset', type: 'etf', currency: 'EUR', color: '#2563eb' },
+    group: {
+      name: 'Wizard Atomic',
+      color: '#16a34a',
+      showInDistribution: true,
+      showInMonthly: true,
+      isExpandable: false,
+    },
+    instrument: {
+      symbol: 'WIZA',
+      yahooSymbol: 'WIZA',
+      name: 'Wizard Asset',
+      type: 'etf',
+      currency: 'EUR',
+      color: '#2563eb',
+    },
     transaction: { enabled: true, date: '2026-05-10', euros: 100, commissionEur: 1 },
     autoPlan: { enabled: true, amountEur: 25, frequency: 'monthly', day: 3, startDate: '2026-05-01' },
   };
@@ -211,7 +244,10 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
   });
   assert.equal(preview.response.status, 200);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZA'").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Atomic'").get().count, 0);
+  assert.equal(
+    db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Atomic'").get().count,
+    0,
+  );
 
   const needsConfirmation = preview.body?.preview?.requiresRetroactiveConfirmation;
   const commitPayload = { ...payload };
@@ -227,7 +263,14 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
 
   const badPayload = {
     group: { name: 'Wizard Rollback', color: '#16a34a' },
-    instrument: { symbol: 'WIZB', yahooSymbol: 'WIZB', name: 'Wizard Bad', type: 'etf', currency: 'EUR', color: '#2563eb' },
+    instrument: {
+      symbol: 'WIZB',
+      yahooSymbol: 'WIZB',
+      name: 'Wizard Bad',
+      type: 'etf',
+      currency: 'EUR',
+      color: '#2563eb',
+    },
     autoPlan: { enabled: true, amountEur: 25, frequency: 'weekly', weekday: 9, startDate: '2026-05-01' },
   };
   const failed = await jsonRequest('/api/onboarding/wizard/commit', {
@@ -237,7 +280,10 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
   });
   assert.equal(failed.response.status, 400);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZB'").get().count, 0);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Rollback'").get().count, 0);
+  assert.equal(
+    db.prepare("SELECT COUNT(*) AS count FROM instrument_groups WHERE name = 'Wizard Rollback'").get().count,
+    0,
+  );
 });
 
 test('portfolio history applies adaptive granularity and returns events', async () => {
@@ -262,7 +308,9 @@ test('portfolio history applies adaptive granularity and returns events', async 
 });
 
 test('portfolio history stores persistent materialized values and positions', async () => {
-  db.exec('DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;');
+  db.exec(
+    'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
 
   const first = await buildPortfolioHistory('5y');
   const buildRow = db.prepare("SELECT status, points FROM history_builds WHERE build_key = 'portfolio_daily'").get();
@@ -281,16 +329,22 @@ test('portfolio history stores persistent materialized values and positions', as
 });
 
 test('ledger writes invalidate materialized portfolio history versions', async () => {
-  db.exec('DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM history_builds; DELETE FROM history_invalidations;');
+  db.exec(
+    'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
   await buildPortfolioHistory('5y');
-  const before = db.prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'").get();
+  const before = db
+    .prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'")
+    .get();
   const beforeVersion = Number(before?.version || 0);
 
   cachePrice('NOV.DE', '2026-05-16', 40);
   const transaction = await createTransaction({ type: 'add', symbol: 'NVO', date: '2026-05-16', shares: 1 });
   assert.ok(db.prepare("SELECT 1 FROM history_invalidations WHERE reason = 'transaction-create'").get());
   await buildPortfolioHistory('5y');
-  const after = db.prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'").get();
+  const after = db
+    .prepare("SELECT ledger_version AS version FROM history_builds WHERE build_key = 'portfolio_daily'")
+    .get();
 
   assert.ok(after);
   assert.ok(after.version > beforeVersion);
@@ -299,7 +353,9 @@ test('ledger writes invalidate materialized portfolio history versions', async (
 });
 
 test('portfolio history materialized cache survives server restart and hard reload style requests', async () => {
-  db.exec('DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;');
+  db.exec(
+    'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
   const before = await jsonRequest('/api/portfolio/history?range=5y');
   assert.equal(before.response.status, 200);
   assert.ok(db.prepare("SELECT 1 FROM history_builds WHERE build_key = 'portfolio_daily' AND status = 'ready'").get());
@@ -340,8 +396,16 @@ test('GET /api/diagnostics/performance reports cache and timing data', async () 
 });
 
 test('portfolio history persists daily prices and FX cache', async () => {
-  db.exec('DELETE FROM daily_price_cache; DELETE FROM daily_price_cache_ranges; DELETE FROM market_prices_daily; DELETE FROM fx_rates_daily; DELETE FROM portfolio_value_weekly; DELETE FROM history_builds; DELETE FROM history_invalidations;');
-  seedTestInstrument({ symbol: 'FXUSD', yahooSymbol: 'FXUSD', name: 'FX USD Baseline', type: 'stock', currency: 'USD' });
+  db.exec(
+    'DELETE FROM daily_price_cache; DELETE FROM daily_price_cache_ranges; DELETE FROM market_prices_daily; DELETE FROM fx_rates_daily; DELETE FROM portfolio_value_weekly; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
+  seedTestInstrument({
+    symbol: 'FXUSD',
+    yahooSymbol: 'FXUSD',
+    name: 'FX USD Baseline',
+    type: 'stock',
+    currency: 'USD',
+  });
   cachePrice('FXUSD', '2026-05-15', 10, 'USD');
   await createTransaction({ type: 'add', symbol: 'FXUSD', date: '2026-05-15', shares: 1 });
   const priceVersion = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'price_version'").get().value);
@@ -390,10 +454,22 @@ test('GET /api/portfolio/monthly returns monthly rows and skips future months', 
   assert.ok(Number.isFinite(body.summary.currentValue));
   assert.ok(Number.isFinite(body.summary.netContributed));
   assert.ok(Number.isFinite(body.summary.resultYtd));
-  assert.equal(body.columns.some((column) => /World valor|China valor|U308/.test(column.label)), false);
-  assert.equal(body.months.some((month) => month.month > currentMonth), false);
-  assert.equal(body.months.some((month) => month.total === null), false);
-  assert.equal(body.rows.some((row) => row.total === null), false);
+  assert.equal(
+    body.columns.some((column) => /World valor|China valor|U308/.test(column.label)),
+    false,
+  );
+  assert.equal(
+    body.months.some((month) => month.month > currentMonth),
+    false,
+  );
+  assert.equal(
+    body.months.some((month) => month.total === null),
+    false,
+  );
+  assert.equal(
+    body.rows.some((row) => row.total === null),
+    false,
+  );
 });
 
 test('monthly tracking ignores zero-value groups and zero-share instruments', async () => {
@@ -443,9 +519,18 @@ test('monthly tracking ignores zero-value groups and zero-share instruments', as
   assert.ok(mixedColumn);
   assert.equal(mixedCell.positions.length, 1);
   assert.equal(mixedCell.positions[0].symbol, 'MIX1');
-  assert.equal(mixedCell.positions.some((position) => position.symbol === 'MIX0'), false);
-  assert.equal(januaryInsight.groups.some((group) => group.id === 'zero-monthly-test'), false);
-  assert.equal(januaryInsight.groups.some((group) => group.positions.some((position) => position.symbol === 'MIX0')), false);
+  assert.equal(
+    mixedCell.positions.some((position) => position.symbol === 'MIX0'),
+    false,
+  );
+  assert.equal(
+    januaryInsight.groups.some((group) => group.id === 'zero-monthly-test'),
+    false,
+  );
+  assert.equal(
+    januaryInsight.groups.some((group) => group.positions.some((position) => position.symbol === 'MIX0')),
+    false,
+  );
 });
 
 test('GET /api/portfolio/history works for every range', async () => {
@@ -503,8 +588,14 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   const all = await buildPortfolioHistory('all');
 
   for (const history of [first, second, ytd, all]) {
-    assert.ok(history.events.every((event) => event.plotDate >= history.from), `${history.range} has no early events`);
-    assert.ok(history.events.every((event) => event.plotDate <= history.to), `${history.range} has no late events`);
+    assert.ok(
+      history.events.every((event) => event.plotDate >= history.from),
+      `${history.range} has no early events`,
+    );
+    assert.ok(
+      history.events.every((event) => event.plotDate <= history.to),
+      `${history.range} has no late events`,
+    );
     if (history.events.length) {
       const expectedFirstEvent = getTransactions()
         .filter((transaction) => (transaction.marketDate || transaction.date) >= history.from)
@@ -520,7 +611,10 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   assert.ok(first.events.some((event) => event.symbol === 'GOLD'));
   assert.ok(first.events.some((event) => event.type === 'remove'));
   assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'GOLD'").get().frequency, 'monthly');
-  assert.ok(db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'GOLD' AND origin = 'auto'").get().count >= 20);
+  assert.ok(
+    db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'GOLD' AND origin = 'auto'").get().count >=
+      20,
+  );
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
   assert.ok(secondElapsed < 300, `warm 5y loadtest history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
@@ -530,7 +624,9 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
 
 test('portfolio history uses SQLite daily cache when Yahoo is unavailable', async () => {
   seedLoadtestDb(db, { from: '2020-01-01', to: '2026-05-16' });
-  db.exec('DELETE FROM daily_price_cache_ranges; DELETE FROM history_builds; DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_invalidations;');
+  db.exec(
+    'DELETE FROM daily_price_cache_ranges; DELETE FROM history_builds; DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_invalidations;',
+  );
   const previousFetch = global.fetch;
   global.fetch = async () => {
     throw new Error('network down');
@@ -593,7 +689,16 @@ test('GET /api/preferences/ui returns no editable preference payload in communit
 test('GET /api/preferences/ui ignores legacy ui_preferences in community', async () => {
   db.prepare("DELETE FROM app_meta WHERE key = 'ui_preferences'").run();
   db.prepare("INSERT INTO app_meta (key, value) VALUES ('ui_preferences', ?)").run(
-    JSON.stringify({ operationsMetricIds: ['marketValue', 'netContributed', 'totalGain', 'unrealizedGain', 'realizedGain', 'commissions'] }),
+    JSON.stringify({
+      operationsMetricIds: [
+        'marketValue',
+        'netContributed',
+        'totalGain',
+        'unrealizedGain',
+        'realizedGain',
+        'commissions',
+      ],
+    }),
   );
   const { response, body } = await jsonRequest('/api/preferences/ui');
 
@@ -647,7 +752,9 @@ test('PUT /api/preferences/ui validates historyEventFilters transactionTypes', a
   const { response } = await jsonRequest('/api/preferences/ui', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['dividend'] } }),
+    body: JSON.stringify({
+      historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['dividend'] },
+    }),
   });
 
   assert.equal(response.status, 403);
@@ -674,8 +781,20 @@ test('PUT /api/preferences/ui rejects custom mode without transactionTypes', asy
 });
 
 test('history events include instrumentType via LEFT JOIN instruments', async () => {
-  seedTestInstrument({ symbol: 'HISTFILT', yahooSymbol: 'HISTFILT', name: 'History Filter Test', type: 'stock', currency: 'EUR' });
-  seedTestInstrument({ symbol: 'HISTETFF', yahooSymbol: 'HISTETFF', name: 'History ETF Filter', type: 'etf', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'HISTFILT',
+    yahooSymbol: 'HISTFILT',
+    name: 'History Filter Test',
+    type: 'stock',
+    currency: 'EUR',
+  });
+  seedTestInstrument({
+    symbol: 'HISTETFF',
+    yahooSymbol: 'HISTETFF',
+    name: 'History ETF Filter',
+    type: 'etf',
+    currency: 'EUR',
+  });
   cachePrice('HISTFILT', '2026-05-01', 10);
   cachePrice('HISTETFF', '2026-05-01', 20);
   await createTransaction({ type: 'add', symbol: 'HISTFILT', date: '2026-05-01', shares: 1 });
@@ -689,4 +808,120 @@ test('history events include instrumentType via LEFT JOIN instruments', async ()
   assert.equal(etfEvent.instrumentType, 'etf');
 });
 
+test('weekend crypto does not zero stock positions', async () => {
+  db.exec(`
+    DELETE FROM daily_price_cache WHERE yahoo_symbol IN ('WSTK', 'WBTC');
+    DELETE FROM daily_price_cache_ranges WHERE yahoo_symbol IN ('WSTK', 'WBTC');
+    DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly;
+    DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events;
+    DELETE FROM history_builds; DELETE FROM history_invalidations;
+    DELETE FROM transactions WHERE symbol IN ('WSTK', 'WBTC');
+    DELETE FROM instruments WHERE symbol IN ('WSTK', 'WBTC');
+  `);
 
+  seedTestInstrument({ symbol: 'WSTK', yahooSymbol: 'WSTK', name: 'Weekend Stock', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'WBTC', yahooSymbol: 'WBTC', name: 'Weekend BTC', type: 'crypto', currency: 'EUR' });
+
+  const insertDaily = db.prepare(
+    `INSERT OR REPLACE INTO daily_price_cache (yahoo_symbol, date, price, currency, source) VALUES (?, ?, ?, ?, 'test')`,
+  );
+  insertDaily.run('WSTK', '2026-06-19', 100, 'EUR');
+  insertDaily.run('WBTC', '2026-06-19', 50000, 'EUR');
+  insertDaily.run('WBTC', '2026-06-20', 51000, 'EUR');
+
+  const insertRange = db.prepare(
+    `INSERT OR REPLACE INTO daily_price_cache_ranges (yahoo_symbol, from_date, to_date) VALUES (?, ?, ?)`,
+  );
+  insertRange.run('WSTK', '2000-01-01', '2099-12-31');
+  insertRange.run('WBTC', '2000-01-01', '2099-12-31');
+
+  await createTransaction({ type: 'add', symbol: 'WSTK', date: '2026-06-19', shares: 10 });
+  await createTransaction({ type: 'add', symbol: 'WBTC', date: '2026-06-19', shares: 0.5 });
+
+  const history1 = await buildPortfolioHistory('all');
+  assert.ok(history1.series.length > 0, 'first build should produce series');
+
+  db.prepare('INSERT INTO history_invalidations (from_date, reason) VALUES (?, ?)').run('2026-06-20', 'test');
+
+  const history2Daily = await buildPortfolioHistory('all', 'daily');
+
+  const saturdayPoint = history2Daily.series.find((p) => p.date === '2026-06-20');
+  assert.ok(saturdayPoint, 'should have Saturday point in daily series');
+
+  const stockPosition = db
+    .prepare('SELECT * FROM portfolio_positions_daily WHERE date = ? AND symbol = ?')
+    .get('2026-06-20', 'WSTK');
+  assert.ok(stockPosition, 'stock position should exist for Saturday');
+  assert.ok(stockPosition.price_eur > 0, 'stock price should be stale Friday price, not zero');
+  assert.equal(stockPosition.data_quality, 'stale');
+
+  const btcPosition = db
+    .prepare('SELECT * FROM portfolio_positions_daily WHERE date = ? AND symbol = ?')
+    .get('2026-06-20', 'WBTC');
+  assert.ok(btcPosition, 'BTC position should exist for Saturday');
+  assert.ok(btcPosition.price_eur > 0, 'BTC price should be exact Saturday price');
+
+  assert.ok(saturdayPoint.value > 0, 'Saturday value should include both stock and BTC');
+  assert.equal(saturdayPoint.dataQuality, 'stale');
+
+  const history2Weekly = await buildPortfolioHistory('all', 'weekly');
+  const weekContainingSaturday = history2Weekly.series.find((p) => p.date >= '2026-06-15' && p.date <= '2026-06-21');
+  assert.ok(weekContainingSaturday, 'weekly series should have a point for the week containing Saturday');
+  assert.ok(weekContainingSaturday.value > 0, 'weekly value should include stock at stale price');
+});
+
+test('weekend rebuild carries FX forward for non-EUR instruments', async () => {
+  db.exec(`
+    DELETE FROM daily_price_cache WHERE yahoo_symbol IN ('WUSD', 'WBTC2', 'USDEUR=X');
+    DELETE FROM daily_price_cache_ranges WHERE yahoo_symbol IN ('WUSD', 'WBTC2', 'USDEUR=X');
+    DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly;
+    DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events;
+    DELETE FROM history_builds; DELETE FROM history_invalidations;
+    DELETE FROM transactions WHERE symbol IN ('WUSD', 'WBTC2');
+    DELETE FROM instruments WHERE symbol IN ('WUSD', 'WBTC2');
+  `);
+
+  seedTestInstrument({
+    symbol: 'WUSD',
+    yahooSymbol: 'WUSD',
+    name: 'Weekend USD Stock',
+    type: 'stock',
+    currency: 'USD',
+  });
+  seedTestInstrument({ symbol: 'WBTC2', yahooSymbol: 'WBTC2', name: 'Weekend BTC 2', type: 'crypto', currency: 'EUR' });
+
+  const insertDaily = db.prepare(
+    `INSERT OR REPLACE INTO daily_price_cache (yahoo_symbol, date, price, currency, source) VALUES (?, ?, ?, ?, 'test')`,
+  );
+  insertDaily.run('WUSD', '2026-06-19', 200, 'USD');
+  insertDaily.run('WBTC2', '2026-06-19', 50000, 'EUR');
+  insertDaily.run('WBTC2', '2026-06-20', 51000, 'EUR');
+  insertDaily.run('USDEUR=X', '2026-06-19', 0.85, 'EUR');
+
+  const insertRange = db.prepare(
+    `INSERT OR REPLACE INTO daily_price_cache_ranges (yahoo_symbol, from_date, to_date) VALUES (?, ?, ?)`,
+  );
+  insertRange.run('WUSD', '2000-01-01', '2099-12-31');
+  insertRange.run('WBTC2', '2000-01-01', '2099-12-31');
+  insertRange.run('USDEUR=X', '2000-01-01', '2099-12-31');
+
+  await createTransaction({ type: 'add', symbol: 'WUSD', date: '2026-06-19', shares: 10 });
+  await createTransaction({ type: 'add', symbol: 'WBTC2', date: '2026-06-19', shares: 0.5 });
+
+  const history1 = await buildPortfolioHistory('all');
+  assert.ok(history1.series.length > 0, 'first build should produce series');
+
+  db.prepare('INSERT INTO history_invalidations (from_date, reason) VALUES (?, ?)').run('2026-06-20', 'test');
+
+  const history2Daily = await buildPortfolioHistory('all', 'daily');
+
+  const saturdayPoint = history2Daily.series.find((p) => p.date === '2026-06-20');
+  assert.ok(saturdayPoint, 'should have Saturday point in daily series');
+
+  const usdPosition = db
+    .prepare('SELECT * FROM portfolio_positions_daily WHERE date = ? AND symbol = ?')
+    .get('2026-06-20', 'WUSD');
+  assert.ok(usdPosition, 'USD position should exist for Saturday');
+  assert.ok(usdPosition.price_eur > 0, 'USD price in EUR should use stale FX rate');
+  assert.equal(usdPosition.data_quality, 'stale');
+});

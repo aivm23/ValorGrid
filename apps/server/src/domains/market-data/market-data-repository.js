@@ -40,6 +40,18 @@ module.exports = function attach(ctx) {
       .get(yahooSymbol, requestedDate);
   }
 
+  function getLatestDailyPriceBefore(yahooSymbol, fromDate) {
+    return db
+      .prepare(
+        `SELECT date, price, currency, source
+         FROM daily_price_cache
+         WHERE yahoo_symbol = ? AND date < ?
+         ORDER BY date DESC
+         LIMIT 1`,
+      )
+      .get(yahooSymbol, fromDate);
+  }
+
   function getLatestMaterializedPrice(yahooSymbol, requestedDate) {
     return db
       .prepare(
@@ -250,6 +262,7 @@ module.exports = function attach(ctx) {
     getCachedPriceQuote,
     getLatestCachedPriceQuote,
     getLatestDailyPrice,
+    getLatestDailyPriceBefore,
     getLatestMaterializedPrice,
     upsertPriceQuote,
     hasDailyPriceRange,
