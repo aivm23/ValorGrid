@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.27.0
+
+- feat: detect Yahoo Finance dividend events in the background and create reviewable dividend drafts.
+- feat: confirm dividend drafts into ledger movements with `Compra`, `Venta` and `Dividendo` separated in Movimientos.
+- feat: add per-instrument automatic dividend inclusion after user validation, with split notices kept as manual review.
+- docs: document dividend data model, API, financial semantics and SQL migration flow.
+- test: cover dividend drafts, confirmation, auto-inclusion, manual-entry blocking and frontend review UI.
+
 ## 3.26.1
 
 - fix: prevent weekend/holiday crypto-only rebuilds from zeroing stock and ETF positions by seeding the last available price before the rebuild start date.

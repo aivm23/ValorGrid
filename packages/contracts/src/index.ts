@@ -44,7 +44,7 @@ export interface InstrumentIdentifier {
 /** Transacción del ledger (fila plana devuelta por la DB). */
 export interface Transaction {
   id: string;
-  type: 'add' | 'remove';
+  type: 'add' | 'remove' | 'dividend';
   symbol: string;
   name: string;
   date: string;
@@ -125,6 +125,8 @@ export interface PortfolioItem {
 export interface LedgerAnalytics {
   grossInvested: number;
   grossWithdrawn: number;
+  dividendIncomeEur: number;
+  dividendCount: number;
   commissions: number;
   netCashFlow: number;
   netContributed: number;

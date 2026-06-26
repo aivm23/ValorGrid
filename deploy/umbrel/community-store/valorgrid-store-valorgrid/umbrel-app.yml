@@ -2,7 +2,7 @@ manifestVersion: 1
 id: valorgrid-store-valorgrid
 category: finance
 name: ValorGrid
-version: "3.26.1"
+version: "3.27.0"
 icon: https://raw.githubusercontent.com/aivm23/valorgrid-umbrel-app-store/main/valorgrid-store-valorgrid/icon.svg
 tagline: Private and auditable investment portfolio tracking
 description: >-
