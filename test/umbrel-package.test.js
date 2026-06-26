@@ -21,8 +21,10 @@ test('Umbrel package generator is in sync with checked-in package files', () => 
 });
 
 test('official Umbrel compose is independent and uses app_proxy only', () => {
+  const manifest = read('deploy/umbrel/official/valorgrid/umbrel-app.yml');
   const compose = read('deploy/umbrel/official/valorgrid/docker-compose.yml');
 
+  assert.doesNotMatch(manifest, /^icon:/m);
   assert.match(compose, /app_proxy:/);
   assert.match(compose, /APP_HOST:\s*valorgrid_app_1/);
   assert.match(compose, /APP_PORT:\s*1325/);
@@ -38,9 +40,12 @@ test('community Umbrel app id is prefixed by the community store id', () => {
   const store = read('deploy/umbrel/community-store/umbrel-app-store.yml');
   const manifest = read('deploy/umbrel/community-store/valorgrid-store-valorgrid/umbrel-app.yml');
   const compose = read('deploy/umbrel/community-store/valorgrid-store-valorgrid/docker-compose.yml');
+  const icon = read('deploy/umbrel/community-store/valorgrid-store-valorgrid/icon.svg');
 
   assert.match(store, /^id:\s*valorgrid-store\s*$/m);
   assert.match(manifest, /^id:\s*valorgrid-store-valorgrid\s*$/m);
   assert.match(manifest, new RegExp(`^version:\\s*"${pkg.version.replace(/\./g, '\\.')}"\\s*$`, 'm'));
+  assert.match(manifest, /^icon:\s*https:\/\/raw\.githubusercontent\.com\/aivm23\/valorgrid-umbrel-app-store\/main\/valorgrid-store-valorgrid\/icon\.svg\s*$/m);
   assert.match(compose, /APP_HOST:\s*valorgrid-store-valorgrid_app_1/);
+  assert.match(icon, /<svg[^>]+aria-label="ValorGrid"/);
 });

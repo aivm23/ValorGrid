@@ -399,6 +399,7 @@ function checkUmbrelPackage(pkg) {
     if (!fs.existsSync(manifestPath)) missing.push(`${label} umbrel-app.yml`);
     if (!fs.existsSync(composePath)) missing.push(`${label} docker-compose.yml`);
     if (!fs.existsSync(dataKeepPath)) missing.push(`${label} data/.gitkeep`);
+    if (label === 'community' && !fs.existsSync(path.join(dir, 'icon.svg'))) missing.push(`${label} icon.svg`);
     if (!fs.existsSync(manifestPath) || !fs.existsSync(composePath)) continue;
 
     const manifest = fs.readFileSync(manifestPath, 'utf8');
@@ -418,6 +419,16 @@ function checkUmbrelPackage(pkg) {
 
     for (const [name, pattern] of requiredManifestPatterns) {
       if (!pattern.test(manifest)) errors.push(`${label} manifest missing ${name}`);
+    }
+
+    if (label === 'official' && /^icon:/m.test(manifest)) {
+      errors.push('official manifest must omit icon for App Store PR submission');
+    }
+    if (
+      label === 'community' &&
+      !/^icon:\s*https:\/\/raw\.githubusercontent\.com\/aivm23\/valorgrid-umbrel-app-store\/main\/valorgrid-store-valorgrid\/icon\.svg\s*$/m.test(manifest)
+    ) {
+      errors.push('community manifest must point to the public ValorGrid community icon');
     }
 
     const expectedAppHost = `${id}_app_1`;

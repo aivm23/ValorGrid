@@ -8,6 +8,8 @@ const ROOT = path.resolve(__dirname, '..');
 const PACKAGE_ID = 'valorgrid';
 const COMMUNITY_STORE_ID = 'valorgrid-store';
 const COMMUNITY_PACKAGE_ID = `${COMMUNITY_STORE_ID}-valorgrid`;
+const COMMUNITY_ICON_URL =
+  'https://raw.githubusercontent.com/aivm23/valorgrid-umbrel-app-store/main/valorgrid-store-valorgrid/icon.svg';
 const PORT = 1325;
 const ZERO_DIGEST = `sha256:${'0'.repeat(64)}`;
 
@@ -64,13 +66,14 @@ function writeFile(file, content) {
   fs.writeFileSync(file, normalized);
 }
 
-function manifest({ id, version }) {
+function manifest({ icon, id, version }) {
+  const iconField = icon ? `icon: ${icon}\n` : '';
   return `manifestVersion: 1
 id: ${id}
 category: finance
 name: ValorGrid
 version: "${version}"
-tagline: Private and auditable investment portfolio tracking
+${iconField}tagline: Private and auditable investment portfolio tracking
 description: >-
   ValorGrid is a local-first portfolio tracker for recording, importing and
   analysing investment movements with SQLite persistence, local backups and a
@@ -78,7 +81,7 @@ description: >-
   are sent only to the configured market data provider for the requested symbol.
 releaseNotes: ""
 
-developer: alvarovalderramamolina
+developer: aivm23
 website: https://valorgrid.app
 dependencies: []
 repo: https://github.com/aivm23/ValorGrid
@@ -91,7 +94,7 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 
-submitter: alvarovalderramamolina
+submitter: aivm23
 submission: ""`;
 }
 
@@ -122,10 +125,30 @@ function storeManifest() {
 name: ValorGrid Community App Store`;
 }
 
-function writePackage(baseDir, id, version, digest) {
-  writeFile(path.join(baseDir, id, 'umbrel-app.yml'), manifest({ id, version }));
+function iconSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ValorGrid">
+  <defs>
+    <linearGradient id="vg" x1="80" x2="432" y1="96" y2="416" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#20c7ff"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="#07111f"/>
+  <rect x="96" y="96" width="320" height="320" rx="56" fill="#0b1729" stroke="#1f3a5f" stroke-width="12"/>
+  <path d="M150 322l66-78 54 48 92-128" fill="none" stroke="url(#vg)" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+  <path d="M144 144h224M144 224h224M144 304h224M144 384h224M144 144v240M224 144v240M304 144v240M384 144v240" stroke="#243b5e" stroke-width="8" opacity=".55"/>
+  <circle cx="150" cy="322" r="14" fill="#20c7ff"/>
+  <circle cx="216" cy="244" r="14" fill="#38bdf8"/>
+  <circle cx="270" cy="292" r="14" fill="#6366f1"/>
+  <circle cx="362" cy="164" r="14" fill="#8b5cf6"/>
+</svg>`;
+}
+
+function writePackage(baseDir, id, version, digest, options = {}) {
+  writeFile(path.join(baseDir, id, 'umbrel-app.yml'), manifest({ icon: options.icon, id, version }));
   writeFile(path.join(baseDir, id, 'docker-compose.yml'), compose({ id, version, digest }));
   writeFile(path.join(baseDir, id, 'data', '.gitkeep'), '');
+  if (options.iconFile) writeFile(path.join(baseDir, id, 'icon.svg'), iconSvg());
 }
 
 function run() {
@@ -136,7 +159,10 @@ function run() {
 
   writePackage(officialRoot, PACKAGE_ID, version, digestArg);
   writeFile(path.join(communityRoot, 'umbrel-app-store.yml'), storeManifest());
-  writePackage(communityRoot, COMMUNITY_PACKAGE_ID, version, digestArg);
+  writePackage(communityRoot, COMMUNITY_PACKAGE_ID, version, digestArg, {
+    icon: COMMUNITY_ICON_URL,
+    iconFile: true,
+  });
 
   const mode = checkOnly ? 'checked' : 'updated';
   const digestLabel = digestArg === ZERO_DIGEST ? 'placeholder digest' : digestArg;

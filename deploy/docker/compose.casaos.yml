@@ -74,8 +74,8 @@ x-casaos:
     - amd64
     - arm64
   main: valorgrid
-  author: alvarovalderramamolina
-  developer: alvarovalderramamolina
+  author: aivm23
+  developer: aivm23
   category: Finance
   version: 'v3.26.0'
   updateAt: '2026-06-25'

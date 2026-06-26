@@ -3,6 +3,7 @@ id: valorgrid-store-valorgrid
 category: finance
 name: ValorGrid
 version: "3.26.0"
+icon: https://raw.githubusercontent.com/aivm23/valorgrid-umbrel-app-store/main/valorgrid-store-valorgrid/icon.svg
 tagline: Private and auditable investment portfolio tracking
 description: >-
   ValorGrid is a local-first portfolio tracker for recording, importing and
@@ -11,7 +12,7 @@ description: >-
   are sent only to the configured market data provider for the requested symbol.
 releaseNotes: ""
 
-developer: alvarovalderramamolina
+developer: aivm23
 website: https://valorgrid.app
 dependencies: []
 repo: https://github.com/aivm23/ValorGrid
@@ -24,5 +25,5 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 
-submitter: alvarovalderramamolina
+submitter: aivm23
 submission: ""
