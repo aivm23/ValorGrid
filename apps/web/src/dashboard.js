@@ -60,6 +60,8 @@ export function attach(ctx) {
       state.initialLoadComplete = true;
       setBootState('ready');
       try { await ctx.loadImportSources(ctx); } catch { /* non-critical */ }
+      ctx.refreshDividendSummary?.();
+      ctx.window.setTimeout(() => ctx.startDividendStartupScan?.(), 0);
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
       if (!state.initialLoadComplete) setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);

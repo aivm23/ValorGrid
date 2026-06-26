@@ -113,12 +113,18 @@ export function attach(ctx) {
   }
 
   function historyEventColor(event) {
+    if (event.type === 'dividend') return '#06b6d4';
     if (event.type === 'remove') return '#dc2626';
     return '#16a34a';
   }
 
+  function historyEventLabel(type) {
+    if (type === 'dividend') return 'Dividendo';
+    return type === 'remove' ? 'Venta' : 'Compra';
+  }
+
   function eventTooltip(event) {
-    const type = event.type === 'remove' ? 'Venta' : 'Compra';
+    const type = historyEventLabel(event.type);
     const origin = event.origin === 'auto' ? 'automático' : event.origin === 'import' ? 'importado' : 'manual';
     const lines = [
       `${type} ${event.symbol}`,
@@ -141,7 +147,7 @@ export function attach(ctx) {
       `${formatPlainDate(date)} - ${events.length} movimientos`,
       '---',
       ...events.map((event) => {
-        const type = event.type === 'remove' ? 'Venta' : 'Compra';
+        const type = historyEventLabel(event.type);
         return `${type} ${event.symbol}: ${formatShareNumber(event.shares)} acciones, ${formatCurrency(Number(event.valueEur))}`;
       }).flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
     ].join('\n');
@@ -174,7 +180,7 @@ export function attach(ctx) {
     const last = history.series[history.series.length - 1];
     const first = history.series[0];
     const invested = visibleEvents.reduce((sum, event) => {
-      const sign = event.type === 'remove' ? -1 : 1;
+      const sign = event.type === 'remove' ? -1 : event.type === 'dividend' ? 0 : 1;
       return sum + sign * Number(event.valueEur || 0) + (event.type === 'add' ? Number(event.commissionEur || 0) : 0);
     }, 0);
     elements.historyStats.innerHTML = `
@@ -261,6 +267,7 @@ export function attach(ctx) {
           r="${r}"
           style="--event-color: ${eventColor}"
           data-tooltip="${tooltip}"
+          data-event-color="${eventColor}"
           data-event-index="${index}"
         ></circle>
       `;

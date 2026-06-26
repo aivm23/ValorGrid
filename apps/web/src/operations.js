@@ -145,6 +145,11 @@ export function attach(ctx) {
               <span>Ventas brutas</span>
               <strong>${ctx.formatCurrency(performance.grossWithdrawn || 0)}</strong>
               <small class="metric-micro">total vendido sin comisiones</small>`;
+          case 'dividendIncome':
+            return `
+              ${metricInfo('Dividendos', 'Total cobrado por dividendos confirmados desde eventos de Yahoo Finance.', 'op-dividends-info')}
+              <strong>${ctx.formatCurrency(performance.dividendIncomeEur || 0)}</strong>
+              <small class="metric-micro">${performance.dividendCount || 0} dividendo${performance.dividendCount === 1 ? '' : 's'}</small>`;
           default:
             return '';
         }
@@ -177,6 +182,7 @@ export function attach(ctx) {
       .filter((transaction) => String(transaction.symbol || '').toUpperCase() === symbol)
       .reduce((sum, transaction) => {
         const shares = Number(transaction.shares || 0);
+        if (transaction.type === 'dividend') return sum;
         return transaction.type === 'remove' ? sum - shares : sum + shares;
       }, baseShares);
   }

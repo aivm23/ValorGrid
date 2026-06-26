@@ -41,6 +41,7 @@ export function attach(ctx) {
       Number(month.total || 0) > 0 ||
       Number(month.contributions || 0) > 0 ||
       Number(month.withdrawals || 0) > 0 ||
+      Number(month.dividends || 0) > 0 ||
       (month.groups || []).some((group) => Number(group.value || 0) > 0)
     );
   }
@@ -63,6 +64,7 @@ export function attach(ctx) {
       <article class="has-border-accent"><span>Valor actual</span><strong>${ctx.formatCurrency(currentValue)}</strong><small class="metric-micro">${ytdPct}% YTD</small></article>
       <article class="has-border-positive"><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small class="metric-micro">compras del año</small></article>
       <article class="has-border-negative"><span>Retiradas</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small class="metric-micro">ventas del año</small></article>
+      <article class="has-border-accent"><span>Dividendos</span><strong>${ctx.formatCurrency(Number(summary.dividends || 0))}</strong><small class="metric-micro">${Number(summary.dividendCount || 0)} cobrados</small></article>
       <article class="${Number(summary.resultYtd || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado YTD</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
     `;
   }
@@ -85,6 +87,7 @@ export function attach(ctx) {
           <span><small>Valor final</small><strong>${ctx.formatCurrency(Number(month.total || 0))}</strong></span>
           <span><small>Aportaciones</small><strong>${ctx.formatCurrency(Number(month.contributions || 0))}</strong></span>
           <span><small>Retiradas</small><strong class="${ctx.moneyClass(Number(month.withdrawals || 0))}">${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
+          <span><small>Dividendos</small><strong>${ctx.formatCurrency(Number(month.dividends || 0))}</strong></span>
           <span><small>Variación</small><strong class="${variationClass}">${variation === null ? 'Inicio' : ctx.formatCurrency(variation)}</strong></span>
           <span><small>Automáticas</small><strong>${ctx.escapeHtml(month.autoStatus || 'Sin automáticas')}</strong></span>
         </summary>
@@ -130,6 +133,7 @@ export function attach(ctx) {
         </div>
         <div><small>Valor</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
         <div><small>Aportado</small><strong class="${ctx.moneyClass(Number(group.contributions || 0))}">${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
+        <div><small>Dividendos</small><strong>${ctx.formatCurrency(Number(group.dividends || 0))}</strong></div>
         <div><small>Neto</small><strong class="${ctx.moneyClass(Number(group.netContribution || 0))}">${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
         <ul>${positions || '<li><span>Sin posiciones con valor</span></li>'}</ul>
       </article>
@@ -153,6 +157,8 @@ export function attach(ctx) {
               pct: row.total > 0 ? (Number(cell.value || 0) / row.total) * 100 : 0,
               contributions: 0,
               withdrawals: 0,
+              dividends: 0,
+              dividendCount: 0,
               commissions: 0,
               netContribution: 0,
               positions: cell.positions || [],
@@ -166,6 +172,8 @@ export function attach(ctx) {
           total: row.total,
           contributions: 0,
           withdrawals: 0,
+          dividends: 0,
+          dividendCount: 0,
           commissions: 0,
           netContribution: 0,
           variation: index === 0 ? null : row.total - rows[index - 1].total,
@@ -188,6 +196,8 @@ export function attach(ctx) {
       currentValue: latest ? Number(latest.total || 0) : 0,
       contributions: 0,
       withdrawals: 0,
+      dividends: 0,
+      dividendCount: 0,
       commissions: 0,
       netContributed: 0,
       resultYtd: latest && first ? latest.total - first.total : 0,

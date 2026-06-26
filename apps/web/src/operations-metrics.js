@@ -22,6 +22,7 @@ export const OPERATION_METRIC_IDS = new Set([
   'netCashFlow',
   'grossBought',
   'grossSold',
+  'dividendIncome',
 ]);
 
 /** @type {Record<string, OperationMetricDefinition>} */
@@ -302,6 +303,24 @@ export const OPERATION_METRICS = {
     },
     microcopy() {
       return 'ventas brutas';
+    },
+  },
+  dividendIncome: {
+    id: 'dividendIncome',
+    label: 'Dividendos',
+    tooltip: 'Total cobrado por dividendos confirmados desde eventos de Yahoo Finance.',
+    borderClass() {
+      return 'has-border-accent';
+    },
+    valueClass() {
+      return '';
+    },
+    value(data) {
+      return data.performance?.dividendIncomeEur ?? 0;
+    },
+    microcopy(data) {
+      const count = data.performance?.dividendCount ?? 0;
+      return `${count} dividendo${count === 1 ? '' : 's'}`;
     },
   },
 };

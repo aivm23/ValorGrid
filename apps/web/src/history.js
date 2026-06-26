@@ -21,6 +21,7 @@ export function attach(ctx) {
     const target = event.target.closest?.('[data-tooltip]');
     if (!target) return;
     elements.historyTooltip.textContent = target.dataset.tooltip;
+    elements.historyTooltip.style.borderLeftColor = target.dataset.eventColor || '';
     elements.historyTooltip.hidden = false;
     elements.historyEventPanel.textContent = target.dataset.tooltip;
     elements.historyEventPanel.hidden = false;

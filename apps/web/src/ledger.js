@@ -1,4 +1,5 @@
 function transactionTypeLabel(type) {
+  if (type === 'dividend') return 'Dividendo';
   return type === 'remove' ? 'Venta' : 'Compra';
 }
 
@@ -46,11 +47,12 @@ export function attach(ctx) {
         const value = Number(item.valueEur || 0);
         if (item.type === 'add') acc.invested += value;
         if (item.type === 'remove') acc.withdrawn += value;
+        if (item.type === 'dividend') acc.dividends += value;
         acc.commissions += Number(item.commissionEur || 0);
         acc.cashFlow += Number(item.cashFlowEur || 0);
         return acc;
       },
-      { invested: 0, withdrawn: 0, commissions: 0, cashFlow: 0 },
+      { invested: 0, withdrawn: 0, dividends: 0, commissions: 0, cashFlow: 0 },
     );
 
     const hasFilters = symbolFilter || originFilter || typeFilter || fromDate || toDate;
@@ -62,6 +64,7 @@ export function attach(ctx) {
       <span>Movimientos: ${countHtml}</span>
       <span>Compras: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
       <span>Ventas: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
+      <span>Dividendos: <strong>${ctx.formatCurrency(totals.dividends)}</strong></span>
       <span>Comisiones: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>
       <span>Cash-flow: <strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></span>
     `;
@@ -80,7 +83,7 @@ export function attach(ctx) {
       ? rows
           .map((item) => {
             const id = String(item.id);
-            const typeClass = item.type === 'remove' ? 'type-sell' : 'type-buy';
+            const typeClass = item.type === 'dividend' ? 'type-dividend' : item.type === 'remove' ? 'type-sell' : 'type-buy';
             const originClass = item.origin === 'auto' ? 'origin-auto' : item.origin === 'import' ? 'origin-import' : 'origin-manual';
             const isSelected = selectedIds.has(id);
             return `
