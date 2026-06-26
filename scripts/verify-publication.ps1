@@ -292,6 +292,7 @@ if (-not [regex]::IsMatch($casaosCompose, "(?m)^\s*version:\s*[""']?$expectedVer
 $umbrelOfficialDir = Join-Path $root 'deploy\umbrel\official\valorgrid'
 $umbrelCommunityDir = Join-Path $root 'deploy\umbrel\community-store\valorgrid-store-valorgrid'
 $umbrelStorePath = Join-Path $root 'deploy\umbrel\community-store\umbrel-app-store.yml'
+$communityIconPath = Join-Path $umbrelCommunityDir 'icon.svg'
 foreach ($requiredUmbrelFile in @(
   (Join-Path $umbrelOfficialDir 'umbrel-app.yml'),
   (Join-Path $umbrelOfficialDir 'docker-compose.yml'),
@@ -299,7 +300,8 @@ foreach ($requiredUmbrelFile in @(
   $umbrelStorePath,
   (Join-Path $umbrelCommunityDir 'umbrel-app.yml'),
   (Join-Path $umbrelCommunityDir 'docker-compose.yml'),
-  (Join-Path $umbrelCommunityDir 'data\.gitkeep')
+  (Join-Path $umbrelCommunityDir 'data\.gitkeep'),
+  $communityIconPath
 )) {
   if (-not (Test-Path $requiredUmbrelFile)) {
     throw "Umbrel package file is missing: $requiredUmbrelFile"
@@ -336,9 +338,17 @@ foreach ($umbrelPackage in $umbrelPackages) {
     }
   }
 
+  if ($packageLabel -eq 'official' -and [regex]::IsMatch($manifest, '(?m)^icon:')) {
+    throw "Umbrel official manifest must omit icon for App Store PR submission"
+  }
+  if ($packageLabel -eq 'community' -and -not [regex]::IsMatch($manifest, '(?m)^icon:\s*https://raw\.githubusercontent\.com/aivm23/valorgrid-umbrel-app-store/main/valorgrid-store-valorgrid/icon\.svg\s*$')) {
+    throw "Umbrel community manifest must point to the public ValorGrid community icon"
+  }
+
+  $expectedAppHost = "${packageId}_app_1"
   foreach ($pattern in @(
     '(?m)^\s*app_proxy:\s*$',
-    '(?m)^\s*APP_HOST:\s*valorgrid_app_1\s*$',
+    "(?m)^\s*APP_HOST:\s*${expectedAppHost}\s*$",
     '(?m)^\s*APP_PORT:\s*1325\s*$',
     '(?m)^\s*PORTFOLIO_DB_PATH:\s*/data/portfolio\.sqlite\s*$',
     '(?m)^\s*VALORGRID_BACKUP_DIR:\s*/data/backups\s*$',
