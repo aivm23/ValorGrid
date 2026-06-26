@@ -16,6 +16,7 @@ Fuentes de verdad actuales:
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).
 - `cash_flow_eur > 0`: entrada de caja (ventas netas de comisión).
+- Los dividendos confirmados usan `cash_flow_eur > 0` y no cambian acciones.
 - `netContributed > 0`: capital neto aportado a cartera.
 - `netContributed < 0`: retirada neta de capital (la cartera ya devolvió más caja de la aportada).
 
@@ -34,6 +35,10 @@ Formula base:
   - Suma de `value_eur` de compras (`type = add`), sin restar ventas.
 - `grossWithdrawn`:
   - Suma de `value_eur` de ventas (`type = remove`), sin netear compras.
+- `dividendIncomeEur`:
+  - Suma de `value_eur` de dividendos confirmados (`type = dividend`).
+- `dividendCount`:
+  - Numero de movimientos `type = dividend`.
 - `commissions`:
   - Suma de `commission_eur` de todas las operaciones.
 - `netCashFlow`:
@@ -46,7 +51,8 @@ Formula base:
 - `totalGain`:
   - `currentValue - netContributed`.
 - `unrealizedGain`:
-  - `totalGain - realizedGain`.
+  - `totalGain - realizedGain - dividendIncomeEur`.
+  - Los dividendos aumentan el resultado total, pero no deben inflar la plusvalia latente de posiciones abiertas.
 - `simpleReturnPct`:
   - Si `netContributed > 0`: `(totalGain / netContributed) * 100`.
   - Si `netContributed <= 0`: `null`.
@@ -72,17 +78,21 @@ Este porcentaje compara la plusvalía latente con la inversión que sigue abiert
   - Suma anual de `value_eur` en compras.
 - `withdrawals`:
   - Suma anual de `value_eur` en ventas.
+- `dividends`:
+  - Suma anual de `value_eur` en dividendos confirmados.
+- `dividendCount`:
+  - Numero anual de dividendos confirmados.
 - `commissions`:
   - Suma anual de `commission_eur`.
 - `netContributed`:
   - `-SUM(cash_flow_eur)` del ano.
 - `resultYtd`:
   - `currentValue - valueStart - netContributed`.
-  - Equivale al resultado del periodo YTD (mercado + realizado - comisiones), partiendo del valor inicial.
+  - Equivale al resultado del periodo YTD (mercado + realizado + dividendos - comisiones), partiendo del valor inicial.
 
 ## métricas mensuales por mes (`months[]`)
 
-Para cada mes se exponen `contributions`, `withdrawals`, `commissions`, `netContribution` con la misma semántica anterior, pero filtradas a operaciones del mes.
+Para cada mes se exponen `contributions`, `withdrawals`, `dividends`, `dividendCount`, `commissions`, `netContribution`, `autoContributions` y `autoDividends` con la misma semántica anterior, pero filtradas a operaciones del mes.
 
 ## Serie historica (`/api/portfolio/history`, campo `series[].contributed`)
 
@@ -94,6 +104,7 @@ Consecuencia directa:
 
 - Solo compras: `contributed` crece.
 - Ventas netas: `contributed` decrece.
+- Dividendos: `contributed` decrece porque son entrada de caja.
 - Si ventas netas superan compras historicas, `contributed` puede ser negativo.
 
 ## relación entre distribucion actual e histórico
@@ -145,7 +156,7 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 ### `getPositionShares(symbol, asOfDate)`
 
-`SUM(transactionSign(type) * shares) + base_shares`. Itera sobre transacciones del symbol, aplicando signo (+1 para buys, -1 para sells). Incluye `base_shares` del instrumento (posicion inicial). Si se pasa `asOfDate`, filtra transacciones hasta esa fecha.
+`SUM(transactionSign(type) * shares) + base_shares`. Itera sobre transacciones del symbol, aplicando signo (+1 para buys, -1 para sells, 0 para dividendos). Incluye `base_shares` del instrumento (posicion inicial). Si se pasa `asOfDate`, filtra transacciones hasta esa fecha.
 
 ### `isEffectiveValuation(item)`
 

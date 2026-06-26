@@ -72,14 +72,14 @@ La resolución debe priorizar identificadores confirmados por el usuario sobre h
 
 ### `transactions`
 
-Es la verdad contable de compras y ventas.
+Es la verdad contable de compras, ventas y dividendos confirmados.
 
 Campos principales:
 
 - `id`
 - `symbol`
 - `name`: nombre descriptivo del instrumento en el momento de la operación (TEXT, nullable).
-- `type`: `add` o `remove`.
+- `type`: `add`, `remove` o `dividend`.
 - `date`
 - `market_date`
 - `shares`
@@ -101,11 +101,89 @@ Reglas:
 
 - Las compras aumentan acciones.
 - Las ventas reducen acciones.
+- Los dividendos no modifican acciones; `shares` guarda las acciones con derecho de forma informativa.
 - Las comisiones no cambian acciones.
 - `cash_flow_eur` es firmado:
   - compra: negativo;
   - venta: positivo;
+  - dividendo: positivo;
   - comisión incluida según corresponda.
+
+### `dividend_events`
+
+Cachea eventos de dividendos detectados desde Yahoo Finance y su estado de revisión.
+
+Campos principales:
+
+- `id`
+- `symbol`
+- `yahoo_symbol`
+- `source`
+- `source_event_id`
+- `ex_date`: fecha de derecho/ex-dividend usada para calcular acciones elegibles.
+- `pay_date`
+- `currency`
+- `detected_amount_per_share`
+- `detected_shares`
+- `detected_total_original`
+- `detected_total_eur`
+- `effective_amount_per_share`
+- `effective_shares`
+- `effective_total_eur`
+- `fx_to_eur`
+- `status`: `draft`, `ignored` o `confirmed`.
+- `confirmed_automatically`
+- `transaction_id`
+- `has_split_notice`
+- `split_notice`
+- `raw_json`
+- `created_at`
+- `updated_at`
+- `confirmed_at`
+- `ignored_at`
+
+Reglas:
+
+- Los campos `detected_*` conservan el calculo original de ValorGrid.
+- Los campos `effective_*` son los que se usan al confirmar y pueden ser editados por el usuario.
+- Un evento `confirmed` debe enlazar con un movimiento `transactions.type = dividend`.
+- Los avisos de split son informativos; la aplicación no procesa dividend splits en esta versión.
+
+### `dividend_instrument_settings`
+
+Configura automatismos de dividendos por instrumento.
+
+Campos principales:
+
+- `symbol`
+- `auto_include`
+- `created_at`
+- `updated_at`
+
+Si no existe fila para un instrumento, se interpreta como `auto_include = 0`.
+
+### `dividend_scan_runs`
+
+Registra busquedas automaticas de dividendos.
+
+Campos principales:
+
+- `id`
+- `mode`
+- `status`
+- `started_at`
+- `completed_at`
+- `from_date`
+- `to_date`
+- `scanned_symbols`
+- `detected_events`
+- `created_drafts`
+- `updated_drafts`
+- `auto_confirmed`
+- `ignored_no_shares`
+- `split_notice_count`
+- `failed_symbols_json`
+- `error`
 
 ### `auto_plans`
 
@@ -434,7 +512,7 @@ Permite auditoría y reimportación controlada tras correcciones.
 
 ## Principios
 
-- `transactions` es la fuente contable de compras y ventas.
+- `transactions` es la fuente contable de compras, ventas y dividendos confirmados.
 - `instruments`, `instrument_groups` y `auto_plans` son configuración del usuario.
 - Importaciones terminan en `transactions`; no crean un ledger paralelo.
 - Histórico, precios y snapshots son datos derivados y regenerables.

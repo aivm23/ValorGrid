@@ -66,6 +66,7 @@ apps/server/src/
 ├── domains/
 │   ├── instruments/    (instrument-*, route-instruments)
 │   ├── transactions/   (transaction-*, route-transactions)
+│   ├── dividends/      (dividend-*, route-dividends)
 │   ├── data-ingestion/ (ingestion-*, route-data-ingestion)
 │   ├── portfolio/      (portfolio-*, route-portfolio)
 │   ├── history/        (history-*)
@@ -177,29 +178,32 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 10. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
 11. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 12. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
-13. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales y FX. Carga internamente `market-data-providers` y `market-data-admin`.
+13. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales, FX y eventos de dividendos. Carga internamente `market-data-providers`, `market-data-admin` y `market-data-dividends`.
 14. `domains/market-data/route-market-data-alpha-vantage`: ruta HTTP para status, guardado y borrado de claves Alpha Vantage. Se carga en el bucle principal (no vía `routes.js`) y se invoca desde `routes.js` a través de `ctx.handleAlphaVantageKeyRoutes`.
 15. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
 16. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
 17. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-18. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-19. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
-20. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-21. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-22. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-23. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-24. `domains/history/history-core`: motor de materialización de histórico.
-25. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-26. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-27. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-28. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
-29. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-30. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+18. `domains/dividends/dividend-repository`: SQL de eventos de dividendos, settings por instrumento, scans y confirmación atómica en ledger.
+19. `domains/dividends/dividend-service`: detección desde Yahoo Finance, borradores, edición, confirmación y auto-inclusión.
+20. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+21. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+22. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+23. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+24. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+25. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+26. `domains/history/history-core`: motor de materialización de histórico.
+27. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+28. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+29. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+30. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
+31. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+32. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 
 - `domains/instruments/route-instruments.js`
 - `domains/transactions/route-transactions.js`
+- `domains/dividends/route-dividends.js`
 - `domains/data-ingestion/route-data-ingestion.js`
 - `domains/portfolio/route-portfolio.js`
 - `domains/admin/route-admin.js`
@@ -212,6 +216,12 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `portfolio-market-data`: helpers puros para estado agregado de precios y valoración base degradable.
 - `portfolio-dates`: helpers puros de fechas mensuales y fechas programadas.
+- `portfolio-flows`: helpers puros de resumen de compras, ventas, dividendos, comisiones y cash-flow por periodo.
+
+**Sub-módulos de transaction-service (cargados internamente):**
+
+- `transaction-pricing`: resolución estricta de precios/FX para escrituras de movimientos.
+- `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -272,6 +282,7 @@ Módulos principales:
 - `operations.js`: instrumentos, grupos, backups y administración.
 - `operations-metrics.js`: catálogo de métricas de Operativa (registry de tarjetas de performance).
 - `ledger.js`: movimientos y filtros.
+- `dividends.js`: alerta de toolbar, modal de borradores y scan automatico de dividendos al arrancar.
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `history-preferences.js`: teaser de preferencias profesionales del gráfico Histórico y sincronización visual del panel de edición.

@@ -116,6 +116,35 @@ Reglas de validación:
 - `unitPrice` requiere `shares > 0` y no se permite con `euros`.
 - `unitPrice` requiere un instrumento existente.
 - Para instrumentos no EUR con precio manual, se puede enviar `fxToEur` manual. Si no se envia, la API exige FX de mercado disponible para la fecha; no usa FX antiguo automáticamente en escrituras.
+- `type = dividend` no se acepta en estos endpoints. Los dividendos solo se crean desde eventos de Yahoo Finance revisados o auto-confirmados por `/api/dividends/*`.
+
+## Dividendos
+
+```text
+GET /api/dividends/summary
+GET /api/dividends/drafts
+POST /api/dividends/scan
+PATCH /api/dividends/drafts/:id
+POST /api/dividends/drafts/:id/confirm
+POST /api/dividends/drafts/:id/ignore
+PUT /api/dividends/settings/:symbol
+```
+
+- `GET /api/dividends/summary`: devuelve contadores de borradores pendientes, total pendiente, dividendos confirmados, simbolos con auto-inclusion y ultimo scan.
+- `GET /api/dividends/drafts`: devuelve borradores `draft` detectados desde Yahoo Finance.
+- `POST /api/dividends/scan`: lanza una busqueda de dividendos. El frontend la usa automáticamente al arrancar; no hay boton manual público en Community.
+- `PATCH /api/dividends/drafts/:id`: actualiza importe por accion, acciones con derecho y total EUR efectivo.
+- `POST /api/dividends/drafts/:id/confirm`: crea un movimiento real `transactions.type = dividend` desde el borrador.
+- `POST /api/dividends/drafts/:id/ignore`: descarta el borrador sin crear movimiento.
+- `PUT /api/dividends/settings/:symbol`: activa/desactiva `autoInclude` para proximos dividendos del instrumento.
+
+Reglas:
+
+- Solo se escanean instrumentos `stock` y `etf`.
+- El primer dividendo de un instrumento queda como borrador porque `autoInclude` empieza desactivado.
+- Si `autoInclude` esta activo, los siguientes dividendos se confirman automáticamente salvo que Yahoo informe split/dividend split.
+- Los split/dividend split solo se informan; no se procesan en esta versión.
+- No se pueden crear dividendos manuales sin evento Yahoo.
 
 ## Aportaciones automáticas
 
@@ -144,7 +173,7 @@ GET /api/portfolio/history?range=all&granularity=weekly
 - `summary`: distribución actual, grupos e instrumentos. Respuesta incluye `groupsEnabled` (boolean) que indica si los grupos de instrumentos están habilitados.
 - `performance`: aportado, retirado, comisiones, plusvalía y rentabilidad simple.
 - `returns`: en Community devuelve `403` con mensaje `Feature available in Professional Edition`. Las ediciones profesionales pueden registrar una implementación privada para rentabilidad por instrumento o grupo sin publicar ese contrato interno en el repositorio Community.
-- `monthly`: revisión YTD por meses y grupos. La respuesta devuelve `months` (array con insight por mes: `month`, `label`, `total`, `transactions`, `cells`) y `summary` (métricas agregadas: `currentValue`, `netContributed`, `resultYtd`, `valueStart`, `contributions`, `withdrawals`, `commissions`, `completedMonths`, `latestMonth`, `activeGroups`) como contratos canónicos.
+- `monthly`: revisión YTD por meses y grupos. La respuesta devuelve `months` (array con insight por mes: `month`, `label`, `total`, `transactions`, `cells`) y `summary` (métricas agregadas: `currentValue`, `netContributed`, `resultYtd`, `valueStart`, `contributions`, `withdrawals`, `dividends`, `dividendCount`, `commissions`, `completedMonths`, `latestMonth`, `activeGroups`) como contratos canónicos.
 - `history`: serie histórica materializada diaria/semanal y eventos. Acepta `granularity` (`auto` | `daily` | `weekly`, default `auto`).
 - Semántica de fórmulas y signos: `docs/FINANCIAL_SEMANTICS.md`.
 
@@ -239,7 +268,7 @@ GET /api/export/transactions.xlsx
 
 Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Yahoo`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
 
-Las compras se exportan como `compra` con acciones positivas, las ventas como `venta` con acciones negativas, y `Referencia` usa `externalId` si existe o el `id` interno si no existe.
+Las compras se exportan como `compra` con acciones positivas, las ventas como `venta` con acciones negativas y los dividendos como `dividendo` con acciones informativas. `Referencia` usa `externalId` si existe o el `id` interno si no existe.
 
 ## Importaciones
 
