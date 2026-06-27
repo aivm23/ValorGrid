@@ -138,7 +138,7 @@ export const OPERATION_METRICS = {
   realizedGain: {
     id: 'realizedGain',
     label: 'Plusvalía realizada',
-    tooltip: 'Resultado de ventas FIFO: diferencia entre precio de venta y precio de compra de las acciones vendidas.',
+    tooltip: 'Resultado de ventas FIFO: diferencia entre precio de venta y precio de compra de las unidades vendidas.',
     borderClass(data) {
       const realizedGain = data.realizedGain;
       if (realizedGain >= 0) return 'has-border-positive';

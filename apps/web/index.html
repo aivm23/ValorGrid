@@ -358,7 +358,7 @@
                 <th>Fecha</th>
                 <th>Ticker</th>
                 <th>Tipo</th>
-                <th>Acciones</th>
+                <th>Cantidad</th>
                 <th>Precio</th>
                 <th>Valor</th>
                 <th>Comisión</th>
@@ -378,7 +378,7 @@
         <div class="modal-header">
           <div>
             <h2 id="operation-title">Nueva compra</h2>
-            <p class="subtle">Indica ticker, fecha y el total en euros, o bien las acciones con su precio unitario.</p>
+            <p class="subtle">Indica ticker, fecha y el total en euros, o bien la cantidad con su precio unitario.</p>
           </div>
           <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -422,7 +422,7 @@
             </label>
 
             <label class="field">
-              <span>Acciones</span>
+              <span>Cantidad</span>
               <input id="add-shares" name="shares" type="number" min="0" step="0.000001" placeholder="2.5" />
             </label>
 
@@ -1065,7 +1065,7 @@
                 />
               </label>
               <label class="field">
-                <span>Acciones</span>
+                <span>Cantidad</span>
                 <input
                   id="wizard-transaction-shares"
                   type="number"

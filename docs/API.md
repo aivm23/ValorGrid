@@ -93,7 +93,7 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 - fecha de mercado,
 - ticker,
 - tipo (`add` o `remove`),
-- acciones,
+- cantidad (`shares`, visible como acciones o unidades según el tipo de instrumento),
 - valor bruto EUR,
 - precio,
 - divisa,
@@ -106,8 +106,8 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 
 Se aceptan tres modos de cantidad, mutuamente excluyentes:
 
-- **`euros`** (importe total): se calculan las acciones con `euros / priceEur` usando precio de mercado/cache.
-- **`shares`** (acciones): se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
+- **`euros`** (importe total): se calcula la cantidad con `euros / priceEur` usando precio de mercado/cache.
+- **`shares`** (cantidad del instrumento): se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
 - **`shares` + `unitPrice`** (precio manual): `unitPrice` es un precio unitario introducido manualmente por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). El cálculo es `valueEur = shares * toEur(unitPrice, currency, fxToEur)`. `unitPrice` solo es válido cuando `shares > 0` y no se puede combinar con `euros`.
 
 Reglas de validación:
@@ -268,7 +268,7 @@ GET /api/export/transactions.xlsx
 
 Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Yahoo`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
 
-Las compras se exportan como `compra` con acciones positivas, las ventas como `venta` con acciones negativas y los dividendos como `dividendo` con acciones informativas. `Referencia` usa `externalId` si existe o el `id` interno si no existe.
+Las compras se exportan como `compra` con cantidad positiva, las ventas como `venta` con cantidad negativa y los dividendos como `dividendo` con acciones informativas. En el Excel esa cantidad usa el encabezado `Acciones` por compatibilidad. `Referencia` usa `externalId` si existe o el `id` interno si no existe.
 
 ## Importaciones
 
@@ -337,7 +337,7 @@ La plantilla se procesa internamente con ExcelJS. El parser solo acepta `.xlsx` 
 ### Semántica de importación con plantilla
 
 - `Tipo`: compra/venta, o se infiere por signo si se deja vacío.
-- `Acciones`: positivo para compra, negativo para venta si no se usa `Tipo`.
+- `Acciones`: cantidad del instrumento; positiva para compra, negativa para venta si no se usa `Tipo`.
 - `Divisa` y `FX a EUR` son obligatorios para operaciones no EUR.
 - `Valor EUR` es opcional; si falta, se calcula como `abs(Acciones) * Precio * FX a EUR`.
 - No se busca FX automáticamente durante importación.
@@ -346,7 +346,7 @@ El flujo recomendado es:
 
 1. Descargar la plantilla con `GET /api/import/template.xlsx`.
 2. Rellenar la hoja `Movimientos` con las operaciones.
-3. `preview`: parsea, normaliza, detecta instrumentos, calcula acciones importables y muestra avisos.
+3. `preview`: parsea, normaliza, detecta instrumentos, calcula cantidades importables y muestra avisos.
 4. Resolución visual de instrumentos en frontend.
 5. Selección de filas o grupos a importar.
 6. `commit`: inserta solo filas seleccionadas y válidas de forma atómica.

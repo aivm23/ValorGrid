@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { pathToFileURL } = require('node:url');
 const {
   assert,
   createTransaction,
@@ -484,6 +485,32 @@ test('forms.js sends unitPrice in transaction payload', () => {
     'manual shares + unitPrice path must take precedence over euros',
   );
   assert.ok(forms.includes('payload.fxToEur'), 'forms.js sends manual FX payload when provided');
+});
+
+test('format.js renders quantity units by instrument type', async () => {
+  const { attach } = await import(pathToFileURL(path.join(root, 'apps', 'web', 'src', 'format.js')).href);
+  const ctx = {
+    state: {
+      hideBalances: false,
+      instruments: [
+        { symbol: 'STOCK1', type: 'stock' },
+        { symbol: 'ETF1', type: 'etf' },
+        { symbol: 'BTC', type: 'crypto' },
+        { symbol: 'GOLD', type: 'commodity' },
+      ],
+    },
+    sharesFormatter: new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }),
+    cryptoSharesFormatter: new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }),
+  };
+
+  attach(ctx);
+
+  assert.equal(ctx.instrumentQuantityLabel({ symbol: 'STOCK1' }), 'acciones');
+  assert.equal(ctx.instrumentQuantityLabel({ symbol: 'ETF1' }), 'acciones');
+  assert.equal(ctx.instrumentQuantityLabel({ symbol: 'BTC' }), 'unidades');
+  assert.equal(ctx.instrumentQuantityLabel({ symbol: 'GOLD' }), 'unidades');
+  assert.equal(ctx.instrumentQuantityLabel({ symbol: 'UNKNOWN' }), 'cantidad');
+  assert.equal(ctx.formatInstrumentQuantity(1.234567, { symbol: 'BTC' }), '1,234567 unidades');
 });
 
 test('deploy/sql/update-3.15.0-to-3.16.0.sql contains crypto CHECK', () => {

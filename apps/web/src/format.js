@@ -120,6 +120,30 @@ export function attach(ctx) {
     return formatShareNumber(item.shares || 0);
   }
 
+  function instrumentTypeForSymbol(symbol) {
+    if (!symbol) return '';
+    const normalized = String(symbol).trim().toUpperCase();
+    const instrument = (ctx.state.instruments || []).find((item) => String(item.symbol || '').toUpperCase() === normalized);
+    return instrument?.type || '';
+  }
+
+  function resolveQuantityType(input) {
+    if (typeof input === 'string') return input;
+    if (!input || typeof input !== 'object') return '';
+    return input.instrumentType || input.type || instrumentTypeForSymbol(input.symbol);
+  }
+
+  function instrumentQuantityLabel(input) {
+    const type = String(resolveQuantityType(input) || '').toLowerCase();
+    if (type === 'stock' || type === 'etf') return 'acciones';
+    if (type === 'crypto' || type === 'commodity') return 'unidades';
+    return 'cantidad';
+  }
+
+  function formatInstrumentQuantity(value, input) {
+    return `${formatShareNumber(value)} ${instrumentQuantityLabel(input)}`;
+  }
+
   function formatShareNumber(value) {
     if (ctx.state.hideBalances) return '••••';
     const shares = Number(value || 0);
@@ -176,6 +200,9 @@ export function attach(ctx) {
     clientRequestId,
     findTransactionById,
     formatShares,
+    instrumentTypeForSymbol,
+    instrumentQuantityLabel,
+    formatInstrumentQuantity,
     formatShareNumber,
     assetColor,
     withAssetColors,

@@ -37,7 +37,7 @@ export function renderConfirmStep(ctx, preview) {
                 <small>${item.buys || 0} compras · ${item.sells || 0} ventas</small>
               </div>
               <div class="import-impact-shares">
-                <b>Acciones</b>
+                <b>Cantidad</b>
                 <span><small>Antes</small>${ctx.formatShareNumber(item.beforeShares || 0)}</span>
                 <span><small>Cambio</small>${ctx.formatShareNumber(item.deltaShares || 0)}</span>
                 <span><small>Después</small>${ctx.formatShareNumber(item.afterShares || 0)}</span>

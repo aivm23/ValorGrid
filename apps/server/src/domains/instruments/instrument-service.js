@@ -247,6 +247,10 @@ module.exports = function attach(ctx) {
     return { transactions, autoPlans, identifiers, currentShares };
   }
 
+  function portfolioQuantityLabel(instrument) {
+    return instrument?.type === 'crypto' || instrument?.type === 'commodity' ? 'unidades' : 'acciones';
+  }
+
   function previewInstrumentDelete(symbols = []) {
     const unique = [...new Set((symbols || []).map((s) => normalizeSymbol(s)).filter(Boolean))];
     return unique.map((symbol) => {
@@ -267,7 +271,7 @@ module.exports = function attach(ctx) {
           status: 'has_position',
           blocked: true,
           dependencies: deps,
-          reason: `Tiene ${deps.currentShares.toFixed(6)} acciones en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`,
+          reason: `Tiene ${deps.currentShares.toFixed(6)} ${portfolioQuantityLabel(existing)} en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`,
         };
       }
       if (deps.autoPlans > 0) {
@@ -298,7 +302,7 @@ module.exports = function attach(ctx) {
     if (existing.type === 'fx') throw new Error('Los instrumentos técnicos de divisa no se pueden eliminar');
     const deps = instrumentDependencyCounts(existing.symbol);
     if (deps.currentShares > 0.000001) {
-      throw new Error(`No se puede eliminar ${existing.symbol}: tiene ${deps.currentShares.toFixed(6)} acciones en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`);
+      throw new Error(`No se puede eliminar ${existing.symbol}: tiene ${deps.currentShares.toFixed(6)} ${portfolioQuantityLabel(existing)} en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`);
     }
     if (deps.autoPlans > 0) {
       throw new Error(`No se puede eliminar ${existing.symbol}: tiene una automatización activa. Desactívala primero desde Planes automáticos.`);

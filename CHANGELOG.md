@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.27.1
+
+- fix: use generic quantity labels in mixed movement UI and contextual units for stock, ETF, crypto and commodity quantities.
+- docs: clarify that `shares` is the instrument quantity while the Excel template keeps the `Acciones` header for compatibility.
+- test: cover quantity unit labels by instrument type.
+
 ## 3.27.0
 
 - feat: detect Yahoo Finance dividend events in the background and create reviewable dividend drafts.

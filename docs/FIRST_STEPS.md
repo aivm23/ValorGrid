@@ -40,7 +40,7 @@ Guía completa: [IMPORT_EXCEL.md](IMPORT_EXCEL.md).
 
 ## 4. Registra Movimientos Manuales
 
-También puedes introducir compras y ventas manualmente desde la zona de movimientos. Cada movimiento puede incluir fecha, ticker, acciones, precio, divisa, FX a EUR y comisión.
+También puedes introducir compras y ventas manualmente desde la zona de movimientos. Cada movimiento puede incluir fecha, ticker, cantidad, precio unitario, divisa, FX a EUR y comisión.
 
 ## 5. Revisa Evolución E Histórico
 

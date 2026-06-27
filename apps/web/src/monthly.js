@@ -119,7 +119,7 @@ export function attach(ctx) {
         (position) => `
           <li>
             <span>${ctx.escapeHtml(position.name || position.symbol)}</span>
-            <small>${ctx.escapeHtml(position.symbol)} · ${ctx.formatShareNumber(position.shares)} acciones · ${ctx.formatCurrency(Number(position.priceEur || 0))}</small>
+            <small>${ctx.escapeHtml(position.symbol)} · ${ctx.formatInstrumentQuantity(position.shares, position)} · ${ctx.formatCurrency(Number(position.priceEur || 0))}</small>
           </li>
         `,
       )

@@ -97,7 +97,7 @@ export function attach(ctx) {
             <td data-label="Fecha">${ctx.formatDate(item.date)}</td>
             <td data-label="Ticker">${ctx.escapeHtml(item.symbol)}</td>
             <td data-label="Tipo"><span class="type-badge ${typeClass}">${transactionTypeLabel(item.type)}</span></td>
-            <td data-label="Acciones">${ctx.formatShareNumber(item.shares)}</td>
+            <td data-label="Cantidad">${ctx.formatInstrumentQuantity(item.shares, item)}</td>
             <td data-label="Precio">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>
             <td data-label="Valor">${ctx.formatCurrency(Number(item.valueEur))}</td>
             <td data-label="Comisión">${ctx.formatCurrency(Number(item.commissionEur || 0))}</td>

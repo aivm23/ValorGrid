@@ -278,7 +278,7 @@ function renderOperationRow(ctx, row, state) {
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
       <div>
         <strong>${ctx.escapeHtml(symbol)}</strong>
-        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${row.normalized?.date ? ctx.formatDate(row.normalized.date) : '-'} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatShareNumber(row.normalized.shares) : '-'} acciones</span>
+        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${row.normalized?.date ? ctx.formatDate(row.normalized.date) : '-'} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatInstrumentQuantity(row.normalized.shares, row.normalized) : '-'}</span>
         ${unresolvedReference}
       </div>
       <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(STATUS_LABELS[row.status] || row.status)}</span>

@@ -2,8 +2,8 @@ export function attach(ctx) {
   const {
     assetColor,
     formatCurrency,
+    formatInstrumentQuantity,
     formatPlainDate,
-    formatShareNumber,
     escapeHtml,
     state,
     elements,
@@ -129,7 +129,7 @@ export function attach(ctx) {
     const lines = [
       `${type} ${event.symbol}`,
       formatPlainDate(event.date),
-      `${formatShareNumber(event.shares)} acciones`,
+      formatInstrumentQuantity(event.shares, event),
       formatCurrency(Number(event.valueEur)),
       `Precio: ${formatCurrency(Number(event.price))}`,
       `Origen: ${origin}`,
@@ -148,7 +148,7 @@ export function attach(ctx) {
       '---',
       ...events.map((event) => {
         const type = historyEventLabel(event.type);
-        return `${type} ${event.symbol}: ${formatShareNumber(event.shares)} acciones, ${formatCurrency(Number(event.valueEur))}`;
+        return `${type} ${event.symbol}: ${formatInstrumentQuantity(event.shares, event)}, ${formatCurrency(Number(event.valueEur))}`;
       }).flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
     ].join('\n');
   }

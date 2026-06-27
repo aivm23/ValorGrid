@@ -114,7 +114,7 @@ export function attach(ctx) {
           .slice(0, 8)
           .map(
             (item) =>
-              `<li class="delete-item allowed"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.formatDate(item.date)} · ${ctx.transactionTypeLabel(item.type)} · ${ctx.formatShareNumber(item.shares)} acciones</li>`,
+              `<li class="delete-item allowed"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.formatDate(item.date)} · ${ctx.transactionTypeLabel(item.type)} · ${ctx.formatInstrumentQuantity(item.shares, item)}</li>`,
           )
           .join('')}
       </ul>

@@ -10,13 +10,13 @@ Fuentes de verdad actuales:
 - `apps/server/src/domains/history/history-service.js` (`enrichSeriesWithContributed`)
 - `apps/server/src/app.js` (`minimumDisplayValueEur`)
 
-> Nota: Los cambios de paleta corporativa (`brand_palette_enabled`) son visuales; no alteran importes, acciones, cash-flow, rentabilidad ni FIFO. La restauración de colores al desactivar la paleta tampoco afecta a cálculos financieros.
+> Nota: Los cambios de paleta corporativa (`brand_palette_enabled`) son visuales; no alteran importes, cantidades, cash-flow, rentabilidad ni FIFO. La restauración de colores al desactivar la paleta tampoco afecta a cálculos financieros.
 
 ## Convencion de signos base
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).
 - `cash_flow_eur > 0`: entrada de caja (ventas netas de comisión).
-- Los dividendos confirmados usan `cash_flow_eur > 0` y no cambian acciones.
+- Los dividendos confirmados usan `cash_flow_eur > 0` y no cambian la cantidad de la posición.
 - `netContributed > 0`: capital neto aportado a cartera.
 - `netContributed < 0`: retirada neta de capital (la cartera ya devolvió más caja de la aportada).
 
@@ -160,7 +160,7 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 ### `isEffectiveValuation(item)`
 
-`abs(shares) > 0.0000001 AND value >= minimumDisplayValueEur`. Un instrumento se considera "efectivo" si tiene al menos una cantidad minima de acciones y su valor supera el umbral de visibilidad. Fuente: portfolio-service.
+`abs(shares) > 0.0000001 AND value >= minimumDisplayValueEur`. Un instrumento se considera "efectivo" si tiene al menos una cantidad minima y su valor supera el umbral de visibilidad. Fuente: portfolio-service.
 
 ### `minimumDisplayValueEur`
 
@@ -191,7 +191,7 @@ Calcula la vista previa de una operación sin persistirla:
 - **Symbol**: `normalizeSymbol(input.symbol || input.ticker)`.
 - **Fecha**: `input.date || getToday()`.
 - **Modos de cantidad**:
-  - **`euros`**: se calculan las acciones con `shares = euros / priceEur` usando precio de mercado/cache.
+  - **`euros`**: se calcula la cantidad con `shares = euros / priceEur` usando precio de mercado/cache.
   - **`shares`** sin `unitPrice`: se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
   - **`shares` + `unitPrice`**: `unitPrice` es un precio manual introducido por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). Se calcula `priceEur = toEur(unitPrice, currency, fxToEur)` y `valueEur = shares * priceEur`. `unitPrice` solo es válido con `shares > 0`, no se permite con `euros`, y requiere un instrumento existente.
 - **comisión**: `abs(input.commissionEur ?? input.commission)`, por defecto `0`.

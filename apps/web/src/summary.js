@@ -334,7 +334,7 @@ export function attach(ctx) {
     }
     elements.stockLegend.innerHTML = detailPositions.length
       ? ctx.renderLegend(detailPositions, detailTotal, (item) => {
-          const sharesText = `${ctx.formatShares(item)} acciones`;
+          const sharesText = ctx.formatInstrumentQuantity(item.shares, item);
           return `${item.symbol}: ${ctx.formatCurrency(item.priceEur)} x ${sharesText}`;
         })
       : '<p class="subtle">Sin posiciones para desglosar.</p>';

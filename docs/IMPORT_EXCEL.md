@@ -31,18 +31,18 @@ La fuente pública sigue siendo `valorgrid-xlsx`, pero el parser interno usa Exc
 
 Encabezados obligatorios:
 
-| Columna        | Uso                                                                |
-| -------------- | ------------------------------------------------------------------ |
-| `Tipo`         | `compra` o `venta`; puede dejarse vacío si `Acciones` tiene signo. |
-| `Fecha`        | Fecha de operación.                                                |
-| `Ticker`       | Ticker interno usado en ValorGrid.                                 |
-| `Acciones`     | Positivo para compra, negativo para venta si `Tipo` está vacío.    |
-| `Precio`       | Precio por acción en la divisa indicada.                           |
-| `Divisa`       | Código ISO, por ejemplo `EUR` o `USD`.                             |
-| `FX a EUR`     | Tipo de cambio hacia EUR; obligatorio si la divisa no es EUR.      |
-| `Valor EUR`    | Opcional; si falta, ValorGrid lo calcula.                          |
-| `Comision EUR` | Comisión en EUR, opcional.                                         |
-| `Referencia`   | Identificador libre para deduplicación y auditoría.                |
+| Columna        | Uso                                                                                       |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| `Tipo`         | `compra` o `venta`; puede dejarse vacío si `Acciones` tiene signo.                        |
+| `Fecha`        | Fecha de operación.                                                                       |
+| `Ticker`       | Ticker interno usado en ValorGrid.                                                        |
+| `Acciones`     | Cantidad del instrumento. Positiva para compra, negativa para venta si `Tipo` está vacío. |
+| `Precio`       | Precio unitario en la divisa indicada.                                                    |
+| `Divisa`       | Código ISO, por ejemplo `EUR` o `USD`.                                                    |
+| `FX a EUR`     | Tipo de cambio hacia EUR; obligatorio si la divisa no es EUR.                             |
+| `Valor EUR`    | Opcional; si falta, ValorGrid lo calcula.                                                 |
+| `Comision EUR` | Comisión en EUR, opcional.                                                                |
+| `Referencia`   | Identificador libre para deduplicación y auditoría.                                       |
 
 ## Preview Antes De Confirmar
 
@@ -80,10 +80,10 @@ El archivo exportado contiene una hoja `Movimientos`, lista para auditoría o re
 ## Errores Frecuentes
 
 - Divisa no EUR sin `FX a EUR`.
-- Venta antes de tener acciones suficientes.
+- Venta antes de tener cantidad suficiente.
 - Ticker no creado en ValorGrid.
 - Fecha en formato no reconocido.
-- `Valor EUR` que no cuadra con `Acciones * Precio * FX`.
+- `Valor EUR` que no cuadra con `Acciones * Precio * FX`; en la plantilla, `Acciones` significa cantidad del instrumento.
 
 ## Privacidad
 

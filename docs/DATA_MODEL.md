@@ -82,7 +82,7 @@ Campos principales:
 - `type`: `add`, `remove` o `dividend`.
 - `date`
 - `market_date`
-- `shares`
+- `shares`: cantidad del instrumento. La UI puede mostrarla como acciones para stock/ETF o como unidades para crypto/commodity.
 - `value_eur`
 - `price`
 - `currency`
@@ -99,10 +99,10 @@ Campos principales:
 
 Reglas:
 
-- Las compras aumentan acciones.
-- Las ventas reducen acciones.
-- Los dividendos no modifican acciones; `shares` guarda las acciones con derecho de forma informativa.
-- Las comisiones no cambian acciones.
+- Las compras aumentan la cantidad.
+- Las ventas reducen la cantidad.
+- Los dividendos no modifican la cantidad; `shares` guarda las acciones con derecho de forma informativa.
+- Las comisiones no cambian la cantidad.
 - `cash_flow_eur` es firmado:
   - compra: negativo;
   - venta: positivo;

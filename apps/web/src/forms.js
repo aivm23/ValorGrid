@@ -32,13 +32,13 @@ export function attach(ctx) {
 
   function renderTransactionPreview(preview) {
     ctx.elements.transactionPreview.hidden = false;
-    const unitPrice = preview.shares > 0 ? ` - Precio/acción: ${Number(preview.valueEur / preview.shares).toFixed(2)} ${preview.currency}` : '';
+    const unitPrice = preview.shares > 0 ? ` - Precio unitario: ${Number(preview.valueEur / preview.shares).toFixed(2)} ${preview.currency}` : '';
     const manualLabel = preview.manualUnitPrice ? ' - Precio manual' : ' - Mercado';
     ctx.elements.transactionPreview.innerHTML = `
       <span>Preview</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
       <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}${unitPrice}${manualLabel}</small>
-      <small>Acciones: ${ctx.formatShareNumber(preview.shares)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
+      <small>Cantidad: ${ctx.formatInstrumentQuantity(preview.shares, preview)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
       <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;
   }
@@ -149,7 +149,7 @@ export function attach(ctx) {
         shares.value = '';
         price.value = '';
         fx.value = '';
-        hint.textContent = 'Las acciones y el precio se autocalcularan con el precio de mercado al guardar.';
+        hint.textContent = 'La cantidad y el precio se autocalcularan con el precio de mercado al guardar.';
       }
     } else {
       if (source.value && Number(source.value) > 0) {
@@ -191,7 +191,7 @@ export function attach(ctx) {
     event.preventDefault();
     const payload = buildTransactionPayload(true);
     if (!hasValidAmount()) {
-      setAddFeedback('Indica el total en euros, o bien las acciones con su precio unitario.', true);
+      setAddFeedback('Indica el total en euros, o bien la cantidad con su precio unitario.', true);
       return;
     }
     ctx.elements.addSubmit.disabled = true;

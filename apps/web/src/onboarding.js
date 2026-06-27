@@ -116,7 +116,7 @@ export function attach(ctx) {
     if (Number.isFinite(shares) && shares > 0) payload.shares = shares;
     if (Number.isFinite(commissionEur) && commissionEur > 0) payload.commissionEur = commissionEur;
     if (Boolean(payload.euros) === Boolean(payload.shares)) {
-      throw new Error('En la primera compra indica euros o acciones, solo uno de los dos campos.');
+      throw new Error('En la primera compra indica euros o cantidad, solo uno de los dos campos.');
     }
     return payload;
   }

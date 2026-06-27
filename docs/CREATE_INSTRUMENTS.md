@@ -63,8 +63,8 @@ La divisa `USD` es fija para todas las commodities. ValorGrid convertirá los pr
 
 Si registras una compra o venta sin que haya precio de mercado disponible (día festivo, fin de semana, instrumento nuevo), puedes introducir manualmente:
 
-- `acciones + precio/acción`: ValorGrid calcula el valor en EUR.
-- `euros + precio/acción`: ValorGrid calcula las acciones.
+- `cantidad + precio unitario`: ValorGrid calcula el valor en EUR.
+- `euros + precio unitario`: ValorGrid calcula la cantidad.
 
 El precio manual de operación es puntual y no crea una fuente persistente.
 

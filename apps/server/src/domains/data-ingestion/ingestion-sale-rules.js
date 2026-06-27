@@ -3,10 +3,10 @@ function saleDeficitMessage(code, available, shares) {
     return 'No existe este instrumento ni hay compras previas en el archivo; se omite para evitar una posicion negativa.';
   }
   if (code === 'existing_empty_position') {
-    return 'El instrumento existe, pero no hay acciones registradas suficientes antes de esta venta.';
+    return 'El instrumento existe, pero no hay cantidad registrada suficiente antes de esta venta.';
   }
   if (code === 'existing_insufficient_position') {
-    return `Posicion insuficiente: disponibles ${Number(available || 0).toFixed(6)} acciones, venta de ${Number(shares || 0).toFixed(6)} acciones.`;
+    return `Posicion insuficiente: disponibles ${Number(available || 0).toFixed(6)} unidades, venta de ${Number(shares || 0).toFixed(6)} unidades.`;
   }
   return 'Venta sin posicion suficiente; se omite para evitar una posicion negativa.';
 }
