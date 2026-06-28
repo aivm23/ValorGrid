@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.27.3
+
+- feat: add explicit transaction entry mode tabs for market EUR, manual total EUR and manual unit price workflows.
+- feat: support `manual_total_eur` transaction payloads that register executions in EUR without market-data lookup.
+- fix: simplify manual sales to shares plus gross EUR amount and reject explicit market-based sell entries.
+- docs: document transaction entry modes and operation-form architecture.
+- test: cover explicit entry modes in backend and frontend checks.
+
 ## 3.27.1
 
 - fix: use generic quantity labels in mixed movement UI and contextual units for stock, ETF, crypto and commodity quantities.
