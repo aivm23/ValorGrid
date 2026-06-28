@@ -191,11 +191,13 @@ Calcula la vista previa de una operación sin persistirla:
 - **Symbol**: `normalizeSymbol(input.symbol || input.ticker)`.
 - **Fecha**: `input.date || getToday()`.
 - **Modos de cantidad**:
-  - **`euros`**: se calcula la cantidad con `shares = euros / priceEur` usando precio de mercado/cache.
-  - **`shares`** sin `unitPrice`: se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
-  - **`shares` + `unitPrice`**: `unitPrice` es un precio manual introducido por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). Se calcula `priceEur = toEur(unitPrice, currency, fxToEur)` y `valueEur = shares * priceEur`. `unitPrice` solo es válido con `shares > 0`, no se permite con `euros`, y requiere un instrumento existente.
+  - **`entryMode = market_eur`**: requiere `euros`; calcula `shares = euros / priceEur` usando precio de mercado/cache. Si se envía explícitamente, solo es válido para compras.
+  - **`entryMode = manual_total_eur`**: requiere `shares + euros`; no consulta mercado y registra la ejecución en EUR con `price = euros / shares`, `currency = EUR` y `fxToEur = 1`.
+  - **`entryMode = manual_unit_price`**: requiere `shares + unitPrice`; `priceCurrency` indica la divisa de ejecución y, si no es EUR, requiere `fxToEur` explícito.
+  - **Sin `entryMode`**: conserva la inferencia histórica (`euros`, `shares`, o `shares + unitPrice`) para compatibilidad.
 - **comisión**: `abs(input.commissionEur ?? input.commission)`, por defecto `0`.
-- **FX manual**: en operaciones con `unitPrice` sobre instrumentos no EUR, `fxToEur` debe venir del mercado en la fecha o del input manual; no se usa FX antiguo automáticamente para escrituras.
+- **FX manual**: en operaciones legacy con `unitPrice` sobre instrumentos no EUR, `fxToEur` debe venir del mercado en la fecha o del input manual; no se usa FX antiguo automáticamente para escrituras. En `manual_unit_price` explícito con divisa no EUR, `fxToEur` debe venir del usuario.
+- **ventas manuales UI**: se registran como `manual_total_eur` con cantidad vendida e importe bruto EUR. No consultan mercado; el efectivo neto se obtiene con `valueEur - commissionEur`.
 - **`cashFlowEur`**:
   - Compra: `-(valueEur + commissionEur)`.
   - Venta: `valueEur - commissionEur`.

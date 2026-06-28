@@ -61,12 +61,15 @@ La divisa `USD` es fija para todas las commodities. ValorGrid convertirá los pr
 
 ## Precio Manual En Operaciones
 
-Si registras una compra o venta sin que haya precio de mercado disponible (día festivo, fin de semana, instrumento nuevo), puedes introducir manualmente:
+Si registras una compra sin que haya precio de mercado disponible (día festivo, fin de semana, instrumento nuevo), puedes elegir el modo de cálculo:
 
-- `cantidad + precio unitario`: ValorGrid calcula el valor en EUR.
-- `euros + precio unitario`: ValorGrid calcula la cantidad.
+- `invertir importe`: ValorGrid calcula la cantidad con precio/FX de mercado.
+- `total y cantidad`: ValorGrid registra una ejecución liquidada en EUR sin consultar mercado.
+- `precio unitario`: ValorGrid calcula el valor en EUR con el precio y el FX indicados.
 
 El precio manual de operación es puntual y no crea una fuente persistente.
+
+Las ventas manuales se registran siempre con cantidad vendida, importe bruto de venta en EUR y comisión EUR. ValorGrid no consulta mercado para calcular ventas desde la UI.
 
 ## Recomendaciones
 

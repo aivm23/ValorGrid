@@ -104,18 +104,28 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 
 ### Parámetros de `POST /api/transactions` y `POST /api/transactions/preview`
 
-Se aceptan tres modos de cantidad, mutuamente excluyentes:
+`entryMode` es opcional para compatibilidad. Si se envía, acepta tres modos:
 
-- **`euros`** (importe total): se calcula la cantidad con `euros / priceEur` usando precio de mercado/cache.
-- **`shares`** (cantidad del instrumento): se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
-- **`shares` + `unitPrice`** (precio manual): `unitPrice` es un precio unitario introducido manualmente por el usuario. Se interpreta en la divisa del instrumento (`instrument.currency`). El cálculo es `valueEur = shares * toEur(unitPrice, currency, fxToEur)`. `unitPrice` solo es válido cuando `shares > 0` y no se puede combinar con `euros`.
+- **`market_eur`** (`euros`): se calcula la cantidad con `euros / priceEur` usando precio de mercado/cache. Si se envía explícitamente, solo es válido para compras.
+- **`manual_total_eur`** (`shares` + `euros`): registra una ejecución liquidada en euros. No consulta mercado; guarda `price = euros / shares`, `currency = EUR` y `fxToEur = 1`.
+- **`manual_unit_price`** (`shares` + `unitPrice`): registra un precio unitario manual. `priceCurrency` permite indicar la divisa de ejecución; si falta, se usa la divisa del instrumento. Si la divisa no es EUR, `fxToEur` es obligatorio cuando `entryMode = manual_unit_price`.
+
+Sin `entryMode`, se mantiene la inferencia histórica:
+
+- **`euros`**: se calcula la cantidad con precio de mercado/cache.
+- **`shares`**: se calcula `valueEur = shares * priceEur` usando precio de mercado/cache.
+- **`shares` + `unitPrice`**: usa precio manual y conserva la resolución previa de FX.
 
 Reglas de validación:
 
-- `euros` y `shares` son XOR (no se permiten ambos).
+- En `market_eur`, se exige `euros` y no se permite `shares`.
+- En ventas nuevas, la UI usa `manual_total_eur`: cantidad vendida + importe bruto de venta en EUR + comisión EUR. La API rechaza ventas explícitas con `entryMode = market_eur`.
+- En `manual_total_eur`, se exigen `euros` y `shares`, y no se permite `unitPrice`.
+- En `manual_unit_price`, `unitPrice` requiere `shares > 0` y no se permite con `euros`.
+- Sin `entryMode`, `euros` y `shares` siguen siendo XOR (no se permiten ambos), salvo `shares + unitPrice`.
 - `unitPrice` requiere `shares > 0` y no se permite con `euros`.
 - `unitPrice` requiere un instrumento existente.
-- Para instrumentos no EUR con precio manual, se puede enviar `fxToEur` manual. Si no se envia, la API exige FX de mercado disponible para la fecha; no usa FX antiguo automáticamente en escrituras.
+- Para instrumentos no EUR con precio manual legacy, se puede enviar `fxToEur` manual. Si no se envia, la API exige FX de mercado disponible para la fecha; no usa FX antiguo automáticamente en escrituras.
 - `type = dividend` no se acepta en estos endpoints. Los dividendos solo se crean desde eventos de Yahoo Finance revisados o auto-confirmados por `/api/dividends/*`.
 
 ## Dividendos

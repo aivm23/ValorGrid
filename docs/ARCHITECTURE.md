@@ -220,6 +220,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Sub-módulos de transaction-service (cargados internamente):**
 
+- `transaction-entry-modes`: normalización y validación de modos de entrada de operaciones (`market_eur`, `manual_total_eur`, `manual_unit_price`).
 - `transaction-pricing`: resolución estricta de precios/FX para escrituras de movimientos.
 - `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
 
@@ -299,6 +300,7 @@ Módulos principales:
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
 - `forms.js`: helpers de formularios.
+- `transaction-entry-modes.js`: visibilidad y copy de tabs del modal de compra/venta.
 - `alpha-vantage-setup.js`: diálogo de configuración de clave API de Alpha Vantage (input, validación y persistencia via `/api/market-data/alpha-vantage/key`).
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
