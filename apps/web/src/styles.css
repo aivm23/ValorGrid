@@ -4084,6 +4084,69 @@ td:last-child {
   gap: 14px;
 }
 
+.transaction-mode-section {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg) 78%, var(--card));
+}
+
+.transaction-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--card) 72%, var(--bg));
+}
+
+.transaction-mode-tab {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.transaction-mode-tab input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.transaction-mode-tab span {
+  display: grid;
+  min-height: 34px;
+  place-items: center;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.transaction-mode-tab input:checked + span {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.transaction-mode-tab input:focus-visible + span {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+}
+
+.transaction-mode-fields {
+  align-items: end;
+}
+
 .field span {
   color: var(--muted);
   font-size: 0.84rem;
@@ -4164,6 +4227,31 @@ td:last-child {
 .field select:disabled {
   opacity: 0.48;
   cursor: not-allowed;
+}
+
+/* ── Aportaciones ─────────────────────────────────────── */
+
+.aportaciones-puntuales-actions {
+  display: flex;
+  gap: 12px;
+}
+
+#auto-dialog .admin-grid {
+  grid-template-columns: 1fr;
+}
+
+.admin-card--puntuales {
+  border-left: 3px solid color-mix(in srgb, var(--accent-green) 60%, transparent);
+}
+
+.admin-card--programadas {
+  border-left: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.aportaciones-tab-description {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .auto-plan-list {
@@ -4421,6 +4509,10 @@ td:last-child {
   }
 
   .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transaction-mode-tabs {
     grid-template-columns: 1fr;
   }
 

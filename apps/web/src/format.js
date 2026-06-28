@@ -130,7 +130,10 @@ export function attach(ctx) {
   function resolveQuantityType(input) {
     if (typeof input === 'string') return input;
     if (!input || typeof input !== 'object') return '';
-    return input.instrumentType || input.type || instrumentTypeForSymbol(input.symbol);
+    if (input.instrumentType) return input.instrumentType;
+    const txTypes = new Set(['add', 'remove', 'dividend']);
+    if (input.type && !txTypes.has(input.type)) return input.type;
+    return instrumentTypeForSymbol(input.symbol);
   }
 
   function instrumentQuantityLabel(input) {
