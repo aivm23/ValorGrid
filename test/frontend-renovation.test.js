@@ -480,11 +480,30 @@ test('history-preferences.js keeps Professional Edition teaser without filter co
 test('forms.js sends unitPrice in transaction payload', () => {
   const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
   assert.ok(forms.includes('payload.unitPrice'), 'forms.js sends unitPrice payload');
+  assert.ok(forms.includes('date: ctx.elements.addDate.value, entryMode'), 'forms.js sends entryMode payload');
+  assert.ok(forms.includes("preview.type === 'remove' && preview.entryMode === 'manual_total_eur'"), 'forms.js labels manual EUR sells');
+  assert.ok(forms.includes('payload.priceCurrency'), 'forms.js sends manual price currency payload');
   assert.ok(
-    forms.indexOf('payload.unitPrice') < forms.indexOf('payload.euros = euros'),
-    'manual shares + unitPrice path must take precedence over euros',
+    forms.indexOf("entryMode === 'manual_unit_price'") > forms.indexOf("entryMode === 'manual_total_eur'"),
+    'manual unit price path must be separated from manual total EUR',
   );
+  assert.ok(forms.includes("entryMode === 'market_eur'"), 'forms.js keeps market EUR mode explicit');
   assert.ok(forms.includes('payload.fxToEur'), 'forms.js sends manual FX payload when provided');
+});
+
+test('operation modal uses transaction entry mode tabs with common fields outside', () => {
+  const index = read('apps/web/index.html');
+  const modes = read(path.join('apps', 'web', 'src', 'transaction-entry-modes.js'));
+  assert.ok(index.includes('name="add-entry-mode"'), 'operation modal includes entry mode tabs');
+  assert.ok(index.includes('value="market_eur"'), 'operation modal includes market EUR mode');
+  assert.ok(index.includes('value="manual_total_eur"'), 'operation modal includes manual total EUR mode');
+  assert.ok(index.includes('value="manual_unit_price"'), 'operation modal includes manual unit price mode');
+  assert.ok(index.indexOf('id="add-date"') < index.indexOf('id="add-calculation-section"'), 'date remains outside tabs');
+  assert.ok(index.indexOf('id="add-commission-field"') > index.indexOf('id="add-calculation-section"'), 'commission remains after tabs');
+  assert.ok(modes.includes("operationType.value === 'remove'"), 'sell mode is handled separately');
+  assert.ok(modes.includes("return 'manual_total_eur'"), 'sell mode always resolves to manual total EUR');
+  assert.ok(modes.includes('addEntryModeTabs.hidden = isSell'), 'sell mode hides entry mode tabs');
+  assert.ok(modes.includes('Importe bruto venta EUR'), 'sell mode labels gross EUR amount');
 });
 
 test('format.js renders quantity units by instrument type', async () => {

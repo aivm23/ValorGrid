@@ -965,6 +965,101 @@ test('manual unit price preview: POST /api/transactions/preview with unitPrice',
   assert.equal(getTransactions().length, before);
 });
 
+test('manual total EUR entry: buy with shares + euros does not query market data', async () => {
+  seedTestInstrument({ symbol: 'GOLDT', yahooSymbol: 'GOLD', name: 'Gold Spot Test', type: 'commodity', currency: 'USD' });
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('market data should not be called');
+  };
+
+  try {
+    const transaction = await createTransaction({
+      type: 'add',
+      symbol: 'GOLDT',
+      date: '2026-05-14',
+      entryMode: 'manual_total_eur',
+      shares: 0.25,
+      euros: 900,
+      commissionEur: 1,
+    });
+
+    assert.equal(transaction.symbol, 'GOLDT');
+    assert.equal(transaction.shares, 0.25);
+    assert.equal(Number(transaction.valueEur.toFixed(2)), 900);
+    assert.equal(Number(transaction.price.toFixed(2)), 3600);
+    assert.equal(transaction.currency, 'EUR');
+    assert.equal(transaction.fxToEur, 1);
+    assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -901);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('manual total EUR entry: sell with shares + gross euros does not query market data', async () => {
+  seedTestInstrument({ symbol: 'SELLM', yahooSymbol: 'SELLM', name: 'Manual Sell Test', type: 'stock', currency: 'USD' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'SELLM',
+    date: '2026-05-01',
+    entryMode: 'manual_total_eur',
+    shares: 5,
+    euros: 500,
+  });
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('market data should not be called');
+  };
+
+  try {
+    const transaction = await createTransaction({
+      type: 'remove',
+      symbol: 'SELLM',
+      date: '2026-05-14',
+      entryMode: 'manual_total_eur',
+      shares: 2,
+      euros: 260,
+      commissionEur: 3,
+    });
+
+    assert.equal(transaction.symbol, 'SELLM');
+    assert.equal(transaction.shares, 2);
+    assert.equal(Number(transaction.valueEur.toFixed(2)), 260);
+    assert.equal(Number(transaction.price.toFixed(2)), 130);
+    assert.equal(transaction.currency, 'EUR');
+    assert.equal(transaction.fxToEur, 1);
+    assert.equal(Number(transaction.cashFlowEur.toFixed(2)), 257);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('explicit market EUR entryMode is rejected for sells', async () => {
+  seedTestInstrument({ symbol: 'SELLMKT', yahooSymbol: 'SELLMKT', name: 'Market Sell Test', type: 'stock', currency: 'EUR' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'SELLMKT',
+    date: '2026-05-01',
+    entryMode: 'manual_total_eur',
+    shares: 5,
+    euros: 500,
+  });
+
+  const { response, body } = await jsonRequest('/api/transactions/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'remove',
+      symbol: 'SELLMKT',
+      date: '2026-05-14',
+      entryMode: 'market_eur',
+      euros: 100,
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /Sell transactions require shares and gross EUR amount/i);
+});
+
 test('manual unit price regression: shares without unitPrice uses market price', async () => {
   seedTestInstrument({ symbol: 'MRKT', yahooSymbol: 'MRKT', name: 'Market Test', type: 'stock', currency: 'EUR' });
   cachePrice('MRKT', '2026-05-14', 12.29);
@@ -1059,6 +1154,27 @@ test('manual unit price non-EUR: USD instrument with FX', async () => {
   assert.equal(Number(transaction.fxToEur.toFixed(2)), 0.9);
   assert.equal(Number(transaction.valueEur.toFixed(2)), 18);
   assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -18);
+});
+
+test('manual unit price entryMode requires explicit FX for non-EUR price currency', async () => {
+  seedTestInstrument({ symbol: 'USDFX', yahooSymbol: 'USDFX', name: 'USD FX Test', type: 'stock', currency: 'USD' });
+
+  const { response, body } = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'USDFX',
+      date: '2026-05-14',
+      entryMode: 'manual_unit_price',
+      shares: 2,
+      unitPrice: 10,
+      priceCurrency: 'USD',
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /FX a EUR is required/i);
 });
 
 test('crypto instrument buy with cached price on weekend', async () => {
