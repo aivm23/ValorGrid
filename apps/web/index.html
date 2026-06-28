@@ -378,7 +378,7 @@
         <div class="modal-header">
           <div>
             <h2 id="operation-title">Nueva compra</h2>
-            <p class="subtle">Indica ticker, fecha y el total en euros, o bien la cantidad con su precio unitario.</p>
+            <p id="operation-subtitle" class="subtle">Define la operación y elige cómo quieres calcular el movimiento.</p>
           </div>
           <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -410,34 +410,56 @@
           <input id="add-date" name="date" type="date" lang="es" required />
         </label>
 
-          <div class="field-grid">
-            <label class="field">
-              <span>Precio / acción</span>
+        <section id="add-calculation-section" class="transaction-mode-section" aria-label="Modo de cálculo">
+          <div id="add-entry-mode-tabs" class="transaction-mode-tabs" role="radiogroup" aria-label="Modo de registro">
+            <label class="transaction-mode-tab">
+              <input type="radio" name="add-entry-mode" value="market_eur" checked />
+              <span>Invertir importe</span>
+            </label>
+            <label class="transaction-mode-tab">
+              <input type="radio" name="add-entry-mode" value="manual_total_eur" />
+              <span>Total y cantidad</span>
+            </label>
+            <label class="transaction-mode-tab">
+              <input type="radio" name="add-entry-mode" value="manual_unit_price" />
+              <span>Precio unitario</span>
+            </label>
+          </div>
+
+          <p id="add-amount-hint" class="form-feedback form-feedback-hint"></p>
+
+          <div id="add-calculation-fields" class="field-grid transaction-mode-fields">
+            <label id="add-price-field" class="field">
+              <span>Precio unitario</span>
               <input id="add-price" name="price" type="number" min="0" step="0.0001" placeholder="40" />
             </label>
 
-            <label class="field">
-              <span>FX a EUR</span>
-              <input id="add-fx" name="fx" type="number" min="0" step="0.000001" placeholder="Opcional" />
+            <label id="add-price-currency-field" class="field">
+              <span>Divisa precio</span>
+              <input id="add-price-currency" name="priceCurrency" maxlength="3" placeholder="EUR" />
             </label>
 
-            <label class="field">
+            <label id="add-fx-field" class="field">
+              <span>FX a EUR</span>
+              <input id="add-fx" name="fx" type="number" min="0" step="0.000001" placeholder="0.92" />
+            </label>
+
+            <label id="add-shares-field" class="field">
               <span>Cantidad</span>
               <input id="add-shares" name="shares" type="number" min="0" step="0.000001" placeholder="2.5" />
             </label>
 
-            <label class="field">
+            <label id="add-euros-field" class="field">
               <span>Euros totales</span>
               <input id="add-euros" name="euros" type="number" min="0" step="0.01" placeholder="100" />
             </label>
-
-            <label class="field">
-              <span>Comisión EUR</span>
-              <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
-            </label>
           </div>
+        </section>
 
-          <p id="add-amount-hint" class="form-feedback form-feedback-hint" hidden></p>
+        <label id="add-commission-field" class="field">
+          <span>Comisión EUR</span>
+          <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
+        </label>
 
         <p id="add-feedback" class="form-feedback" role="status"></p>
         <div id="transaction-preview" class="transaction-preview" hidden></div>
@@ -644,17 +666,41 @@
       <form id="auto-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Planes de aportación</h2>
+            <h2>Aportaciones</h2>
             <p class="subtle">
-              Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre
-              disponible.
+              Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento.
             </p>
           </div>
           <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
 
-        <div id="auto-plan-list" class="auto-plan-list"></div>
-        <p id="auto-feedback" class="form-feedback" role="status"></p>
+        <div class="admin-grid">
+          <section class="admin-card admin-card--puntuales">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <h3>Puntuales</h3>
+            </div>
+            <p class="subtle">Registra una compra o venta puntual de un instrumento.</p>
+            <div class="aportaciones-puntuales-actions">
+              <button id="aportaciones-buy" class="button" type="button">Compra</button>
+              <button id="aportaciones-sell" class="button" type="button">Venta</button>
+            </div>
+          </section>
+
+          <section class="admin-card admin-card--programadas">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
+              <h3>Programadas</h3>
+            </div>
+            <p class="subtle">Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.</p>
+            <div id="auto-plan-list" class="auto-plan-list"></div>
+            <p id="auto-feedback" class="form-feedback" role="status"></p>
+          </section>
+        </div>
 
         <div class="modal-actions">
           <button id="auto-cancel" class="button btn-cancel" type="button">Cancelar</button>

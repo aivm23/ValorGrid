@@ -26,8 +26,11 @@ export function attach(ctx) {
   elements.addEuros.addEventListener('input', ctx.syncAmountInputs);
   elements.addShares.addEventListener('input', ctx.syncAmountInputs);
   elements.addPrice.addEventListener('input', ctx.syncAmountInputs);
+  elements.addPriceCurrency.addEventListener('input', ctx.syncAmountInputs);
+  elements.addPriceCurrency.addEventListener('change', ctx.syncAmountInputs);
   elements.addFx.addEventListener('input', ctx.syncAmountInputs);
   elements.addCommission.addEventListener('input', ctx.syncAmountInputs);
+  elements.addEntryModeInputs.forEach((input) => input.addEventListener('change', ctx.handleEntryModeChange));
   elements.addTicker.addEventListener('input', ctx.syncAmountInputs);
   elements.addTicker.addEventListener('change', ctx.syncAmountInputs);
   elements.removeTicker.addEventListener('change', ctx.syncAmountInputs);
@@ -94,15 +97,16 @@ export function attach(ctx) {
     event.preventDefault();
     ctx.saveAutoPlansFromForm();
   });
+  elements.autoDialog.addEventListener('click', (event) => {
+    if (event.target.closest('#aportaciones-buy')) ctx.openAportacionesBuy();
+    if (event.target.closest('#aportaciones-sell')) ctx.openAportacionesSell();
+  });
   elements.wizardDialogClose.addEventListener('click', ctx.closeWizardDialog);
   elements.wizardCancel.addEventListener('click', ctx.closeWizardDialog);
   elements.wizardForm.addEventListener('submit', ctx.handleWizardSubmit);
   elements.wizardModeManual?.addEventListener('change', ctx.syncWizardMode);
   elements.wizardModeImport?.addEventListener('change', ctx.syncWizardMode);
-  elements.wizardOpenImport?.addEventListener('click', () => {
-    ctx.closeWizardDialog();
-    ctx.openImportDialog();
-  });
+  elements.wizardOpenImport?.addEventListener('click', () => { ctx.closeWizardDialog(); ctx.openImportDialog(); });
   elements.wizardAddTransaction.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardAddPlan.addEventListener('change', ctx.syncWizardOptionalSections);
   elements.wizardPlanFrequency.addEventListener('change', ctx.syncWizardPlanFrequency);
@@ -119,9 +123,7 @@ export function attach(ctx) {
       ctx.closeDonutTooltip();
     }
   });
-  elements.themeToggle.addEventListener('click', () => {
-    ctx.applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-  });
+  elements.themeToggle.addEventListener('click', () => { ctx.applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); });
   elements.balanceToggle.addEventListener('click', ctx.toggleBalanceVisibility);
   elements.legend.addEventListener('click', (event) => toggleExpandableGroup(ctx, event));
   elements.chart.addEventListener('mousemove', ctx.showDonutTooltip);

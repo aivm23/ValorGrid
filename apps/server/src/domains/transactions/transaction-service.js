@@ -1,5 +1,6 @@
 const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
 const { resolveFxToEur } = require('./transaction-pricing');
+const { normalizeEntryMode, validateTransactionAmountInput } = require('./transaction-entry-modes');
 const { buildLedgerAnalyticsFromTransactions } = require('./transaction-analytics');
 
 module.exports = function attach(ctx) {
@@ -238,12 +239,55 @@ module.exports = function attach(ctx) {
     const hasEuros = Number.isFinite(Number(input.euros)) && Number(input.euros) > 0;
     const hasShares = Number.isFinite(Number(input.shares)) && Number(input.shares) > 0;
     const manualUnitPrice = Number.isFinite(Number(input.unitPrice)) && Number(input.unitPrice) > 0;
+    const entryMode = normalizeEntryMode(input);
 
     if (!symbolInput) throw new Error('Missing symbol');
+    validateTransactionAmountInput(input);
 
     const existingInstrument = getInstrumentByInput(symbolInput);
 
-    if (manualUnitPrice) {
+    if (entryMode === 'manual_total_eur') {
+      if (!existingInstrument) throw new Error('manual_total_eur requires an existing instrument');
+      if (!hasEuros || !hasShares) throw new Error('manual_total_eur requires euros and shares');
+      if (manualUnitPrice) throw new Error('unitPrice cannot be combined with manual_total_eur');
+
+      const instrument = existingInstrument;
+      const shares = Number(input.shares);
+      const valueEur = Number(input.euros);
+      const price = valueEur / shares;
+      const commissionEur = Number.isFinite(Number(input.commissionEur ?? input.commission))
+        ? Math.abs(Number(input.commissionEur ?? input.commission))
+        : 0;
+      const cashFlowEur = type === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur);
+
+      if (type === 'remove') {
+        const available = getPositionShares(instrument.symbol, date);
+        if (shares > available + 0.0000001) throw new Error(`Not enough shares. Available: ${available.toFixed(6)}`);
+      }
+
+      return {
+        type,
+        date,
+        symbol: instrument.symbol,
+        name: instrument.name,
+        marketDate: date,
+        shares,
+        valueEur,
+        price,
+        priceEur: price,
+        currency: 'EUR',
+        fxToEur: 1,
+        commissionEur,
+        cashFlowEur,
+        instrument,
+        quote: null,
+        entryMode,
+        manualUnitPrice: false,
+        manualTotalEur: true,
+      };
+    }
+
+    if (entryMode === 'manual_unit_price') {
       if (!existingInstrument) {
         throw new Error('Manual unit price requires an existing instrument');
       }
@@ -255,8 +299,12 @@ module.exports = function attach(ctx) {
       }
 
       const instrument = existingInstrument;
-      const currency = instrument.currency || 'EUR';
-      const fxToEur = await resolveFxToEur({ currency, date, inputFxToEur: input.fxToEur ?? input.fx_to_eur, getFxToEur });
+      const currency = String(input.priceCurrency || input.currency || instrument.currency || 'EUR').trim().toUpperCase();
+      const inputFxToEur = input.fxToEur ?? input.fx_to_eur;
+      if (String(input.entryMode || input.entry_mode || '').trim() && currency !== 'EUR' && !(Number.isFinite(Number(inputFxToEur)) && Number(inputFxToEur) > 0)) {
+        throw new Error('FX a EUR is required for manual_unit_price when currency is not EUR');
+      }
+      const fxToEur = await resolveFxToEur({ currency, date, inputFxToEur, getFxToEur });
       const priceEur = toEur(input.unitPrice, currency, fxToEur);
       const shares = Number(input.shares);
       const valueEur = shares * priceEur;
@@ -288,7 +336,9 @@ module.exports = function attach(ctx) {
         cashFlowEur,
         instrument,
         quote: null,
+        entryMode,
         manualUnitPrice: true,
+        manualTotalEur: false,
       };
     }
     if (hasEuros === hasShares) throw new Error('Provide euros or shares, but not both');
@@ -339,7 +389,9 @@ module.exports = function attach(ctx) {
       cashFlowEur,
       instrument,
       quote,
+      entryMode,
       manualUnitPrice: false,
+      manualTotalEur: false,
     };
   }
 

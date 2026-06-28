@@ -1,26 +1,33 @@
+import { attachTransactionEntryModes } from './transaction-entry-modes.js';
+
 export function attach(ctx) {
   function setAddFeedback(message, isError = false) {
     ctx.elements.addFeedback.textContent = message;
     ctx.elements.addFeedback.dataset.state = message ? (isError ? 'error' : 'ok') : '';
   }
+  attachTransactionEntryModes(ctx, setAddFeedback);
   function buildTransactionPayload(includeId = false) {
     const type = ctx.elements.operationType.value;
     const symbol = type === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
+    const entryMode = ctx.activeTransactionEntryMode();
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
     const price = Number(ctx.elements.addPrice.value);
+    const priceCurrency = String(ctx.elements.addPriceCurrency.value || '').trim().toUpperCase();
     const fxToEur = Number(ctx.elements.addFx.value);
     const commission = Number(ctx.elements.addCommission.value);
-    const payload = { type, symbol, date: ctx.elements.addDate.value };
+    const payload = { type, symbol, date: ctx.elements.addDate.value, entryMode };
     if (includeId) payload.id = ctx.clientRequestId('tx');
-    if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0 && !ctx.elements.addShares.disabled) {
+    if (entryMode === 'market_eur' && Number.isFinite(euros) && euros > 0) {
+      payload.euros = euros;
+    } else if (entryMode === 'manual_total_eur' && Number.isFinite(euros) && euros > 0 && Number.isFinite(shares) && shares > 0) {
+      payload.euros = euros;
+      payload.shares = shares;
+    } else if (entryMode === 'manual_unit_price' && Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) {
       payload.shares = shares;
       payload.unitPrice = price;
+      if (priceCurrency) payload.priceCurrency = priceCurrency;
       if (Number.isFinite(fxToEur) && fxToEur > 0) payload.fxToEur = fxToEur;
-    } else if (Number.isFinite(euros) && euros > 0) {
-      payload.euros = euros;
-    } else if (Number.isFinite(shares) && shares > 0) {
-      payload.shares = shares;
     }
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
     return payload;
@@ -32,23 +39,31 @@ export function attach(ctx) {
 
   function renderTransactionPreview(preview) {
     ctx.elements.transactionPreview.hidden = false;
-    const unitPrice = preview.shares > 0 ? ` - Precio unitario: ${Number(preview.valueEur / preview.shares).toFixed(2)} ${preview.currency}` : '';
-    const manualLabel = preview.manualUnitPrice ? ' - Precio manual' : ' - Mercado';
+    const modeLabel =
+      preview.type === 'remove' && preview.entryMode === 'manual_total_eur'
+        ? 'Venta manual EUR'
+        : preview.entryMode
+          ? ctx.transactionEntryModeLabel(preview.entryMode)
+          : preview.manualUnitPrice
+            ? 'Precio manual'
+            : 'Mercado';
+    const marketDate = preview.entryMode === 'market_eur' ? ` - Mercado: ${ctx.formatDate(preview.marketDate)}` : '';
     ctx.elements.transactionPreview.innerHTML = `
       <span>Preview</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
-      <small>Mercado: ${ctx.formatDate(preview.marketDate)} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}${unitPrice}${manualLabel}</small>
+      <small>Modo: ${modeLabel}${marketDate} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
       <small>Cantidad: ${ctx.formatInstrumentQuantity(preview.shares, preview)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
       <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;
   }
   function hasValidAmount() {
+    const mode = ctx.activeTransactionEntryMode();
     const euros = Number(ctx.elements.addEuros.value);
     const shares = Number(ctx.elements.addShares.value);
     const price = Number(ctx.elements.addPrice.value);
-    if (Number.isFinite(euros) && euros > 0) return true;
-    if (Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0) return true;
-    return false;
+    if (mode === 'market_eur') return Number.isFinite(euros) && euros > 0;
+    if (mode === 'manual_total_eur') return Number.isFinite(euros) && euros > 0 && Number.isFinite(shares) && shares > 0;
+    return Number.isFinite(shares) && shares > 0 && Number.isFinite(price) && price > 0;
   }
 
   async function refreshTransactionPreview() {
@@ -61,15 +76,9 @@ export function attach(ctx) {
       renderTransactionPreview(data.preview);
       ctx.state.transactionPreviewOk = true;
       return true;
-    } catch {
+    } catch (error) {
       ctx.elements.transactionPreview.hidden = false;
-      const hasManualAmount = !ctx.elements.addShares.disabled && Number(ctx.elements.addShares.value) > 0 && Number(ctx.elements.addPrice.value) > 0;
-      if (hasManualAmount) {
-        ctx.elements.transactionPreview.innerHTML = `<span>Datos online no disponibles</span><small>No se pudo obtener el precio de mercado. Se guardará con el precio unitario y la cantidad indicados.</small>`;
-        ctx.state.transactionPreviewOk = true;
-        return true;
-      }
-      ctx.elements.transactionPreview.innerHTML = `<span>Datos online no disponibles</span><small>No se pudo obtener el precio de mercado. Introduce precio unitario y cantidad para registrar la operación.</small>`;
+      ctx.elements.transactionPreview.innerHTML = `<span>No se pudo validar</span><small>${ctx.normalizeErrorMessage(error)}</small>`;
       return false;
     }
   }
@@ -106,6 +115,9 @@ export function attach(ctx) {
   function syncOperationCopy() {
     const isRemove = ctx.elements.operationType.value === 'remove';
     ctx.elements.operationTitle.textContent = isRemove ? 'Registrar venta' : 'Registrar compra';
+    ctx.elements.operationSubtitle.textContent = isRemove
+      ? 'Registra la cantidad vendida y el importe bruto en euros.'
+      : 'Define la operación y elige cómo quieres calcular el movimiento.';
     ctx.elements.addSubmit.textContent = isRemove ? 'Guardar venta' : 'Guardar compra';
     ctx.elements.addTicker.required = !isRemove;
     ctx.elements.removeTicker.required = isRemove;
@@ -117,9 +129,11 @@ export function attach(ctx) {
     ctx.elements.tickerSelectField.hidden = !isRemove || isEmpty;
     ctx.elements.operationCreateInstrument.hidden = isRemove || isEmpty;
     ctx.elements.addDate.closest('.field').hidden = isEmpty;
-    ctx.elements.addEuros.closest('.field-grid').hidden = isEmpty;
+    ctx.elements.addCalculationSection.hidden = isEmpty;
+    ctx.elements.addCommissionField.hidden = isEmpty;
     ctx.elements.addSubmit.disabled = isEmpty;
     ctx.elements.addSubmit.hidden = isEmpty;
+    ctx.syncEntryModeUi({ resetCurrency: true });
     if (isEmpty) {
       ctx.elements.transactionPreview.hidden = true;
       ctx.state.transactionPreviewOk = false;
@@ -133,49 +147,26 @@ export function attach(ctx) {
 
   function syncAmountInputs(event) {
     const source = event.target;
-    const euros = ctx.elements.addEuros;
-    const shares = ctx.elements.addShares;
-    const price = ctx.elements.addPrice;
-    const fx = ctx.elements.addFx;
-    const hint = ctx.elements.addAmountHint;
+    if (source === ctx.elements.addTicker || source === ctx.elements.removeTicker) ctx.syncEntryModeUi({ resetCurrency: true });
+    else ctx.syncEntryModeUi();
+    ctx.resetTransactionPreview();
+  }
 
-    if (source === euros) {
-      const hasEuros = euros.value && Number(euros.value) > 0;
-      shares.disabled = hasEuros;
-      price.disabled = hasEuros;
-      fx.disabled = hasEuros;
-      hint.hidden = !hasEuros;
-      if (hasEuros) {
-        shares.value = '';
-        price.value = '';
-        fx.value = '';
-        hint.textContent = 'La cantidad y el precio se autocalcularan con el precio de mercado al guardar.';
-      }
-    } else {
-      if (source.value && Number(source.value) > 0) {
-        euros.value = '';
-      }
-    }
-
-    if (shares.value && Number(shares.value) > 0 && price.value && Number(price.value) > 0 && !shares.disabled) {
-      euros.value = (Number(shares.value) * Number(price.value)).toFixed(2);
-    }
-
-    ctx.elements.transactionPreview.hidden = true;
-    ctx.state.transactionPreviewOk = false;
-    setAddFeedback('');
+  function handleEntryModeChange() {
+    ctx.syncEntryModeUi({ clearFields: true, resetCurrency: true });
+    ctx.resetTransactionPreview();
   }
 
   function openOperationDialog(type) {
     ctx.elements.addForm.reset();
     ctx.elements.operationType.value = type;
     ctx.elements.addDate.value = ctx.todayInputValue();
-    ctx.elements.transactionPreview.hidden = true;
-    ctx.state.transactionPreviewOk = false;
-    ctx.elements.addShares.disabled = false;
-    ctx.elements.addPrice.disabled = false;
-    ctx.elements.addFx.disabled = false;
-    ctx.elements.addAmountHint.hidden = true;
+    ctx.state.transactionEntryMode = type === 'remove' ? 'manual_total_eur' : 'market_eur';
+    ctx.elements.addEntryModeInputs.forEach((input) => {
+      input.checked = input.value === ctx.state.transactionEntryMode;
+    });
+    ctx.syncEntryModeUi({ clearFields: true, resetCurrency: true });
+    ctx.resetTransactionPreview();
     setAddFeedback('');
     syncOperationCopy();
     ctx.elements.addDialog.showModal();
@@ -191,7 +182,12 @@ export function attach(ctx) {
     event.preventDefault();
     const payload = buildTransactionPayload(true);
     if (!hasValidAmount()) {
-      setAddFeedback('Indica el total en euros, o bien la cantidad con su precio unitario.', true);
+      setAddFeedback(
+        ctx.elements.operationType.value === 'remove'
+          ? 'Indica la cantidad vendida y el importe bruto de venta en EUR.'
+          : 'Indica el total en euros, o bien la cantidad con su precio unitario.',
+        true,
+      );
       return;
     }
     ctx.elements.addSubmit.disabled = true;
@@ -384,6 +380,7 @@ export function attach(ctx) {
     populateAddTickerOptions,
     syncOperationCopy,
     syncAmountInputs,
+    handleEntryModeChange,
     openOperationDialog,
     closeAddDialog,
     handleTransactionSubmit,
