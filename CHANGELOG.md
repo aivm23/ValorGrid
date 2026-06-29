@@ -3,6 +3,7 @@
 ## 3.28.2
 
 - fix: corrected donut detail chart hover when multiple instruments share the same groupId by using canonical identity per item type.
+- fix: route dashboard, allocation and history dynamic copy through i18n keys to avoid Spanish UI leftovers in English mode.
 
 ## 3.28.1
 

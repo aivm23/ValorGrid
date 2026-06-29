@@ -32,6 +32,10 @@ export function attach(ctx) {
       .join('');
   }
 
+  function displayPortfolioName(item) {
+    return item?.name || '';
+  }
+
   function effectiveGroupComponents(groupId) {
     return (ctx.state.summary?.groupedPositions?.[groupId] || [])
       .filter((item) => Number(item.value || 0) > 0 && Math.abs(Number(item.shares || 0)) > 0.0000001)
@@ -52,9 +56,9 @@ export function attach(ctx) {
             </li>`;
           })
           .join('')
-      : '<li><span>Sin posiciones con valor</span></li>';
+      : `<li><span>${ctx.escapeHtml(ctx.t('summary.empty.noValuePositions'))}</span></li>`;
     return `
-      <div class="donut-tooltip-title">${ctx.escapeHtml(item.name)}</div>
+      <div class="donut-tooltip-title">${ctx.escapeHtml(displayPortfolioName(item))}</div>
       <div class="donut-tooltip-total">${ctx.formatCurrency(total)}</div>
       <ul>${rows}</ul>
     `;
@@ -329,7 +333,7 @@ export function attach(ctx) {
     if (portfolio.length) {
       const groupsEnabled = state.groupsEnabled;
       elements.legend.innerHTML = renderPortfolioLegend(portfolio, summary.total, (item) => {
-        if (item.isExpandable && groupsEnabled) return 'Desglose disponible';
+        if (item.isExpandable && groupsEnabled) return ctx.t('summary.legend.breakdownAvailable');
         if (item.type === 'group' && !item.isExpandable) {
           return `${ctx.formatCurrency(item.value || 0)}`;
         }
@@ -340,11 +344,11 @@ export function attach(ctx) {
       });
     } else if (summary.onboarding?.needsSetup) {
       elements.legend.innerHTML = `<div class="empty-action-state">
-          <p class="subtle">Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.</p>
-          <button class="button btn-save" type="button" data-open-onboarding>Crear cartera</button>
+          <p class="subtle">${ctx.escapeHtml(ctx.t('summary.empty.noPositionsSetup'))}</p>
+          <button class="button btn-save" type="button" data-open-onboarding>${ctx.escapeHtml(ctx.t('summary.empty.createPortfolio'))}</button>
         </div>`;
     } else {
-      elements.legend.innerHTML = '<p class="subtle">Sin posiciones todavía. Usa Añadir para registrar el primer movimiento.</p>';
+      elements.legend.innerHTML = `<p class="subtle">${ctx.escapeHtml(ctx.t('summary.empty.noPositionsAddFirst'))}</p>`;
     }
 
     elements.stockDetail.hidden = !state.groupsEnabled || !state.expandedGroupId || !group;
@@ -356,16 +360,16 @@ export function attach(ctx) {
           const sharesText = ctx.formatInstrumentQuantity(item.shares, item);
           return `${item.symbol}: ${ctx.formatCurrency(item.priceEur)} x ${sharesText}`;
         })
-      : '<p class="subtle">Sin posiciones para desglosar.</p>';
+      : `<p class="subtle">${ctx.escapeHtml(ctx.t('summary.empty.noBreakdownPositions'))}</p>`;
 
     const status = summary.marketDataStatus || { status: 'ok', stale: 0, missing: 0 };
     const suffix = summary.updatedAt ? ` - ${ctx.formatDateTime(summary.updatedAt)}` : '';
     if (status.status === 'missing') {
-      elements.priceStatus.textContent = `Precios incompletos: ${status.missing} valor(es) sin cotizacion local${suffix}`;
+      elements.priceStatus.textContent = ctx.tn('summary.priceStatus.missing', Number(status.missing || 0), { suffix });
     } else if (status.status === 'stale') {
-      elements.priceStatus.textContent = `Precios desde cache local: ${status.stale} valor(es) con cotizacion antigua${suffix}`;
+      elements.priceStatus.textContent = ctx.tn('summary.priceStatus.stale', Number(status.stale || 0), { suffix });
     } else {
-      elements.priceStatus.textContent = `Precios actualizados desde proveedor de mercado${suffix}`;
+      elements.priceStatus.textContent = ctx.t('summary.priceStatus.ok', { suffix });
     }
   }
 

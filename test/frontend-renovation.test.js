@@ -257,8 +257,8 @@ test('index.html and charts.js render metric info tooltips for visible totals', 
   assert.ok(index.includes('Total visible estimado'), 'distribution label updated');
   assert.ok(index.includes('aria-label="Información sobre la métrica"'), 'metric info aria label present in index');
   assert.ok(index.includes('visibles en distribución'), 'distribution tooltip explains visibility');
-  assert.ok(charts.includes('Último valor histórico'), 'history stat label updated in charts');
-  assert.ok(charts.includes('cartera activa materializada en histórico'), 'history tooltip explains materialized portfolio');
+  assert.ok(charts.includes('history.stats.lastValue.label'), 'history stat label is resolved through i18n');
+  assert.ok(charts.includes('history.stats.lastValue.tooltip'), 'history tooltip is resolved through i18n');
   assert.ok(css.includes('.metric-info-button'), 'CSS defines metric info button');
   assert.ok(css.includes('.metric-info-tooltip'), 'CSS defines metric info tooltip');
 });
@@ -574,26 +574,26 @@ test('operations.js Operativa cards use improved microcopy and tooltips', () => 
   assert.ok(ops.includes('op-result-info'), 'tooltip id for resultado total');
   assert.ok(ops.includes('op-latent-info'), 'tooltip id for plusvalía latente');
 
-  // Tooltip content
-  assert.ok(ops.includes('Aportado neto total desde el primer movimiento'), 'aportado tooltip text');
-  assert.ok(ops.includes('Resultado total = valor mercado - aportado neto'), 'resultado tooltip text');
-  assert.ok(ops.includes('Plusvalía no realizada de posiciones abiertas'), 'latent tooltip text');
+  // Tooltip content is now resolved through i18n keys.
+  assert.ok(ops.includes("ctx.t('operations.metrics.netContributed.tooltip')"), 'aportado tooltip i18n key');
+  assert.ok(ops.includes("ctx.t('operations.metrics.totalGain.tooltip')"), 'resultado tooltip i18n key');
+  assert.ok(ops.includes("ctx.t('operations.metrics.unrealizedGain.tooltip')"), 'latent tooltip i18n key');
 
   // New microcopy for Aportado neto
-  assert.ok(ops.includes('desde primer movimiento'), 'aportado microcopy: desde primer movimiento');
-  assert.ok(ops.includes('retirada neta total'), 'aportado microcopy: retirada neta total');
+  assert.ok(ops.includes('operations.metrics.netContributed.micro.positive'), 'aportado microcopy: positive key');
+  assert.ok(ops.includes('operations.metrics.netContributed.micro.negative'), 'aportado microcopy: negative key');
 
   // New microcopy for Resultado total
-  assert.ok(ops.includes('valor + retirado neto'), 'resultado microcopy: valor + retirado neto');
-  assert.ok(ops.includes('sin aportación neta'), 'resultado microcopy: sin aportación neta');
-  assert.ok(ops.includes('sobre aportado'), 'resultado microcopy: sobre aportado');
+  assert.ok(ops.includes('operations.metrics.totalGain.micro.withdrawn'), 'resultado microcopy: withdrawn key');
+  assert.ok(ops.includes('operations.metrics.totalGain.micro.noContribution'), 'resultado microcopy: no contribution key');
+  assert.ok(ops.includes('operations.metrics.totalGain.micro.overContributed'), 'resultado microcopy: over contributed key');
 
   // New microcopy for Plusvalía latente
-  assert.ok(ops.includes('sobre inversión abierta'), 'latent microcopy: sobre inversión abierta');
-  assert.ok(ops.includes('sin inversión abierta'), 'latent microcopy: sin inversión abierta');
+  assert.ok(ops.includes('operations.metrics.unrealizedGain.micro.openInvestment'), 'latent microcopy: open investment key');
+  assert.ok(ops.includes('operations.metrics.unrealizedGain.micro.noOpenInvestment'), 'latent microcopy: no open investment key');
 
   // Plusvalía realizada copy updated
-  assert.ok(ops.includes('resultado ventas FIFO'), 'realized copy: resultado ventas FIFO');
+  assert.ok(ops.includes('operations.metrics.realizedGain.micro'), 'realized copy i18n key');
 
   // Open investment formula present
   assert.ok(ops.includes('currentValue - unrealizedGain'), 'open investment formula present');

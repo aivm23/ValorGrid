@@ -1,169 +1,9 @@
+import { BASE_TEXT_TRANSLATIONS } from './i18n-catalog.js';
+
 const SUPPORTED_LANGUAGES = new Set(['es', 'en']);
 const STORAGE_KEY = 'valorgrid-language';
 const textOriginals = new WeakMap();
 const attrOriginals = new WeakMap();
-
-const BASE_TEXT_TRANSLATIONS = {
-  en: {
-    'Cargando ValorGrid...': 'Loading ValorGrid...',
-    'Preparando datos y cartera local.': 'Preparing local data and portfolio.',
-    'Abrir incidencia en GitHub Issues': 'Open issue in GitHub Issues',
-    Reintentar: 'Retry',
-    'Dashboard privado de gestión y seguimiento de cartera.': 'Private portfolio management and tracking dashboard.',
-    Empezar: 'Start',
-    Aportaciones: 'Contributions',
-    Valores: 'Instruments',
-    Importar: 'Import',
-    Exportar: 'Export',
-    Dividendos: 'Dividends',
-    Operativa: 'Operations',
-    'Resumen financiero del ledger y evolución acumulada.': 'Financial ledger summary and accumulated evolution.',
-    'Distribución actual': 'Current allocation',
-    'Peso de cada posición sobre el total.': 'Weight of each position over the total.',
-    'Total visible estimado': 'Estimated visible total',
-    Total: 'Total',
-    Histórico: 'History',
-    'Evolución de valor, aportaciones y movimientos.': 'Value, contributions and movement history.',
-    Movimientos: 'Movements',
-    'Compras, ventas y dividendos registrados.': 'Registered buys, sells and dividends.',
-    Administración: 'Administration',
-    'Backups, importaciones y preferencias de visualización.': 'Backups, imports and display preferences.',
-    Preferencias: 'Preferences',
-    General: 'General',
-    Idioma: 'Language',
-    Español: 'Spanish',
-    Inglés: 'English',
-    'Mostrar negativos en rojo': 'Show negative values in red',
-    'Límite movimientos': 'Movement limit',
-    'Formato de fecha': 'Date format',
-    'Inicio del calendario': 'Calendar start',
-    Lunes: 'Monday',
-    Domingo: 'Sunday',
-    Avanzado: 'Advanced',
-    'Personalización disponible en': 'Customization available in',
-    Backups: 'Backups',
-    Importaciones: 'Imports',
-    Cerrar: 'Close',
-    Cancelar: 'Cancel',
-    Guardar: 'Save',
-    Descargar: 'Download',
-    Eliminar: 'Delete',
-    'Crear valor': 'Create instrument',
-    'Sin valores para este filtro.': 'No instruments for this filter.',
-    'Sin grupos. Crea uno para clasificar valores.': 'No groups. Create one to classify instruments.',
-    'Opciones de visualización': 'Display options',
-    'Mostrar en dashboard': 'Show on dashboard',
-    'Mostrar en revisión YTD': 'Show in YTD review',
-    'Permitir desglose': 'Allow breakdown',
-    'Sin backups todavía.': 'No backups yet.',
-    'Backups recientes': 'Recent backups',
-    'Rentabilidad avanzada': 'Advanced returns',
-    Instrumentos: 'Instruments',
-    Grupos: 'Groups',
-    Instrumento: 'Instrument',
-    Grupo: 'Group',
-    Tipo: 'Type',
-    Composición: 'Composition',
-    Peso: 'Weight',
-    Impacto: 'Impact',
-    'Cuota P&L': 'P&L share',
-    'MWR anual': 'Annual MWR',
-    'Ret. abierta': 'Open return',
-    'Arrastre coste': 'Cost drag',
-    Días: 'Days',
-    Dias: 'Days',
-    Estado: 'State',
-    Abierta: 'Open',
-    Parcial: 'Partial',
-    Cerrada: 'Closed',
-    Compras: 'Buys',
-    Ventas: 'Sells',
-    Todos: 'All',
-    Ocultos: 'Hidden',
-    Personalizados: 'Custom',
-    Operación: 'Operation',
-    'Marcadores de movimientos': 'Movement markers',
-    'Ordenar por': 'Sort by',
-    'Impacto cartera': 'Portfolio impact',
-    'Peso cartera': 'Portfolio weight',
-    'Retorno abierto': 'Open return',
-    'Eficiencia ventas': 'Sales efficiency',
-    'Días en cartera': 'Days held',
-    'Incluir posiciones cerradas': 'Include closed positions',
-    'Bloques del dashboard': 'Dashboard blocks',
-    'Rentabilidad': 'Return',
-    'Pendiente': 'Pending',
-    'Valor mercado': 'Market value',
-    'Aportado neto': 'Net contributed',
-    'Resultado total': 'Total result',
-    'Plusvalía latente': 'Unrealized gain',
-    'Plusvalía realizada': 'Realized gain',
-    Comisiones: 'Fees',
-    'Rentabilidad simple': 'Simple return',
-    'Nº movimientos': 'Movement count',
-    'Comisión media': 'Average fee',
-    'Inversión abierta': 'Open investment',
-    'Cash-flow neto': 'Net cash flow',
-    'Compras brutas': 'Gross buys',
-    'Ventas brutas': 'Gross sells',
-    'a precios actuales': 'at current prices',
-    'desde primer movimiento': 'since first movement',
-    'retirada neta total': 'total net withdrawal',
-    'valor + retirado neto': 'value + net withdrawn',
-    'sin aportación neta': 'no net contribution',
-    'sobre aportado': 'over contributed capital',
-    'sin inversión abierta': 'no open investment',
-    'resultado ventas FIFO': 'FIFO sale result',
-    'sin comisiones': 'no fees',
-    'retorno sobre aportado': 'return over contributed capital',
-    'requiere neto aportado > 0': 'requires net contributed > 0',
-    'compras y ventas totales': 'total buys and sells',
-    'por movimiento': 'per movement',
-    'capital actualmente invertido': 'capital currently invested',
-    'flujo neto acumulado': 'accumulated net flow',
-    'total comprado sin comisiones': 'total bought excluding fees',
-    'total vendido sin comisiones': 'total sold excluding fees',
-    'Cargando precios online...': 'Loading online prices...',
-    'Actualizar precios': 'Refresh prices',
-    'Ocultar saldos': 'Hide balances',
-    'Mostrar saldos': 'Show balances',
-    'Cambiar tema': 'Change theme',
-    'Activar modo claro': 'Enable light mode',
-    'Activar modo oscuro': 'Enable dark mode',
-    'Alta guiada': 'Guided setup',
-    'Planes de aportación': 'Contribution plans',
-    'Configurar valores': 'Configure instruments',
-    'Importar movimientos': 'Import movements',
-    'Exportar datos': 'Export data',
-    'Revisar dividendos pendientes': 'Review pending dividends',
-    'Dividendos pendientes': 'Pending dividends',
-    'Información sobre la métrica': 'Metric information',
-    'Calculando rentabilidad avanzada...': 'Calculating advanced returns...',
-    'Sin movimientos para analizar.': 'No movements to analyze.',
-    'No se pudo calcular la rentabilidad avanzada.': 'Advanced returns could not be calculated.',
-    'Sin impacto medible': 'No measurable impact',
-    'Toda la muestra visible': 'Entire visible sample',
-    'filas con impacto': 'rows with impact',
-    'Top contribuidor': 'Top contributor',
-    'Mayor detractor': 'Largest detractor',
-    'Concentracion top 3': 'Top 3 concentration',
-    'Concentración top 3': 'Top 3 concentration',
-    'Peor arrastre coste': 'Largest cost drag',
-    Contribuidores: 'Contributors',
-    Detractores: 'Detractors',
-    'Lotes FIFO abiertos': 'Open FIFO lots',
-    'Ventas FIFO': 'FIFO sales',
-    'Sin lotes abiertos.': 'No open lots.',
-    'Sin ventas realizadas.': 'No realized sales.',
-    'Sin datos.': 'No data.',
-    'sin fecha': 'no date',
-    'sin datos': 'no data',
-    'del mes': 'of the month',
-    'Mostrar más': 'Show more',
-    'Mostrar menos': 'Show less',
-    'Vista de rentabilidad avanzada': 'Advanced returns view',
-  },
-};
 
 function normalizeLanguage(value) {
   const language = String(value || '').toLowerCase().slice(0, 2);
@@ -200,7 +40,7 @@ function shouldSkipNode(node) {
 
 export function attach(ctx) {
   const dictionaries = {
-    es: {},
+    es: { ...BASE_TEXT_TRANSLATIONS.es },
     en: { ...BASE_TEXT_TRANSLATIONS.en },
   };
 
@@ -232,6 +72,14 @@ export function attach(ctx) {
     }
   }
 
+  function dictionaryValue(key) {
+    const text = String(key ?? '');
+    const active = dictionaries[language()] || {};
+    if (Object.prototype.hasOwnProperty.call(active, text)) return active[text];
+    if (Object.prototype.hasOwnProperty.call(dictionaries.es, text)) return dictionaries.es[text];
+    return undefined;
+  }
+
   function translatePhrase(source, params) {
     const text = String(source ?? '');
     if (language() === 'es') return interpolate(text, params);
@@ -239,7 +87,14 @@ export function attach(ctx) {
   }
 
   function t(source, params) {
+    const keyed = dictionaryValue(source);
+    if (keyed !== undefined) return interpolate(keyed, params);
     return translatePhrase(source, params);
+  }
+
+  function tn(key, count, params = {}) {
+    const suffix = Number(count) === 1 ? 'one' : 'other';
+    return t(`${key}.${suffix}`, { ...params, count });
   }
 
   function translateTextNode(node) {
@@ -337,6 +192,7 @@ export function attach(ctx) {
     translatePhrase,
     translateTree,
     t,
+    tn,
     language,
     locale,
     dateInputLang,

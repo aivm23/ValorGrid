@@ -119,23 +119,27 @@ export function attach(ctx) {
   }
 
   function historyEventLabel(type) {
-    if (type === 'dividend') return 'Dividendo';
-    return type === 'remove' ? 'Venta' : 'Compra';
+    if (type === 'dividend') return ctx.t('history.events.dividend');
+    return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
   }
 
   function eventTooltip(event) {
     const type = historyEventLabel(event.type);
-    const origin = event.origin === 'auto' ? 'automático' : event.origin === 'import' ? 'importado' : 'manual';
+    const origin = event.origin === 'auto'
+      ? ctx.t('history.origin.auto')
+      : event.origin === 'import'
+        ? ctx.t('history.origin.import')
+        : ctx.t('history.origin.manual');
     const lines = [
       `${type} ${event.symbol}`,
       formatPlainDate(event.date),
       formatInstrumentQuantity(event.shares, event),
       formatCurrency(Number(event.valueEur)),
-      `Precio: ${formatCurrency(Number(event.price))}`,
-      `Origen: ${origin}`,
+      ctx.t('history.tooltip.price', { value: formatCurrency(Number(event.price)) }),
+      ctx.t('history.tooltip.origin', { value: origin }),
     ];
     if (event.marketDate && event.marketDate !== event.date) {
-      lines.splice(2, 0, `Mercado: ${formatPlainDate(event.marketDate)}`);
+      lines.splice(2, 0, ctx.t('history.tooltip.market', { value: formatPlainDate(event.marketDate) }));
     }
     return lines.join('\n');
   }
@@ -144,7 +148,7 @@ export function attach(ctx) {
     if (events.length === 1) return eventTooltip(events[0]);
     const date = events[0].plotDate || events[0].marketDate || events[0].date;
     return [
-      `${formatPlainDate(date)} - ${events.length} movimientos`,
+      ctx.tn('history.tooltip.movements', events.length, { date: formatPlainDate(date) }),
       '---',
       ...events.map((event) => {
         const type = historyEventLabel(event.type);
@@ -159,7 +163,7 @@ export function attach(ctx) {
     return `
       <div class="metric-label">
         <span>${escapedLabel}</span>
-        <button type="button" class="metric-info-button" aria-label="Información sobre la métrica" aria-describedby="${id}">i</button>
+        <button type="button" class="metric-info-button" aria-label="${escapeHtml(ctx.t('common.metricInfo'))}" aria-describedby="${id}">i</button>
         <span id="${id}" class="sr-only">${escapedTooltip}</span>
         <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">${escapedTooltip}</div>
       </div>`;
@@ -168,8 +172,8 @@ export function attach(ctx) {
   function renderHistory() {
     const history = state.history;
     if (!history || history.range !== state.historyRange || !history.series?.length) {
-      elements.historyChart.innerHTML = '<div class="history-empty">Sin datos históricos suficientes.</div>';
-      elements.historyStatus.textContent = 'Histórico pendiente';
+      elements.historyChart.innerHTML = `<div class="history-empty">${escapeHtml(ctx.t('history.empty.insufficientData'))}</div>`;
+      elements.historyStatus.textContent = ctx.t('history.status.pending');
       elements.historyGranularity.textContent = '';
       return;
     }
@@ -185,20 +189,25 @@ export function attach(ctx) {
     }, 0);
     elements.historyStats.innerHTML = `
     <article class="has-border-accent">${metricInfo(
-      'Último valor histórico',
-      'Suma la cartera activa materializada en histórico. Puede incluir instrumentos ocultos en distribución actual.',
+      ctx.t('history.stats.lastValue.label'),
+      ctx.t('history.stats.lastValue.tooltip'),
       'history-last-value-info',
     )}<strong>${formatCurrency(last.value)}</strong></article>
-    <article class="has-border-accent"><span>Aportado visible</span><strong>${formatCurrency(invested)}</strong></article>
-    <article class="has-border-violet"><span>Eventos visibles</span><strong>${visibleEvents.length}</strong></article>
+    <article class="has-border-accent"><span>${escapeHtml(ctx.t('history.stats.visibleContributed'))}</span><strong>${formatCurrency(invested)}</strong></article>
+    <article class="has-border-violet"><span>${escapeHtml(ctx.t('history.stats.visibleEvents'))}</span><strong>${visibleEvents.length}</strong></article>
   `;
-    const quality = history.meta?.dataQuality && history.meta.dataQuality !== 'ok' ? ` - datos ${history.meta.dataQuality}` : '';
-    elements.historyStatus.textContent = `${formatCurrency(last.value)} - ${history.series.length} puntos${quality}`;
-    elements.historyGranularity.textContent = history.granularity === 'weekly' ? 'Semanal' : 'Diario';
+    const quality = history.meta?.dataQuality && history.meta.dataQuality !== 'ok'
+      ? ctx.t('history.status.quality', { quality: history.meta.dataQuality })
+      : '';
+    elements.historyStatus.textContent = ctx.tn('history.status.points', history.series.length, {
+      value: formatCurrency(last.value),
+      quality,
+    });
+    elements.historyGranularity.textContent = history.granularity === 'weekly'
+      ? ctx.t('history.granularity.weekly')
+      : ctx.t('history.granularity.daily');
     if (elements.historySubtitle) {
-      elements.historySubtitle.textContent = `Valor total de la cartera desde ${formatPlainDate(
-        first.date,
-      )}.`;
+      elements.historySubtitle.textContent = ctx.t('history.subtitle.fromDate', { date: formatPlainDate(first.date) });
     }
   }
 

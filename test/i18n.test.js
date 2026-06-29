@@ -17,6 +17,7 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   const dom = read('apps/web/src/dom.js');
   const events = read('apps/web/src/events.js');
   const i18n = read('apps/web/src/i18n.js');
+  const catalog = read('apps/web/src/i18n-catalog.js');
 
   assert.ok(app.includes("from './i18n.js'"), 'app imports i18n module');
   assert.ok(app.includes('attachI18n'), 'app attaches i18n before rendering');
@@ -26,6 +27,8 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   assert.ok(events.includes('handleLanguageChange'), 'events module wires language changes');
   assert.ok(i18n.includes('registerTranslations'), 'extensions can register private dictionaries');
   assert.ok(i18n.includes('MutationObserver'), 'dynamic DOM mutations are translated');
+  assert.ok(i18n.includes("from './i18n-catalog.js'"), 'i18n imports the shared catalog');
+  assert.ok(catalog.includes('BASE_TEXT_TRANSLATIONS'), 'catalog exports base translations');
 });
 
 test('frontend number formatting is centralized behind locale helpers', () => {
@@ -47,4 +50,39 @@ test('Community Professional Edition gate honors Accept-Language', async () => {
   assert.equal(spanish.response.status, 403);
   assert.equal(english.body.error, 'Feature available in Professional Edition');
   assert.equal(spanish.body.error, 'Funcionalidad disponible en Professional Edition');
+});
+
+test('dashboard dynamic copy is rendered through i18n keys', () => {
+  const i18n = read('apps/web/src/i18n-catalog.js');
+  const operations = read('apps/web/src/operations.js');
+  const summary = read('apps/web/src/summary.js');
+
+  for (const key of [
+    'operations.metrics.marketValue.label',
+    'operations.metrics.totalGain.label',
+    'operations.metrics.unrealizedGain.label',
+    'operations.metrics.realizedGain.label',
+    'operations.metrics.commissions.label',
+    'summary.priceStatus.stale.one',
+    'summary.priceStatus.stale.other',
+    'summary.legend.breakdownAvailable',
+  ]) {
+    assert.ok(i18n.includes(`'${key}'`), `${key} must exist in the i18n catalog`);
+  }
+
+  for (const literal of [
+    '<span>Valor mercado</span>',
+    '<span>Resultado total</span>',
+    '<span>Plusvalía latente</span>',
+    '<span>Plusvalía realizada</span>',
+    '<span>Comisiones</span>',
+    'Precios desde cache local:',
+    'valor(es) con cotizacion antigua',
+    "'Desglose disponible'",
+  ]) {
+    assert.equal(operations.includes(literal) || summary.includes(literal), false, `${literal} must not be rendered directly`);
+  }
+
+  assert.ok(operations.includes("ctx.t('operations.metrics.marketValue.label')"), 'operations renders metric labels via i18n keys');
+  assert.ok(summary.includes("ctx.tn('summary.priceStatus.stale'"), 'summary renders stale price status via i18n plurals');
 });
