@@ -93,6 +93,8 @@ test('dashboard dynamic copy is rendered through i18n keys', () => {
 
 test('frontend residual dashboard surfaces use i18n keys for generated copy', () => {
   const catalog = read('apps/web/src/i18n-catalog-ui.js');
+  const baseCatalog = read('apps/web/src/i18n-catalog.js');
+  const modalCatalog = read('apps/web/src/i18n-catalog-modals.js');
   const importCatalog = read('apps/web/src/i18n-catalog-import.js');
   const monthly = read('apps/web/src/monthly.js');
   const ledger = read('apps/web/src/ledger.js');
@@ -109,9 +111,14 @@ test('frontend residual dashboard surfaces use i18n keys for generated copy', ()
     'import.detectedFormat',
     'import.confirm.selectedOperations',
     'form.operation.title.buy',
+    'Sin planes de aportación. Añade un plan cuando lo necesites.',
+    'Añadir plan',
   ]) {
     assert.ok(
-      catalog.includes(`'${key}'`) || importCatalog.includes(`'${key}'`),
+      catalog.includes(`'${key}'`) ||
+        importCatalog.includes(`'${key}'`) ||
+        baseCatalog.includes(`'${key}'`) ||
+        modalCatalog.includes(`'${key}'`),
       `${key} must exist in the frontend i18n catalogs`,
     );
   }
@@ -123,6 +130,9 @@ test('frontend residual dashboard surfaces use i18n keys for generated copy', ()
   assert.ok(confirm.includes("ctx.t('import.confirm.selectedOperations'"), 'import confirmation labels use i18n keys');
   assert.ok(forms.includes('form.operation.title.sell'), 'operation dialog labels use i18n keys');
   assert.ok(forms.includes('form.operation.title.buy'), 'operation dialog labels use i18n keys');
+  assert.ok(forms.includes("ctx.t('Añadir plan')"), 'recurring contribution add button uses i18n');
+  assert.ok(forms.includes("ctx.t('Día mes')"), 'recurring contribution month-day label uses i18n');
+  assert.ok(forms.includes("ctx.dateInputLang"), 'recurring contribution date input follows active language');
 });
 
 test('frontend modal copy is covered by i18n dictionaries', () => {

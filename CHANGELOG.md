@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.28.6
+
+- fix: translate the Community contributions modal static and recurring-plan copy in English mode.
+- fix: localize recurring contribution frequency, weekday, feedback and date-input language handling.
+- test: guard recurring contribution i18n wiring in frontend coverage.
+
 ## 3.28.5
 
 - fix: translate remaining tooltip, Professional Edition teaser and import workflow copy in English mode.

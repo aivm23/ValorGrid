@@ -3,7 +3,7 @@ export function attach(ctx) {
     ctx.state.autoPlanDrafts = (ctx.state.autoPlans || []).map((plan) => ({ ...plan }));
     ctx.state.autoPlanRetroactiveConfirmed = false;
     ctx.renderAutoPlans();
-    ctx.elements.autoFeedback.textContent = 'Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.';
+    ctx.elements.autoFeedback.textContent = ctx.t('Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.');
     ctx.elements.autoFeedback.dataset.state = '';
     ctx.elements.autoDialog.showModal();
   }

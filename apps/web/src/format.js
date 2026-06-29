@@ -32,7 +32,7 @@ export function attach(ctx) {
       : all;
     return ordered.map((d) => {
       const sel = String(selectedValue) === d.value ? ' selected' : '';
-      return `<option value="${d.value}"${sel}>${d.label}</option>`;
+      return `<option value="${d.value}"${sel}>${escapeHtml(ctx.t?.(d.label) || d.label)}</option>`;
     }).join('');
   }
 

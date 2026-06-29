@@ -670,12 +670,12 @@
       <form id="auto-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Aportaciones</h2>
-            <p class="subtle">
+            <h2 data-i18n="Aportaciones">Aportaciones</h2>
+            <p class="subtle" data-i18n="Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento.">
               Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento.
             </p>
           </div>
-          <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+          <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar" data-i18n-aria-label="Cerrar">x</button>
         </div>
 
         <div class="admin-grid">
@@ -684,12 +684,12 @@
               <span class="admin-card-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <h3>Puntuales</h3>
+              <h3 data-i18n="Puntuales">Puntuales</h3>
             </div>
-            <p class="subtle">Registra una compra o venta puntual de un instrumento.</p>
+            <p class="subtle" data-i18n="Registra una compra o venta puntual de un instrumento.">Registra una compra o venta puntual de un instrumento.</p>
             <div class="aportaciones-puntuales-actions">
-              <button id="aportaciones-buy" class="button" type="button">Compra</button>
-              <button id="aportaciones-sell" class="button" type="button">Venta</button>
+              <button id="aportaciones-buy" class="button" type="button" data-i18n="Compra">Compra</button>
+              <button id="aportaciones-sell" class="button" type="button" data-i18n="Venta">Venta</button>
             </div>
           </section>
 
@@ -698,17 +698,17 @@
               <span class="admin-card-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               </span>
-              <h3>Programadas</h3>
+              <h3 data-i18n="Programadas">Programadas</h3>
             </div>
-            <p class="subtle">Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.</p>
+            <p class="subtle" data-i18n="Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.">Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.</p>
             <div id="auto-plan-list" class="auto-plan-list"></div>
             <p id="auto-feedback" class="form-feedback" role="status"></p>
           </section>
         </div>
 
         <div class="modal-actions">
-          <button id="auto-cancel" class="button btn-cancel" type="button">Cancelar</button>
-          <button id="auto-submit" class="button btn-save" type="submit">Guardar</button>
+          <button id="auto-cancel" class="button btn-cancel" type="button" data-i18n="Cancelar">Cancelar</button>
+          <button id="auto-submit" class="button btn-save" type="submit" data-i18n="Guardar">Guardar</button>
         </div>
       </form>
     </dialog>

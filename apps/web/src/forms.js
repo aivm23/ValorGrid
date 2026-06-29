@@ -138,11 +138,9 @@ export function attach(ctx) {
     if (isEmpty) {
       ctx.elements.transactionPreview.hidden = true;
       ctx.state.transactionPreviewOk = false;
-      setAddFeedback(
-        isRemove
-          ? 'No hay ninguna posición abierta. Registra una compra antes de añadir una venta.'
-          : 'No hay valores creados. Crea un valor antes de registrar compras.',
-      );
+      setAddFeedback(ctx.t(isRemove
+        ? 'No hay ninguna posición abierta. Registra una compra antes de añadir una venta.'
+        : 'No hay valores creados. Crea un valor antes de registrar compras.'));
     }
   }
 
@@ -184,28 +182,28 @@ export function attach(ctx) {
     const payload = buildTransactionPayload(true);
     if (!hasValidAmount()) {
       setAddFeedback(
-        ctx.elements.operationType.value === 'remove'
+        ctx.t(ctx.elements.operationType.value === 'remove'
           ? 'Indica la cantidad vendida y el importe bruto de venta en EUR.'
-          : 'Indica el total en euros, o bien la cantidad con su precio unitario.',
+          : 'Indica el total en euros, o bien la cantidad con su precio unitario.'),
         true,
       );
       return;
     }
     ctx.elements.addSubmit.disabled = true;
-    setAddFeedback('Validando precio y movimiento...');
+    setAddFeedback(ctx.t('Validando precio y movimiento...'));
     try {
       const previewOk = ctx.state.transactionPreviewOk || (await refreshTransactionPreview());
-      if (!previewOk) throw new Error('Revisa la previsualización antes de guardar');
-      setAddFeedback('Guardando movimiento...');
+      if (!previewOk) throw new Error(ctx.t('Revisa la previsualización antes de guardar'));
+      setAddFeedback(ctx.t('Guardando movimiento...'));
       const data = await ctx.sendJson('/api/transactions', 'POST', payload);
-      setAddFeedback(`${data.transaction.symbol}: movimiento guardado.`);
+      setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: data.transaction.symbol }));
       window.setTimeout(closeAddDialog, 1800);
       ctx.state.historyCache = {};
       await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
     } catch (error) {
       const storedTransaction = await ctx.findTransactionById(payload.id).catch(() => null);
       if (storedTransaction) {
-        setAddFeedback(`${storedTransaction.symbol}: movimiento guardado.`);
+        setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: storedTransaction.symbol }));
         window.setTimeout(closeAddDialog, 1800);
         ctx.state.historyCache = {};
         await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
@@ -222,8 +220,8 @@ export function attach(ctx) {
     if (!instruments.length) {
       ctx.elements.autoPlanList.innerHTML = `
         <div class="empty-config-state">
-          Sin instrumentos todavía. Crea tu primer instrumento para configurar aportaciones recurrentes.
-          <button class="button button-compact btn-save" type="button" data-open-onboarding>Crear instrumento</button>
+          ${ctx.escapeHtml(ctx.t('Sin instrumentos todavía. Crea tu primer instrumento para configurar aportaciones recurrentes.'))}
+          <button class="button button-compact btn-save" type="button" data-open-onboarding>${ctx.escapeHtml(ctx.t('Crear instrumento'))}</button>
         </div>`;
       return;
     }
@@ -233,9 +231,9 @@ export function attach(ctx) {
       .join('');
     ctx.elements.autoPlanList.innerHTML = `
       <div class="auto-plan-toolbar">
-        <button class="button btn-save" type="button" data-add-auto-plan>Añadir plan</button>
+        <button class="button btn-save" type="button" data-add-auto-plan>${ctx.escapeHtml(ctx.t('Añadir plan'))}</button>
       </div>
-      ${rows || '<p class="subtle">Sin planes de aportación. Añade un plan cuando lo necesites.</p>'}
+      ${rows || `<p class="subtle">${ctx.escapeHtml(ctx.t('Sin planes de aportación. Añade un plan cuando lo necesites.'))}</p>`}
     `;
   }
 
@@ -248,23 +246,23 @@ export function attach(ctx) {
     const isWeekly = frequency === 'weekly' || frequency === 'biweekly';
     return `
       <div class="auto-plan-row" data-auto-plan-row="${index}">
-        <label class="check-field"><input type="checkbox" data-auto-field="enabled" ${plan.enabled ? 'checked' : ''} /><span>Activo</span></label>
-        <label class="field"><span>Instrumento</span><select data-auto-field="symbol"><option value="">Selecciona instrumento</option>${options}</select></label>
-        <label class="field"><span>Euros</span><input data-auto-field="amountEur" type="number" min="0.01" step="0.01" placeholder="Importe" value="${ctx.escapeHtml(plan.amountEur ?? '')}" /></label>
-        <label class="field"><span>Frecuencia</span><select data-auto-field="frequency">
-          <option value="">Frecuencia</option>
-          <option value="daily" ${frequency === 'daily' ? 'selected' : ''}>Diaria</option>
-          <option value="weekly" ${frequency === 'weekly' ? 'selected' : ''}>Semanal</option>
-          <option value="biweekly" ${frequency === 'biweekly' ? 'selected' : ''}>Bisemanal</option>
-          <option value="monthly" ${frequency === 'monthly' ? 'selected' : ''}>Mensual</option>
+        <label class="check-field"><input type="checkbox" data-auto-field="enabled" ${plan.enabled ? 'checked' : ''} /><span>${ctx.escapeHtml(ctx.t('Activo'))}</span></label>
+        <label class="field"><span>${ctx.escapeHtml(ctx.t('Instrumento'))}</span><select data-auto-field="symbol"><option value="">${ctx.escapeHtml(ctx.t('Selecciona instrumento'))}</option>${options}</select></label>
+        <label class="field"><span>${ctx.escapeHtml(ctx.t('Euros'))}</span><input data-auto-field="amountEur" type="number" min="0.01" step="0.01" placeholder="${ctx.escapeHtml(ctx.t('Importe'))}" value="${ctx.escapeHtml(plan.amountEur ?? '')}" /></label>
+        <label class="field"><span>${ctx.escapeHtml(ctx.t('Frecuencia'))}</span><select data-auto-field="frequency">
+          <option value="">${ctx.escapeHtml(ctx.t('Frecuencia'))}</option>
+          <option value="daily" ${frequency === 'daily' ? 'selected' : ''}>${ctx.escapeHtml(ctx.t('Diaria'))}</option>
+          <option value="weekly" ${frequency === 'weekly' ? 'selected' : ''}>${ctx.escapeHtml(ctx.t('Semanal'))}</option>
+          <option value="biweekly" ${frequency === 'biweekly' ? 'selected' : ''}>${ctx.escapeHtml(ctx.t('Bisemanal'))}</option>
+          <option value="monthly" ${frequency === 'monthly' ? 'selected' : ''}>${ctx.escapeHtml(ctx.t('Mensual'))}</option>
         </select></label>
-        <label class="field" ${isMonthly ? '' : 'hidden'}><span>Día mes</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
-        <label class="field" ${isWeekly ? '' : 'hidden'}><span>Día semana</span><select data-auto-field="weekday">
-          <option value="">Día</option>
+        <label class="field" ${isMonthly ? '' : 'hidden'}><span>${ctx.escapeHtml(ctx.t('Día mes'))}</span><input data-auto-field="day" type="number" min="1" max="28" step="1" placeholder="1-28" value="${ctx.escapeHtml(plan.day ?? '')}" /></label>
+        <label class="field" ${isWeekly ? '' : 'hidden'}><span>${ctx.escapeHtml(ctx.t('Día semana'))}</span><select data-auto-field="weekday">
+          <option value="">${ctx.escapeHtml(ctx.t('Día'))}</option>
           ${ctx.weekdayOptions(plan.weekday)}
         </select></label>
-        <label class="field"><span>Inicio</span><input data-auto-field="startDate" type="date" lang="${ctx.state.weekStart === 'sunday' ? 'en-US' : 'es'}" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
-        <button class="button button-compact btn-cancel" type="button" data-remove-auto-plan="${index}">Quitar</button>
+        <label class="field"><span>${ctx.escapeHtml(ctx.t('Inicio'))}</span><input data-auto-field="startDate" type="date" lang="${ctx.escapeHtml(ctx.dateInputLang?.() || 'es')}" value="${ctx.escapeHtml(plan.startDate || '')}" /></label>
+        <button class="button button-compact btn-cancel" type="button" data-remove-auto-plan="${index}">${ctx.escapeHtml(ctx.t('Quitar'))}</button>
       </div>`;
   }
 
@@ -272,7 +270,7 @@ export function attach(ctx) {
     ctx.state.autoPlanDrafts = (ctx.state.autoPlans || []).map((plan) => ({ ...plan }));
     ctx.state.autoPlanRetroactiveConfirmed = false;
     renderAutoPlans();
-    ctx.elements.autoFeedback.textContent = 'Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.';
+    ctx.elements.autoFeedback.textContent = ctx.t('Si el día elegido no tiene mercado, se usará el siguiente cierre disponible.');
     ctx.elements.autoFeedback.dataset.state = '';
     ctx.elements.autoDialog.showModal();
   }
@@ -344,8 +342,11 @@ export function attach(ctx) {
         }
         if (previewData.preview.pendingCount > 1) {
           const estimated = Number(previewData.preview.estimatedTotalEur || 0);
-          const totalCopy = estimated > 0 ? ` por ${ctx.formatCurrency(estimated)} en total` : '';
-          parts.push(`${previewData.preview.pendingCount} aportaciones pendientes${totalCopy}. Pulsa Guardar de nuevo para confirmar.`);
+          const totalCopy = estimated > 0 ? ctx.t(' por {amount} en total', { amount: ctx.formatCurrency(estimated) }) : '';
+          parts.push(ctx.t('{count} aportaciones pendientes{total}. Pulsa Guardar de nuevo para confirmar.', {
+            count: previewData.preview.pendingCount,
+            total: totalCopy,
+          }));
         }
         ctx.elements.autoFeedback.textContent = parts.join(' ');
         ctx.elements.autoFeedback.dataset.state = 'error';
@@ -356,9 +357,9 @@ export function attach(ctx) {
       ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
       ctx.state.autoPlanRetroactiveConfirmed = false;
       ctx.state.historyCache = {};
-      let feedbackMsg = data.warnings?.length ? data.warnings.map((warning) => warning.message).join(' ') : 'Planes de aportación guardados.';
+      let feedbackMsg = data.warnings?.length ? data.warnings.map((warning) => warning.message).join(' ') : ctx.t('Planes de aportación guardados.');
       if (data.backup) {
-        feedbackMsg += ` Backup automático creado: ${data.backup.file}`;
+        feedbackMsg += ` ${ctx.t('Backup automático creado: {file}', { file: data.backup.file })}`;
       }
       ctx.elements.autoFeedback.textContent = feedbackMsg;
       ctx.elements.autoFeedback.dataset.state = 'ok';
