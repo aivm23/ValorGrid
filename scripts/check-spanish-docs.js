@@ -2,7 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const targetFiles = ['README.md', ...collectMarkdown(path.join(repoRoot, 'docs')).map((file) => path.relative(repoRoot, file))];
+const targetFiles = [
+  'README.md',
+  ...collectMarkdown(path.join(repoRoot, 'docs'))
+    .map((file) => path.relative(repoRoot, file))
+    .filter((file) => !file.replace(/\\/g, '/').startsWith('docs/en/')),
+];
 
 const replacements = [
   ['aplicacion', 'aplicación'],

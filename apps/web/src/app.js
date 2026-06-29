@@ -7,6 +7,7 @@ import { fetchJson, normalizeErrorMessage, sendJson } from './api.js';
 import { deleteBackup } from './api-client.js';
 import storage from './storage.js';
 import { attach as attachState } from './state.js';
+import { attach as attachI18n } from './i18n.js';
 import { attach as attachDom } from './dom.js';
 import { attach as attachFormat } from './format.js';
 import { attach as attachCharts } from './charts.js';
@@ -34,7 +35,7 @@ import { attach as attachEvents } from './events.js';
 const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
 
 [
-  attachState, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
+  attachState, attachI18n, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
   attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
   attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
   attachReturnBreakdownPreferences,
@@ -45,6 +46,7 @@ await ctx.loadExtensions();
 
 attachEvents(ctx);
 ctx.initTheme();
+ctx.initLanguage();
 ctx.initBalancePrivacy();
 ctx.initNegativePreference();
 ctx.initLedgerPageSize();

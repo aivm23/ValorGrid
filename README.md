@@ -12,7 +12,7 @@
 **ValorGrid** es un panel de cartera privado que corre localmente con SQLite.
 Los datos nunca salen de tu máquina.
 
-[valorgrid.app](https://valorgrid.app) · [Descargar escritorio](https://github.com/aivm23/ValorGrid/releases/latest) · [Docker/CasaOS](#docker) · [Primeros pasos](docs/FIRST_STEPS.md)
+[English README](README.en.md) · [valorgrid.app](https://valorgrid.app) · [Descargar escritorio](https://github.com/aivm23/ValorGrid/releases/latest) · [Docker/CasaOS](#docker) · [Primeros pasos](docs/FIRST_STEPS.md)
 
 > ValorGrid no ofrece asesoramiento financiero, recomendaciones de inversión ni señales de compra o venta. Es una herramienta de registro, visualización y auditoría personal.
 
@@ -90,6 +90,7 @@ Requisitos: Node.js 24+, `node:sqlite`.
 
 ## Documentación
 
+- English documentation mirror: [docs/en/README.md](docs/en/README.md)
 - [FIRST_STEPS.md](docs/FIRST_STEPS.md) — primeros 10 minutos
 - [IMPORT_EXCEL.md](docs/IMPORT_EXCEL.md) — plantilla Excel, columnas, FX
 - [FAQ.md](docs/FAQ.md) — preguntas frecuentes

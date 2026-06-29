@@ -5,7 +5,7 @@ services:
       APP_PORT: 1325
 
   app:
-    image: ghcr.io/aivm23/valorgrid:v3.27.4@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    image: ghcr.io/aivm23/valorgrid:v3.28.0@sha256:0000000000000000000000000000000000000000000000000000000000000000
     restart: on-failure
     environment:
       HOST: 0.0.0.0

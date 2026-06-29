@@ -11,8 +11,12 @@ module.exports = function attach(ctx) {
     };
   }
 
-  function saveUiPreferences() {
-    const error = new Error('Feature available in Professional Edition');
+  function saveUiPreferences(_body, request) {
+    const message =
+      typeof ctx.translateForRequest === 'function'
+        ? ctx.translateForRequest(request, 'Feature available in Professional Edition')
+        : 'Feature available in Professional Edition';
+    const error = new Error(message);
     error.statusCode = 403;
     throw error;
   }

@@ -1,3 +1,12 @@
+function acceptLanguage() {
+  try {
+    const language = localStorage.getItem('valorgrid-language') || navigator.language || 'es';
+    return String(language).toLowerCase().startsWith('en') ? 'en' : 'es';
+  } catch {
+    return 'es';
+  }
+}
+
 export async function fetchJson(url, options = {}) {
   const timeoutMs = options.timeoutMs || 15000;
   const controller = new AbortController();
@@ -9,7 +18,7 @@ export async function fetchJson(url, options = {}) {
   const timeoutId = window.setTimeout(() => controller.abort('timeout'), timeoutMs);
   let response;
   try {
-    response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    response = await fetch(url, { cache: 'no-store', signal: controller.signal, headers: { 'Accept-Language': acceptLanguage() } });
   } finally {
     window.clearTimeout(timeoutId);
     if (options.signal) {
@@ -28,7 +37,7 @@ export async function sendJson(url, method, payload, options = {}) {
   }, options.timeoutMs || 45000);
   const response = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept-Language': acceptLanguage() },
     body: JSON.stringify(payload),
     signal: controller.signal,
   }).finally(() => window.clearTimeout(timeoutId));

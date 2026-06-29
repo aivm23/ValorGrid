@@ -13,7 +13,8 @@ export function attach(ctx) {
   }
 
   function dateLocale() {
-    return ctx.state.dateFormat === 'mm/dd/yyyy' ? 'en-US' : 'es-ES';
+    if (ctx.state.dateFormat === 'mm/dd/yyyy') return 'en-US';
+    return typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES';
   }
 
   function weekdayOptions(selectedValue) {
@@ -175,14 +176,15 @@ export function attach(ctx) {
 
   function formatPercent(value) {
     return Number.isFinite(Number(value))
-      ? `${Number(value).toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`
-      : 'sin datos';
+      ? `${Number(value).toLocaleString(typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES', { maximumFractionDigits: 2 })}%`
+      : ctx.t?.('sin datos') || 'sin datos';
   }
 
   function formatFileSize(bytes) {
     const size = Number(bytes || 0);
-    if (size < 1024 * 1024) return `${(size / 1024).toLocaleString('es-ES', { maximumFractionDigits: 1 })} KB`;
-    return `${(size / (1024 * 1024)).toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`;
+    const locale = typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES';
+    if (size < 1024 * 1024) return `${(size / 1024).toLocaleString(locale, { maximumFractionDigits: 1 })} KB`;
+    return `${(size / (1024 * 1024)).toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
   }
 
   Object.assign(ctx, {

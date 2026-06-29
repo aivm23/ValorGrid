@@ -131,7 +131,7 @@ sendJson(response, 200, listMarketDataSources());
   if (url.pathname === '/api/preferences/ui' && request.method === 'PUT') {
     try {
       const body = await ctx.readJsonBody(request);
-      const result = saveUiPreferences(body);
+      const result = saveUiPreferences(body, request);
       sendJson(response, 200, result);
     } catch (error) {
       sendError(response, sendJson, error);

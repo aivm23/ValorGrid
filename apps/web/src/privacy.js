@@ -76,9 +76,8 @@ export function attach(ctx) {
     ctx.state.weekStart = valid;
     ctx.localStorage.setItem('valorgrid-week-start', valid);
     if (ctx.elements.weekStartSelect) ctx.elements.weekStartSelect.value = valid;
-    const lang = valid === 'sunday' ? 'en-US' : 'es';
     ctx.document.querySelectorAll('input[type="date"]').forEach((input) => {
-      input.lang = lang;
+      input.lang = typeof ctx.dateInputLang === 'function' ? ctx.dateInputLang() : valid === 'sunday' ? 'en-US' : 'es';
     });
   }
 

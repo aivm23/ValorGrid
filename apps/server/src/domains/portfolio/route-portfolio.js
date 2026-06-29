@@ -54,7 +54,11 @@ module.exports = async function handlePortfolioRoutes(ctx, request, response, ur
   }
 
   if (url.pathname === '/api/portfolio/returns' && request.method === 'GET') {
-    sendJson(response, 403, { error: 'Feature available in Professional Edition' });
+    const message =
+      typeof ctx.translateForRequest === 'function'
+        ? ctx.translateForRequest(request, 'Feature available in Professional Edition')
+        : 'Feature available in Professional Edition';
+    sendJson(response, 403, { error: message });
     return true;
   }
 

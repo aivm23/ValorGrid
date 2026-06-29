@@ -1,6 +1,6 @@
 {
   "name": "valorgrid",
-  "version": "3.27.4",
+  "version": "3.28.0",
   "private": true,
   "license": "MPL-2.0",
   "productName": "ValorGrid",
@@ -31,8 +31,8 @@
     "docs:spellcheck": "node scripts/check-spanish-docs.js",
     "test": "node --test",
     "lint": "eslint .",
-    "format": "prettier --write \"AGENTS.md\" \"README.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
-    "format:check": "prettier --check \"AGENTS.md\" \"README.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
+    "format": "prettier --write \"AGENTS.md\" \"README.md\" \"README.en.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
+    "format:check": "prettier --check \"AGENTS.md\" \"README.md\" \"README.en.md\" \"CHANGELOG.md\" \"docs/**/*.md\" \".github/workflows/*.yml\" \".github/ISSUE_TEMPLATE/*.md\" \"package.json\" \"package-lock.json\"",
     "check": "npm run lint && npm run format:check && npm run docs:spellcheck && npm run changelog:check && npm test",
     "typecheck": "tsc --noEmit",
     "db:backup": "node scripts/db-backup.js",

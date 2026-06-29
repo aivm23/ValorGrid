@@ -65,6 +65,7 @@ export function attach(ctx) {
     ctx.renderDashboard();
     ctx.renderHistory?.();
   });
+  elements.languageSelect?.addEventListener('change', ctx.handleLanguageChange);
   elements.ledgerPageSize?.addEventListener('change', ctx.handleLedgerPageSizeChange);
   elements.dateFormatSelect?.addEventListener('change', ctx.handleDateFormatChange);
   elements.weekStartSelect?.addEventListener('change', ctx.handleWeekStartChange);

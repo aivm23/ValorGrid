@@ -54,6 +54,7 @@ export function attach(ctx) {
     adminDialogClose: document.querySelector('#admin-dialog-close'),
     adminCancel: document.querySelector('#admin-cancel'),
     negativeRedToggle: document.querySelector('#negative-red-toggle'),
+    languageSelect: document.querySelector('#language-select'),
     ledgerPageSize: document.querySelector('#ledger-page-size'),
     dateFormatSelect: document.querySelector('#date-format-select'),
     weekStartSelect: document.querySelector('#week-start-select'),

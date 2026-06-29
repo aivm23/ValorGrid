@@ -1,7 +1,7 @@
 export function attach(ctx) {
-  const eurFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
-  const sharesFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 });
-  const cryptoSharesFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 });
+  const eurFormatter = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR' });
+  const sharesFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+  const cryptoSharesFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 6 });
   const historyRangeConfig = {
     all: { granularity: 'weekly', years: null },
     '5y': { granularity: 'weekly', years: 5 },
@@ -71,6 +71,7 @@ export function attach(ctx) {
     pendingTransactionDelete: [],
     returnToOperationDialogAfterInstrumentCreate: false,
     extensionManifest: null,
+    language: 'es',
   };
 
   Object.assign(ctx, { eurFormatter, sharesFormatter, cryptoSharesFormatter, historyRangeConfig, assetColors, state });

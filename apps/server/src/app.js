@@ -191,6 +191,7 @@ const modules = [
   './domains/meta/meta-repository',
   './domains/meta/meta-state',
   './domains/meta/ui-preferences-service',
+  './platform/i18n',
   './platform/utils',
   './domains/instruments/instrument-repository',
   './domains/portfolio/portfolio-repository',

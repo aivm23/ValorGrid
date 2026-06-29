@@ -129,7 +129,7 @@ export function attach(ctx) {
       <article class="ytd-group-row">
         <div>
           <span class="ytd-group-name"><i style="--group-color:${ctx.escapeHtml(group.color || '#64748b')}"></i>${ctx.escapeHtml(group.label)}</span>
-          <small>${Number(group.pct || 0).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% del mes</small>
+          <small>${Number(group.pct || 0).toLocaleString(typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES', { maximumFractionDigits: 1 })}% ${ctx.t?.('del mes') || 'del mes'}</small>
         </div>
         <div><small>Valor</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
         <div><small>Aportado</small><strong class="${ctx.moneyClass(Number(group.contributions || 0))}">${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>

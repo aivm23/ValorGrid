@@ -15,6 +15,7 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 | `test/financial-semantics.test.js` | Cálculos      | `buildPortfolioPerformance`, FIFO realized gain, signos de cash-flow, fórmulas YTD y `history.series[].contributed`.                                                                                      |
 | `test/frontend-renovation.test.js` | Frontend      | Checks de renderizado/markup/CSS: KPI cards, badges, animaciones, tooltips, módulos ESM, clases semánticas y UI de revisión de dividendos.                                                                |
 | `test/imports.test.js`             | Importación   | Plantilla XLSX Community con parser ExcelJS, preview, commit, rollback, controles de seguridad, rechazo de fuentes legacy, headers de descarga y sample sintético S&P 500.                                |
+| `test/i18n.test.js`                | i18n          | Wiring de la capa bilingüe frontend, centralización de formateadores y errores Community traducidos por `Accept-Language`.                                                                                |
 | `test/instrument-groups.test.js`   | Grupos        | Instrument groups settings: enable/disable toggle, grupo-cero creation, ungrouped instrument assignment, wizard/import respect for groups state.                                                          |
 | `test/portfolio.test.js`           | Core CRUD     | Transacciones, dividendos desde Yahoo, instrumentos, grupos, identifiers, fuentes/precios de mercado, auto-plans, backups, health, onboarding, state, quote, export XLSX y endpoints legacy 404.          |
 | `test/portfolio-history.test.js`   | Histórico     | Materialización daily/weekly, invalidación, cache persistente, restart survival, daily prices/FX, summary, monthly, rangos y dataset demo/loadtest.                                                       |
@@ -54,7 +55,7 @@ npm run seed:demo
 
 - **Integración**: `portfolio.test.js`, `portfolio-history.test.js`, `imports.test.js`, `financial-semantics.test.js` levantan runtime real con SQLite temporal o en memoria.
 - **Arquitectura**: `architecture.test.js` hace análisis estático de código fuente y contratos públicos.
-- **Frontend**: `frontend-renovation.test.js` valida markup, CSS y patrones de módulos cliente sin navegador real. `storage.test.js` verifica la estructura de `apps/web/src/storage.js`.
+- **Frontend**: `frontend-renovation.test.js` valida markup, CSS y patrones de módulos cliente sin navegador real. `storage.test.js` verifica la estructura de `apps/web/src/storage.js`. `i18n.test.js` cubre la infraestructura bilingüe.
 - **DB Ops**: `db-operations.test.js` combina análisis estático y DB temporal.
 - **Privacidad**: `privacy.test.js` analiza archivos publicables y fixtures.
 - **Autenticación**: `auth.test.js` valida el comportamiento de Basic Auth con servidor real.

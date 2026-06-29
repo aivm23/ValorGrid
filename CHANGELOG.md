@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.28.0
+
+- feat: add Spanish/English UI language infrastructure with persistent preference, localized formatters and extension dictionary registration.
+- feat: localize Community Professional Edition API gates through `Accept-Language`.
+- docs: add English README and public documentation mirror under `docs/en`.
+- test: cover i18n wiring, locale formatting guards and bilingual API gate behavior.
+
 ## 3.27.4
 
 - chore: relicense ValorGrid Community future releases under MPL-2.0.
