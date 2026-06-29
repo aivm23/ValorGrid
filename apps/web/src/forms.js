@@ -34,26 +34,27 @@ export function attach(ctx) {
   }
 
   function transactionTypeLabel(type) {
-    return type === 'remove' ? 'Venta' : 'Compra';
+    return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
   }
 
   function renderTransactionPreview(preview) {
     ctx.elements.transactionPreview.hidden = false;
     const modeLabel =
       preview.type === 'remove' && preview.entryMode === 'manual_total_eur'
-        ? 'Venta manual EUR'
+        ? ctx.t('form.operation.manualSellEur')
         : preview.entryMode
           ? ctx.transactionEntryModeLabel(preview.entryMode)
           : preview.manualUnitPrice
-            ? 'Precio manual'
-            : 'Mercado';
-    const marketDate = preview.entryMode === 'market_eur' ? ` - Mercado: ${ctx.formatDate(preview.marketDate)}` : '';
+            ? ctx.t('form.operation.manualPrice')
+            : ctx.t('form.operation.market');
+    const marketDate =
+      preview.entryMode === 'market_eur' ? ` - ${ctx.t('form.operation.marketDate')}: ${ctx.formatDate(preview.marketDate)}` : '';
     ctx.elements.transactionPreview.innerHTML = `
-      <span>Preview</span>
+      <span>${ctx.t('form.operation.preview')}</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
-      <small>Modo: ${modeLabel}${marketDate} - Precio: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
-      <small>Cantidad: ${ctx.formatInstrumentQuantity(preview.shares, preview)} - Valor: ${ctx.formatCurrency(Number(preview.valueEur))} - Comision: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
-      <small>Cash-flow: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
+      <small>${ctx.t('form.operation.mode')}: ${modeLabel}${marketDate} - ${ctx.t('form.operation.price')}: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
+      <small>${ctx.t('form.operation.quantity')}: ${ctx.formatInstrumentQuantity(preview.shares, preview)} - ${ctx.t('form.operation.value')}: ${ctx.formatCurrency(Number(preview.valueEur))} - ${ctx.t('form.operation.commission')}: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
+      <small>${ctx.t('form.operation.cashFlow')}: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;
   }
   function hasValidAmount() {
@@ -78,7 +79,7 @@ export function attach(ctx) {
       return true;
     } catch (error) {
       ctx.elements.transactionPreview.hidden = false;
-      ctx.elements.transactionPreview.innerHTML = `<span>No se pudo validar</span><small>${ctx.normalizeErrorMessage(error)}</small>`;
+      ctx.elements.transactionPreview.innerHTML = `<span>${ctx.t('form.operation.validateFailed')}</span><small>${ctx.normalizeErrorMessage(error)}</small>`;
       return false;
     }
   }
@@ -114,11 +115,11 @@ export function attach(ctx) {
 
   function syncOperationCopy() {
     const isRemove = ctx.elements.operationType.value === 'remove';
-    ctx.elements.operationTitle.textContent = isRemove ? 'Registrar venta' : 'Registrar compra';
-    ctx.elements.operationSubtitle.textContent = isRemove
-      ? 'Registra la cantidad vendida y el importe bruto en euros.'
-      : 'Define la operación y elige cómo quieres calcular el movimiento.';
-    ctx.elements.addSubmit.textContent = isRemove ? 'Guardar venta' : 'Guardar compra';
+    ctx.elements.operationTitle.textContent = ctx.t(isRemove ? 'form.operation.title.sell' : 'form.operation.title.buy');
+    ctx.elements.operationSubtitle.textContent = ctx.t(
+      isRemove ? 'form.operation.subtitle.sell' : 'form.operation.subtitle.buy',
+    );
+    ctx.elements.addSubmit.textContent = ctx.t(isRemove ? 'form.operation.submit.sell' : 'form.operation.submit.buy');
     ctx.elements.addTicker.required = !isRemove;
     ctx.elements.removeTicker.required = isRemove;
     ctx.elements.addTicker.disabled = isRemove;

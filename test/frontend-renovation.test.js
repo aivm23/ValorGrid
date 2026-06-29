@@ -101,7 +101,7 @@ test('ledger.js renders type-badge and origin-badge classes for transactions', a
   assert.ok(ledger.includes('type-sell'), 'ledger uses type-sell class');
   assert.ok(ledger.includes('type-buy'), 'ledger uses type-buy class');
   assert.ok(ledger.includes('type-dividend'), 'ledger uses type-dividend class');
-  assert.ok(ledger.includes('Dividendo'), 'ledger labels dividend transactions');
+  assert.ok(ledger.includes("ctx.t('history.events.dividend')"), 'ledger labels dividend transactions through i18n');
   assert.ok(ledger.includes('origin-badge'), 'ledger uses origin-badge class');
   assert.ok(ledger.includes('origin-auto'), 'ledger uses origin-auto class');
   assert.ok(ledger.includes('origin-import'), 'ledger uses origin-import class');
@@ -235,8 +235,8 @@ test('summary.js renders market data quality status', async () => {
 test('monthly.js sets YTD subtitle with completed month count', async () => {
   const monthly = read(path.join('apps', 'web', 'src', 'monthly.js'));
   assert.ok(monthly.includes('ytdSubtitle'), 'monthly references ytdSubtitle element');
-  assert.ok(monthly.includes('meses con datos'), 'monthly includes month count text');
-  assert.ok(monthly.includes('A la espera del primer movimiento'), 'monthly includes empty state text');
+  assert.ok(monthly.includes("ctx.t('monthly.subtitle.withData'"), 'monthly includes translated month count text');
+  assert.ok(monthly.includes("ctx.t('monthly.subtitle.empty')"), 'monthly includes translated empty state text');
   assert.ok(monthly.includes('completedMonths'), 'monthly uses completedMonths for count');
 });
 

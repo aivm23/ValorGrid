@@ -246,8 +246,10 @@
       <section class="panel ytd-panel" aria-labelledby="tracking-title">
         <div class="panel-header">
           <div>
-            <h2 id="tracking-title">Revisión YTD</h2>
-            <p id="ytd-subtitle" class="subtle">Evolución del año en curso, flujos y desglose mensual por grupos.</p>
+            <h2 id="tracking-title" data-i18n="html.ytd.title">Revisión YTD</h2>
+            <p id="ytd-subtitle" class="subtle" data-i18n="html.ytd.subtitle">
+              Evolución del año en curso, flujos y desglose mensual por grupos.
+            </p>
           </div>
         </div>
         <div id="monthly-summary" class="monthly-summary ytd-summary"></div>
@@ -284,7 +286,9 @@
         <div class="panel-header">
           <div>
             <h2 id="ledger-title">Movimientos</h2>
-            <p class="subtle">Auditoría del ledger: compras, ventas, automáticos e importados.</p>
+            <p class="subtle" data-i18n="html.ledger.subtitle">
+              Auditoría del ledger: compras, ventas, automáticos e importados.
+            </p>
           </div>
           <div class="ledger-header-actions">
             <button id="add-position" class="button" type="button">Compra</button>
@@ -294,7 +298,7 @@
         <div class="ledger-filters">
           <label class="field">
             <span>Ticker</span>
-            <input id="ledger-filter-symbol" placeholder="Filtrar por símbolo..." />
+            <input id="ledger-filter-symbol" placeholder="Filtrar por símbolo..." data-i18n-placeholder="html.ledger.filterSymbol.placeholder" />
           </label>
           <label class="field">
             <span>Origen</span>
@@ -328,10 +332,10 @@
         <div class="bulk-toolbar ledger-bulk-toolbar">
           <span id="ledger-selection-count" class="subtle">0 movimientos seleccionados</span>
           <button id="select-visible-transactions" class="button button-compact" type="button" hidden>
-            Seleccionar visibles
+            <span data-i18n="html.bulk.selectVisible">Seleccionar visibles</span>
           </button>
           <button id="deselect-all-transactions" class="button button-compact" type="button" hidden>
-            Deseleccionar todos
+            <span data-i18n="html.bulk.deselectAll">Deseleccionar todos</span>
           </button>
           <button
             id="delete-selected-transactions"
@@ -576,7 +580,7 @@
             <div class="instrument-list-heading">
               <div>
                 <h4>Listado de valores</h4>
-                <p class="subtle">Filtra, edita y selecciona valores para acciones en bloque.</p>
+                <p class="subtle" data-i18n="html.bulk.actionsHint">Filtra, edita y selecciona valores para acciones en bloque.</p>
               </div>
             </div>
             <div class="instrument-filter-grid">
@@ -942,7 +946,9 @@
                 </div>
               </details>
             </div>
-            <p class="subtle admin-prefs-hint">Solo cambia la presentación; no modifica ningún dato.</p>
+            <p class="subtle admin-prefs-hint" data-i18n="Solo cambia la presentación; no modifica ningún dato.">
+              Solo cambia la presentación; no modifica ningún dato.
+            </p>
           </section>
 
           <section class="admin-card admin-card--backups">
@@ -954,7 +960,7 @@
             </div>
             <p class="subtle">Copia de seguridad de la base de datos. Máximo 6 backups retenidos.</p>
             <button id="create-backup" class="button button-compact admin-action-btn" type="button">
-              <span class="admin-action-btn-label">Crear backup</span>
+              <span class="admin-action-btn-label" data-i18n="backups.create">Crear backup</span>
             </button>
             <div id="backup-list" class="import-batches"></div>
           </section>

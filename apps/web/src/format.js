@@ -1,7 +1,7 @@
 export function attach(ctx) {
   function formatCurrency(value) {
     if (ctx.state.hideBalances) return '••••';
-    return Number.isFinite(value) ? ctx.eurFormatter.format(value) : 'Pendiente';
+    return Number.isFinite(value) ? ctx.eurFormatter.format(value) : ctx.t?.('format.pending') || 'Pendiente';
   }
 
   function moneyClass(value) {
@@ -37,7 +37,7 @@ export function attach(ctx) {
   }
 
   function formatDate(value) {
-    if (!value) return 'sin fecha';
+    if (!value) return ctx.t?.('format.noDate') || 'sin fecha';
     return new Intl.DateTimeFormat(dateLocale(), {
       day: '2-digit',
       month: '2-digit',
@@ -139,9 +139,9 @@ export function attach(ctx) {
 
   function instrumentQuantityLabel(input) {
     const type = String(resolveQuantityType(input) || '').toLowerCase();
-    if (type === 'stock' || type === 'etf') return 'acciones';
-    if (type === 'crypto' || type === 'commodity') return 'unidades';
-    return 'cantidad';
+    if (type === 'stock' || type === 'etf') return ctx.t?.('format.quantity.shares') || 'acciones';
+    if (type === 'crypto' || type === 'commodity') return ctx.t?.('format.quantity.units') || 'unidades';
+    return ctx.t?.('format.quantity.generic') || 'cantidad';
   }
 
   function formatInstrumentQuantity(value, input) {

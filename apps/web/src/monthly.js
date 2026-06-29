@@ -14,16 +14,17 @@ export function attach(ctx) {
 
     const monthCount = displayMonths.length;
     if (elements.ytdSubtitle) {
-      elements.ytdSubtitle.textContent = monthCount > 0
-        ? `Evolución del año en curso, flujos y desglose mensual por grupos. ${monthCount} de 12 meses con datos.`
-        : 'A la espera del primer movimiento del año.';
+      elements.ytdSubtitle.textContent =
+        monthCount > 0
+          ? ctx.t('monthly.subtitle.withData', { count: monthCount })
+          : ctx.t('monthly.subtitle.empty');
     }
 
     if (!displayMonths.length) {
       elements.monthlyTracking.innerHTML = `
         <div class="empty-action-state ytd-empty">
-          <span class="subtle">Sin movimientos ni valoraciones para el año en curso.</span>
-          <button class="button button-compact btn-save" type="button" data-open-onboarding>Crear cartera</button>
+          <span class="subtle">${ctx.t('monthly.empty')}</span>
+          <button class="button button-compact btn-save" type="button" data-open-onboarding>${ctx.t('summary.empty.createPortfolio')}</button>
         </div>
       `;
       return;
@@ -31,9 +32,11 @@ export function attach(ctx) {
 
     const latestMonth = displayMonths[displayMonths.length - 1]?.month;
     const zeroNotice = omittedZeroMonths > 0 ? renderYtdZeroNotice(omittedZeroMonths) : '';
-    elements.monthlyTracking.innerHTML = zeroNotice + displayMonths
-      .map((month) => renderMonthCard(month, month.month === latestMonth))
-      .join('');
+    elements.monthlyTracking.innerHTML =
+      zeroNotice +
+      displayMonths
+        .map((month) => renderMonthCard(month, month.month === latestMonth))
+        .join('');
   }
 
   function monthHasActivity(month) {
@@ -49,23 +52,24 @@ export function attach(ctx) {
   function renderYtdZeroNotice(count) {
     return `
       <div class="ytd-zero-notice">
-        <strong>${count} ${count === 1 ? 'mes anterior está' : 'meses anteriores están'} a cero</strong>
-        <span>No se muestran para mantener la revisión centrada en los meses con cartera o movimientos.</span>
+        <strong>${ctx.tn('monthly.zeroNotice', count)}</strong>
+        <span>${ctx.t('monthly.zeroNotice.description')}</span>
       </div>`;
   }
 
   function renderYtdSummary(summary) {
     const currentValue = Number(summary.currentValue || 0);
     const valueStart = Number(summary.valueStart || 0);
-    const ytdPct = valueStart > 0 ? ((currentValue - valueStart) / valueStart * 100).toFixed(1) : '0.0';
+    const ytdPct = valueStart > 0 ? (((currentValue - valueStart) / valueStart) * 100).toFixed(1) : '0.0';
+    const completedMonths = Number(summary.completedMonths || 0);
     return `
-      <article class="has-border-accent"><span>Valor inicial</span><strong>${ctx.formatCurrency(valueStart)}</strong><small class="metric-micro">inicio del año</small></article>
-      <article class="has-border-accent"><span>Aportado neto</span><strong class="${ctx.moneyClass(Number(summary.netContributed || 0))}">${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small class="metric-micro">${Number(summary.completedMonths || 0)} meses</small></article>
-      <article class="has-border-accent"><span>Valor actual</span><strong>${ctx.formatCurrency(currentValue)}</strong><small class="metric-micro">${ytdPct}% YTD</small></article>
-      <article class="has-border-positive"><span>Aportaciones</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small class="metric-micro">compras del año</small></article>
-      <article class="has-border-negative"><span>Retiradas</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small class="metric-micro">ventas del año</small></article>
-      <article class="has-border-accent"><span>Dividendos</span><strong>${ctx.formatCurrency(Number(summary.dividends || 0))}</strong><small class="metric-micro">${Number(summary.dividendCount || 0)} cobrados</small></article>
-      <article class="${Number(summary.resultYtd || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>Resultado YTD</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${Number(summary.completedMonths || 0)} meses visibles</small></article>
+      <article class="has-border-accent"><span>${ctx.t('monthly.valueStart')}</span><strong>${ctx.formatCurrency(valueStart)}</strong><small class="metric-micro">${ctx.t('monthly.valueStart.micro')}</small></article>
+      <article class="has-border-accent"><span>${ctx.t('operations.metrics.netContributed.label')}</span><strong class="${ctx.moneyClass(Number(summary.netContributed || 0))}">${ctx.formatCurrency(Number(summary.netContributed || 0))}</strong><small class="metric-micro">${ctx.t('monthly.completedMonths', { count: completedMonths })}</small></article>
+      <article class="has-border-accent"><span>${ctx.t('monthly.currentValue')}</span><strong>${ctx.formatCurrency(currentValue)}</strong><small class="metric-micro">${ytdPct}% YTD</small></article>
+      <article class="has-border-positive"><span>${ctx.t('monthly.contributions')}</span><strong>${ctx.formatCurrency(Number(summary.contributions || 0))}</strong><small class="metric-micro">${ctx.t('monthly.contributions.micro')}</small></article>
+      <article class="has-border-negative"><span>${ctx.t('monthly.withdrawals')}</span><strong class="${ctx.moneyClass(Number(summary.withdrawals || 0))}">${ctx.formatCurrency(Number(summary.withdrawals || 0))}</strong><small class="metric-micro">${ctx.t('monthly.withdrawals.micro')}</small></article>
+      <article class="has-border-accent"><span>${ctx.t('monthly.dividends')}</span><strong>${ctx.formatCurrency(Number(summary.dividends || 0))}</strong><small class="metric-micro">${ctx.t('monthly.dividends.micro', { count: Number(summary.dividendCount || 0) })}</small></article>
+      <article class="${Number(summary.resultYtd || 0) >= 0 ? 'has-border-positive' : 'has-border-negative'}"><span>${ctx.t('monthly.resultYtd')}</span><strong class="${ctx.moneyClass(Number(summary.resultYtd || 0))}">${ctx.formatCurrency(Number(summary.resultYtd || 0))}</strong><small>${ctx.t('monthly.visibleMonths', { count: completedMonths })}</small></article>
     `;
   }
 
@@ -76,26 +80,24 @@ export function attach(ctx) {
         ? Number(month.variation)
         : null;
     const variationClass = variation === null ? '' : variation >= 0 ? 'is-positive' : 'is-negative';
-    const topGroup = groupsEnabled && month.topGroup
-      ? `<span class="ytd-driver-dot" style="--driver-color:${ctx.escapeHtml(month.topGroup.color || '#64748b')}"></span>${ctx.escapeHtml(month.topGroup.label)} ${ctx.formatCurrency(Number(month.topGroup.variation || 0))}`
-      : groupsEnabled ? 'Sin grupo dominante' : 'Sin desglose por grupo';
+    const topGroup = topGroupLabel(month, groupsEnabled);
 
     return `
       <details class="ytd-month-card" ${isOpen ? 'open' : ''}>
         <summary>
-          <span class="ytd-month-title">${ctx.escapeHtml(month.label)}</span>
-          <span><small>Valor final</small><strong>${ctx.formatCurrency(Number(month.total || 0))}</strong></span>
-          <span><small>Aportaciones</small><strong>${ctx.formatCurrency(Number(month.contributions || 0))}</strong></span>
-          <span><small>Retiradas</small><strong class="${ctx.moneyClass(Number(month.withdrawals || 0))}">${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
-          <span><small>Dividendos</small><strong>${ctx.formatCurrency(Number(month.dividends || 0))}</strong></span>
-          <span><small>Variación</small><strong class="${variationClass}">${variation === null ? 'Inicio' : ctx.formatCurrency(variation)}</strong></span>
-          <span><small>Automáticas</small><strong>${ctx.escapeHtml(month.autoStatus || 'Sin automáticas')}</strong></span>
+          <span class="ytd-month-title">${ctx.escapeHtml(formatMonthLabel(month))}</span>
+          <span><small>${ctx.t('monthly.finalValue')}</small><strong>${ctx.formatCurrency(Number(month.total || 0))}</strong></span>
+          <span><small>${ctx.t('monthly.contributions')}</small><strong>${ctx.formatCurrency(Number(month.contributions || 0))}</strong></span>
+          <span><small>${ctx.t('monthly.withdrawals')}</small><strong class="${ctx.moneyClass(Number(month.withdrawals || 0))}">${ctx.formatCurrency(Number(month.withdrawals || 0))}</strong></span>
+          <span><small>${ctx.t('monthly.dividends')}</small><strong>${ctx.formatCurrency(Number(month.dividends || 0))}</strong></span>
+          <span><small>${ctx.t('monthly.variation')}</small><strong class="${variationClass}">${variation === null ? ctx.t('monthly.start') : ctx.formatCurrency(variation)}</strong></span>
+          <span><small>${ctx.t('monthly.automatic')}</small><strong>${ctx.escapeHtml(formatAutoStatus(month.autoStatus))}</strong></span>
         </summary>
         <div class="ytd-month-body">
           <div class="ytd-month-meta">
-            <span>Fecha de valoración: ${ctx.formatDate(month.asOfDate)}</span>
-            <span>Motor principal: ${topGroup}</span>
-            <span>Comisiones: ${ctx.formatCurrencySpan(Number(month.commissions || 0))}</span>
+            <span>${ctx.t('monthly.valuationDate', { date: ctx.formatDate(month.asOfDate) })}</span>
+            <span>${ctx.t('monthly.mainDriver', { value: topGroup })}</span>
+            <span>${ctx.t('monthly.fees', { value: ctx.formatCurrencySpan(Number(month.commissions || 0)) })}</span>
           </div>
           ${renderGroupBreakdown(month.groups || [], groupsEnabled)}
         </div>
@@ -103,8 +105,15 @@ export function attach(ctx) {
     `;
   }
 
+  function topGroupLabel(month, groupsEnabled) {
+    if (groupsEnabled && month.topGroup) {
+      return `<span class="ytd-driver-dot" style="--driver-color:${ctx.escapeHtml(month.topGroup.color || '#64748b')}"></span>${ctx.escapeHtml(month.topGroup.label)} ${ctx.formatCurrency(Number(month.topGroup.variation || 0))}`;
+    }
+    return groupsEnabled ? ctx.t('monthly.noDominantGroup') : ctx.t('monthly.noGroupBreakdown');
+  }
+
   function renderGroupBreakdown(groups, groupsEnabled) {
-    if (!groups.length) return `<p class="subtle">${groupsEnabled ? 'Sin grupos' : 'Sin instrumentos'} con valor en este mes.</p>`;
+    if (!groups.length) return `<p class="subtle">${ctx.t(groupsEnabled ? 'monthly.emptyGroups' : 'monthly.emptyInstruments')}</p>`;
     return `
       <div class="ytd-group-list">
         ${groups.map((group) => renderGroupRow(group)).join('')}
@@ -129,15 +138,34 @@ export function attach(ctx) {
       <article class="ytd-group-row">
         <div>
           <span class="ytd-group-name"><i style="--group-color:${ctx.escapeHtml(group.color || '#64748b')}"></i>${ctx.escapeHtml(group.label)}</span>
-          <small>${Number(group.pct || 0).toLocaleString(typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES', { maximumFractionDigits: 1 })}% ${ctx.t?.('del mes') || 'del mes'}</small>
+          <small>${Number(group.pct || 0).toLocaleString(typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES', { maximumFractionDigits: 1 })}% ${ctx.t('del mes')}</small>
         </div>
-        <div><small>Valor</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
-        <div><small>Aportado</small><strong class="${ctx.moneyClass(Number(group.contributions || 0))}">${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
-        <div><small>Dividendos</small><strong>${ctx.formatCurrency(Number(group.dividends || 0))}</strong></div>
-        <div><small>Neto</small><strong class="${ctx.moneyClass(Number(group.netContribution || 0))}">${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
-        <ul>${positions || '<li><span>Sin posiciones con valor</span></li>'}</ul>
+        <div><small>${ctx.t('monthly.value')}</small><strong>${ctx.formatCurrency(Number(group.value || 0))}</strong></div>
+        <div><small>${ctx.t('monthly.contributed')}</small><strong class="${ctx.moneyClass(Number(group.contributions || 0))}">${ctx.formatCurrency(Number(group.contributions || 0))}</strong></div>
+        <div><small>${ctx.t('monthly.dividends')}</small><strong>${ctx.formatCurrency(Number(group.dividends || 0))}</strong></div>
+        <div><small>${ctx.t('monthly.net')}</small><strong class="${ctx.moneyClass(Number(group.netContribution || 0))}">${ctx.formatCurrency(Number(group.netContribution || 0))}</strong></div>
+        <ul>${positions || `<li><span>${ctx.t('monthly.noValuePositions')}</span></li>`}</ul>
       </article>
     `;
+  }
+
+  function formatMonthLabel(month) {
+    const [year, monthPart] = String(month?.month || month || '').split('-');
+    const date = new Date(Number(year), Number(monthPart) - 1, 1);
+    if (!Number.isFinite(date.getTime())) return month?.label || '';
+    const label = new Intl.DateTimeFormat(typeof ctx.locale === 'function' ? ctx.locale() : 'es-ES', {
+      month: 'long',
+    }).format(date);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  function formatAutoStatus(value) {
+    const text = String(value || '').trim();
+    if (!text || text === 'Sin automáticas') return ctx.t('monthly.autoStatus.none');
+    if (text === 'Sin datos') return ctx.t('monthly.autoStatus.noData');
+    const match = text.match(/^(\d+)\s+autom[aá]ticas$/i);
+    if (match) return ctx.tn('monthly.autoStatus', Number(match[1]));
+    return ctx.t(text);
   }
 
   function buildLegacyMonths(monthly) {

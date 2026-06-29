@@ -242,7 +242,7 @@ export function attach(ctx) {
   elements.brandPaletteEnabled?.addEventListener('change', () => ctx.handleBrandPaletteToggle(ctx));
 
   async function handleDeleteBackup(backupFile) {
-    const confirmed = window.confirm(`¿Eliminar el backup ${backupFile}?\n\nEsta acción no se puede deshacer.`);
+    const confirmed = window.confirm(ctx.t('backups.confirmDelete', { file: backupFile }));
     if (!confirmed) return;
     try {
       await deleteBackup(backupFile);

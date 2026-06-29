@@ -1,12 +1,12 @@
-function transactionTypeLabel(type) {
-  if (type === 'dividend') return 'Dividendo';
-  return type === 'remove' ? 'Venta' : 'Compra';
+function transactionTypeLabel(ctx, type) {
+  if (type === 'dividend') return ctx.t('history.events.dividend');
+  return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
 }
 
-function transactionOriginLabel(origin) {
-  if (origin === 'auto') return 'Automático';
-  if (origin === 'import') return 'Importado';
-  return 'Manual';
+function transactionOriginLabel(ctx, origin) {
+  if (origin === 'auto') return ctx.t('history.origin.auto.capitalized');
+  if (origin === 'import') return ctx.t('history.origin.import.capitalized');
+  return ctx.t('history.origin.manual.capitalized');
 }
 
 export function attach(ctx) {
@@ -61,16 +61,16 @@ export function attach(ctx) {
       : `<strong>${filtered.length}</strong>`;
 
     elements.ledgerTotals.innerHTML = `
-      <span>Movimientos: ${countHtml}</span>
-      <span>Compras: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
-      <span>Ventas: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
-      <span>Dividendos: <strong>${ctx.formatCurrency(totals.dividends)}</strong></span>
-      <span>Comisiones: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>
-      <span>Cash-flow: <strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></span>
+      <span>${ctx.t('ledger.totalMovements', { count: countHtml })}</span>
+      <span>${ctx.t('ledger.buys')}: <strong>${ctx.formatCurrency(totals.invested)}</strong></span>
+      <span>${ctx.t('ledger.sells')}: <strong>${ctx.formatCurrency(totals.withdrawn)}</strong></span>
+      <span>${ctx.t('ledger.dividends')}: <strong>${ctx.formatCurrency(totals.dividends)}</strong></span>
+      <span>${ctx.t('ledger.fees')}: <strong>${ctx.formatCurrency(totals.commissions)}</strong></span>
+      <span>${ctx.t('ledger.cashFlow')}: <strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></span>
     `;
 
     if (elements.ledgerSelectionCount) {
-      elements.ledgerSelectionCount.textContent = `${selectedCount} movimiento${selectedCount === 1 ? '' : 's'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+      elements.ledgerSelectionCount.textContent = ctx.tn('ledger.selected', selectedCount);
     }
     if (elements.deleteSelectedTransactions) elements.deleteSelectedTransactions.hidden = selectedCount === 0;
     if (elements.selectVisibleTransactions) {
@@ -88,33 +88,33 @@ export function attach(ctx) {
             const isSelected = selectedIds.has(id);
             return `
           <tr class="${isSelected ? 'is-selected' : ''}" data-transaction-id="${ctx.escapeHtml(id)}">
-            <td data-label="Sel.">
+            <td data-label="${ctx.t('ledger.col.select')}">
               <label class="row-select row-select-only">
-                <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${isSelected ? 'checked' : ''} aria-label="Seleccionar movimiento ${ctx.escapeHtml(item.symbol)} ${ctx.formatDate(item.date)}" />
-                <span class="sr-only">Seleccionar</span>
+                <input type="checkbox" data-select-transaction="${ctx.escapeHtml(id)}" ${isSelected ? 'checked' : ''} aria-label="${ctx.t('ledger.selectMovement', { symbol: ctx.escapeHtml(item.symbol), date: ctx.formatDate(item.date) })}" />
+                <span class="sr-only">${ctx.t('ledger.select')}</span>
               </label>
             </td>
-            <td data-label="Fecha">${ctx.formatDate(item.date)}</td>
-            <td data-label="Ticker">${ctx.escapeHtml(item.symbol)}</td>
-            <td data-label="Tipo"><span class="type-badge ${typeClass}">${transactionTypeLabel(item.type)}</span></td>
-            <td data-label="Cantidad">${ctx.formatInstrumentQuantity(item.shares, item)}</td>
-            <td data-label="Precio">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>
-            <td data-label="Valor">${ctx.formatCurrency(Number(item.valueEur))}</td>
-            <td data-label="Comisión">${ctx.formatCurrency(Number(item.commissionEur || 0))}</td>
-            <td data-label="Cash-flow"><span class="${ctx.moneyClass(Number(item.cashFlowEur || 0))}">${ctx.formatCurrency(Number(item.cashFlowEur || 0))}</span></td>
-            <td data-label="Origen"><span class="origin-badge ${originClass}">${transactionOriginLabel(item.origin)}</span></td>
+            <td data-label="${ctx.t('ledger.col.date')}">${ctx.formatDate(item.date)}</td>
+            <td data-label="${ctx.t('ledger.col.ticker')}">${ctx.escapeHtml(item.symbol)}</td>
+            <td data-label="${ctx.t('ledger.col.type')}"><span class="type-badge ${typeClass}">${transactionTypeLabel(ctx, item.type)}</span></td>
+            <td data-label="${ctx.t('ledger.col.quantity')}">${ctx.formatInstrumentQuantity(item.shares, item)}</td>
+            <td data-label="${ctx.t('ledger.col.price')}">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>
+            <td data-label="${ctx.t('ledger.col.value')}">${ctx.formatCurrency(Number(item.valueEur))}</td>
+            <td data-label="${ctx.t('ledger.col.fee')}">${ctx.formatCurrency(Number(item.commissionEur || 0))}</td>
+            <td data-label="${ctx.t('ledger.cashFlow')}"><span class="${ctx.moneyClass(Number(item.cashFlowEur || 0))}">${ctx.formatCurrency(Number(item.cashFlowEur || 0))}</span></td>
+            <td data-label="${ctx.t('ledger.col.origin')}"><span class="origin-badge ${originClass}">${transactionOriginLabel(ctx, item.origin)}</span></td>
           </tr>`;
           })
           .join('')
-      : '<tr><td colspan="10"><div class="empty-action-state"><span class="subtle">Sin movimientos para este filtro.</span></div></td></tr>';
+      : `<tr><td colspan="10"><div class="empty-action-state"><span class="subtle">${ctx.t('ledger.empty')}</span></div></td></tr>`;
 
     if (elements.ledgerPagination) {
       if (totalPages > 1) {
         elements.ledgerPagination.hidden = false;
         elements.ledgerPagination.innerHTML = `
-          <button class="button button-compact btn-cancel" type="button" data-ledger-page="prev" ${currentPage === 1 ? 'disabled' : ''}>← Anterior</button>
-          <span class="pagination-info">Página ${currentPage} de ${totalPages}</span>
-          <button class="button button-compact btn-cancel" type="button" data-ledger-page="next" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente →</button>
+          <button class="button button-compact btn-cancel" type="button" data-ledger-page="prev" ${currentPage === 1 ? 'disabled' : ''}>← ${ctx.t('ledger.previous')}</button>
+          <span class="pagination-info">${ctx.t('ledger.page', { current: currentPage, total: totalPages })}</span>
+          <button class="button button-compact btn-cancel" type="button" data-ledger-page="next" ${currentPage === totalPages ? 'disabled' : ''}>${ctx.t('ledger.next')} →</button>
         `;
       } else {
         elements.ledgerPagination.hidden = true;
@@ -136,5 +136,10 @@ export function attach(ctx) {
     renderLedger();
   }
 
-  Object.assign(ctx, { transactionTypeLabel, transactionOriginLabel, renderLedger, goToLedgerPage });
+  Object.assign(ctx, {
+    transactionTypeLabel: (type) => transactionTypeLabel(ctx, type),
+    transactionOriginLabel: (origin) => transactionOriginLabel(ctx, origin),
+    renderLedger,
+    goToLedgerPage,
+  });
 }

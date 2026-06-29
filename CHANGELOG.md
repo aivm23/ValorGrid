@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.28.3
+
+- fix: move YTD, ledger, import, backup and operation-dialog copy through frontend i18n keys.
+- fix: translate responsive table labels and explicit static HTML bindings in English mode.
+- test: cover residual frontend i18n boundaries for generated dashboard copy.
+
 ## 3.28.2
 
 - fix: corrected donut detail chart hover when multiple instruments share the same groupId by using canonical identity per item type.

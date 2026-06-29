@@ -3,20 +3,20 @@
 const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
 
 const STEP_LABELS = {
-  file: 'Archivo',
-  instruments: 'Instrumentos',
-  operations: 'Operaciones',
-  confirm: 'Confirmación',
+  file: 'import.steps.file',
+  instruments: 'import.steps.instruments',
+  operations: 'import.steps.operations',
+  confirm: 'import.steps.confirm',
 };
 
 const STATUS_LABELS = {
-  valid: 'Lista para importar',
-  needs_mapping: 'Pendiente de asignar instrumento',
-  blocked: 'No importable ahora',
-  ignored: 'Ignorada automáticamente',
-  duplicate: 'Ya existe',
-  skipped: 'Omitida por el usuario',
-  error: 'No importable ahora',
+  valid: 'import.status.valid',
+  needs_mapping: 'import.status.needsMapping',
+  blocked: 'import.status.blocked',
+  ignored: 'import.status.ignored',
+  duplicate: 'import.status.duplicate',
+  skipped: 'import.status.skipped',
+  error: 'import.status.blocked',
 };
 
 function statusBadgeClass(status) {
@@ -30,7 +30,7 @@ function stepIndex(step) {
   return Math.max(0, STEP_ORDER.indexOf(step));
 }
 
-function renderProgress(activeStep, state) {
+function renderProgress(ctx, activeStep, state) {
   const activeIndex = stepIndex(activeStep);
   return `
     <div class="import-progress" aria-label="Progreso de importación">
@@ -39,26 +39,26 @@ function renderProgress(activeStep, state) {
         return `
           <div class="import-progress-item${step === activeStep ? ' is-active' : ''}${done ? ' is-done' : ''}">
             <span>${index + 1}</span>
-            <strong>${STEP_LABELS[step]}</strong>
+            <strong>${ctx.t(STEP_LABELS[step])}</strong>
           </div>`;
       }).join('')}
     </div>`;
 }
 
-function renderWorkflowActions(activeStep, preview, canContinue = true, state = {}) {
+function renderWorkflowActions(ctx, activeStep, preview, canContinue = true, state = {}) {
   const busy = Boolean(state.importWorkflowBusy);
   const backDisabled = activeStep === 'file' || busy ? ' disabled' : '';
   if (!preview) return '';
-  let nextLabel = 'Importar operaciones seleccionadas';
-  if (busy && activeStep === 'instruments') nextLabel = 'Confirmando...';
-  else if (busy && activeStep === 'file') nextLabel = 'Analizando...';
-  else if (activeStep === 'file') nextLabel = 'Continuar a instrumentos';
-  else if (activeStep === 'instruments') nextLabel = 'Confirmar instrumentos';
-  else if (activeStep === 'operations') nextLabel = 'Revisar impacto';
+  let nextLabel = ctx.t('import.actions.next.default');
+  if (busy && activeStep === 'instruments') nextLabel = ctx.t('import.actions.confirming');
+  else if (busy && activeStep === 'file') nextLabel = ctx.t('import.actions.analyzing');
+  else if (activeStep === 'file') nextLabel = ctx.t('import.actions.toInstruments');
+  else if (activeStep === 'instruments') nextLabel = ctx.t('import.actions.confirmInstruments');
+  else if (activeStep === 'operations') nextLabel = ctx.t('import.actions.reviewImpact');
   const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
   return `
     <div class="import-workflow-actions">
-      ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button btn-cancel" data-import-back${backDisabled}>Atrás</button>`}
+      ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button btn-cancel" data-import-back${backDisabled}>${ctx.t('import.actions.back')}</button>`}
       <button type="button" class="button btn-save" data-import-next${nextDisabled}>${nextLabel}</button>
     </div>`;
 }
@@ -67,13 +67,13 @@ function renderSummary(ctx, preview) {
   const summary = preview.summary || {};
   return `
     <div class="import-summary-cards">
-      <article><span>Filas</span><strong>${summary.rowCount || 0}</strong></article>
-      <article><span>Importables</span><strong>${summary.buys + summary.sells || 0}</strong></article>
-      <article><span>Pendientes</span><strong>${summary.needsMappingCount || 0}</strong></article>
-      <article><span>Revisión</span><strong>${summary.blockedCount || 0}</strong></article>
-      <article><span>Ya existen</span><strong>${summary.duplicateCount || 0}</strong></article>
-      <article><span>Ignoradas</span><strong>${summary.ignoredCount || 0}</strong></article>
-      <article><span>Comisiones</span><strong>${ctx.formatCurrency(summary.commissionEur || 0)}</strong></article>
+      <article><span>${ctx.t('import.summary.rows')}</span><strong>${summary.rowCount || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.importable')}</span><strong>${summary.buys + summary.sells || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.pending')}</span><strong>${summary.needsMappingCount || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.review')}</span><strong>${summary.blockedCount || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.duplicates')}</span><strong>${summary.duplicateCount || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.ignored')}</span><strong>${summary.ignoredCount || 0}</strong></article>
+      <article><span>${ctx.t('import.summary.fees')}</span><strong>${ctx.formatCurrency(summary.commissionEur || 0)}</strong></article>
     </div>`;
 }
 
@@ -278,10 +278,10 @@ function renderOperationRow(ctx, row, state) {
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
       <div>
         <strong>${ctx.escapeHtml(symbol)}</strong>
-        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? 'Venta' : 'Compra')} · ${row.normalized?.date ? ctx.formatDate(row.normalized.date) : '-'} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatInstrumentQuantity(row.normalized.shares, row.normalized) : '-'}</span>
+        <span>${ctx.escapeHtml(row.normalized?.type === 'remove' ? ctx.t('import.operation.sell') : ctx.t('import.operation.buy'))} · ${row.normalized?.date ? ctx.formatDate(row.normalized.date) : '-'} · ${Number.isFinite(row.normalized?.shares) ? ctx.formatInstrumentQuantity(row.normalized.shares, row.normalized) : '-'}</span>
         ${unresolvedReference}
       </div>
-      <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(STATUS_LABELS[row.status] || row.status)}</span>
+      <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(ctx.t(STATUS_LABELS[row.status] || row.status))}</span>
       <div class="import-operation-money">
         <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
         <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
@@ -309,8 +309,8 @@ export function renderImportPreviewContent(ctx, preview, workflowState, warnings
   else body = renderConfirmStep(ctx, preview);
 
   return `
-    ${renderProgress(activeStep, workflowState)}
+    ${renderProgress(ctx, activeStep, workflowState)}
     <section class="import-step-body">${body}</section>
-    ${renderWorkflowActions(activeStep, preview, canContinue, workflowState)}
+    ${renderWorkflowActions(ctx, activeStep, preview, canContinue, workflowState)}
   `;
 }

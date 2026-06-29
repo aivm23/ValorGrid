@@ -108,8 +108,17 @@ export function attach(ctx) {
   }
 
   function translateElementAttributes(element) {
-    for (const attr of ['aria-label', 'title', 'placeholder']) {
+    if (element.hasAttribute('data-i18n')) {
+      const key = originalAttribute(element, 'data-i18n');
+      if (key) element.textContent = t(key);
+    }
+    for (const attr of ['aria-label', 'title', 'placeholder', 'data-label']) {
       if (!element.hasAttribute(attr)) continue;
+      const keyedAttr = element.getAttribute(`data-i18n-${attr}`);
+      if (keyedAttr) {
+        element.setAttribute(attr, t(keyedAttr));
+        continue;
+      }
       const original = originalAttribute(element, attr);
       if (!original) continue;
       element.setAttribute(attr, translatePhrase(original));

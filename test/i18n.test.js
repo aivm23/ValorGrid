@@ -27,6 +27,8 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   assert.ok(events.includes('handleLanguageChange'), 'events module wires language changes');
   assert.ok(i18n.includes('registerTranslations'), 'extensions can register private dictionaries');
   assert.ok(i18n.includes('MutationObserver'), 'dynamic DOM mutations are translated');
+  assert.ok(i18n.includes("data-i18n"), 'static DOM nodes can bind explicit i18n keys');
+  assert.ok(i18n.includes("data-label"), 'responsive table labels are translated');
   assert.ok(i18n.includes("from './i18n-catalog.js'"), 'i18n imports the shared catalog');
   assert.ok(catalog.includes('BASE_TEXT_TRANSLATIONS'), 'catalog exports base translations');
 });
@@ -85,4 +87,31 @@ test('dashboard dynamic copy is rendered through i18n keys', () => {
 
   assert.ok(operations.includes("ctx.t('operations.metrics.marketValue.label')"), 'operations renders metric labels via i18n keys');
   assert.ok(summary.includes("ctx.tn('summary.priceStatus.stale'"), 'summary renders stale price status via i18n plurals');
+});
+
+test('frontend residual dashboard surfaces use i18n keys for generated copy', () => {
+  const catalog = read('apps/web/src/i18n-catalog-ui.js');
+  const monthly = read('apps/web/src/monthly.js');
+  const ledger = read('apps/web/src/ledger.js');
+  const imports = read('apps/web/src/import-preview-renderer.js');
+  const confirm = read('apps/web/src/import-confirm-renderer.js');
+  const forms = read('apps/web/src/forms.js');
+
+  for (const key of [
+    'monthly.subtitle.withData',
+    'ledger.totalMovements',
+    'backups.recent',
+    'import.summary.rows',
+    'import.confirm.selectedOperations',
+    'form.operation.title.buy',
+  ]) {
+    assert.ok(catalog.includes(`'${key}'`), `${key} must exist in the UI i18n catalog`);
+  }
+
+  assert.ok(monthly.includes("ctx.t('monthly.valueStart')"), 'monthly summary labels use i18n keys');
+  assert.ok(ledger.includes("ctx.t('ledger.totalMovements'"), 'ledger totals use i18n keys');
+  assert.ok(imports.includes("ctx.t('import.summary.rows')"), 'import summary labels use i18n keys');
+  assert.ok(confirm.includes("ctx.t('import.confirm.selectedOperations'"), 'import confirmation labels use i18n keys');
+  assert.ok(forms.includes('form.operation.title.sell'), 'operation dialog labels use i18n keys');
+  assert.ok(forms.includes('form.operation.title.buy'), 'operation dialog labels use i18n keys');
 });

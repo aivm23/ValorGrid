@@ -312,7 +312,7 @@ export function attach(ctx) {
           const rollbackIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 1 3 6.7"></path><path d="M3 7v5h5"></path></svg>';
           return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact btn-cancel" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">${rollbackIcon} Revertir</button>`}</div>`;
         }).join('')}${rollbackSection}`
-      : rollbackSection || '<span class="subtle">Sin importaciones todavía.</span>';
+      : rollbackSection || `<span class="subtle">${ctx.t('Sin importaciones todavía.')}</span>`;
   }
 
   async function loadImportBatches() {
