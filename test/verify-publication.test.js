@@ -29,6 +29,25 @@ function runScriptExpectFail(cwd) {
   }
 }
 
+function writeMinimalLicenseBaseline(tempDir) {
+  fs.mkdirSync(path.join(tempDir, 'deploy', 'docker'), { recursive: true });
+  fs.mkdirSync(path.join(tempDir, 'apps', 'desktop'), { recursive: true });
+  fs.writeFileSync(path.join(tempDir, 'LICENSE'), 'Mozilla Public License Version 2.0\n');
+  fs.writeFileSync(path.join(tempDir, 'NOTICE.md'), '# Notice\n');
+  fs.writeFileSync(path.join(tempDir, 'TRADEMARKS.md'), '# Trademarks\n');
+  fs.writeFileSync(path.join(tempDir, 'THIRD_PARTY_NOTICES.md'), '# Third-party notices\n');
+  fs.writeFileSync(path.join(tempDir, 'CONTRIBUTING.md'), '# Contributing\n');
+  fs.writeFileSync(path.join(tempDir, 'README.md'), '# fixture\n\nLicense: MPL-2.0\n');
+  fs.writeFileSync(
+    path.join(tempDir, 'deploy', 'docker', 'Dockerfile'),
+    'LABEL org.opencontainers.image.licenses="MPL-2.0"\n',
+  );
+  fs.writeFileSync(
+    path.join(tempDir, 'apps', 'desktop', 'electron-builder.config.cjs'),
+    "module.exports = { files: ['LICENSE', 'NOTICE.md', 'TRADEMARKS.md', 'THIRD_PARTY_NOTICES.md'] };\n",
+  );
+}
+
 test('verify-publication passes on the real repository', () => {
   const output = runScript(repoRoot);
   assert.match(output, /Summary: \d+ OK, \d+ WARN, 0 FAIL/);
@@ -40,6 +59,7 @@ test('verify-publication detects a forbidden text pattern in a temp repo', () =>
     const pkg = {
       name: 'valorgrid-verify-pub-fixture',
       version: '0.0.0',
+      license: 'MPL-2.0',
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
@@ -48,11 +68,12 @@ test('verify-publication detects a forbidden text pattern in a temp repo', () =>
     fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, 'index.html'), '<html><body>clean</body></html>');
     const forbiddenLiteral = ['Lib', 'ro1'].join('');
     fs.writeFileSync(
       path.join(tempDir, 'README.md'),
-      `# fixture\n\nA personal label ${forbiddenLiteral} must be flagged.\n`,
+      `# fixture\n\nLicense: MPL-2.0\n\nA personal label ${forbiddenLiteral} must be flagged.\n`,
     );
 
     const result = runScriptExpectFail(tempDir);
@@ -69,6 +90,7 @@ test('verify-publication detects a missing gitignore pattern in a temp repo', ()
     const pkg = {
       name: 'valorgrid-verify-pub-fixture',
       version: '0.0.0',
+      license: 'MPL-2.0',
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
@@ -77,6 +99,7 @@ test('verify-publication detects a missing gitignore pattern in a temp repo', ()
     fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, '.gitignore'), 'node_modules/\n');
 
     const result = runScriptExpectFail(tempDir);
@@ -93,6 +116,7 @@ test('verify-publication detects a non-canonical seed:demo entrypoint', () => {
     const pkg = {
       name: 'valorgrid-verify-pub-fixture',
       version: '0.0.0',
+      license: 'MPL-2.0',
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-demo.js' },
     };
@@ -101,6 +125,7 @@ test('verify-publication detects a non-canonical seed:demo entrypoint', () => {
     fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, 'index.html'), '<html></html>');
 
     const result = runScriptExpectFail(tempDir);
@@ -117,6 +142,7 @@ test('verify-publication detects stale CasaOS port metadata', () => {
     const pkg = {
       name: 'valorgrid-verify-pub-fixture',
       version: '3.7.12',
+      license: 'MPL-2.0',
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
@@ -154,6 +180,7 @@ test('verify-publication detects stale CasaOS port metadata', () => {
     fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
     fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);
     fs.writeFileSync(
@@ -190,6 +217,7 @@ test('verify-publication scans tracked OpenCode files even when the directory is
     const pkg = {
       name: 'valorgrid-verify-pub-fixture',
       version: '0.0.0',
+      license: 'MPL-2.0',
       private: true,
       scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
     };
@@ -228,6 +256,7 @@ test('verify-publication scans tracked OpenCode files even when the directory is
     fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
     fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);
     fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---\nname: leak\ndescription: ${['DE', 'GIRO'].join('')} fixture\n---\n`);

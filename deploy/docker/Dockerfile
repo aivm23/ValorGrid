@@ -2,7 +2,7 @@ FROM node:24-bookworm-slim
 
 LABEL org.opencontainers.image.source="https://github.com/aivm23/ValorGrid" \
       org.opencontainers.image.description="ValorGrid — Private local portfolio dashboard" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MPL-2.0"
 
 WORKDIR /app
 

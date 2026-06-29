@@ -270,3 +270,21 @@ test('dockerignore protects private data from container build context', () => {
     assert.ok(dockerignore.includes(pattern), `${pattern} is ignored in Docker build context`);
   }
 });
+
+test('Community license metadata stays on MPL-2.0', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+  const license = fs.readFileSync(path.join(root, 'LICENSE'), 'utf8');
+  const dockerfile = fs.readFileSync(path.join(root, 'deploy', 'docker', 'Dockerfile'), 'utf8');
+  const electronConfig = fs.readFileSync(path.join(root, 'apps', 'desktop', 'electron-builder.config.cjs'), 'utf8');
+
+  assert.equal(packageJson.license, 'MPL-2.0');
+  assert.match(license, /Mozilla Public License Version 2\.0/);
+  assert.match(readme, /MPL-2\.0/);
+  assert.doesNotMatch(readme, /License: MIT|^MIT\b/m);
+  assert.match(dockerfile, /org\.opencontainers\.image\.licenses="MPL-2\.0"/);
+
+  for (const noticeFile of ['LICENSE', 'NOTICE.md', 'TRADEMARKS.md', 'THIRD_PARTY_NOTICES.md']) {
+    assert.ok(electronConfig.includes(`'${noticeFile}'`), `${noticeFile} is included in desktop packaging`);
+  }
+});

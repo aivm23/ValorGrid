@@ -6,7 +6,7 @@
 ![Linux](https://img.shields.io/badge/Linux-AppImage%20%2B%20deb-FCC624?logo=linux&logoColor=black)
 ![macOS](https://img.shields.io/badge/macOS-DMG-000000?logo=apple&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker&logoColor=white)
-![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue.svg)
 ![Privacidad](https://img.shields.io/badge/privacidad-local%20first-0f766e)
 
 **ValorGrid** es un panel de cartera privado que corre localmente con SQLite.
@@ -94,6 +94,7 @@ Requisitos: Node.js 24+, `node:sqlite`.
 - [IMPORT_EXCEL.md](docs/IMPORT_EXCEL.md) — plantilla Excel, columnas, FX
 - [FAQ.md](docs/FAQ.md) — preguntas frecuentes
 - [LEGAL_NOTICE.md](docs/LEGAL_NOTICE.md) — aviso legal
+- [FINANCIAL_DISCLAIMER.md](docs/FINANCIAL_DISCLAIMER.md) — descargo financiero
 - [API.md](docs/API.md) — endpoints
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — arquitectura
 - [EDITIONS.md](docs/EDITIONS.md) — Community vs Pro
@@ -106,4 +107,8 @@ Consulta también [CREATE_INSTRUMENTS.md](docs/CREATE_INSTRUMENTS.md) para crear
 
 ## Licencia
 
-MIT — [LICENSE](LICENSE)
+ValorGrid Community se distribuye bajo la Mozilla Public License 2.0 (`MPL-2.0`) para las versiones publicadas a partir de este cambio de licencia. Consulta [LICENSE](LICENSE) para los términos completos.
+
+El nombre ValorGrid, el logotipo, los iconos y otros elementos de identidad visual no quedan licenciados bajo `MPL-2.0`. Consulta [NOTICE.md](NOTICE.md) y [TRADEMARKS.md](TRADEMARKS.md).
+
+Copyright © 2026 Álvaro I. Valderrama Molina.

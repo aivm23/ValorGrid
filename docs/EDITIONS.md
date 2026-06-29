@@ -4,7 +4,11 @@ Este documento fija la frontera entre el repositorio público Community y el có
 
 ## ValorGrid Community
 
-Community es la edición pública de ValorGrid. Su importador solo acepta la plantilla Excel oficial:
+Community es la edición pública de ValorGrid. Las versiones publicadas a partir del cambio de licencia se distribuyen bajo Mozilla Public License 2.0 (`MPL-2.0`).
+
+La licencia `MPL-2.0` cubre el código fuente de Community, pero no concede derechos sobre el nombre ValorGrid, el logotipo, iconos, identidad visual, web comercial ni materiales promocionales. Esos elementos se documentan en `NOTICE.md` y `TRADEMARKS.md`.
+
+Su importador solo acepta la plantilla Excel oficial:
 
 ```text
 valorgrid-xlsx
@@ -22,7 +26,7 @@ Reglas:
 
 ## ValorGrid Pro/Enterprise
 
-Pro/Enterprise contiene adaptadores privados para fuentes concretas de broker. Ese código vive fuera del repositorio público Community y no debe subirse a GitHub público.
+Pro/Enterprise contiene adaptadores no públicos para fuentes concretas de broker y se distribuye bajo condiciones propietarias separadas. Ese código vive fuera del repositorio público Community y no debe subirse a GitHub público.
 
 Reglas:
 

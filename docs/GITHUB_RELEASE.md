@@ -97,7 +97,7 @@ macOS publica DMG x64 y arm64 desde el runner `macos-latest`. En esta fase los b
    npm run umbrel:check
    ```
 
-8. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md`, `docs/LEGAL_NOTICE.md` y `docs/DEPLOY_UMBREL.md`.
+8. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md`, `docs/LEGAL_NOTICE.md`, `docs/FINANCIAL_DISCLAIMER.md` y `docs/DEPLOY_UMBREL.md`.
 
 ## Upgrade
 
@@ -167,5 +167,6 @@ Cada release estable debe mantener actualizados:
 - `docs/FIRST_STEPS.md`: primeros pasos para usuario no técnico.
 - `docs/IMPORT_EXCEL.md`: plantilla Excel y errores comunes.
 - `docs/FAQ.md`: preguntas frecuentes.
-- `docs/LEGAL_NOTICE.md`: aviso legal ampliado.
+- `docs/LEGAL_NOTICE.md`: aviso legal.
+- `docs/FINANCIAL_DISCLAIMER.md`: descargo financiero y no asesoramiento.
 - `docs/DEPLOY_UMBREL.md`: paquete Umbrel, community store, digest y pruebas.

@@ -1,7 +1,8 @@
 {
   "name": "valorgrid",
-  "version": "3.27.3",
+  "version": "3.27.4",
   "private": true,
+  "license": "MPL-2.0",
   "productName": "ValorGrid",
   "description": "Private local portfolio dashboard",
   "main": "apps/desktop/main.js",

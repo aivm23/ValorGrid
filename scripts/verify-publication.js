@@ -340,6 +340,40 @@ function checkSeedDemo() {
   addCheck('ok', 'seed-demo', 'seed:demo uses canonical loadtest entrypoint.');
 }
 
+function checkLicenseMetadata(pkg) {
+  const requiredFiles = ['LICENSE', 'NOTICE.md', 'TRADEMARKS.md', 'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md'];
+  const missingFiles = requiredFiles.filter((relative) => !fs.existsSync(path.join(repoRoot, relative)));
+  const readText = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
+  const errors = [];
+
+  if (pkg.license !== 'MPL-2.0') errors.push('package.json license must be MPL-2.0');
+  if (missingFiles.length) errors.push(`missing license notice files: ${missingFiles.join(', ')}`);
+
+  if (!missingFiles.includes('LICENSE') && !readText('LICENSE').includes('Mozilla Public License Version 2.0')) {
+    errors.push('LICENSE must contain the MPL-2.0 text');
+  }
+
+  const readme = readText('README.md');
+  if (readme.includes('License: MIT') || /^MIT\b/m.test(readme)) errors.push('README.md must not advertise MIT as the current license');
+  if (!readme.includes('MPL-2.0')) errors.push('README.md must mention MPL-2.0');
+
+  const dockerfile = readText(path.join('deploy', 'docker', 'Dockerfile'));
+  if (!dockerfile.includes('org.opencontainers.image.licenses="MPL-2.0"')) {
+    errors.push('Dockerfile OCI license label must be MPL-2.0');
+  }
+
+  const electronConfig = readText(path.join('apps', 'desktop', 'electron-builder.config.cjs'));
+  for (const relative of ['LICENSE', 'NOTICE.md', 'TRADEMARKS.md', 'THIRD_PARTY_NOTICES.md']) {
+    if (!electronConfig.includes(`'${relative}'`)) errors.push(`desktop packaging must include ${relative}`);
+  }
+
+  if (errors.length) {
+    addCheck('fail', 'license-metadata', 'License metadata is incomplete or stale', errors);
+  } else {
+    addCheck('ok', 'license-metadata', 'Community license metadata uses MPL-2.0 and desktop notices are packaged.');
+  }
+}
+
 function checkCasaosCompose(pkg) {
   const composePath = path.join(repoRoot, 'deploy', 'docker', 'compose.casaos.yml');
   if (!fs.existsSync(composePath)) {
@@ -485,6 +519,7 @@ function run() {
   checkForbiddenText();
   checkAlterTable();
   checkSeedDemo();
+  checkLicenseMetadata(pkg);
   checkCasaosCompose(pkg);
   checkUmbrelPackage(pkg);
 

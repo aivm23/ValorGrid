@@ -57,6 +57,7 @@ const notes = [
   '- Excel import guide: `docs/IMPORT_EXCEL.md`',
   '- FAQ: `docs/FAQ.md`',
   '- Legal notice: `docs/LEGAL_NOTICE.md`',
+  '- Financial disclaimer: `docs/FINANCIAL_DISCLAIMER.md`',
   '',
   'See `docs/GITHUB_RELEASE.md` for the full release checklist.',
 ];

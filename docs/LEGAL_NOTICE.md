@@ -1,34 +1,24 @@
 # Aviso Legal
 
-ValorGrid es una herramienta local de registro, organización, visualización y auditoría de cartera.
+Este documento recoge la información legal básica del proyecto ValorGrid Community. El descargo financiero vive en [FINANCIAL_DISCLAIMER.md](FINANCIAL_DISCLAIMER.md).
 
-## No Asesoramiento Financiero
+## Titular
 
-ValorGrid no ofrece asesoramiento financiero, fiscal, legal ni de inversión.
+- Titular: Álvaro I. Valderrama Molina
+- Correo electrónico: hola@valorgrid.app
+- Sitio web oficial: https://valorgrid.app
+- Repositorio Community: https://github.com/aivm23/ValorGrid
 
-La app no emite recomendaciones de compra, venta, mantenimiento, asignación de activos ni optimización de cartera.
+Por decisión expresa del titular, este aviso público no incluye NIF ni domicilio.
 
-Toda decisión de inversión corresponde exclusivamente al usuario.
+## Ediciones
 
-## Datos Y Responsabilidad Del Usuario
+ValorGrid Community es el repositorio público y se distribuye bajo la Mozilla Public License 2.0 (`MPL-2.0`) para las versiones publicadas a partir del cambio de licencia.
 
-El usuario es responsable de:
+ValorGrid Professional Edition incluye módulos, integraciones y funcionalidades adicionales distribuidos bajo condiciones propietarias separadas. Ese código no forma parte de ValorGrid Community salvo que se indique expresamente lo contrario.
 
-- introducir datos correctos;
-- verificar importaciones antes de confirmarlas;
-- mantener backups actualizados;
-- comprobar cálculos relevantes antes de usarlos para decisiones personales, fiscales o patrimoniales.
+## Marca
 
-ValorGrid puede contener errores. No debe usarse como única fuente para declaraciones fiscales, decisiones de inversión o informes profesionales sin revisión independiente.
+ValorGrid™, el logotipo, los iconos y otros elementos de identidad visual no quedan licenciados bajo `MPL-2.0`.
 
-## Fuentes Externas
-
-ValorGrid puede consultar precios de mercado mediante proveedores externos como Yahoo Finance. Esos datos pueden tener retrasos, errores, huecos o cambios de disponibilidad.
-
-## Uso Local
-
-ValorGrid está diseñado para uso local o en entornos privados. No debe exponerse directamente a Internet sin una capa adicional de autenticación y seguridad.
-
-## Community Y Pro/Enterprise
-
-ValorGrid Community es el repositorio público. Las integraciones profesionales o privadas pueden tener condiciones, soporte y documentación separados.
+Consulta [TRADEMARKS.md](../TRADEMARKS.md) y [NOTICE.md](../NOTICE.md) para más detalle.

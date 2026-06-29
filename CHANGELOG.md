@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.27.4
+
+- chore: relicense ValorGrid Community future releases under MPL-2.0.
+- docs: add copyright, trademark, contribution, third-party notice and legal-disclaimer separation.
+- test: guard release metadata against MIT license regressions.
+
 ## 3.27.3
 
 - feat: add explicit transaction entry mode tabs for market EUR, manual total EUR and manual unit price workflows.
