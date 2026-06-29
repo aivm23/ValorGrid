@@ -171,7 +171,7 @@
             </div>
             <div class="total-box">
               <div class="metric-label">
-                <span>Total visible estimado</span>
+                <span data-i18n="summary.visibleTotal.label">Total visible estimado</span>
                 <button
                   type="button"
                   class="metric-info-button"
@@ -180,11 +180,11 @@
                 >
                   i
                 </button>
-                <span id="distribution-total-info" class="sr-only">
+                <span id="distribution-total-info" class="sr-only" data-i18n="summary.visibleTotal.tooltip">
                   Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
                   dashboard no entran en este total.
                 </span>
-                <div class="metric-info-tooltip" role="tooltip" aria-hidden="true">
+                <div class="metric-info-tooltip" role="tooltip" aria-hidden="true" data-i18n="summary.visibleTotal.tooltip">
                   Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
                   dashboard no entran en este total.
                 </div>
@@ -585,11 +585,11 @@
             </div>
             <div class="instrument-filter-grid">
               <label class="field instrument-position-filter">
-                <span>Posición</span>
+                <span data-i18n="instrument.filter.position">Posición</span>
                 <select id="instrument-position-filter">
-                  <option value="all">Todos</option>
-                  <option value="open">Con posición abierta</option>
-                  <option value="closed">Sin posición abierta</option>
+                  <option value="all" data-i18n="instrument.filter.position.all">Todos</option>
+                  <option value="open" data-i18n="instrument.filter.position.open">Con posición abierta</option>
+                  <option value="closed" data-i18n="instrument.filter.position.closed">Sin posición abierta</option>
                 </select>
               </label>
               <label class="field">
@@ -770,7 +770,7 @@
         <label class="field">
           <span>Fuente de datos</span>
           <select id="import-source" aria-label="Formato de importación">
-            <option value="valorgrid-xlsx">Plantilla Excel de ValorGrid</option>
+            <option value="valorgrid-xlsx" data-i18n="import.source.valorgridXlsx">Plantilla Excel de ValorGrid</option>
           </select>
           <div id="import-pro-banners" class="import-pro-banners" hidden></div>
         </label>
@@ -822,7 +822,7 @@
         </div>
 
         <label class="field" id="import-sheet-field" hidden>
-          <span>Hoja a importar</span>
+          <span data-i18n="import.sheet.label">Hoja a importar</span>
           <select id="import-sheet"></select>
         </label>
 

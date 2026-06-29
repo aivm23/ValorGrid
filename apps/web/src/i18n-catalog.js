@@ -1,5 +1,6 @@
 import { UI_TEXT_TRANSLATIONS } from './i18n-catalog-ui.js';
 import { MODAL_TEXT_TRANSLATIONS } from './i18n-catalog-modals.js';
+import { IMPORT_TEXT_TRANSLATIONS } from './i18n-catalog-import.js';
 
 function mergeTranslations(...catalogs) {
   return catalogs.reduce(
@@ -63,6 +64,9 @@ const CORE_TEXT_TRANSLATIONS = {
     'common.notAvailable': 'N/D',
     'common.metricInfo': 'Información sobre la métrica',
     'summary.legend.breakdownAvailable': 'Desglose disponible',
+    'summary.visibleTotal.label': 'Total visible estimado',
+    'summary.visibleTotal.tooltip':
+      'Suma solo las posiciones marcadas como visibles en distribucion. Las posiciones ocultas en el dashboard no entran en este total.',
     'summary.empty.noValuePositions': 'Sin posiciones con valor',
     'summary.empty.noPositionsSetup': 'Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.',
     'summary.empty.createPortfolio': 'Crear cartera',
@@ -149,6 +153,9 @@ const CORE_TEXT_TRANSLATIONS = {
     'common.notAvailable': 'N/D',
     'common.metricInfo': 'Metric information',
     'summary.legend.breakdownAvailable': 'Breakdown available',
+    'summary.visibleTotal.label': 'Estimated visible total',
+    'summary.visibleTotal.tooltip':
+      'Only positions marked as visible in allocation are included. Positions hidden from the dashboard are not included in this total.',
     'summary.empty.noValuePositions': 'No positions with value',
     'summary.empty.noPositionsSetup': 'No positions yet. Create your first instrument and add your first movement.',
     'summary.empty.createPortfolio': 'Create portfolio',
@@ -343,4 +350,9 @@ const CORE_TEXT_TRANSLATIONS = {
   },
 };
 
-export const BASE_TEXT_TRANSLATIONS = mergeTranslations(CORE_TEXT_TRANSLATIONS, UI_TEXT_TRANSLATIONS, MODAL_TEXT_TRANSLATIONS);
+export const BASE_TEXT_TRANSLATIONS = mergeTranslations(
+  CORE_TEXT_TRANSLATIONS,
+  UI_TEXT_TRANSLATIONS,
+  MODAL_TEXT_TRANSLATIONS,
+  IMPORT_TEXT_TRANSLATIONS,
+);

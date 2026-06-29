@@ -112,7 +112,7 @@ export function attach(ctx) {
       const key = originalAttribute(element, 'data-i18n');
       if (key) element.textContent = t(key);
     }
-    for (const attr of ['aria-label', 'title', 'placeholder', 'data-label']) {
+    for (const attr of ['aria-label', 'title', 'placeholder', 'data-label', 'data-tooltip']) {
       if (!element.hasAttribute(attr)) continue;
       const keyedAttr = element.getAttribute(`data-i18n-${attr}`);
       if (keyedAttr) {

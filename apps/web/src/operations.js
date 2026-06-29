@@ -328,14 +328,21 @@ export function attach(ctx) {
     const container = ctx.elements.operationsPreferenceControls;
     if (!container) return;
 
-    const options = ['Valor mercado', 'Aportado neto', 'Resultado total', 'Plusvalía latente', 'Plusvalía realizada', 'Comisiones'];
+    const options = [
+      'operations.metrics.marketValue.label',
+      'operations.metrics.netContributed.label',
+      'operations.metrics.totalGain.label',
+      'operations.metrics.unrealizedGain.label',
+      'operations.metrics.realizedGain.label',
+      'operations.metrics.commissions.label',
+    ];
     container.innerHTML = `
       <div class="pro-preference-group">
         ${options.map((opt, i) => `
           <div class="pref-row">
-            <span class="pref-label">Posición ${i + 1}</span>
+            <span class="pref-label">${ctx.t('pro.preferences.position', { index: i + 1 })}</span>
             <select disabled>
-              ${options.map(o => `<option${o === opt ? ' selected' : ''}>${o}</option>`).join('')}
+              ${options.map(o => `<option${o === opt ? ' selected' : ''}>${ctx.t(o)}</option>`).join('')}
             </select>
           </div>`).join('')}
       </div>`;

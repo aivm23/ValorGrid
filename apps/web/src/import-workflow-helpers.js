@@ -79,22 +79,23 @@ export function getImportSourceDisplayName(source) {
   return source.label;
 }
 
-export function getImportSourceOptionLabel(source) {
+export function getImportSourceOptionLabel(source, t = (value) => value) {
   const name = getImportSourceDisplayName(source);
-  if (source.comingSoon) return name + ' - Pr\u00f3ximamente - Professional Edition';
+  if (source.key === 'valorgrid-xlsx') return t('import.source.valorgridXlsx');
+  if (source.comingSoon) return `${name} - ${t('import.source.comingSoon')} - Professional Edition`;
   if (source.edition === 'professional') return name + ' - Professional Edition';
   return name;
 }
 
-function getImportSourceTooltip(source) {
-  if (source.key === 'valorgrid-xlsx') return 'Importar Excel con la plantilla oficial de ValorGrid (hoja Movimientos)';
-  if (source.key === 'degiro-csv') return 'Importar CSV exportado desde DEGIRO';
-  if (source.key === 'ibkr-csv') return 'Importar CSV exportado desde Interactive Brokers (IBKR)';
-  if (source.key === 'clicktrade-xlsx') return 'Importar XLSX exportado desde ClickTrade';
+function getImportSourceTooltip(source, t = (value) => value) {
+  if (source.key === 'valorgrid-xlsx') return t('import.source.tooltip.valorgridXlsx');
+  if (source.key === 'degiro-csv') return t('import.source.tooltip.degiroCsv');
+  if (source.key === 'ibkr-csv') return t('import.source.tooltip.ibkrCsv');
+  if (source.key === 'clicktrade-xlsx') return t('import.source.tooltip.clicktradeXlsx');
   return source.label || '';
 }
 
-export function renderImportSourceOptions(sources, edition, escapeHtml) {
+export function renderImportSourceOptions(sources, edition, escapeHtml, t = (value) => value) {
   return sources
     .filter((source) => source.edition === 'community' || edition === 'professional' || !source.available)
     .sort((left, right) => {
@@ -102,16 +103,16 @@ export function renderImportSourceOptions(sources, edition, escapeHtml) {
       return left.edition === 'community' ? -1 : 1;
     })
     .map((source) => {
-      const label = getImportSourceOptionLabel(source);
+      const label = getImportSourceOptionLabel(source, t);
       const disabled = !source.available || source.comingSoon;
       const disabledAttr = disabled ? ' disabled' : '';
-      const title = escapeHtml(getImportSourceTooltip(source));
+      const title = escapeHtml(getImportSourceTooltip(source, t));
       return `<option value="${escapeHtml(source.key)}"${disabledAttr} title="${title}">${escapeHtml(label)}</option>`;
     })
     .join('');
 }
 
-export function renderImportProBanners(sources, edition, escapeHtml) {
+export function renderImportProBanners(sources, edition, escapeHtml, t = (value) => value) {
   const allPro = sources.filter((source) => source.edition === 'professional');
   if (edition !== 'community' || !allPro.length) return '';
 
@@ -138,7 +139,9 @@ export function renderImportProBanners(sources, edition, escapeHtml) {
         '<span class="import-pro-banner-title">' +
         escapeHtml(soonNames) +
         '</span> - ' +
-        '<span class="import-soon-label">Próximamente</span> ' +
+        '<span class="import-soon-label">' +
+        escapeHtml(t('import.source.comingSoon')) +
+        '</span> ' +
         '<span class="pro-edition-label">Professional Edition</span></div>';
   }
 

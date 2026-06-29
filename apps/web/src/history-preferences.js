@@ -6,24 +6,24 @@ export function attach(ctx) {
     container.innerHTML = `
       <div class="pro-preference-group">
         <div class="pref-section">
-          <span class="pref-section-title">Marcadores de movimientos</span>
+          <span class="pref-section-title">${ctx.t('pro.history.markers')}</span>
           <select disabled>
-            <option>Personalizados</option>
-            <option>Por defecto</option>
+            <option>${ctx.t('pro.history.mode.custom')}</option>
+            <option>${ctx.t('pro.history.mode.default')}</option>
           </select>
         </div>
         <div class="pref-filters">
           <div class="pref-filter-group">
-            <span class="pref-filter-label">Instrumento</span>
+            <span class="pref-filter-label">${ctx.t('pro.history.group.instrument')}</span>
             <label class="checkbox-label"><input type="checkbox" disabled checked /> Stock</label>
             <label class="checkbox-label"><input type="checkbox" disabled checked /> ETF</label>
             <label class="checkbox-label"><input type="checkbox" disabled checked /> Crypto</label>
             <label class="checkbox-label"><input type="checkbox" disabled checked /> Commodity</label>
           </div>
           <div class="pref-filter-group">
-            <span class="pref-filter-label">Operación</span>
-            <label class="checkbox-label"><input type="checkbox" disabled checked /> Compras</label>
-            <label class="checkbox-label"><input type="checkbox" disabled checked /> Ventas</label>
+            <span class="pref-filter-label">${ctx.t('pro.history.group.operation')}</span>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> ${ctx.t('Compras')}</label>
+            <label class="checkbox-label"><input type="checkbox" disabled checked /> ${ctx.t('Ventas')}</label>
           </div>
         </div>
       </div>`;

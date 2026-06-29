@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.28.5
+
+- fix: translate remaining tooltip, Professional Edition teaser and import workflow copy in English mode.
+- fix: route import source options, detected-format labels, sheet selector, rollback messages and row decisions through i18n.
+- test: extend frontend i18n coverage for import workflow and translated modal copy.
+
 ## 3.28.4
 
 - fix: translate remaining modal, ledger, import, instrument/group and dividend copy in English mode.

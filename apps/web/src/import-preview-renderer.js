@@ -33,7 +33,7 @@ function stepIndex(step) {
 function renderProgress(ctx, activeStep, state) {
   const activeIndex = stepIndex(activeStep);
   return `
-    <div class="import-progress" aria-label="Progreso de importación">
+    <div class="import-progress" aria-label="${ctx.escapeHtml(ctx.t('import.progress.label'))}">
       ${STEP_ORDER.map((step, index) => {
         const done = Boolean(state.importConfirmedSteps?.[step]) || index < activeIndex;
         return `
@@ -81,12 +81,12 @@ function renderFileStep(ctx, preview, warnings = []) {
   if (!preview) {
     return `
       <div class="import-empty-step">
-        <strong>Preparado para analizar</strong>
+        <strong>${ctx.t('import.empty.ready')}</strong>
         <span>${ctx.t('import.empty.instructions')}</span>
       </div>`;
   }
   return `
-    ${preview.fileSubtype ? `<div class="import-kind-pill"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v10l4-3 4 3V2a1 1 0 00-1-1H4a1 1 0 00-1 1z"/></svg> Formato detectado: <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>` : ''}
+    ${preview.fileSubtype ? `<div class="import-kind-pill"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v10l4-3 4 3V2a1 1 0 00-1-1H4a1 1 0 00-1 1z"/></svg> ${ctx.escapeHtml(ctx.t('import.detectedFormat'))} <strong>${ctx.escapeHtml(preview.fileSubtypeLabel || preview.fileSubtype)}</strong></div>` : ''}
     ${warnings.length ? `<div class="import-warning-banner">${warnings.map((item) => `<div>${ctx.escapeHtml(item)}</div>`).join('')}</div>` : ''}
     ${renderSummary(ctx, preview)}
   `;
@@ -116,7 +116,7 @@ function isSafetyOmitted(item, action) {
 function renderSuggestions(ctx, item) {
   const suggestions = item.tickerSuggestions || [];
   if (!suggestions.length) {
-    return `<div class="subtle">Sin sugerencias automáticas. Puedes crear el instrumento manualmente.</div>`;
+    return `<div class="subtle">${ctx.t('import.suggestions.empty')}</div>`;
   }
   return `
     <div class="import-suggestions">
@@ -124,8 +124,8 @@ function renderSuggestions(ctx, item) {
         .map(
           (suggestion, index) => `
             <button type="button" class="button button-compact btn-save" data-import-use-suggestion="${ctx.escapeHtml(item.key)}" data-suggestion-index="${index}">
-              Usar ${ctx.escapeHtml(suggestion.yahooSymbol)}
-              <small>${ctx.escapeHtml(suggestion.confidence || 'media')}</small>
+              ${ctx.escapeHtml(ctx.t('import.suggestions.use', { symbol: suggestion.yahooSymbol }))}
+              <small>${ctx.escapeHtml(suggestion.confidence || ctx.t('import.suggestions.confidenceFallback'))}</small>
             </button>`,
         )
         .join('')}
@@ -143,7 +143,15 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
   const attempted = Boolean(state.importInstrumentValidationAttempted);
   const safetyOmitted = isSafetyOmitted(item, action);
   const badgeStatus = omitted ? 'omitted' : attempted ? (complete ? 'resolved' : 'incomplete') : 'pending';
-  const badgeLabel = safetyOmitted ? 'Omitido por seguridad' : omitted ? 'Omitido' : attempted ? (complete ? 'Confirmado' : 'Incompleto') : 'Sin confirmar';
+  const badgeLabel = safetyOmitted
+    ? ctx.t('import.instrument.badge.safetyOmitted')
+    : omitted
+      ? ctx.t('import.instrument.badge.omitted')
+      : attempted
+        ? complete
+          ? ctx.t('import.instrument.badge.confirmed')
+          : ctx.t('import.instrument.badge.incomplete')
+        : ctx.t('import.instrument.badge.pending');
   const missingFields = action === 'create' && attempted ? missingCreateFields(create) : new Set();
   const visibleTicker = create.yahooSymbol || create.symbol || item.symbol || '';
   return `
@@ -151,32 +159,32 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
       <header>
         <div>
           <strong>${ctx.escapeHtml(item.label || item.key)}</strong>
-          <p class="subtle">${visibleTicker ? `Ticker sugerido ${ctx.escapeHtml(visibleTicker)} · ` : ''}${ctx.escapeHtml(item.currency || '-')} · ${ctx.escapeHtml(item.exchange || '-')}</p>
+          <p class="subtle">${visibleTicker ? `${ctx.escapeHtml(ctx.t('import.instrument.tickerSuggested', { ticker: visibleTicker }))} · ` : ''}${ctx.escapeHtml(item.currency || '-')} · ${ctx.escapeHtml(item.exchange || '-')}</p>
         </div>
         <span class="status-pill status-${statusBadgeClass(badgeStatus)}">${badgeLabel}</span>
       </header>
       <div class="import-instrument-metrics">
-        <span>${item.rowCount || 0} operaciones</span>
-        <span>${item.buys || 0} compras / ${item.sells || 0} ventas</span>
+        <span>${ctx.tn('import.instrument.operations', item.rowCount || 0)}</span>
+        <span>${ctx.t('import.instrument.buySell', { buys: item.buys || 0, sells: item.sells || 0 })}</span>
         <span>${ctx.formatCurrency(item.approxValueEur || 0)}</span>
         ${item.firstDate && item.lastDate ? `<span>${ctx.formatDate(item.firstDate)} - ${ctx.formatDate(item.lastDate)}</span>` : ''}
       </div>
-      ${safetyOmitted ? '<div class="import-safety-message">Omitido por seguridad: hay más ventas que compras y podría generar posición negativa.</div>' : ''}
+      ${safetyOmitted ? `<div class="import-safety-message">${ctx.escapeHtml(ctx.t('import.instrument.safetyMessage'))}</div>` : ''}
       ${!complete || action !== 'map' ? renderSuggestions(ctx, item) : ''}
       <label class="field">
-        <span>Decisión</span>
+        <span>${ctx.t('import.instrument.decision')}</span>
         <select data-import-instrument-action="${ctx.escapeHtml(item.key)}">
-          <option value="map"${action === 'map' ? ' selected' : ''}>Asignar a instrumento existente</option>
-          <option value="create"${action === 'create' ? ' selected' : ''}>Crear instrumento nuevo</option>
-          <option value="omit"${action === 'omit' ? ' selected' : ''}>Omitir este producto</option>
+          <option value="map"${action === 'map' ? ' selected' : ''}>${ctx.t('import.instrument.action.map')}</option>
+          <option value="create"${action === 'create' ? ' selected' : ''}>${ctx.t('import.instrument.action.create')}</option>
+          <option value="omit"${action === 'omit' ? ' selected' : ''}>${ctx.t('import.instrument.action.omit')}</option>
         </select>
       </label>
       ${
         action === 'map'
           ? `<label class="field">
-              <span>Instrumento destino</span>
+              <span>${ctx.t('import.instrument.target')}</span>
               <select data-import-instrument-symbol="${ctx.escapeHtml(item.key)}">
-                <option value="">Selecciona instrumento</option>
+                <option value="">${ctx.t('import.instrument.selectTarget')}</option>
                 ${instrumentOptions
                   .map((option) => `<option value="${ctx.escapeHtml(option.symbol)}"${option.symbol === symbol ? ' selected' : ''}>${ctx.escapeHtml(option.label)}</option>`)
                   .join('')}
@@ -187,15 +195,15 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
       ${
         action === 'create'
           ? `<div class="import-create-grid">
-              <input class="${missingFields.has('symbol') ? 'import-field-missing' : ''}" data-import-create-symbol="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.symbol || '')}" placeholder="Ticker interno" />
-              <input class="${missingFields.has('yahooSymbol') ? 'import-field-missing' : ''}" data-import-create-yahoo="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.yahooSymbol || '')}" placeholder="Ref. proveedor" />
-              <input class="${missingFields.has('name') ? 'import-field-missing' : ''}" data-import-create-name="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.name || item.label || '')}" placeholder="Nombre" />
+              <input class="${missingFields.has('symbol') ? 'import-field-missing' : ''}" data-import-create-symbol="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.symbol || '')}" placeholder="${ctx.escapeHtml(ctx.t('import.instrument.placeholder.symbol'))}" />
+              <input class="${missingFields.has('yahooSymbol') ? 'import-field-missing' : ''}" data-import-create-yahoo="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.yahooSymbol || '')}" placeholder="${ctx.escapeHtml(ctx.t('import.instrument.placeholder.providerRef'))}" />
+              <input class="${missingFields.has('name') ? 'import-field-missing' : ''}" data-import-create-name="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.name || item.label || '')}" placeholder="${ctx.escapeHtml(ctx.t('import.instrument.placeholder.name'))}" />
               <select data-import-create-type="${ctx.escapeHtml(item.key)}">
                 <option value="etf"${(create.type || 'stock') === 'etf' ? ' selected' : ''}>ETF</option>
                 <option value="stock"${(create.type || 'stock') === 'stock' ? ' selected' : ''}>Stock</option>
               </select>
-              <input class="${missingFields.has('currency') ? 'import-field-missing' : ''}" data-import-create-currency="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.currency || item.currency || 'EUR')}" placeholder="Divisa" />
-              <div class="import-auto-group">Grupo: Importados</div>
+              <input class="${missingFields.has('currency') ? 'import-field-missing' : ''}" data-import-create-currency="${ctx.escapeHtml(item.key)}" value="${ctx.escapeHtml(create.currency || item.currency || 'EUR')}" placeholder="${ctx.escapeHtml(ctx.t('import.instrument.placeholder.currency'))}" />
+              <div class="import-auto-group">${ctx.t('import.instrument.importedGroup')}</div>
               <input class="color-input" data-import-create-color="${ctx.escapeHtml(item.key)}" type="color" value="${ctx.escapeHtml(create.color || '#2563eb')}" />
             </div>`
           : ''
@@ -206,11 +214,11 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
 
 function renderInstrumentsStep(ctx, preview, state, instrumentOptions) {
   const detected = preview.detectedInstruments || [];
-  if (!detected.length) return '<div class="subtle">No hay instrumentos detectados.</div>';
+  if (!detected.length) return `<div class="subtle">${ctx.t('import.instruments.empty')}</div>`;
   return `
     <div class="import-step-intro">
-      <strong>Confirma los instrumentos una sola vez.</strong>
-      <span>Las operaciones del siguiente paso usarán estas decisiones y ya no pedirán ticker por fila.</span>
+      <strong>${ctx.t('import.instruments.intro.title')}</strong>
+      <span>${ctx.t('import.instruments.intro.subtitle')}</span>
     </div>
     <div class="import-instrument-grid">${detected.map((item) => renderInstrumentCard(ctx, item, state, instrumentOptions)).join('')}</div>`;
 }
@@ -220,7 +228,7 @@ function renderOperationsStep(ctx, preview, state) {
   if ((preview.instrumentMappingsRequired || []).length) {
     return `
       <div class="import-warning-banner">
-        Quedan instrumentos sin confirmar. Vuelve al paso Instrumentos y asigna u omite cada producto antes de revisar operaciones.
+        ${ctx.t('import.operations.unconfirmed')}
       </div>`;
   }
   return `
@@ -230,7 +238,7 @@ function renderOperationsStep(ctx, preview, state) {
 function renderOperationGroups(ctx, rows, state) {
   const groups = new Map();
   for (const row of rows) {
-    const product = row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
+    const product = row.raw?.Producto || row.raw?.Product || ctx.t('import.operations.unassigned');
     const symbol = row.normalized?.symbol || product;
     const key = String(symbol || product);
     if (!groups.has(key)) groups.set(key, { symbol, product, rows: [] });
@@ -249,12 +257,12 @@ function renderOperationGroups(ctx, rows, state) {
           <summary>
             <div>
               <strong>${ctx.escapeHtml(group.symbol || group.product)}</strong>
-              <span>${group.rows.length} movimientos · ${importableRows.length} importables</span>
+              <span>${ctx.tn('import.instrument.operations', group.rows.length)} · ${ctx.tn('import.operations.importable', importableRows.length)}</span>
             </div>
             <select class="import-row-control" data-import-group-action="${ctx.escapeHtml(rowIndexes)}">
-              <option value=""${groupAction === '' ? ' selected' : ''}>Mixto</option>
-              <option value="import"${groupAction === 'import' ? ' selected' : ''}>Importar grupo</option>
-              <option value="skip"${groupAction === 'skip' ? ' selected' : ''}>Omitir grupo</option>
+              <option value=""${groupAction === '' ? ' selected' : ''}>${ctx.t('import.operations.mixed')}</option>
+              <option value="import"${groupAction === 'import' ? ' selected' : ''}>${ctx.t('import.operations.importGroup')}</option>
+              <option value="skip"${groupAction === 'skip' ? ' selected' : ''}>${ctx.t('import.operations.skipGroup')}</option>
             </select>
           </summary>
           <div class="import-operation-group-details">
@@ -267,12 +275,12 @@ function renderOperationGroups(ctx, rows, state) {
 
 function renderOperationRow(ctx, row, state) {
   const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
-  const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || 'Sin instrumento asignado';
+  const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || ctx.t('import.operations.unassigned');
   const hasZeroPrice = row.normalized?.originalPrice === 0 && row.normalized?.type === 'add';
   const rowWarnings = row.normalized?.warnings || [];
   const rawReference = row.raw?.Producto || row.raw?.Product || row.raw?.Descripcion || row.raw?.Descripción || row.raw?.Description || row.raw?.ISIN || row.raw?.Isin || '';
   const unresolvedReference = !row.normalized?.symbol && rawReference
-    ? `<small class="import-row-reference">Excel: ${ctx.escapeHtml(rawReference)}</small>`
+    ? `<small class="import-row-reference">${ctx.escapeHtml(ctx.t('import.operations.excelReference', { value: rawReference }))}</small>`
     : '';
   return `
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
@@ -288,10 +296,10 @@ function renderOperationRow(ctx, row, state) {
         ${hasZeroPrice ? `<small class="import-warning-text">${ctx.t('import.row.zeroPrice')}</small>` : ''}
       </div>
       <select class="import-row-control" data-import-row-action="${row.rowIndex}">
-        <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>
-        <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>Omitir</option>
+        <option value="import"${selectedAction === 'import' ? ' selected' : ''}>${ctx.t('import.operations.import')}</option>
+        <option value="skip"${selectedAction === 'skip' ? ' selected' : ''}>${ctx.t('import.operations.skip')}</option>
       </select>
-      <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || rowWarnings.join('; ') || row.ignoreReason || row.ledgerMatch?.reason || 'Lista para importar')}</p>
+      <p>${ctx.escapeHtml(row.blockReasonMessage || (row.errors || []).join('; ') || rowWarnings.join('; ') || row.ignoreReason || row.ledgerMatch?.reason || ctx.t('import.operations.ready'))}</p>
     </article>`;
 }
 

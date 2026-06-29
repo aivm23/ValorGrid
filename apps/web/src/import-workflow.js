@@ -338,7 +338,7 @@ export function updateSheetSelector(ctx, preview) {
 export function updateCommitButton(ctx) {
   ctx.elements.importCommit.disabled = true;
   ctx.elements.importCommit.hidden = true;
-  ctx.elements.importCommit.textContent = 'Importar operaciones seleccionadas';
+  ctx.elements.importCommit.textContent = ctx.t('import.actions.next.default');
 }
 
 export async function downloadImportTemplate(ctx) {
@@ -367,14 +367,14 @@ export async function loadImportSources(ctx) {
     if (!select) return;
     const edition = ctx.state?.edition || 'community';
 
-    select.innerHTML = renderImportSourceOptions(sources, edition, ctx.escapeHtml);
+    select.innerHTML = renderImportSourceOptions(sources, edition, ctx.escapeHtml, ctx.t);
     const selectedOption = select.options[select.selectedIndex];
     if (select.querySelector('option[value="valorgrid-xlsx"]') && (!select.value || selectedOption?.disabled)) {
       select.value = 'valorgrid-xlsx';
     }
 
     if (bannersContainer) {
-      const html = renderImportProBanners(sources, edition, ctx.escapeHtml);
+      const html = renderImportProBanners(sources, edition, ctx.escapeHtml, ctx.t);
       if (html) {
         bannersContainer.innerHTML = html;
         bannersContainer.hidden = false;

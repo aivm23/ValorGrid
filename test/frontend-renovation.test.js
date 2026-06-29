@@ -421,9 +421,9 @@ test('imports.js loads import sources when opening the import dialog', () => {
 test('import-workflow.js option labels include Pro source names and edition', () => {
   const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
   const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
-  assert.ok(workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml)'), 'workflow escapes options through helper');
+  assert.ok(workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml, ctx.t)'), 'workflow escapes and translates options through helper');
   assert.ok(helpers.includes('Professional Edition'), 'option labels include Professional Edition');
-  assert.ok(helpers.includes('Pr\\u00f3ximamente'), 'option labels include Próximamente for coming soon');
+  assert.ok(helpers.includes('import.source.comingSoon'), 'option labels translate coming soon copy');
   assert.ok(helpers.includes('DEGIRO'), 'helpers maps degiro-csv key to DEGIRO');
   assert.ok(helpers.includes('Interactive Brokers'), 'helpers maps ibkr-csv to Interactive Brokers');
   assert.ok(helpers.includes('ClickTrade'), 'helpers maps clicktrade-xlsx to ClickTrade');
@@ -433,8 +433,8 @@ test('import source helper labels are plain text and match Pro teaser copy', () 
   const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
   assert.ok(helpers.includes("return name + ' - Professional Edition'"), 'Pro source labels use plain-text separator');
   assert.ok(
-    helpers.includes("return name + ' - Pr\\u00f3ximamente - Professional Edition'"),
-    'comingSoon source labels include Próximamente and edition',
+    helpers.includes('import.source.comingSoon') && helpers.includes('Professional Edition'),
+    'comingSoon source labels include translated coming soon copy and edition',
   );
 
   for (const forbidden of ['<em', '<span', '<strong', 'class=']) {

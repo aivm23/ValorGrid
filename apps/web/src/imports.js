@@ -197,7 +197,7 @@ export function attach(ctx) {
   async function commitCsvImport() {
     if (!ctx.state.importPreview?.canCommit) { ctx.elements.importFeedback.textContent = 'No se puede importar: hay filas pendientes de resolución.'; return; }
     ctx.elements.importCommit.disabled = true;
-    ctx.elements.importPreviewOutput.innerHTML = '<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>Importando operaciones...</strong><span>Conciliando movimientos y actualizando cartera.</span></div></div>';
+    ctx.elements.importPreviewOutput.innerHTML = `<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>${ctx.t('import.commit.overlay.title')}</strong><span>${ctx.t('import.commit.overlay.subtitle')}</span></div></div>`;
     try {
       ensureDefaultRowActions(ctx);
       await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
@@ -314,7 +314,7 @@ export function attach(ctx) {
           const isRolledBack = rolledBackIds.has(batch.id);
           const range = [batch.firstDate, batch.lastDate].filter(Boolean).map((date) => ctx.formatDate(date)).join(' - ');
           const rollbackIcon = '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 1 3 6.7"></path><path d="M3 7v5h5"></path></svg>';
-          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? '<span class="status-pill status-muted">Revertida</span>' : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact btn-cancel" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">${rollbackIcon} Revertir</button>`}</div>`;
+          return `<div class="import-batch-row${isRolledBack ? ' is-rolled-back' : ''}"><span><strong>${ctx.escapeHtml(batch.filename || batch.source)}</strong> ${isRolledBack ? `<span class="status-pill status-muted">${ctx.t('import.batches.rolledBack')}</span>` : ctx.escapeHtml(batch.status)}</span><small>${ctx.escapeHtml(range)}</small>${isRolledBack ? '' : `<button class="button button-compact btn-cancel" type="button" data-rollback-import="${ctx.escapeHtml(batch.id)}">${rollbackIcon} ${ctx.t('import.batches.rollback')}</button>`}</div>`;
         }).join('')}${rollbackSection}`
       : rollbackSection || `<span class="subtle">${ctx.t('Sin importaciones todavía.')}</span>`;
   }
@@ -334,13 +334,13 @@ export function attach(ctx) {
   function renderImportRollbackLog() {
     const entries = ctx.state.importRollbackLog || [];
     if (!entries.length) return '';
-    return `<h4>Reversiones</h4>${entries.map((entry) => `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(entry.filename || entry.source)}</strong> — ${entry.rowCount || 0} movimientos revertidos</span><small>${ctx.formatDateTime(entry.rolledBackAt)}</small></div>`).join('')}`;
+    return `<h4>${ctx.t('import.batches.rollbackHistory')}</h4>${entries.map((entry) => `<div class="import-batch-row"><span><strong>${ctx.escapeHtml(entry.filename || entry.source)}</strong> - ${ctx.tn('import.batches.revertedMovements', entry.rowCount || 0)}</span><small>${ctx.formatDateTime(entry.rolledBackAt)}</small></div>`).join('')}`;
   }
 
   async function rollbackImportBatch(event) {
     const button = event.target.closest('[data-rollback-import]');
     if (!button) return;
-    if (!window.confirm('¿Revertir esta importación?')) return;
+    if (!window.confirm(ctx.t('import.batches.rollbackConfirm'))) return;
     button.disabled = true;
     try {
       // data.backup disabled: automatic risk backups are not performed

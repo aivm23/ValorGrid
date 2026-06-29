@@ -293,7 +293,7 @@ test('import wizard uses non technical row decisions', () => {
 
   assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
-  assert.ok(renderer.includes('Mixto'), 'group action must expose a mixed state when rows are partially selected');
+  assert.ok(renderer.includes('import.operations.mixed'), 'group action must expose a translated mixed state when rows are partially selected');
   assert.ok(renderer.includes('is-safety-omitted'), 'unsafe default omissions must be visually highlighted');
   assert.ok(confirmRenderer.includes('import-confirm-hero'), 'confirm step must use a structured impact summary');
   assert.ok(html.includes('class="import-file-actions"'), 'analyze action must sit directly below the file drop zone');
