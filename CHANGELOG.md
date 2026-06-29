@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.28.8
+
+- fix: translate the static history range controls in English mode.
+- test: guard history range buttons with explicit i18n bindings.
+
 ## 3.28.7
 
 - fix: translate the pending dividends modal subtitle and remaining dividend draft labels in English mode.

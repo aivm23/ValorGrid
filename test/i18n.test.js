@@ -18,6 +18,7 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   const events = read('apps/web/src/events.js');
   const i18n = read('apps/web/src/i18n.js');
   const catalog = read('apps/web/src/i18n-catalog.js');
+  const uiCatalog = read('apps/web/src/i18n-catalog-ui.js');
 
   assert.ok(app.includes("from './i18n.js'"), 'app imports i18n module');
   assert.ok(app.includes('attachI18n'), 'app attaches i18n before rendering');
@@ -33,6 +34,10 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   assert.ok(catalog.includes('BASE_TEXT_TRANSLATIONS'), 'catalog exports base translations');
   assert.ok(catalog.includes("from './i18n-catalog-modals.js'"), 'catalog imports modal translations');
   assert.ok(catalog.includes("from './i18n-catalog-import.js'"), 'catalog imports import workflow translations');
+  for (const rangeKey of ['history.range.all', 'history.range.5y', 'history.range.2y', 'history.range.1y', 'history.range.ytd']) {
+    assert.ok(uiCatalog.includes(`'${rangeKey}'`), `${rangeKey} must exist in the UI i18n catalog`);
+    assert.ok(html.includes(`data-i18n="${rangeKey}"`), `${rangeKey} must be bound in static history range buttons`);
+  }
 });
 
 test('frontend number formatting is centralized behind locale helpers', () => {
