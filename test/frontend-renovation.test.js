@@ -134,9 +134,9 @@ test('dividend review UI uses toolbar alert and automatic startup scan', () => {
   assert.ok(dividends.includes('/api/dividends/scan'), 'dividend module calls scan API');
   assert.ok(dividends.includes("mode: 'startup'"), 'scan is startup-driven');
   assert.equal(dividends.includes('Buscar dividendos'), false, 'UI does not expose manual search button');
-  assert.ok(dividends.includes('Confirmar dividendo'), 'draft modal can confirm dividend');
-  assert.ok(dividends.includes('Incluir proximos dividendos automaticamente'), 'draft modal exposes auto include checkbox');
-  assert.ok(dividends.includes('split o dividend split'), 'draft modal informs split limitation');
+  assert.ok(dividends.includes("ctx.t('dividends.confirm')"), 'draft modal can confirm dividend');
+  assert.ok(dividends.includes("ctx.t('dividends.autoNext')"), 'draft modal exposes auto include checkbox');
+  assert.ok(dividends.includes("ctx.t('dividends.splitWarning')"), 'draft modal informs split limitation through i18n');
   assert.ok(css.includes('.dividend-draft-card'), 'CSS styles dividend draft cards');
   assert.ok(css.includes('.toolbar-badge'), 'CSS styles alert badge');
 });
@@ -524,7 +524,7 @@ test('operation modal uses transaction entry mode tabs with common fields outsid
   assert.ok(modes.includes("operationType.value === 'remove'"), 'sell mode is handled separately');
   assert.ok(modes.includes("return 'manual_total_eur'"), 'sell mode always resolves to manual total EUR');
   assert.ok(modes.includes('addEntryModeTabs.hidden = isSell'), 'sell mode hides entry mode tabs');
-  assert.ok(modes.includes('Importe bruto venta EUR'), 'sell mode labels gross EUR amount');
+  assert.ok(modes.includes('transaction.field.grossSellEur'), 'sell mode labels gross EUR amount through i18n');
 });
 
 test('format.js renders quantity units by instrument type', async () => {

@@ -1,4 +1,5 @@
 import { UI_TEXT_TRANSLATIONS } from './i18n-catalog-ui.js';
+import { MODAL_TEXT_TRANSLATIONS } from './i18n-catalog-modals.js';
 
 function mergeTranslations(...catalogs) {
   return catalogs.reduce(
@@ -342,4 +343,4 @@ const CORE_TEXT_TRANSLATIONS = {
   },
 };
 
-export const BASE_TEXT_TRANSLATIONS = mergeTranslations(CORE_TEXT_TRANSLATIONS, UI_TEXT_TRANSLATIONS);
+export const BASE_TEXT_TRANSLATIONS = mergeTranslations(CORE_TEXT_TRANSLATIONS, UI_TEXT_TRANSLATIONS, MODAL_TEXT_TRANSLATIONS);

@@ -82,7 +82,7 @@ function renderFileStep(ctx, preview, warnings = []) {
     return `
       <div class="import-empty-step">
         <strong>Preparado para analizar</strong>
-        <span>Selecciona un archivo Excel y pulsa <em>Analizar archivo</em>. Después revisaremos instrumentos, operaciones e impacto antes de guardar nada.</span>
+        <span>${ctx.t('import.empty.instructions')}</span>
       </div>`;
   }
   return `
@@ -284,8 +284,8 @@ function renderOperationRow(ctx, row, state) {
       <span class="status-pill status-${statusBadgeClass(row.status)}">${ctx.escapeHtml(ctx.t(STATUS_LABELS[row.status] || row.status))}</span>
       <div class="import-operation-money">
         <strong>${Number.isFinite(row.normalized?.valueEur) ? ctx.formatCurrency(row.normalized.valueEur) : '-'}</strong>
-        <small>Comisión ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
-        ${hasZeroPrice ? '<small class="import-warning-text">Precio original 0€ (split/dividendo)</small>' : ''}
+        <small>${ctx.t('import.row.commission')} ${Number.isFinite(row.normalized?.commissionEur) ? ctx.formatCurrency(row.normalized.commissionEur) : '-'}</small>
+        ${hasZeroPrice ? `<small class="import-warning-text">${ctx.t('import.row.zeroPrice')}</small>` : ''}
       </div>
       <select class="import-row-control" data-import-row-action="${row.rowIndex}">
         <option value="import"${selectedAction === 'import' ? ' selected' : ''}>Importar</option>

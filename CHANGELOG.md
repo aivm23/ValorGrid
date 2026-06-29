@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.28.4
+
+- fix: translate remaining modal, ledger, import, instrument/group and dividend copy in English mode.
+- fix: apply active language metadata and placeholders to date inputs when switching languages.
+- test: guard modal i18n coverage for operation, import, delete and dividend flows.
+
 ## 3.28.3
 
 - fix: move YTD, ledger, import, backup and operation-dialog copy through frontend i18n keys.

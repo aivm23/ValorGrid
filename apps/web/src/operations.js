@@ -249,7 +249,7 @@ export function attach(ctx) {
     const selectedInstruments = new Set(ctx.state.selectedInstrumentSymbols || []);
     const selectedCount = selectedInstruments.size;
     if (ctx.elements.instrumentSelectionCount) {
-      ctx.elements.instrumentSelectionCount.textContent = `${selectedCount} valor${selectedCount === 1 ? '' : 'es'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+      ctx.elements.instrumentSelectionCount.textContent = ctx.tn('instrument.selection', selectedCount);
     }
     if (ctx.elements.deleteSelectedInstruments) ctx.elements.deleteSelectedInstruments.hidden = selectedCount === 0;
     if (ctx.elements.selectVisibleInstruments) {
@@ -262,14 +262,14 @@ export function attach(ctx) {
       ? instruments
           .map(
             (instrument) => {
-    const groupCol = groupsEnabled ? `<td data-label="Grupo"><select class="instrument-input" data-field="groupId">${groupOptions(instrument.groupId)}</select></td>` : '';
+    const groupCol = groupsEnabled ? `<td data-label="${ctx.t('Grupo')}"><select class="instrument-input" data-field="groupId">${groupOptions(instrument.groupId)}</select></td>` : '';
     return `
         <tr data-instrument="${ctx.escapeHtml(instrument.symbol)}">
-          <td data-label="Ticker"><label class="row-select"><input type="checkbox" data-select-instrument="${ctx.escapeHtml(instrument.symbol)}" ${selectedInstruments.has(instrument.symbol) ? 'checked' : ''} aria-label="Seleccionar ${ctx.escapeHtml(instrument.symbol)}" /><strong class="instrument-symbol-label" title="${ctx.escapeHtml(instrument.symbol)}">${ctx.escapeHtml(instrument.symbol)}</strong></label></td>
-          <td data-label="${instrument.type === 'commodity' ? 'Alpha Vantage' : 'Ref. Proveedor'}"><input class="instrument-input" data-field="yahooSymbol" value="${ctx.escapeHtml(instrument.yahooSymbol)}" /></td>
-          <td data-label="Nombre"><input class="instrument-input" data-field="name" value="${ctx.escapeHtml(instrument.name)}" /></td>
+          <td data-label="Ticker"><label class="row-select"><input type="checkbox" data-select-instrument="${ctx.escapeHtml(instrument.symbol)}" ${selectedInstruments.has(instrument.symbol) ? 'checked' : ''} aria-label="${ctx.escapeHtml(ctx.t('instrument.selectAria', { symbol: instrument.symbol }))}" /><strong class="instrument-symbol-label" title="${ctx.escapeHtml(instrument.symbol)}">${ctx.escapeHtml(instrument.symbol)}</strong></label></td>
+          <td data-label="${instrument.type === 'commodity' ? 'Alpha Vantage' : ctx.t('Ref. Proveedor')}"><input class="instrument-input" data-field="yahooSymbol" value="${ctx.escapeHtml(instrument.yahooSymbol)}" /></td>
+          <td data-label="${ctx.t('Nombre')}"><input class="instrument-input" data-field="name" value="${ctx.escapeHtml(instrument.name)}" /></td>
           ${groupCol}
-          <td data-label="Tipo">
+          <td data-label="${ctx.t('Tipo')}">
             <select class="instrument-input" data-field="type">
               <option value="etf" ${instrument.type === 'etf' ? 'selected' : ''}>ETF</option>
               <option value="stock" ${instrument.type === 'stock' ? 'selected' : ''}>Stock</option>
@@ -277,13 +277,13 @@ export function attach(ctx) {
               <option value="commodity" ${instrument.type === 'commodity' ? 'selected' : ''}>Commodity</option>
             </select>
           </td>
-          <td data-label="Divisa"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>
-          <td data-label="Color"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} /></td>
-          <td data-label="Acciones"><button class="button button-compact btn-save" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">Guardar</button></td>
+          <td data-label="${ctx.t('Divisa')}"><input class="instrument-input" data-field="currency" value="${ctx.escapeHtml(instrument.currency)}" /></td>
+          <td data-label="${ctx.t('Color')}"><input class="instrument-input instrument-color" data-field="color" type="color" value="${ctx.escapeHtml(instrument.color)}" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} /></td>
+          <td data-label="${ctx.t('instrument.actions')}"><button class="button button-compact btn-save" type="button" data-save-instrument="${ctx.escapeHtml(instrument.symbol)}">${ctx.t('instrument.save')}</button></td>
         </tr>`;}
           )
           .join('')
-      : `<tr><td colspan="${colCount}"><div class="empty-action-state"><span class="subtle">Sin valores para este filtro.</span><button class="button button-compact btn-save" type="button" data-open-onboarding>Crear valor</button></div></td></tr>`;
+      : `<tr><td colspan="${colCount}"><div class="empty-action-state"><span class="subtle">${ctx.t('instrument.empty')}</span><button class="button button-compact btn-save" type="button" data-open-onboarding>${ctx.t('instrument.create')}</button></div></td></tr>`;
   }
 
   function renderGroupRows() {
@@ -293,7 +293,7 @@ export function attach(ctx) {
     const selectedGroups = new Set(ctx.state.selectedGroupIds || []);
     const selectedCount = selectedGroups.size;
     if (ctx.elements.groupSelectionCount) {
-      ctx.elements.groupSelectionCount.textContent = `${selectedCount} grupo${selectedCount === 1 ? '' : 's'} seleccionado${selectedCount === 1 ? '' : 's'}`;
+      ctx.elements.groupSelectionCount.textContent = ctx.tn('group.selection', selectedCount);
     }
     if (ctx.elements.deleteSelectedGroups) ctx.elements.deleteSelectedGroups.hidden = selectedCount === 0;
     if (ctx.elements.selectVisibleGroups) {
@@ -306,22 +306,22 @@ export function attach(ctx) {
           .map(
         (group) => `
         <article class="group-card" data-group="${ctx.escapeHtml(group.id)}">
-          <label class="row-select group-select"><input type="checkbox" data-select-group="${ctx.escapeHtml(group.id)}" ${selectedGroups.has(group.id) ? 'checked' : ''} aria-label="Seleccionar grupo ${ctx.escapeHtml(group.name)}" /><span>Seleccionar</span></label>
-          <input class="instrument-input group-name-input" data-group-field="name" value="${ctx.escapeHtml(group.name)}" aria-label="Nombre del grupo" />
-          <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="Color del grupo" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} />
+          <label class="row-select group-select"><input type="checkbox" data-select-group="${ctx.escapeHtml(group.id)}" ${selectedGroups.has(group.id) ? 'checked' : ''} aria-label="${ctx.escapeHtml(ctx.t('group.selectAria', { name: group.name }))}" /><span>${ctx.t('instrument.select')}</span></label>
+          <input class="instrument-input group-name-input" data-group-field="name" value="${ctx.escapeHtml(group.name)}" aria-label="${ctx.t('group.nameAria')}" />
+          <input class="instrument-input instrument-color" data-group-field="color" type="color" value="${ctx.escapeHtml(group.color)}" aria-label="${ctx.t('group.colorAria')}" ${ctx.state.brandPaletteEnabled ? 'disabled' : ''} />
           <details class="group-visual-options">
-            <summary>Opciones de visualización</summary>
+            <summary>${ctx.t('group.displayOptions')}</summary>
             <div class="group-card-options">
-              <label class="switch-field"><input type="checkbox" data-group-field="showInDistribution" ${group.showInDistribution ? 'checked' : ''} /> Mostrar en dashboard</label>
-              <label class="switch-field"><input type="checkbox" data-group-field="showInMonthly" ${group.showInMonthly ? 'checked' : ''} /> Mostrar en revisión YTD</label>
-              <label class="switch-field"><input type="checkbox" data-group-field="isExpandable" ${group.isExpandable ? 'checked' : ''} /> Permitir desglose</label>
+              <label class="switch-field"><input type="checkbox" data-group-field="showInDistribution" ${group.showInDistribution ? 'checked' : ''} /> ${ctx.t('group.showDashboard')}</label>
+              <label class="switch-field"><input type="checkbox" data-group-field="showInMonthly" ${group.showInMonthly ? 'checked' : ''} /> ${ctx.t('group.showYtd')}</label>
+              <label class="switch-field"><input type="checkbox" data-group-field="isExpandable" ${group.isExpandable ? 'checked' : ''} /> ${ctx.t('group.allowBreakdown')}</label>
             </div>
           </details>
-          <button class="button button-compact btn-save" type="button" data-save-group="${ctx.escapeHtml(group.id)}">Guardar</button>
+          <button class="button button-compact btn-save" type="button" data-save-group="${ctx.escapeHtml(group.id)}">${ctx.t('instrument.save')}</button>
         </article>`,
           )
           .join('')
-      : '<div class="empty-config-state">Sin grupos. Crea uno para clasificar valores.</div>';
+      : `<div class="empty-config-state">${ctx.t('group.empty')}</div>`;
   }
 
   function renderOperationsPreferenceControls() {

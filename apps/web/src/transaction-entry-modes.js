@@ -1,7 +1,7 @@
 const entryModeCopy = {
-  market_eur: ['Mercado', 'ValorGrid calculará la cantidad con la cotización de mercado y el FX disponible.'],
-  manual_total_eur: ['Total EUR manual', 'Usa esta opción si tu broker te da cantidad y total liquidado en EUR.'],
-  manual_unit_price: ['Precio manual', 'Usa esta opción si conoces la cantidad y el precio unitario ejecutado.'],
+  market_eur: ['transaction.mode.market.label', 'transaction.mode.market.hint'],
+  manual_total_eur: ['transaction.mode.manualTotal.label', 'transaction.mode.manualTotal.hint'],
+  manual_unit_price: ['transaction.mode.manualUnit.label', 'transaction.mode.manualUnit.hint'],
 };
 
 export function attachTransactionEntryModes(ctx, setAddFeedback) {
@@ -11,7 +11,7 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
   }
 
   function transactionEntryModeLabel(mode) {
-    return entryModeCopy[mode]?.[0] || 'Mercado';
+    return ctx.t(entryModeCopy[mode]?.[0] || 'transaction.mode.market.label');
   }
 
   function selectedOperationInstrument() {
@@ -53,8 +53,8 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
     ctx.elements.addPriceCurrency.value = priceCurrency;
     const fxVisible = mode === 'manual_unit_price' && priceCurrency !== 'EUR';
     ctx.elements.addEntryModeTabs.hidden = isSell;
-    setFieldLabel(ctx.elements.addSharesField, isSell ? 'Cantidad vendida' : 'Cantidad');
-    setFieldLabel(ctx.elements.addEurosField, isSell ? 'Importe bruto venta EUR' : 'Euros totales');
+    setFieldLabel(ctx.elements.addSharesField, isSell ? ctx.t('transaction.field.soldQuantity') : ctx.t('Cantidad'));
+    setFieldLabel(ctx.elements.addEurosField, isSell ? ctx.t('transaction.field.grossSellEur') : ctx.t('transaction.field.totalEur'));
     setModeField(ctx.elements.addEurosField, ctx.elements.addEuros, mode !== 'manual_unit_price', true);
     setModeField(ctx.elements.addSharesField, ctx.elements.addShares, mode !== 'market_eur', true);
     setModeField(ctx.elements.addPriceField, ctx.elements.addPrice, mode === 'manual_unit_price', true);
@@ -63,8 +63,8 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
     if (!fxVisible) ctx.elements.addFx.value = '';
     ctx.elements.addAmountHint.hidden = false;
     ctx.elements.addAmountHint.textContent = isSell
-      ? 'Registra la cantidad vendida y el importe bruto de la venta en EUR. ValorGrid no consulta mercado para ventas manuales.'
-      : entryModeCopy[mode][1];
+      ? ctx.t('transaction.mode.sellHint')
+      : ctx.t(entryModeCopy[mode][1]);
   }
 
   Object.assign(ctx, {

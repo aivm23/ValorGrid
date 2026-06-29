@@ -31,6 +31,7 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   assert.ok(i18n.includes("data-label"), 'responsive table labels are translated');
   assert.ok(i18n.includes("from './i18n-catalog.js'"), 'i18n imports the shared catalog');
   assert.ok(catalog.includes('BASE_TEXT_TRANSLATIONS'), 'catalog exports base translations');
+  assert.ok(catalog.includes("from './i18n-catalog-modals.js'"), 'catalog imports modal translations');
 });
 
 test('frontend number formatting is centralized behind locale helpers', () => {
@@ -114,4 +115,31 @@ test('frontend residual dashboard surfaces use i18n keys for generated copy', ()
   assert.ok(confirm.includes("ctx.t('import.confirm.selectedOperations'"), 'import confirmation labels use i18n keys');
   assert.ok(forms.includes('form.operation.title.sell'), 'operation dialog labels use i18n keys');
   assert.ok(forms.includes('form.operation.title.buy'), 'operation dialog labels use i18n keys');
+});
+
+test('frontend modal copy is covered by i18n dictionaries', () => {
+  const modalCatalog = read('apps/web/src/i18n-catalog-modals.js');
+  const modes = read('apps/web/src/transaction-entry-modes.js');
+  const operations = read('apps/web/src/operations.js');
+  const imports = read('apps/web/src/imports.js');
+  const bulk = read('apps/web/src/bulk-actions.js');
+  const dividends = read('apps/web/src/dividends.js');
+
+  for (const key of [
+    'transaction.mode.sellHint',
+    'transaction.field.grossSellEur',
+    'instrument.selection.other',
+    'group.displayOptions',
+    'import.feedback.ready',
+    'delete.transactions.title',
+    'dividends.confirm',
+  ]) {
+    assert.ok(modalCatalog.includes(`'${key}'`), `${key} must exist in modal i18n catalog`);
+  }
+
+  assert.ok(modes.includes("ctx.t('transaction.mode.sellHint')"), 'transaction mode hints use i18n');
+  assert.ok(operations.includes("ctx.tn('instrument.selection'"), 'instrument selection counters use i18n plurals');
+  assert.ok(imports.includes("ctx.t('import.feedback.ready')"), 'import feedback uses i18n');
+  assert.ok(bulk.includes("ctx.t('delete.transactions.title')"), 'delete modal copy uses i18n');
+  assert.ok(dividends.includes("ctx.t('dividends.confirm')"), 'dividend modal actions use i18n');
 });

@@ -168,6 +168,8 @@ export function attach(ctx) {
     refreshLocaleFormatters();
     ctx.document.querySelectorAll('input[type="date"]').forEach((input) => {
       input.lang = dateInputLang();
+      input.setAttribute('lang', dateInputLang());
+      input.setAttribute('placeholder', valid === 'en' ? 'mm/dd/yyyy' : 'dd/mm/aaaa');
     });
     translateTree(ctx.document.body);
     if (options.refresh !== false) {

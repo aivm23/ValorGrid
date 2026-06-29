@@ -65,19 +65,23 @@ export function attach(ctx) {
       ctx.state.importInstrumentValidationAttempted = true;
       const detailsBefore = unresolvedInstrumentDetails(ctx, ctx.state.importPreview);
       if (detailsBefore.length) {
-        const parts = detailsBefore.map((detail) => `${detail.label}: falta ${detail.missing.join(', ')}`);
-        ctx.elements.importFeedback.textContent = `Instrumentos incompletos — ${parts.join('; ')}`;
+        const parts = detailsBefore.map((detail) =>
+          ctx.t('import.feedback.missingFields', { label: detail.label, fields: detail.missing.join(', ') }),
+        );
+        ctx.elements.importFeedback.textContent = ctx.t('import.feedback.incompleteInstruments', { details: parts.join('; ') });
         return renderImportPreview();
       }
       ctx.state.importWorkflowBusy = true;
       snapshotInstrumentChoices(ctx);
       renderImportPreview();
       try {
-        await previewCsvImport({ keepStep: true, preserveOnError: true, feedback: 'Confirmando instrumentos...' });
+        await previewCsvImport({ keepStep: true, preserveOnError: true, feedback: ctx.t('import.feedback.confirmingInstruments') });
         const detailsAfter = unresolvedInstrumentDetails(ctx, ctx.state.importPreview);
         if (detailsAfter.length) {
-          const parts = detailsAfter.map((detail) => `${detail.label}: falta ${detail.missing.join(', ')}`);
-          ctx.elements.importFeedback.textContent = `Instrumentos incompletos — ${parts.join('; ')}`;
+          const parts = detailsAfter.map((detail) =>
+            ctx.t('import.feedback.missingFields', { label: detail.label, fields: detail.missing.join(', ') }),
+          );
+          ctx.elements.importFeedback.textContent = ctx.t('import.feedback.incompleteInstruments', { details: parts.join('; ') });
           return renderImportPreview();
         }
         ctx.state.importConfirmedSteps.instruments = true;
@@ -135,13 +139,13 @@ export function attach(ctx) {
     const isXlsxMode = isXlsxSource(source);
     const fileExt = (file.name.match(/\.[^.]+$/) || [])[0]?.toLowerCase();
     if (isXlsxMode && fileExt !== '.xlsx') {
-      ctx.elements.importFeedback.textContent = 'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.';
+      ctx.elements.importFeedback.textContent = ctx.t('import.file.invalidXlsx');
       ctx.state.importFileMeta = null;
       updateImportFileDisplay(ctx, '');
       return;
     }
     if (!isXlsxMode && fileExt === '.xlsx') {
-      ctx.elements.importFeedback.textContent = 'Has seleccionado un formato CSV pero el archivo es .xlsx. Selecciona "Plantilla Excel de ValorGrid" o carga un archivo CSV.';
+      ctx.elements.importFeedback.textContent = ctx.t('import.file.invalidCsv');
       ctx.state.importFileMeta = null;
       updateImportFileDisplay(ctx, '');
       return;
@@ -166,7 +170,7 @@ export function attach(ctx) {
 
   async function previewCsvImport(options = {}) {
     ctx.elements.importPreview.disabled = true;
-    ctx.elements.importFeedback.textContent = options.feedback || 'Analizando importación...';
+    ctx.elements.importFeedback.textContent = options.feedback || ctx.t('import.feedback.analyzing');
     try {
       const data = await ctx.sendJson('/api/import/preview', 'POST', buildImportPayload(ctx));
       ctx.state.importPreview = data.preview;
@@ -174,8 +178,8 @@ export function attach(ctx) {
       if (!options.keepStep) ctx.state.importStep = 'file';
       renderImportPreview();
       ctx.elements.importFeedback.textContent = data.preview?.canCommit
-        ? 'Previsualización preparada. Revisa instrumentos, operaciones e impacto antes de importar.'
-        : 'Revisa los elementos pendientes antes de confirmar la importación.';
+        ? ctx.t('import.feedback.ready')
+        : ctx.t('import.feedback.pending');
     } catch (error) {
       if (!options.preserveOnError) {
         ctx.state.importPreview = null;

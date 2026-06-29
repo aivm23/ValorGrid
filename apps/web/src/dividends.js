@@ -69,14 +69,14 @@ export function attach(ctx) {
     const latestScan = state.dividendSummary?.latestScan;
     if (elements.dividendDraftSummary) {
       elements.dividendDraftSummary.innerHTML = `
-        <article><span>Pendientes</span><strong>${drafts.length}</strong></article>
-        <article><span>Total estimado</span><strong>${ctx.formatCurrency(total)}</strong></article>
-        <article><span>Ultima busqueda</span><strong>${latestScan?.completedAt ? ctx.formatDate(String(latestScan.completedAt).slice(0, 10)) : 'Pendiente'}</strong></article>
+        <article><span>${ctx.t('dividends.pending')}</span><strong>${drafts.length}</strong></article>
+        <article><span>${ctx.t('dividends.estimatedTotal')}</span><strong>${ctx.formatCurrency(total)}</strong></article>
+        <article><span>${ctx.t('dividends.latestScan')}</span><strong>${latestScan?.completedAt ? ctx.formatDate(String(latestScan.completedAt).slice(0, 10)) : ctx.t('Pendiente')}</strong></article>
       `;
     }
     if (!elements.dividendDraftRows) return;
     if (!drafts.length) {
-      elements.dividendDraftRows.innerHTML = '<div class="empty-action-state"><span class="subtle">Sin dividendos pendientes. ValorGrid busca dividendos automaticamente al iniciar la aplicacion.</span></div>';
+      elements.dividendDraftRows.innerHTML = `<div class="empty-action-state"><span class="subtle">${ctx.t('dividends.empty')}</span></div>`;
       return;
     }
     elements.dividendDraftRows.innerHTML = drafts.map(renderDraftCard).join('');
@@ -88,10 +88,10 @@ export function attach(ctx) {
         Number(draft.effectiveTotalEur || 0),
     );
     const mismatchWarning = mismatch > Math.max(0.05, Number(draft.effectiveTotalEur || 0) * 0.02)
-      ? '<p class="dividend-warning">El total ha sido ajustado manualmente y puede no coincidir exactamente con dividendo por accion x acciones x cambio.</p>'
+      ? `<p class="dividend-warning">${ctx.t('dividends.mismatchWarning')}</p>`
       : '';
     const splitWarning = draft.hasSplitNotice
-      ? `<p class="dividend-warning">${ctx.escapeHtml(draft.splitNotice || 'Yahoo Finance informa de un split o dividend split relacionado con este valor. ValorGrid todavia no trata splits de dividendos; sera una mejora futura de una proxima edicion.')}</p>`
+      ? `<p class="dividend-warning">${ctx.escapeHtml(draft.splitNotice || ctx.t('dividends.splitWarning'))}</p>`
       : '';
     return `
       <article class="dividend-draft-card" data-dividend-draft="${ctx.escapeHtml(draft.id)}">
@@ -100,39 +100,39 @@ export function attach(ctx) {
             <strong>${ctx.escapeHtml(draft.symbol)}</strong>
             <span>${ctx.escapeHtml(draft.name || draft.yahooSymbol || draft.symbol)}</span>
           </div>
-          <span class="type-badge type-dividend">Dividendo</span>
+          <span class="type-badge type-dividend">${ctx.t('dividends.badge')}</span>
         </div>
         <div class="dividend-draft-meta">
-          <span>Fecha derecho: ${ctx.formatDate(draft.exDate)}</span>
-          <span>Divisa: ${ctx.escapeHtml(draft.currency || 'EUR')}</span>
+          <span>${ctx.t('dividends.exDate', { date: ctx.formatDate(draft.exDate) })}</span>
+          <span>${ctx.t('dividends.currency', { currency: ctx.escapeHtml(draft.currency || 'EUR') })}</span>
           <span>FX EUR: ${Number(draft.fxToEur || 1).toFixed(6)}</span>
         </div>
         ${splitWarning}
         <div class="dividend-draft-grid">
           <label class="field">
-            <span>Dividendo / accion</span>
+            <span>${ctx.t('dividends.amountPerShare')}</span>
             <input data-dividend-field="amountPerShare" type="number" min="0" step="0.000001" value="${Number(draft.effectiveAmountPerShare || 0)}" />
-            <small>Detectado: ${Number(draft.detectedAmountPerShare || 0).toFixed(6)} ${ctx.escapeHtml(draft.currency || '')}</small>
+            <small>${ctx.t('dividends.detected', { value: `${Number(draft.detectedAmountPerShare || 0).toFixed(6)} ${ctx.escapeHtml(draft.currency || '')}` })}</small>
           </label>
           <label class="field">
-            <span>Acciones con derecho</span>
+            <span>${ctx.t('dividends.eligibleShares')}</span>
             <input data-dividend-field="shares" type="number" min="0" step="0.000001" value="${Number(draft.effectiveShares || 0)}" />
-            <small>Detectadas: ${ctx.formatShareNumber(Number(draft.detectedShares || 0))}</small>
+            <small>${ctx.t('dividends.detectedPlural', { value: ctx.formatShareNumber(Number(draft.detectedShares || 0)) })}</small>
           </label>
           <label class="field">
             <span>Total EUR</span>
             <input data-dividend-field="totalEur" type="number" min="0" step="0.01" value="${Number(draft.effectiveTotalEur || 0).toFixed(2)}" />
-            <small>Detectado: ${ctx.formatCurrency(Number(draft.detectedTotalEur || 0))}</small>
+            <small>${ctx.t('dividends.detected', { value: ctx.formatCurrency(Number(draft.detectedTotalEur || 0)) })}</small>
           </label>
         </div>
         ${mismatchWarning}
         <label class="check-field dividend-auto-field">
           <input data-dividend-auto-next type="checkbox" ${draft.autoInclude ? 'checked' : ''} />
-          <span>Incluir proximos dividendos automaticamente para este valor</span>
+          <span>${ctx.t('dividends.autoNext')}</span>
         </label>
         <div class="modal-actions dividend-actions">
-          <button class="button btn-cancel" type="button" data-dividend-ignore>Ignorar</button>
-          <button class="button btn-save" type="button" data-dividend-confirm>Confirmar dividendo</button>
+          <button class="button btn-cancel" type="button" data-dividend-ignore>${ctx.t('dividends.ignore')}</button>
+          <button class="button btn-save" type="button" data-dividend-confirm>${ctx.t('dividends.confirm')}</button>
           <button class="button btn-accent dividend-save-btn" type="button" data-dividend-save hidden>&#x2713;</button>
         </div>
       </article>

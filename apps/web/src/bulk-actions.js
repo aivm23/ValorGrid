@@ -93,21 +93,21 @@ export function attach(ctx) {
       { value: 0, cashFlow: 0, commissions: 0 },
     );
     setDeleteDialogCopy(
-      'Eliminar movimientos',
-      'Confirma el impacto antes de borrar. El histórico se recalculará desde el primer movimiento afectado.',
-      'Eliminar movimientos',
+      ctx.t('delete.transactions.title'),
+      ctx.t('delete.transactions.subtitle'),
+      ctx.t('delete.transactions.confirm'),
     );
     ctx.elements.instrumentDeletePreview.innerHTML = `
       <div class="delete-impact-summary">
-        <article><span>Movimientos</span><strong>${selected.length}</strong></article>
-        <article><span>Desde</span><strong>${firstDate ? ctx.formatDate(firstDate) : 'sin fecha'}</strong></article>
-        <article><span>Valor</span><strong>${ctx.formatCurrency(totals.value)}</strong></article>
-        <article><span>Comisiones</span><strong>${ctx.formatCurrency(totals.commissions)}</strong></article>
+        <article><span>${ctx.t('Movimientos')}</span><strong>${selected.length}</strong></article>
+        <article><span>${ctx.t('Desde')}</span><strong>${firstDate ? ctx.formatDate(firstDate) : ctx.t('format.noDate')}</strong></article>
+        <article><span>${ctx.t('Valor')}</span><strong>${ctx.formatCurrency(totals.value)}</strong></article>
+        <article><span>${ctx.t('Comisiones')}</span><strong>${ctx.formatCurrency(totals.commissions)}</strong></article>
         <article><span>Cash-flow</span><strong class="${ctx.moneyClass(totals.cashFlow)}">${ctx.formatCurrency(totals.cashFlow)}</strong></article>
       </div>
       <div class="delete-preview-section">
-        <h3>Impacto en histórico</h3>
-        <p class="subtle">Se invalidará la curva histórica desde ${firstDate ? ctx.formatDate(firstDate) : 'la primera fecha afectada'} y se recalcularán dashboard, YTD y ledger.</p>
+        <h3>${ctx.t('delete.transactions.impactTitle')}</h3>
+        <p class="subtle">${ctx.t('delete.transactions.impactText', { date: firstDate ? ctx.formatDate(firstDate) : ctx.t('delete.transactions.firstAffectedDate') })}</p>
       </div>
       <ul class="delete-preview-list">
         ${selected
@@ -118,7 +118,7 @@ export function attach(ctx) {
           )
           .join('')}
       </ul>
-      ${selected.length > 8 ? `<p class="subtle">Y ${selected.length - 8} movimientos más.</p>` : ''}
+      ${selected.length > 8 ? `<p class="subtle">${ctx.tn('delete.transactions.more', selected.length - 8)}</p>` : ''}
     `;
     ctx.state.pendingTransactionDelete = ids;
     ctx.elements.instrumentDeleteConfirm.disabled = false;
@@ -130,15 +130,15 @@ export function attach(ctx) {
     const ids = ctx.state.pendingTransactionDelete || [];
     if (!ids.length) return;
     try {
-      ctx.elements.instrumentDeletePreview.innerHTML = '<p class="subtle">Eliminando movimientos...</p>';
+      ctx.elements.instrumentDeletePreview.innerHTML = `<p class="subtle">${ctx.t('delete.transactions.deleting')}</p>`;
       const response = await ctx.sendJson('/api/transactions', 'DELETE', { ids });
       ctx.state.selectedTransactionIds = [];
       ctx.state.pendingTransactionDelete = [];
       ctx.state.historyCache = {};
       if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Movimientos eliminados. Backup automático creado: ${response.backup.file}</p>`;
+        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deletedBackup', { file: response.backup.file })}</p>`;
       } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Movimientos eliminados.</p>';
+        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deleted')}</p>`;
       }
       ctx.elements.instrumentDeleteDialog.close();
       await ctx.refreshDashboard();
@@ -170,32 +170,32 @@ export function attach(ctx) {
   function showInstrumentDeletePreview(results) {
     ctx.elements.instrumentDeleteDialog.classList.remove('transaction-delete-dialog');
     setDeleteDialogCopy(
-      'Eliminar instrumentos',
-      'Revisa el estado de cada instrumento antes de confirmar.',
-      'Eliminar seleccionados',
+      ctx.t('delete.instruments.title'),
+      ctx.t('delete.instruments.subtitle'),
+      ctx.t('delete.instruments.confirm'),
     );
     const blocked = results.filter((r) => r.blocked);
     const allowed = results.filter((r) => !r.blocked);
 
     let html = '';
     if (blocked.length) {
-      html += '<div class="delete-preview-section"><h3>Bloqueados</h3>';
+      html += `<div class="delete-preview-section"><h3>${ctx.t('delete.instruments.blocked')}</h3>`;
       html += '<ul class="delete-preview-list">';
       for (const item of blocked) {
-        html += `<li class="delete-item blocked"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.escapeHtml(item.reason || 'No se puede eliminar')}</li>`;
+        html += `<li class="delete-item blocked"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.escapeHtml(item.reason || ctx.t('delete.instruments.cannotDelete'))}</li>`;
       }
       html += '</ul></div>';
     }
 
     if (allowed.length) {
-      html += '<div class="delete-preview-section"><h3>Se pueden eliminar</h3>';
+      html += `<div class="delete-preview-section"><h3>${ctx.t('delete.instruments.allowed')}</h3>`;
       html += '<ul class="delete-preview-list">';
       for (const item of allowed) {
         let statusLabel;
         if (item.status === 'has_history') {
-          statusLabel = `Tiene ${item.dependencies?.transactions || 0} movimientos pero posición a cero. Se desactivará.`;
+          statusLabel = ctx.t('delete.instruments.hasHistory', { count: item.dependencies?.transactions || 0 });
         } else {
-          statusLabel = 'Sin movimientos ni posición.';
+          statusLabel = ctx.t('delete.instruments.noHistory');
         }
         html += `<li class="delete-item allowed"><strong>${ctx.escapeHtml(item.symbol)}</strong>: ${ctx.escapeHtml(statusLabel)}</li>`;
       }
@@ -203,7 +203,7 @@ export function attach(ctx) {
     }
 
     if (!blocked.length && !allowed.length) {
-      html = '<p class="subtle">No se encontraron instrumentos válidos.</p>';
+      html = `<p class="subtle">${ctx.t('delete.instruments.empty')}</p>`;
     }
 
     ctx.elements.instrumentDeletePreview.innerHTML = html;
@@ -222,9 +222,9 @@ export function attach(ctx) {
       ctx.state.pendingInstrumentDelete = [];
       ctx.state.historyCache = {};
       if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">Instrumentos eliminados. Backup automático creado: ${response.backup.file}</p>`;
+        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deletedBackup', { file: response.backup.file })}</p>`;
       } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = '<p class="ok">Instrumentos eliminados.</p>';
+        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deleted')}</p>`;
       }
       ctx.elements.instrumentDeleteDialog.close();
       await ctx.refreshDashboard();
@@ -252,15 +252,15 @@ export function attach(ctx) {
   async function deleteSelectedGroups() {
     const ids = ctx.state.selectedGroupIds || [];
     if (!ids.length) return;
-    if (!ctx.window.confirm(`Eliminar ${ids.length} grupo(s) seleccionado(s)?`)) return;
+    if (!ctx.window.confirm(ctx.t('delete.groups.confirm', { count: ids.length }))) return;
     try {
       const response = await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
       ctx.state.selectedGroupIds = [];
       ctx.state.historyCache = {};
       if (response?.backup) {
-        ctx.elements.backupList.textContent = `Grupos eliminados. Backup automático creado: ${response.backup.file}`;
+        ctx.elements.backupList.textContent = ctx.t('delete.groups.deletedBackup', { file: response.backup.file });
       } else {
-        ctx.elements.backupList.textContent = 'Grupos eliminados.';
+        ctx.elements.backupList.textContent = ctx.t('delete.groups.deleted');
       }
       await ctx.refreshDashboard();
       await ctx.refreshHistory({ force: true });
