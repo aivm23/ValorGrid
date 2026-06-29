@@ -150,6 +150,10 @@ test('frontend modal copy is covered by i18n dictionaries', () => {
     'group.displayOptions',
     'import.feedback.ready',
     'delete.transactions.title',
+    'dividends.title',
+    'dividends.subtitle',
+    'dividends.fxEur',
+    'dividends.totalEur',
     'dividends.confirm',
   ]) {
     assert.ok(modalCatalog.includes(`'${key}'`), `${key} must exist in modal i18n catalog`);
@@ -160,4 +164,6 @@ test('frontend modal copy is covered by i18n dictionaries', () => {
   assert.ok(imports.includes("ctx.t('import.feedback.ready')"), 'import feedback uses i18n');
   assert.ok(bulk.includes("ctx.t('delete.transactions.title')"), 'delete modal copy uses i18n');
   assert.ok(dividends.includes("ctx.t('dividends.confirm')"), 'dividend modal actions use i18n');
+  assert.ok(dividends.includes("ctx.t('dividends.fxEur'"), 'dividend FX label uses i18n');
+  assert.ok(dividends.includes("ctx.t('dividends.totalEur')"), 'dividend total label uses i18n');
 });

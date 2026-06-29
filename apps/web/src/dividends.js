@@ -105,7 +105,7 @@ export function attach(ctx) {
         <div class="dividend-draft-meta">
           <span>${ctx.t('dividends.exDate', { date: ctx.formatDate(draft.exDate) })}</span>
           <span>${ctx.t('dividends.currency', { currency: ctx.escapeHtml(draft.currency || 'EUR') })}</span>
-          <span>FX EUR: ${Number(draft.fxToEur || 1).toFixed(6)}</span>
+          <span>${ctx.t('dividends.fxEur', { value: Number(draft.fxToEur || 1).toFixed(6) })}</span>
         </div>
         ${splitWarning}
         <div class="dividend-draft-grid">
@@ -120,7 +120,7 @@ export function attach(ctx) {
             <small>${ctx.t('dividends.detectedPlural', { value: ctx.formatShareNumber(Number(draft.detectedShares || 0)) })}</small>
           </label>
           <label class="field">
-            <span>Total EUR</span>
+            <span>${ctx.t('dividends.totalEur')}</span>
             <input data-dividend-field="totalEur" type="number" min="0" step="0.01" value="${Number(draft.effectiveTotalEur || 0).toFixed(2)}" />
             <small>${ctx.t('dividends.detected', { value: ctx.formatCurrency(Number(draft.detectedTotalEur || 0)) })}</small>
           </label>

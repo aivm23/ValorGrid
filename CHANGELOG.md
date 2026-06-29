@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.28.7
+
+- fix: translate the pending dividends modal subtitle and remaining dividend draft labels in English mode.
+- test: guard dividend modal i18n coverage for FX and total labels.
+
 ## 3.28.6
 
 - fix: translate the Community contributions modal static and recurring-plan copy in English mode.
