@@ -180,6 +180,27 @@ test('summary.js sets CSS custom properties for active donut segment', () => {
   assert.ok(summary.includes('donut-chart-active'), 'summary toggles donut-chart-active class');
 });
 
+test('summary.js uses canonical donut identity for groups and detail instruments', () => {
+  const summary = read(path.join('apps', 'web', 'src', 'summary.js'));
+  assert.ok(summary.includes('function donutItemIdentity'), 'summary defines donutItemIdentity helper');
+  assert.ok(summary.includes("item.type === 'group' && item.groupId"), 'groups use groupId identity');
+  assert.ok(summary.includes('return `group:${item.groupId}`'), 'group identity is explicit');
+  assert.ok(summary.includes('return `symbol:${item.symbol}`'), 'instrument identity is symbol-based');
+  assert.ok(summary.includes('leftIdentity === rightIdentity'), 'sameDonutItem compares canonical identities');
+  assert.ok(
+    !summary.includes('left.groupId || right.groupId'),
+    'groupId no longer wins for every item because detail instruments also have groupId',
+  );
+});
+
+test('summary.js uses group colors only for group donut items', () => {
+  const summary = read(path.join('apps', 'web', 'src', 'summary.js'));
+  assert.ok(summary.includes('function donutItemColor'), 'summary defines donutItemColor helper');
+  assert.ok(summary.includes("item?.type === 'group'"), 'only group items force group color');
+  assert.ok(summary.includes('ctx.assetColor(item.symbol, item.color)'), 'instrument items use assetColor');
+  assert.ok(!summary.includes('if (item?.groupId) return item.color'), 'groupId alone does not force group color');
+});
+
 // ── 6) Sub-chart slide-in animation ──
 
 test('CSS defines sub-chart slide-in keyframe animation', () => {

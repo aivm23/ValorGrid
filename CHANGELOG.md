@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.28.2
+
+- fix: corrected donut detail chart hover when multiple instruments share the same groupId by using canonical identity per item type.
+
+## 3.28.1
+
+- fix: corrected donut chart hover highlighting when two or more expandable groups share the same STOCK symbol identity.
+- fix: group donut segments now use their own color instead of the STOCK asset color.
+
 ## 3.28.0
 
 - feat: add Spanish/English UI language infrastructure with persistent preference, localized formatters and extension dictionary registration.

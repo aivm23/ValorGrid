@@ -191,13 +191,13 @@ export function attach(ctx) {
     const mutedSegments = [];
     for (const entry of items) {
       const end = start + (Number(entry.value || 0) / total) * 360;
-      const matches = entry.symbol ? entry.symbol === item.symbol : entry.groupId === item.groupId;
-      const color = matches ? 'var(--track)' : ctx.assetColor(entry.symbol, entry.color);
+      const matches = sameDonutItem(entry, item);
+      const color = matches ? 'var(--track)' : donutItemColor(entry);
       mutedSegments.push(`${color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`);
       if (matches) {
         const mid = ((start + end) / 2 - 90) * (Math.PI / 180);
         matchedSegment = {
-          color: ctx.assetColor(entry.symbol, entry.color),
+          color: donutItemColor(entry),
           start,
           end,
           dx: Math.cos(mid) * 4,
@@ -211,6 +211,25 @@ export function attach(ctx) {
       ...matchedSegment,
       mutedBackground: `conic-gradient(${mutedSegments.join(', ')})`,
     };
+  }
+
+  function sameDonutItem(left, right) {
+    const leftIdentity = donutItemIdentity(left);
+    const rightIdentity = donutItemIdentity(right);
+    return Boolean(leftIdentity && rightIdentity && leftIdentity === rightIdentity);
+  }
+
+  function donutItemIdentity(item) {
+    if (!item) return null;
+    if (item.type === 'group' && item.groupId) return `group:${item.groupId}`;
+    if (item.symbol) return `symbol:${item.symbol}`;
+    if (item.groupId) return `group:${item.groupId}`;
+    return null;
+  }
+
+  function donutItemColor(item) {
+    if (item?.type === 'group') return item.color || '#16a34a';
+    return ctx.assetColor(item.symbol, item.color);
   }
 
   function setActiveDonutSegment(item, chart = ctx.elements.chart, items = portfolioItemsForChart()) {
