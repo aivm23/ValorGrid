@@ -10,7 +10,7 @@ module.exports = function attach(ctx) {
   }
 
   function countVisibleInstruments() {
-    return db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE type != 'fx' AND active = 1").get().count;
+    return db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE type NOT IN ('fx', 'cash') AND active = 1").get().count;
   }
 
   function countActiveInstrumentGroups() {

@@ -2,6 +2,7 @@ const { assertCtxDeps } = require('./platform/ctx-utils');
 const handleInstrumentRoutes = require('./domains/instruments/route-instruments');
 const handleTransactionRoutes = require('./domains/transactions/route-transactions');
 const handleDividendRoutes = require('./domains/dividends/route-dividends');
+const handleLiquidityRoutes = require('./domains/liquidity/route-liquidity');
 const handleImportRoutes = require('./domains/data-ingestion/route-data-ingestion');
 const handlePortfolioRoutes = require('./domains/portfolio/route-portfolio');
 const handleAdminRoutes = require('./domains/admin/route-admin');
@@ -44,6 +45,7 @@ async function handleApi(request, response, url) {
   if (await handleInstrumentRoutes(ctx, request, response, url)) return true;
   if (await handleTransactionRoutes(ctx, request, response, url)) return true;
   if (await handleDividendRoutes(ctx, request, response, url)) return true;
+  if (await handleLiquidityRoutes(ctx, request, response, url)) return true;
   if (await handleImportRoutes(ctx, request, response, url)) return true;
   if (await handlePortfolioRoutes(ctx, request, response, url)) return true;
   if (await handleAdminRoutes(ctx, request, response, url)) return true;

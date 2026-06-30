@@ -20,13 +20,14 @@ export function attach(ctx) {
     if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
-      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, backupData, importData] = await Promise.all([
+      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, liquidityData, backupData, importData] = await Promise.all([
         ctx.fetchJson('/api/portfolio/summary'),
         ctx.fetchJson('/api/portfolio/monthly?year=2026'),
         ctx.fetchJson('/api/version'),
         ctx.fetchJson('/api/transactions'),
         ctx.fetchJson('/api/instruments'),
         ctx.fetchJson('/api/instrument-groups'),
+        ctx.fetchJson('/api/liquidity'),
         ctx.fetchJson('/api/backups'),
         ctx.fetchJson('/api/import/batches'),
       ]);
@@ -40,6 +41,7 @@ export function attach(ctx) {
       state.transactions = transactionData.transactions || [];
       state.instruments = instrumentData.instruments || [];
       state.groups = groupData.groups || [];
+      state.liquidity = liquidityData || state.liquidity;
       state.backups = backupData.backups || [];
       state.importBatches = importData.batches || [];
       state.autoPlans = summary.autoPlans || state.autoPlans;
@@ -97,6 +99,7 @@ export function attach(ctx) {
     ctx.renderBackups();
     ctx.renderImportBatches();
     ctx.renderInstruments();
+    ctx.renderLiquidity?.();
     ctx.renderOperationsPreferenceControls?.();
     ctx.renderHistoryPreferenceControls?.();
     ctx.renderReturnBreakdownPreferenceControls?.();

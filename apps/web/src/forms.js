@@ -98,7 +98,7 @@ export function attach(ctx) {
   }
 
   function visibleInstruments() {
-    return (ctx.state.instruments || []).filter((instrument) => instrument.type !== 'fx');
+    return (ctx.state.instruments || []).filter((instrument) => instrument.type !== 'fx' && instrument.type !== 'cash');
   }
   function populateAddTickerOptions(selectedSymbol = '') {
     const instruments = visibleInstruments();

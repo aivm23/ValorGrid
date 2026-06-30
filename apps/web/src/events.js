@@ -243,7 +243,9 @@ export function attach(ctx) {
   elements.brandPaletteEnabled?.addEventListener('change', () => ctx.handleBrandPaletteToggle(ctx));
 
   async function handleDeleteBackup(backupFile) {
-    const confirmed = window.confirm(ctx.t('backups.confirmDelete', { file: backupFile }));
+    const label = ctx.t('backups.delete');
+    const message = ctx.t('backups.confirmDelete', { file: backupFile });
+    const confirmed = await ctx.confirmAction({ title: label, message, confirmLabel: label });
     if (!confirmed) return;
     try {
       await deleteBackup(backupFile);

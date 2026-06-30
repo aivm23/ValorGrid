@@ -9,12 +9,14 @@ import storage from './storage.js';
 import { attach as attachState } from './state.js';
 import { attach as attachI18n } from './i18n.js';
 import { attach as attachDom } from './dom.js';
+import { attach as attachConfirmDialog } from './confirm-dialog.js';
 import { attach as attachFormat } from './format.js';
 import { attach as attachCharts } from './charts.js';
 import { attach as attachSummary } from './summary.js';
 import { attach as attachMonthly } from './monthly.js';
 import { attach as attachLedger } from './ledger.js';
 import { attach as attachOperations } from './operations.js';
+import { attach as attachLiquidity } from './liquidity.js';
 import { attach as attachDashboard } from './dashboard.js';
 import { attach as attachForms } from './forms.js';
 import { attach as attachOnboarding } from './onboarding.js';
@@ -35,8 +37,8 @@ import { attach as attachEvents } from './events.js';
 const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
 
 [
-  attachState, attachI18n, attachDom, attachFormat, attachCharts, attachSummary, attachMonthly,
-  attachLedger, attachOperations, attachDashboard, attachForms, attachTheme, attachHistory,
+  attachState, attachI18n, attachDom, attachConfirmDialog, attachFormat, attachCharts, attachSummary, attachMonthly,
+  attachLedger, attachOperations, attachLiquidity, attachDashboard, attachForms, attachTheme, attachHistory,
   attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
   attachReturnBreakdownPreferences,
   attachInstrumentColors, attachAlphaVantageSetup, attachExtensions, attachAportaciones,

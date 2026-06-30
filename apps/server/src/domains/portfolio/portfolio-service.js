@@ -6,6 +6,7 @@ const {
   summarizeMarketDataStatus,
   withPercentages,
 } = require('./portfolio-market-data');
+const { buildCashHistoricalValuation, buildCashValuation } = require('./portfolio-cash');
 const { summarizeTransactions } = require('./portfolio-flows');
 
 module.exports = function attach(ctx) {
@@ -101,6 +102,7 @@ async function executeDueAutoPlans() {
 }
 
 async function getInstrumentValuation(instrument, asOfDate = null) {
+  if (instrument.type === 'cash') return buildCashValuation(instrument, { getFxToEur, getToday, toEur }, asOfDate);
   const shares = getPositionShares(instrument.symbol, asOfDate);
   const baseResult = buildBaseValuation(instrument, shares);
 
@@ -434,6 +436,10 @@ async function getYearStartValue(year, instruments) {
 }
 
 async function getInstrumentValuationAt(instrument, requestedDate, asOfDate) {
+  if (instrument.type === 'cash') {
+    return buildCashHistoricalValuation(instrument);
+  }
+
   const shares = getPositionShares(instrument.symbol, asOfDate);
   if (Math.abs(shares) <= 0.0000001) {
     return {

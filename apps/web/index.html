@@ -498,8 +498,21 @@
             </div>
           </div>
 
-          <section id="instrument-groups-section" class="instrument-config-section">
-            <h3>Grupos</h3>
+          <section id="instrument-groups-section" class="instrument-config-section instrument-config-section--groups">
+            <div class="instrument-config-section-head">
+              <div class="instrument-config-section-title">
+                <span class="instrument-config-section-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="M3 4h10M3 8h10M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <path d="M2 4h.01M2 8h.01M2 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <h3>Grupos</h3>
+                  <p class="subtle">Organiza instrumentos y controla si sus desgloses aparecen en el dashboard.</p>
+                </div>
+              </div>
+            </div>
             <div class="instrument-create-form group-create-form">
               <input id="new-group-name" placeholder="Nombre del grupo" />
               <input id="new-group-color" type="color" value="#16a34a" aria-label="Color del grupo" />
@@ -533,9 +546,50 @@
             <div id="group-rows" class="group-card-grid"></div>
           </section>
 
-          <section class="instrument-config-section">
-            <h3>Valores</h3>
-<div class="instrument-create-panel">
+          <section id="liquidity-section" class="instrument-config-section instrument-config-section--liquidity liquidity-section">
+            <div class="instrument-config-section-head">
+              <div class="instrument-config-section-title">
+                <span class="instrument-config-section-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="M3 5.5h10a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 13 12.5H3A1.5 1.5 0 0 1 1.5 11V5.5Z" stroke="currentColor" stroke-width="1.4" />
+                    <path d="M3.5 5.5V4A1.5 1.5 0 0 1 5 2.5h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    <path d="M11.5 9h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <h3>Liquidez</h3>
+                  <p class="subtle">Saldo actual por broker o cuenta. Suma al total visible, no genera movimientos ni rentabilidad.</p>
+                </div>
+              </div>
+              <div id="liquidity-summary" class="liquidity-summary" aria-live="polite"></div>
+            </div>
+            <div class="liquidity-create-form">
+              <input id="new-liquidity-name" placeholder="Broker o cuenta" />
+              <input id="new-liquidity-balance" type="number" min="0" step="0.01" placeholder="Saldo actual" />
+              <input id="new-liquidity-currency" placeholder="EUR" value="EUR" />
+              <input id="new-liquidity-color" type="color" value="#06b6d4" aria-label="Color de la liquidez" />
+              <button id="create-liquidity-account" class="button btn-save" type="button">Crear liquidez</button>
+            </div>
+            <p id="liquidity-feedback" class="form-feedback" aria-live="polite"></p>
+            <div id="liquidity-accounts" class="liquidity-accounts"></div>
+          </section>
+
+          <section class="instrument-config-section instrument-config-section--values">
+            <div class="instrument-config-section-head">
+              <div class="instrument-config-section-title">
+                <span class="instrument-config-section-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="M3 12V8m5 4V4m5 8V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <path d="M2 13.5h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <h3>Valores</h3>
+                  <p class="subtle">Alta, filtrado y mantenimiento de los instrumentos de cartera.</p>
+                </div>
+              </div>
+            </div>
+            <div class="instrument-create-panel">
                 <div>
                   <h4>Crear valor</h4>
                   <p class="subtle">Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.</p>
@@ -867,7 +921,7 @@
                 <div class="admin-prefs-section-title">
                   <h3>General</h3>
                 </div>
-                <div class="admin-prefs-section-body admin-prefs-section-body--2col">
+                <div class="admin-prefs-section-body admin-prefs-section-body--3col">
                   <label class="switch-field admin-preference">
                     <input id="negative-red-toggle" type="checkbox" checked />
                     <span>Mostrar negativos en rojo</span>
@@ -1005,6 +1059,22 @@
         <div class="modal-actions">
           <button id="ledger-export-cancel" class="button btn-cancel" type="button" data-i18n="ledger.export.cancel">Cancelar</button>
           <button id="ledger-export-confirm" class="button" type="button" data-i18n="ledger.export.confirm">Exportar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="confirm-action-dialog" class="modal">
+      <div class="modal-panel confirm-action-panel">
+        <div class="modal-header">
+          <div>
+            <h2 id="confirm-action-title">Confirmar acción</h2>
+            <p class="subtle confirm-action-message" id="confirm-action-message"></p>
+          </div>
+          <button id="confirm-action-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <div class="modal-actions">
+          <button id="confirm-action-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="confirm-action-confirm" class="button btn-danger" type="button">Confirmar</button>
         </div>
       </div>
     </dialog>

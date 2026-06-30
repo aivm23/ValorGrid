@@ -252,7 +252,13 @@ export function attach(ctx) {
   async function deleteSelectedGroups() {
     const ids = ctx.state.selectedGroupIds || [];
     if (!ids.length) return;
-    if (!ctx.window.confirm(ctx.t('delete.groups.confirm', { count: ids.length }))) return;
+    const confirmed = await ctx.confirmAction({
+      title: ctx.t('delete.groups.title'),
+      message: ctx.t('delete.groups.confirm', { count: ids.length }),
+      confirmLabel: ctx.t('delete.groups.action'),
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     try {
       const response = await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
       ctx.state.selectedGroupIds = [];

@@ -2121,7 +2121,9 @@ h3 {
 
 .color-input,
 .field input[type='color'],
-.instrument-create-form input[type='color'] {
+.instrument-create-form input[type='color'],
+.liquidity-create-form input[type='color'],
+.liquidity-account input[type='color'] {
   min-height: 42px;
   padding: 4px;
   cursor: pointer;
@@ -2129,13 +2131,17 @@ h3 {
 
 .color-input::-webkit-color-swatch-wrapper,
 .field input[type='color']::-webkit-color-swatch-wrapper,
-.instrument-create-form input[type='color']::-webkit-color-swatch-wrapper {
+.instrument-create-form input[type='color']::-webkit-color-swatch-wrapper,
+.liquidity-create-form input[type='color']::-webkit-color-swatch-wrapper,
+.liquidity-account input[type='color']::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 
 .color-input::-webkit-color-swatch,
 .field input[type='color']::-webkit-color-swatch,
-.instrument-create-form input[type='color']::-webkit-color-swatch {
+.instrument-create-form input[type='color']::-webkit-color-swatch,
+.liquidity-create-form input[type='color']::-webkit-color-swatch,
+.liquidity-account input[type='color']::-webkit-color-swatch {
   border: 0;
   border-radius: 4px;
 }
@@ -2831,6 +2837,15 @@ td:last-child {
   width: 100%;
 }
 
+.confirm-action-panel {
+  gap: 16px;
+}
+
+.confirm-action-message {
+  max-width: 56ch;
+  white-space: pre-line;
+}
+
 #dividend-draft-dialog.modal {
   width: min(1160px, calc(100% - 32px));
   max-width: calc(100vw - 32px);
@@ -2931,7 +2946,7 @@ td:last-child {
 
 .instrument-config-stack {
   display: grid;
-  gap: 22px;
+  gap: 16px;
 }
 
 .config-header {
@@ -2975,12 +2990,165 @@ td:last-child {
 
 .instrument-config-section {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 82%, var(--bg));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 4%, transparent);
 }
 
 .instrument-config-section h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.instrument-config-section--groups {
+  border-left: 3px solid color-mix(in srgb, var(--accent-green) 62%, transparent);
+}
+
+.instrument-config-section--liquidity {
+  border-left: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.instrument-config-section--values {
+  border-left: 3px solid color-mix(in srgb, var(--accent-violet) 62%, transparent);
+}
+
+.instrument-config-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.instrument-config-section-title {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.instrument-config-section-title .subtle {
+  margin: 4px 0 0;
+}
+
+.instrument-config-section-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
+.instrument-config-section-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.instrument-config-section--groups .instrument-config-section-icon {
+  background: color-mix(in srgb, var(--accent-green) 10%, transparent);
+  color: var(--accent-green);
+}
+
+.instrument-config-section--liquidity .instrument-config-section-icon {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.instrument-config-section--values .instrument-config-section-icon {
+  background: color-mix(in srgb, var(--accent-violet) 12%, transparent);
+  color: var(--accent-violet);
+}
+
+.liquidity-summary {
+  display: grid;
+  gap: 2px;
+  min-width: 132px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  text-align: right;
+}
+
+.liquidity-summary span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.liquidity-create-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.5fr) minmax(110px, 0.8fr) 82px 48px auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.liquidity-create-form input,
+.liquidity-account input {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--button-border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.liquidity-create-form input[type='color'],
+.liquidity-account input[type='color'] {
+  height: 42px;
+  padding: 4px;
+}
+
+.liquidity-accounts {
+  display: grid;
+  gap: 8px;
+}
+
+.liquidity-account {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-left: 3px solid #06b6d4;
+  border-radius: 8px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--card) 86%, var(--bg));
+}
+
+.liquidity-account-main {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.5fr) minmax(110px, 0.8fr) 82px 48px;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.liquidity-account-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.liquidity-account-meta span {
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .instrument-section-heading {
@@ -3659,6 +3827,7 @@ td:last-child {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 10px;
+  align-items: start;
 }
 
 .group-card,
@@ -3682,8 +3851,8 @@ td:last-child {
 
 .group-card-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 6px;
 }
 
 .group-visual-options {
@@ -3708,6 +3877,13 @@ td:last-child {
 .group-visual-options .group-card-options {
   grid-column: auto;
   padding: 0 9px 9px;
+}
+
+.group-visual-options .switch-field {
+  min-height: 30px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--card) 78%, var(--bg));
+  line-height: 1.25;
 }
 
 .group-card [data-save-group] {
@@ -3800,6 +3976,83 @@ td:last-child {
 .instrument-table th,
 .instrument-table td {
   padding: 10px;
+}
+
+.liquidity-table-wrap {
+  margin-top: 2px;
+}
+
+.liquidity-bulk-toolbar {
+  justify-content: flex-end;
+}
+
+.liquidity-table th:nth-child(1),
+.liquidity-table td:nth-child(1) {
+  width: 17%;
+}
+
+.liquidity-table th:nth-child(2),
+.liquidity-table td:nth-child(2) {
+  width: 20%;
+}
+
+.liquidity-table th:nth-child(3),
+.liquidity-table td:nth-child(3) {
+  width: 14%;
+}
+
+.liquidity-table th:nth-child(4),
+.liquidity-table td:nth-child(4) {
+  width: 9%;
+}
+
+.liquidity-table th:nth-child(5),
+.liquidity-table td:nth-child(5) {
+  width: 14%;
+}
+
+.liquidity-table th:nth-child(6),
+.liquidity-table td:nth-child(6) {
+  width: 8%;
+}
+
+.liquidity-table th:nth-child(7),
+.liquidity-table td:nth-child(7) {
+  width: 8%;
+}
+
+.liquidity-table th:nth-child(8),
+.liquidity-table td:nth-child(8) {
+  width: 10%;
+}
+
+.liquidity-value {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.liquidity-value strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.liquidity-value small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.liquidity-row-actions {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+
+.liquidity-row-actions .button {
+  min-width: 76px;
 }
 
 .row-select {
@@ -4241,7 +4494,11 @@ td:last-child {
 }
 
 .admin-card--puntuales {
-  border-left: 3px solid color-mix(in srgb, var(--accent-green) 60%, transparent);
+  border-left: 3px solid var(--accent-green);
+}
+
+.admin-card--puntuales .admin-card-icon {
+  color: var(--accent-green);
 }
 
 .admin-card--programadas {
@@ -4539,8 +4796,23 @@ td:last-child {
     padding: 16px;
   }
 
+  .config-header {
+    grid-template-columns: 1fr;
+  }
+
+  .instrument-config-section {
+    padding: 14px;
+  }
+
+  .instrument-config-section-head {
+    display: grid;
+  }
+
   .group-create-form,
   .instrument-create-form-wide,
+  .liquidity-create-form,
+  .liquidity-account,
+  .liquidity-account-main,
   .group-card,
   .import-grid {
     grid-template-columns: 1fr;
@@ -4576,7 +4848,9 @@ td:last-child {
   }
 
   .group-card .instrument-color,
-  .instrument-create-form input[type='color'] {
+  .instrument-create-form input[type='color'],
+  .liquidity-create-form input[type='color'],
+  .liquidity-account input[type='color'] {
     width: 100%;
   }
 

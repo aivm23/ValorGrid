@@ -255,7 +255,7 @@ module.exports = function attach(ctx) {
     return db
       .prepare(
         `SELECT COUNT(*) AS count FROM instruments
-         WHERE active = 1 AND (group_id IS NULL OR group_id = '') AND type != 'fx'`,
+         WHERE active = 1 AND (group_id IS NULL OR group_id = '') AND type NOT IN ('fx', 'cash')`,
       )
       .get().count;
   }

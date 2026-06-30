@@ -21,6 +21,7 @@ function resolveRouteHandlers(ctx) {
   const onboardingServices = ctx.services?.onboarding || {};
   const transactionServices = ctx.services?.transactions || {};
   const dividendServices = ctx.services?.dividends || {};
+  const liquidityServices = ctx.services?.liquidity || {};
   const importServices = ctx.services?.dataIngestion || {};
   const suggestionServices = ctx.services?.suggestions || {};
   const portfolioServices = ctx.services?.portfolio || {};
@@ -94,6 +95,10 @@ listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources'
     confirmDividendDraft: pickServiceFn(dividendServices, 'confirmDividendDraft', ctx.confirmDividendDraft),
     ignoreDividendDraft: pickServiceFn(dividendServices, 'ignoreDividendDraft', ctx.ignoreDividendDraft),
     setDividendAutoInclude: pickServiceFn(dividendServices, 'setDividendAutoInclude', ctx.setDividendAutoInclude),
+    getLiquidityState: pickServiceFn(liquidityServices, 'getLiquidityState', ctx.getLiquidityState),
+    createLiquidityAccount: pickServiceFn(liquidityServices, 'createLiquidityAccount', ctx.createLiquidityAccount),
+    updateLiquidityAccount: pickServiceFn(liquidityServices, 'updateLiquidityAccount', ctx.updateLiquidityAccount),
+    deleteLiquidityAccount: pickServiceFn(liquidityServices, 'deleteLiquidityAccount', ctx.deleteLiquidityAccount),
     previewImport: pickServiceFn(importServices, 'previewImport', ctx.previewImport),
     searchTickerSuggestions: pickServiceFn(
       suggestionServices,

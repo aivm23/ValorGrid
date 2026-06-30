@@ -340,7 +340,13 @@ export function attach(ctx) {
   async function rollbackImportBatch(event) {
     const button = event.target.closest('[data-rollback-import]');
     if (!button) return;
-    if (!window.confirm(ctx.t('import.batches.rollbackConfirm'))) return;
+    const confirmed = await ctx.confirmAction({
+      title: ctx.t('import.batches.rollbackTitle'),
+      message: ctx.t('import.batches.rollbackConfirm'),
+      confirmLabel: ctx.t('import.batches.rollbackAction'),
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     button.disabled = true;
     try {
       // data.backup disabled: automatic risk backups are not performed

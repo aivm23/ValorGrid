@@ -225,7 +225,7 @@ export function attach(ctx) {
       String(value || '').toLowerCase().includes(String(filter).trim().toLowerCase());
     const tolerance = 0.000001;
     const instruments = ctx.state.instruments
-      .filter((instrument) => instrument.type !== 'fx')
+      .filter((instrument) => instrument.type !== 'fx' && instrument.type !== 'cash')
       .map((instrument) => ({ ...instrument, currentShares: currentSharesForInstrument(instrument) }))
       .filter((instrument) => {
         if (ctx.state.instrumentPositionFilter === 'open') return Math.abs(Number(instrument.currentShares || 0)) > tolerance;

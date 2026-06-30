@@ -85,7 +85,7 @@ export function snapshotInstrumentChoices(ctx) {
 
 export function ensureInstrumentChoices(ctx, preview) {
   const detected = preview?.detectedInstruments || [];
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
   const snapshot = ctx.state.importInstrumentChoicesSnapshot;
   if (snapshot) {
     const snapshotByIsin = new Map();
@@ -135,7 +135,7 @@ export function ensureInstrumentChoices(ctx, preview) {
 
 export function unresolvedInstrumentItems(ctx, preview) {
   const choices = ctx.state.importInstrumentChoices || {};
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
   return (preview?.detectedInstruments || []).filter((item) => {
     const choice = choices[item.key] || {};
     if (choice.action === 'omit') return false;
@@ -152,7 +152,7 @@ export function unresolvedInstrumentItems(ctx, preview) {
 }
 
 export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((entry) => entry.type !== 'fx').map((entry) => entry.symbol));
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((entry) => entry.type !== 'fx' && entry.type !== 'cash').map((entry) => entry.symbol));
   if (choice.action === 'omit') return true;
   if (choice.action === 'map') return Boolean(String(choice.symbol || '').trim() && existingSymbols.has(String(choice.symbol || '').trim().toUpperCase()));
   if (choice.action === 'create') {
@@ -166,7 +166,7 @@ export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
 
 export function unresolvedInstrumentDetails(ctx, preview) {
   const choices = ctx.state.importInstrumentChoices || {};
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
   const details = [];
   for (const item of preview?.detectedInstruments || []) {
     const choice = choices[item.key] || {};
@@ -230,7 +230,7 @@ function applyInstrumentChoices(ctx, payload, preview) {
   const newInstruments = [];
   const newGroups = [];
   const instrumentMappings = { ...(payload.instrumentMappings || {}) };
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx').map((item) => item.symbol));
+  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
   const existingGroups = new Set((ctx.state.groups || []).map((item) => item.id));
   for (const item of preview.detectedInstruments || []) {
     const choice = choices[item.key];
