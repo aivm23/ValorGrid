@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.28.11
+
+### Fixed
+
+- Exportar sin filtros: `buildLedgerExportUrl` lanzaba TypeError al recibir `undefined` al no haber filtros activos.
+
 ## 3.28.10
 
 ### Added

@@ -37,6 +37,7 @@ function filterLedgerTransactions(transactions, filters) {
 }
 
 function buildLedgerExportUrl(filters) {
+  if (!filters) return '/api/export/transactions.xlsx';
   const params = new URLSearchParams();
   if (filters.symbol) params.set('symbol', filters.symbol);
   if (filters.origin) params.set('origin', filters.origin);
