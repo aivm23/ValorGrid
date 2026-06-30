@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.28.10
+
+### Added
+
+- Exportar movimientos admite filtros opcionales (symbol, origin, type, from, to) via query params en `GET /api/export/transactions.xlsx`.
+- Botón `Exportar` en la sección Movimientos con diálogo de confirmación y aviso de operaciones pesadas (>5.000 movimientos).
+- Helpers compartidos entre renderLedger y exportación para garantizar semántica de filtros idéntica.
+
+### Changed
+
+- El botón `Exportar` se mueve desde la cabecera a la sección `Movimientos`.
+- `buildTransactionsXlsx` acepta filtro opcional con la misma lógica que el frontend.
+
+## 3.28.9
+
+- fix: reduce release workflow storage pressure by expiring temporary desktop artifacts after one day.
+- fix: add a scheduled/manual GitHub Actions artifact cleanup workflow for quota recovery.
+- test: guard release workflow artifact retention and cleanup policy.
+
 ## 3.28.8
 
 - fix: translate the static history range controls in English mode.

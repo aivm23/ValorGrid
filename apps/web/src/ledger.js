@@ -1,3 +1,5 @@
+const LEDGER_EXPORT_WARNING_THRESHOLD = 5000;
+
 function transactionTypeLabel(ctx, type) {
   if (type === 'dividend') return ctx.t('history.events.dividend');
   return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
@@ -9,23 +11,48 @@ function transactionOriginLabel(ctx, origin) {
   return ctx.t('history.origin.manual.capitalized');
 }
 
+function getLedgerFilterState(elements) {
+  return {
+    symbol: elements.ledgerFilterSymbol.value.trim().toUpperCase(),
+    origin: elements.ledgerFilterOrigin.value,
+    type: elements.ledgerFilterType.value,
+    from: elements.ledgerFilterFrom.value,
+    to: elements.ledgerFilterTo.value,
+  };
+}
+
+function hasActiveLedgerFilters(filters) {
+  return !!(filters.symbol || filters.origin || filters.type || filters.from || filters.to);
+}
+
+function filterLedgerTransactions(transactions, filters) {
+  return transactions
+    .filter((item) => !filters.symbol || String(item.symbol || '').toUpperCase().includes(filters.symbol))
+    .filter((item) => !filters.origin || item.origin === filters.origin)
+    .filter((item) => !filters.type || item.type === filters.type)
+    .filter((item) => !filters.from || item.date >= filters.from)
+    .filter((item) => !filters.to || item.date <= filters.to)
+    .slice()
+    .reverse();
+}
+
+function buildLedgerExportUrl(filters) {
+  const params = new URLSearchParams();
+  if (filters.symbol) params.set('symbol', filters.symbol);
+  if (filters.origin) params.set('origin', filters.origin);
+  if (filters.type) params.set('type', filters.type);
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  const qs = params.toString();
+  return '/api/export/transactions.xlsx' + (qs ? '?' + qs : '');
+}
+
 export function attach(ctx) {
   function renderLedger() {
     const { elements, state } = ctx;
-    const symbolFilter = elements.ledgerFilterSymbol.value.trim().toUpperCase();
-    const originFilter = elements.ledgerFilterOrigin.value;
-    const typeFilter = elements.ledgerFilterType.value;
-    const fromDate = elements.ledgerFilterFrom.value;
-    const toDate = elements.ledgerFilterTo.value;
+    const filters = getLedgerFilterState(elements);
     const allTransactions = state.transactions || [];
-    const filtered = allTransactions
-      .filter((item) => !symbolFilter || String(item.symbol || '').toUpperCase().includes(symbolFilter))
-      .filter((item) => !originFilter || item.origin === originFilter)
-      .filter((item) => !typeFilter || item.type === typeFilter)
-      .filter((item) => !fromDate || item.date >= fromDate)
-      .filter((item) => !toDate || item.date <= toDate)
-      .slice()
-      .reverse();
+    const filtered = filterLedgerTransactions(allTransactions, filters);
 
     const pageSize = state.ledgerPageSize || 1000;
     const totalPages = Math.ceil(filtered.length / pageSize);
@@ -55,7 +82,7 @@ export function attach(ctx) {
       { invested: 0, withdrawn: 0, dividends: 0, commissions: 0, cashFlow: 0 },
     );
 
-    const hasFilters = symbolFilter || originFilter || typeFilter || fromDate || toDate;
+    const hasFilters = hasActiveLedgerFilters(filters);
     const countHtml = hasFilters
       ? `<strong class="ledger-filtered-count">${filtered.length}</strong> / ${allTransactions.length}`
       : `<strong>${filtered.length}</strong>`;
@@ -136,10 +163,55 @@ export function attach(ctx) {
     renderLedger();
   }
 
+  function handleLedgerExport() {
+    const { elements, state, window } = ctx;
+    const filters = getLedgerFilterState(elements);
+    const hasFilters = hasActiveLedgerFilters(filters);
+    const allTransactions = state.transactions || [];
+    const filtered = hasFilters ? filterLedgerTransactions(allTransactions, filters) : allTransactions;
+    const count = filtered.length;
+
+    const url = buildLedgerExportUrl(hasFilters ? filters : undefined);
+    const summaryEl = elements.ledgerExportSummary;
+    const warningEl = elements.ledgerExportWarning;
+    const warningTextEl = elements.ledgerExportWarningText;
+
+    if (hasFilters) {
+      summaryEl.textContent = ctx.t('ledger.export.filteredSummary', { count: String(count) });
+    } else {
+      summaryEl.textContent = ctx.t('ledger.export.allSummary', { count: String(count) });
+    }
+
+    if (count > LEDGER_EXPORT_WARNING_THRESHOLD) {
+      warningEl.hidden = false;
+      warningTextEl.textContent = ctx.t('ledger.export.heavyWarning', { count: String(count) });
+    } else {
+      warningEl.hidden = true;
+      warningTextEl.textContent = '';
+    }
+
+    elements.ledgerExportDialog.showModal();
+    elements.ledgerExportConfirm.onclick = () => {
+      elements.ledgerExportDialog.close();
+      window.location.href = url;
+    };
+    elements.ledgerExportCancel.onclick = () => {
+      elements.ledgerExportDialog.close();
+    };
+    elements.ledgerExportDialogClose.onclick = () => {
+      elements.ledgerExportDialog.close();
+    };
+  }
+
   Object.assign(ctx, {
     transactionTypeLabel: (type) => transactionTypeLabel(ctx, type),
     transactionOriginLabel: (origin) => transactionOriginLabel(ctx, origin),
     renderLedger,
     goToLedgerPage,
+    handleLedgerExport,
+    getLedgerFilterState,
+    hasActiveLedgerFilters,
+    filterLedgerTransactions,
+    buildLedgerExportUrl,
   });
 }

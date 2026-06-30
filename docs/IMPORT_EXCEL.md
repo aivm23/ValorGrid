@@ -73,7 +73,10 @@ ValorGrid exporta movimientos al mismo formato compatible:
 
 ```text
 GET /api/export/transactions.xlsx
+GET /api/export/transactions.xlsx?symbol=AAPL&type=add
 ```
+
+La exportación admite filtros opcionales (`symbol`, `origin`, `type`, `from`, `to`) que se pueden combinar. El frontend muestra un diálogo de confirmación antes de exportar y avisa si el volumen supera 5.000 movimientos.
 
 El archivo exportado contiene una hoja `Movimientos`, lista para auditoría o reimportación.
 

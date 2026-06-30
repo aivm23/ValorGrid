@@ -85,19 +85,6 @@
               <span class="plus-icon" aria-hidden="true"></span>
               <span class="toolbar-label">Importar</span>
             </button>
-            <a
-              id="toolbar-export-xlsx"
-              class="calendar-button"
-              href="/api/export/transactions.xlsx"
-              aria-label="Exportar datos"
-            >
-              <svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M14 3h5v5"></path>
-                <path d="M10 13 19 4"></path>
-                <path d="M19 13v6H5V5h6"></path>
-              </svg>
-              <span class="toolbar-label">Exportar</span>
-            </a>
             <button
               id="dividend-alert"
               class="calendar-button dividend-alert"
@@ -293,6 +280,7 @@
           <div class="ledger-header-actions">
             <button id="add-position" class="button" type="button">Compra</button>
             <button id="remove-position" class="button" type="button">Venta</button>
+            <button id="ledger-export-xlsx" class="button" type="button">Exportar</button>
           </div>
         </div>
         <div class="ledger-filters">
@@ -998,6 +986,25 @@
           <button id="instrument-delete-confirm" class="button btn-danger" type="button">
             Eliminar seleccionados
           </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="ledger-export-dialog" class="modal">
+      <div class="modal-panel">
+        <div class="modal-header">
+          <div>
+            <h2 data-i18n="ledger.export.title">Exportar movimientos</h2>
+            <p class="subtle" id="ledger-export-summary"></p>
+          </div>
+          <button id="ledger-export-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <div id="ledger-export-warning" hidden>
+          <p class="subtle" id="ledger-export-warning-text"></p>
+        </div>
+        <div class="modal-actions">
+          <button id="ledger-export-cancel" class="button btn-cancel" type="button" data-i18n="ledger.export.cancel">Cancelar</button>
+          <button id="ledger-export-confirm" class="button" type="button" data-i18n="ledger.export.confirm">Exportar</button>
         </div>
       </div>
     </dialog>

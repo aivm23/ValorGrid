@@ -163,6 +163,7 @@ export function attach(ctx) {
     const btn = event.target.closest('[data-ledger-page]');
     if (btn) ctx.goToLedgerPage(btn.dataset.ledgerPage);
   });
+  elements.ledgerExportXlsx?.addEventListener('click', () => ctx.handleLedgerExport());
   elements.createBackup?.addEventListener('click', () => createBackup(ctx));
   elements.backupList?.addEventListener('click', (event) => {
     const deleteButton = event.target.closest('.backup-delete-btn');
@@ -391,9 +392,6 @@ async function createInstrument(ctx) {
     }
   } catch (error) {
     const errEl = document.getElementById('instrument-create-error');
-    if (errEl) {
-      errEl.textContent = ctx.normalizeErrorMessage(error);
-      errEl.hidden = false;
-    }
+    if (errEl) { errEl.textContent = ctx.normalizeErrorMessage(error); errEl.hidden = false; }
   }
 }

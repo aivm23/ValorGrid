@@ -142,9 +142,32 @@ return [
   ];
 }
 
-async function buildTransactionsXlsx() {
+function filterTransactions(transactions, filters) {
+  if (!filters) return transactions;
+  let result = transactions;
+  if (filters.symbol) {
+    const sym = filters.symbol.toUpperCase();
+    result = result.filter((t) => String(t.symbol || '').toUpperCase().includes(sym));
+  }
+  if (filters.origin) {
+    result = result.filter((t) => t.origin === filters.origin);
+  }
+  if (filters.type) {
+    result = result.filter((t) => t.type === filters.type);
+  }
+  if (filters.from) {
+    result = result.filter((t) => t.date >= filters.from);
+  }
+  if (filters.to) {
+    result = result.filter((t) => t.date <= filters.to);
+  }
+  return result;
+}
+
+async function buildTransactionsXlsx(filters) {
+  const transactions = filters ? filterTransactions(getTransactions(), filters) : getTransactions();
   const workbook = new ExcelJS.Workbook();
-  const rows = [MOVIMIENTOS_HEADERS, ...getTransactions().map(rowToValorGridExport)];
+  const rows = [MOVIMIENTOS_HEADERS, ...transactions.map(rowToValorGridExport)];
   appendSheet(workbook, 'Movimientos', rows, MOVIMIENTOS_HEADERS.map(() => 18));
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }

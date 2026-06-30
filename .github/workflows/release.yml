@@ -53,6 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
+          retention-days: 1
           path: |
             local/artifacts/desktop/*.exe
             local/artifacts/desktop/*.blockmap
@@ -75,6 +76,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-linux
+          retention-days: 1
           path: |
             local/artifacts/desktop/*.AppImage
             local/artifacts/desktop/*.deb
@@ -99,6 +101,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-macos
+          retention-days: 1
           path: |
             local/artifacts/desktop/*.dmg
             local/artifacts/desktop/*.blockmap

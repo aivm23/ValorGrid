@@ -1,0 +1,75 @@
+name: Cleanup Actions Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep_days:
+        description: 'Delete artifacts older than this many days. Use 0 to purge all current artifacts.'
+        required: true
+        default: '2'
+      dry_run:
+        description: 'List artifacts without deleting them.'
+        required: true
+        type: boolean
+        default: true
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old workflow artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          KEEP_DAYS: ${{ inputs.keep_days || '2' }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! [[ "$KEEP_DAYS" =~ ^[0-9]+$ ]]; then
+            echo "KEEP_DAYS must be a non-negative integer. Got: $KEEP_DAYS" >&2
+            exit 1
+          fi
+
+          cutoff="$(date -u -d "${KEEP_DAYS} days ago" +%s)"
+          page=1
+          scanned=0
+          deleted=0
+
+          while true; do
+            response="$(gh api "repos/${REPO}/actions/artifacts?per_page=100&page=${page}")"
+            count="$(jq '.artifacts | length' <<<"$response")"
+            if [[ "$count" -eq 0 ]]; then
+              break
+            fi
+
+            while IFS= read -r artifact; do
+              [[ -z "$artifact" ]] && continue
+              scanned=$((scanned + 1))
+
+              id="$(jq -r '.id' <<<"$artifact")"
+              name="$(jq -r '.name' <<<"$artifact")"
+              expired="$(jq -r '.expired' <<<"$artifact")"
+              created_at="$(jq -r '.created_at' <<<"$artifact")"
+              created_ts="$(date -u -d "$created_at" +%s)"
+
+              if [[ "$expired" == "true" || "$created_ts" -lt "$cutoff" ]]; then
+                echo "Deleting artifact ${id} (${name}) created at ${created_at}"
+                if [[ "$DRY_RUN" != "true" ]]; then
+                  gh api --method DELETE "repos/${REPO}/actions/artifacts/${id}"
+                fi
+                deleted=$((deleted + 1))
+              fi
+            done < <(jq -c '.artifacts[]' <<<"$response")
+
+            page=$((page + 1))
+          done
+
+          echo "Scanned ${scanned} artifact(s). Matched ${deleted} artifact(s). Dry run: ${DRY_RUN}."

@@ -99,6 +99,17 @@ macOS publica DMG x64 y arm64 desde el runner `macos-latest`. En esta fase los b
 
 8. Verificar que el README enlaza correctamente a `/releases/latest`, `docs/FIRST_STEPS.md`, `docs/IMPORT_EXCEL.md`, `docs/FAQ.md`, `docs/LEGAL_NOTICE.md`, `docs/FINANCIAL_DISCLAIMER.md` y `docs/DEPLOY_UMBREL.md`.
 
+## Artifacts De GitHub Actions
+
+Los instaladores definitivos se conservan como assets de GitHub Releases. Los artifacts intermedios de `Release` (`desktop-windows`, `desktop-linux`, `desktop-macos`) son temporales y tienen `retention-days: 1` para no ocupar cuota durante semanas.
+
+El workflow `Cleanup Actions Artifacts` se ejecuta a diario y también puede lanzarse manualmente desde GitHub Actions. Si GitHub bloquea una release por cuota de artifacts, ejecutarlo con:
+
+- `keep_days`: `0`
+- `dry_run`: `false`
+
+GitHub recalcula la cuota cada 6-12 horas, asi que puede ser necesario esperar antes de relanzar la release.
+
 ## Upgrade
 
 Antes de actualizar, crear un backup desde la app o con:

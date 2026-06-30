@@ -53,14 +53,59 @@ sendJson,
   }
 
   if (url.pathname === '/api/export/transactions.xlsx' && request.method === 'GET') {
-    const buffer = await buildTransactionsXlsx();
-    response.writeHead(200, {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': 'attachment; filename="ValorGrid_Movimientos.xlsx"',
-      'Content-Length': buffer.length,
-      'Cache-Control': 'no-store',
-    });
-    response.end(buffer);
+    try {
+      const ALLOWED_ORIGINS = ['manual', 'auto', 'import'];
+      const ALLOWED_TYPES = ['add', 'remove', 'dividend'];
+      const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+      const filters = {};
+      const symbol = url.searchParams.get('symbol');
+      const origin = url.searchParams.get('origin');
+      const type = url.searchParams.get('type');
+      const from = url.searchParams.get('from');
+      const to = url.searchParams.get('to');
+
+      if (symbol) filters.symbol = symbol;
+      if (origin) {
+        if (!ALLOWED_ORIGINS.includes(origin)) {
+          sendJson(response, 400, { error: `origin must be one of: ${ALLOWED_ORIGINS.join(', ')}` });
+          return true;
+        }
+        filters.origin = origin;
+      }
+      if (type) {
+        if (!ALLOWED_TYPES.includes(type)) {
+          sendJson(response, 400, { error: `type must be one of: ${ALLOWED_TYPES.join(', ')}` });
+          return true;
+        }
+        filters.type = type;
+      }
+      if (from) {
+        if (!DATE_RE.test(from)) {
+          sendJson(response, 400, { error: 'from must be a valid date (YYYY-MM-DD)' });
+          return true;
+        }
+        filters.from = from;
+      }
+      if (to) {
+        if (!DATE_RE.test(to)) {
+          sendJson(response, 400, { error: 'to must be a valid date (YYYY-MM-DD)' });
+          return true;
+        }
+        filters.to = to;
+      }
+
+      const buffer = await buildTransactionsXlsx(Object.keys(filters).length > 0 ? filters : undefined);
+      response.writeHead(200, {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename="ValorGrid_Movimientos.xlsx"',
+        'Content-Length': buffer.length,
+        'Cache-Control': 'no-store',
+      });
+      response.end(buffer);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
     return true;
   }
 

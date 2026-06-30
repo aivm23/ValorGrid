@@ -274,9 +274,24 @@ Los backups se guardan en `local/valorgrid/backups/` y no deben versionarse.
 
 ```text
 GET /api/export/transactions.xlsx
+GET /api/export/transactions.xlsx?symbol=AAPL
+GET /api/export/transactions.xlsx?origin=manual&type=add
+GET /api/export/transactions.xlsx?from=2026-01-01&to=2026-12-31
 ```
 
 Exporta el ledger de movimientos como Excel importable por ValorGrid. El libro contiene una sola hoja `Movimientos`, sin instrucciones ni ejemplos, con los encabezados oficiales de la plantilla de importación: `Tipo`, `Fecha`, `Ticker`, `Yahoo`, `Acciones`, `Precio`, `Divisa`, `FX a EUR`, `Valor EUR`, `Comision EUR` y `Referencia`.
+
+Sin parámetros, exporta todos los movimientos. Parámetros opcionales de filtro:
+
+| Parámetro | Descripción                                    | Ejemplo           |
+| --------- | ---------------------------------------------- | ----------------- |
+| `symbol`  | Filtra por símbolo (case-insensitive, parcial) | `symbol=AAPL`     |
+| `origin`  | Filtra por origen: `manual`, `auto`, `import`  | `origin=auto`     |
+| `type`    | Filtra por tipo: `add`, `remove`, `dividend`   | `type=add`        |
+| `from`    | Fecha mínima (`YYYY-MM-DD`)                    | `from=2026-01-01` |
+| `to`      | Fecha máxima (`YYYY-MM-DD`)                    | `to=2026-06-30`   |
+
+Los parámetros se combinan con AND. Una consulta inválida devuelve `400` con mensaje de error.
 
 Las compras se exportan como `compra` con cantidad positiva, las ventas como `venta` con cantidad negativa y los dividendos como `dividendo` con acciones informativas. En el Excel esa cantidad usa el encabezado `Acciones` por compatibilidad. `Referencia` usa `externalId` si existe o el `id` interno si no existe.
 

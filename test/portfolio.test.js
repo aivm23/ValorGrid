@@ -616,6 +616,92 @@ test('export endpoint returns ledger XLSX in ValorGrid template format', async (
   assert.deepEqual(sell, ['venta', '2026-06-02', 'XLSXEXP', 'XLSXEXP', -1, 100, 'USD', 0.95, 95, 0.5, 'export-xlsx-sell']);
 });
 
+test('export with symbol filter returns only matching transactions', async () => {
+  seedTestInstrument({ symbol: 'FILT1', yahooSymbol: 'FILT1', name: 'Filter1', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({ symbol: 'FILT2', yahooSymbol: 'FILT2', name: 'Filter2', type: 'stock', currency: 'EUR' });
+  db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, shares, value_eur, price, currency, fx_to_eur, commission_eur, cash_flow_eur, origin)
+     VALUES
+      ('filt1-buy', 'add', 'FILT1', 'Filter1', '2026-01-10', 5, 500, 100, 'EUR', 1, 1, -501, 'manual'),
+      ('filt2-buy', 'add', 'FILT2', 'Filter2', '2026-02-10', 3, 300, 100, 'EUR', 1, 0, -300, 'manual')`,
+  ).run();
+
+  const response = await request('/api/export/transactions.xlsx?symbol=FILT1');
+  assert.equal(response.status, 200);
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
+  const dataRows = rows.filter((r) => r[2] === 'FILT1' || r[2] === 'FILT2');
+  assert.equal(dataRows.length, 1, 'only FILT1 transaction should be exported');
+  assert.equal(dataRows[0][2], 'FILT1');
+});
+
+test('export with origin and type filters combines correctly', async () => {
+  seedTestInstrument({ symbol: 'ORGF', yahooSymbol: 'ORGF', name: 'OriginFilter', type: 'stock', currency: 'EUR' });
+  db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, shares, value_eur, price, currency, fx_to_eur, commission_eur, cash_flow_eur, origin)
+     VALUES
+      ('orgf-add', 'add', 'ORGF', 'OriginFilter', '2026-03-01', 10, 1000, 100, 'EUR', 1, 0, -1000, 'manual'),
+      ('orgf-auto', 'add', 'ORGF', 'OriginFilter', '2026-03-02', 5, 500, 100, 'EUR', 1, 0, -500, 'auto'),
+      ('orgf-div', 'dividend', 'ORGF', 'OriginFilter', '2026-03-03', 0, 50, 0, 'EUR', 1, 0, 50, 'manual')`,
+  ).run();
+
+  const response = await request('/api/export/transactions.xlsx?origin=manual&type=add');
+  assert.equal(response.status, 200);
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
+  const dataRows = rows.filter((r) => r[2] === 'ORGF');
+  assert.equal(dataRows.length, 1, 'only manual add should match');
+  assert.equal(dataRows[0][0], 'compra');
+});
+
+test('export with date range filters returns correct subset', async () => {
+  seedTestInstrument({ symbol: 'DTRG', yahooSymbol: 'DTRG', name: 'DateRange', type: 'stock', currency: 'EUR' });
+  db.prepare(
+    `INSERT OR REPLACE INTO transactions
+      (id, type, symbol, name, date, shares, value_eur, price, currency, fx_to_eur, commission_eur, cash_flow_eur, origin)
+     VALUES
+      ('dtrg-early', 'add', 'DTRG', 'DateRange', '2026-01-15', 1, 100, 100, 'EUR', 1, 0, -100, 'manual'),
+      ('dtrg-mid', 'add', 'DTRG', 'DateRange', '2026-06-15', 1, 100, 100, 'EUR', 1, 0, -100, 'manual'),
+      ('dtrg-late', 'add', 'DTRG', 'DateRange', '2026-12-15', 1, 100, 100, 'EUR', 1, 0, -100, 'manual')`,
+  ).run();
+
+  const response = await request('/api/export/transactions.xlsx?from=2026-03-01&to=2026-09-30');
+  assert.equal(response.status, 200);
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
+  const dataRows = rows.filter((r) => r[2] === 'DTRG');
+  assert.equal(dataRows.length, 1, 'only mid-range transaction should match');
+  assert.equal(dataRows[0][1], '2026-06-15');
+});
+
+test('export with invalid origin query param returns 400', async () => {
+  const result = await jsonRequest('/api/export/transactions.xlsx?origin=badvalue');
+  assert.equal(result.response.status, 400);
+  assert.ok(result.body.error.includes('origin must be one of'));
+});
+
+test('export with invalid type query param returns 400', async () => {
+  const result = await jsonRequest('/api/export/transactions.xlsx?type=unknown');
+  assert.equal(result.response.status, 400);
+  assert.ok(result.body.error.includes('type must be one of'));
+});
+
+test('export with invalid date format returns 400', async () => {
+  const result = await jsonRequest('/api/export/transactions.xlsx?from=not-a-date');
+  assert.equal(result.response.status, 400);
+  assert.ok(result.body.error.includes('from must be a valid date'));
+});
+
+test('export without query params returns all transactions', async () => {
+  const response = await request('/api/export/transactions.xlsx');
+  assert.equal(response.status, 200);
+  const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
+  const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
+  assert.ok(rows.length > 1, 'should return all transactions when no filters');
+});
+
 test('legacy CSV and JSON export endpoints are no longer available', async () => {
   const json = await jsonRequest('/api/export/transactions.json');
   assert.equal(json.response.status, 404);

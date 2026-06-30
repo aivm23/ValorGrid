@@ -23,9 +23,17 @@ test('desktop distribution scripts cover Windows Linux and macOS', () => {
   const scripts = pkg.scripts || {};
 
   assert.match(scripts['desktop:dist:win'], /--win nsis/, 'Windows build must keep NSIS installer');
-  assert.match(scripts['desktop:dist:linux'], /--linux AppImage deb --x64/, 'Linux build must produce AppImage and deb for x64');
+  assert.match(
+    scripts['desktop:dist:linux'],
+    /--linux AppImage deb --x64/,
+    'Linux build must produce AppImage and deb for x64',
+  );
   assert.match(scripts['desktop:dist:mac'], /--mac dmg --x64 --arm64/, 'macOS build must produce x64 and arm64 DMGs');
-  assert.match(scripts['release:desktop:stable'], /prepare-desktop-release-artifacts\.js/, 'stable artifact naming must be scripted');
+  assert.match(
+    scripts['release:desktop:stable'],
+    /prepare-desktop-release-artifacts\.js/,
+    'stable artifact naming must be scripted',
+  );
 });
 
 test('electron-builder config defines desktop targets for all supported platforms', () => {
@@ -35,8 +43,16 @@ test('electron-builder config defines desktop targets for all supported platform
     { target: 'deb', arch: ['x64'] },
   ]);
   assert.deepEqual(electronBuilderConfig.mac.target[0], { target: 'dmg', arch: ['x64', 'arm64'] });
-  assert.equal(electronBuilderConfig.mac.identity, null, 'macOS builds must stay explicitly unsigned until notarization is added');
-  assert.match(electronBuilderConfig.mac.icon, /valorgrid-logo\.icns$/, 'macOS builds must use the generated icns icon');
+  assert.equal(
+    electronBuilderConfig.mac.identity,
+    null,
+    'macOS builds must stay explicitly unsigned until notarization is added',
+  );
+  assert.match(
+    electronBuilderConfig.mac.icon,
+    /valorgrid-logo\.icns$/,
+    'macOS builds must use the generated icns icon',
+  );
 });
 
 test('stable desktop artifact names are generated per platform', () => {
@@ -98,8 +114,33 @@ test('release workflow builds and publishes desktop artifacts from all platforms
   assert.match(workflow, /linux-installer:/, 'release workflow must include a Linux installer job');
   assert.match(workflow, /macos-installer:/, 'release workflow must include a macOS installer job');
   assert.match(workflow, /publish-release:/, 'release workflow must publish from downloaded artifacts');
+  assert.equal(
+    (workflow.match(/retention-days: 1/g) || []).length,
+    3,
+    'temporary desktop artifacts must expire after one day',
+  );
   assert.match(workflow, /ValorGrid-Linux-x64\.AppImage/, 'Linux stable AppImage must be published');
   assert.match(workflow, /ValorGrid-Linux-x64\.deb/, 'Linux stable deb must be published');
   assert.match(workflow, /ValorGrid-macOS-x64\.dmg/, 'macOS x64 stable DMG must be published');
   assert.match(workflow, /ValorGrid-macOS-arm64\.dmg/, 'macOS arm64 stable DMG must be published');
+});
+
+test('artifact cleanup workflow can purge stale GitHub Actions artifacts', () => {
+  const workflow = read(path.join('.github', 'workflows', 'cleanup-artifacts.yml'));
+
+  assert.match(workflow, /workflow_dispatch:/, 'artifact cleanup must be runnable manually');
+  assert.match(workflow, /schedule:/, 'artifact cleanup must run on a schedule');
+  assert.match(workflow, /actions: write/, 'artifact cleanup needs actions write permission');
+  assert.match(workflow, /KEEP_DAYS/, 'artifact cleanup must expose the age threshold');
+  assert.match(workflow, /DRY_RUN/, 'artifact cleanup must support a dry-run mode');
+  assert.match(
+    workflow,
+    /actions\/artifacts\?per_page=100/,
+    'artifact cleanup must list artifacts through the GitHub API',
+  );
+  assert.match(
+    workflow,
+    /--method DELETE "repos\/\$\{REPO\}\/actions\/artifacts\/\$\{id\}"/,
+    'artifact cleanup must delete matched artifacts through the GitHub API',
+  );
 });

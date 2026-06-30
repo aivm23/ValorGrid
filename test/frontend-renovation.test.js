@@ -282,6 +282,64 @@ test('ledger.js shows filtered count X/Y in totals row when filters are active',
   assert.ok(ledger.includes('/ ${allTransactions.length}'), 'ledger shows X / Y format');
 });
 
+// ── Ledger export button and helpers ──
+
+test('Exportar button removed from header and added to ledger-header-actions', () => {
+  const html = read(path.join('apps', 'web', 'index.html'));
+  assert.ok(!html.includes('id="toolbar-export-xlsx"'), 'toolbar-export-xlsx removed from header');
+  assert.ok(html.includes('id="ledger-export-xlsx"'), 'ledger-export-xlsx exists in ledger');
+  assert.ok(html.includes('ledger-header-actions'), 'button is inside ledger-header-actions');
+});
+
+test('ledger export dialog exists in HTML', () => {
+  const html = read(path.join('apps', 'web', 'index.html'));
+  assert.ok(html.includes('id="ledger-export-dialog"'), 'export dialog exists');
+  assert.ok(html.includes('id="ledger-export-summary"'), 'export summary exists');
+  assert.ok(html.includes('id="ledger-export-confirm"'), 'export confirm button exists');
+  assert.ok(html.includes('id="ledger-export-cancel"'), 'export cancel button exists');
+});
+
+test('ledger.js exports shared helpers for filter reuse', () => {
+  const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
+  assert.ok(ledger.includes('getLedgerFilterState'), 'exports getLedgerFilterState');
+  assert.ok(ledger.includes('hasActiveLedgerFilters'), 'exports hasActiveLedgerFilters');
+  assert.ok(ledger.includes('filterLedgerTransactions'), 'exports filterLedgerTransactions');
+  assert.ok(ledger.includes('buildLedgerExportUrl'), 'exports buildLedgerExportUrl');
+  assert.ok(ledger.includes('handleLedgerExport'), 'exports handleLedgerExport');
+  assert.ok(ledger.includes('LEDGER_EXPORT_WARNING_THRESHOLD'), 'defines warning threshold constant');
+});
+
+test('ledger.js uses shared helpers in renderLedger', () => {
+  const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
+  assert.ok(ledger.includes('getLedgerFilterState(elements)'), 'renderLedger uses getLedgerFilterState');
+  assert.ok(ledger.includes('hasActiveLedgerFilters(filters)'), 'renderLedger uses hasActiveLedgerFilters');
+  assert.ok(ledger.includes('filterLedgerTransactions(allTransactions, filters)'), 'renderLedger uses filterLedgerTransactions');
+});
+
+test('ledger i18n keys include export dialog translations', () => {
+  const catalog = read(path.join('apps', 'web', 'src', 'i18n-catalog-ui.js'));
+  assert.ok(catalog.includes('ledger.export.title'), 'has export title key');
+  assert.ok(catalog.includes('ledger.export.confirm'), 'has export confirm key');
+  assert.ok(catalog.includes('ledger.export.cancel'), 'has export cancel key');
+  assert.ok(catalog.includes('ledger.export.allSummary'), 'has all summary key');
+  assert.ok(catalog.includes('ledger.export.filteredSummary'), 'has filtered summary key');
+  assert.ok(catalog.includes('ledger.export.heavyWarning'), 'has heavy warning key');
+});
+
+test('dom.js registers ledger export elements', () => {
+  const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
+  assert.ok(dom.includes('ledgerExportXlsx'), 'dom registers ledgerExportXlsx');
+  assert.ok(dom.includes('ledgerExportDialog'), 'dom registers ledgerExportDialog');
+  assert.ok(dom.includes('ledgerExportConfirm'), 'dom registers ledgerExportConfirm');
+  assert.ok(dom.includes('ledgerExportCancel'), 'dom registers ledgerExportCancel');
+});
+
+test('events.js wires ledger export button', () => {
+  const events = read(path.join('apps', 'web', 'src', 'events.js'));
+  assert.ok(events.includes('ledgerExportXlsx'), 'events references ledgerExportXlsx');
+  assert.ok(events.includes('handleLedgerExport'), 'events calls handleLedgerExport');
+});
+
 // ── 11) Checkbox animation ──
 
 test('CSS defines checkbox check animation with scale and clip-path', () => {
