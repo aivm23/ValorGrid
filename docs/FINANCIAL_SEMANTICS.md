@@ -12,6 +12,8 @@ Fuentes de verdad actuales:
 
 > Nota: Los cambios de paleta corporativa (`brand_palette_enabled`) son visuales; no alteran importes, cantidades, cash-flow, rentabilidad ni FIFO. La restauración de colores al desactivar la paleta tampoco afecta a cálculos financieros.
 
+> Nota: Las cuentas de liquidez (`type = cash`) representan saldo actual. Suman al total visible actual si están marcadas como visibles, pero no crean movimientos, no alteran `cash_flow_eur`, no entran en FIFO y no generan histórico/YTD.
+
 ## Convencion de signos base
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).

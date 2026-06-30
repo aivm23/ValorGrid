@@ -21,6 +21,15 @@ function read(relativePath) {
 
 // ── 1) KPI cards with semantic border-left colors and micro-info context ──
 
+function filesUnder(relativePath, extensions = new Set(['.js'])) {
+  const base = path.join(root, relativePath);
+  return fs.readdirSync(base, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(base, entry.name);
+    if (entry.isDirectory()) return filesUnder(path.relative(root, full), extensions);
+    return extensions.has(path.extname(entry.name)) ? [path.relative(root, full)] : [];
+  });
+}
+
 test('operations.js renders KPI cards with semantic border classes and metric-micro', async () => {
   seedTestInstrument({ symbol: 'KPI1', yahooSymbol: 'KPI1.DE', name: 'KPI Test', type: 'stock' });
   cachePrice('KPI1.DE', '2026-05-14', 50);
@@ -117,6 +126,71 @@ test('CSS defines hover states for ledger table rows', () => {
   assert.ok(css.includes('.type-dividend'), 'CSS defines type-dividend style');
   assert.ok(css.includes('.origin-auto'), 'CSS defines origin-auto style');
   assert.ok(css.includes('.origin-import'), 'CSS defines origin-import style');
+});
+
+test('liquidity is separated from groups and instruments in the values dialog', () => {
+  const html = read('apps/web/index.html');
+  const app = read(path.join('apps', 'web', 'src', 'app.js'));
+  const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
+  const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  const routes = read(path.join('apps', 'server', 'src', 'routes.js'));
+  const liquidity = read(path.join('apps', 'web', 'src', 'liquidity.js'));
+  const operations = read(path.join('apps', 'web', 'src', 'operations.js'));
+  const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
+  const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
+
+  assert.ok(html.includes('id="liquidity-section"'), 'values dialog includes dedicated liquidity section');
+  assert.ok(html.includes('id="new-liquidity-balance"'), 'liquidity section edits current balance directly');
+  assert.ok(!html.includes('new-liquidity-date'), 'liquidity section does not ask for a date');
+  assert.ok(html.includes('instrument-config-section--groups'), 'values dialog separates the groups row visually');
+  assert.ok(html.includes('instrument-config-section--liquidity'), 'values dialog separates the liquidity row visually');
+  assert.ok(html.includes('instrument-config-section--values'), 'values dialog separates the instruments row visually');
+  assert.ok(app.includes("from './liquidity.js'"), 'frontend imports liquidity module');
+  assert.ok(app.includes('attachLiquidity'), 'frontend attaches liquidity module during startup');
+  assert.ok(dom.includes("document.querySelector('#create-liquidity-account')"), 'DOM registers create liquidity button');
+  assert.ok(dashboard.includes("ctx.fetchJson('/api/liquidity')"), 'dashboard loads liquidity state');
+  assert.ok(dashboard.includes('ctx.renderLiquidity?.()'), 'dashboard renders liquidity section');
+  assert.ok(routes.includes('route-liquidity'), 'backend registers liquidity routes');
+  assert.ok(liquidity.includes('/api/liquidity/accounts'), 'liquidity module uses liquidity API');
+  assert.ok(liquidity.includes('class="instrument-table liquidity-table"'), 'liquidity accounts render as a table');
+  assert.ok(liquidity.includes('<th>ID</th>'), 'liquidity table starts with fixed technical identifier');
+  assert.ok(liquidity.includes('data-select-liquidity'), 'liquidity rows can be selected like instruments');
+  assert.ok(liquidity.includes('data-delete-selected-liquidity'), 'liquidity table exposes bulk delete action');
+  assert.ok(liquidity.includes('data-save-liquidity'), 'liquidity rows expose save action');
+  assert.ok(!liquidity.includes('data-delete-liquidity'), 'liquidity rows do not expose per-row delete action');
+  assert.ok(liquidity.includes('selectedLiquiditySymbols'), 'liquidity selection is stored in state');
+  assert.ok(liquidity.includes('class="row-select row-select-only"'), 'liquidity visibility uses standard checkbox styling');
+  assert.ok(!liquidity.includes('data-liquidity-field="showInDistribution"') || !liquidity.includes('class="switch-field"><input type="checkbox" data-liquidity-field="showInDistribution"'), 'liquidity does not use switch-field checkbox styling');
+  assert.ok(operations.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"), 'normal instrument table excludes cash');
+  assert.ok(forms.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"), 'operation selectors exclude cash');
+  assert.ok(workflow.includes("item.type !== 'fx' && item.type !== 'cash'"), 'import matching excludes cash');
+  assert.ok(css.includes('.instrument-config-section-head'), 'CSS styles values dialog section headers');
+  assert.ok(css.includes('.liquidity-create-form input'), 'CSS styles liquidity form inputs');
+  assert.ok(css.includes('.liquidity-table'), 'CSS styles liquidity account table');
+  const liquiditySectionCss = css.match(/\.instrument-config-section--liquidity\s*\{[^}]+\}/)?.[0] || '';
+  assert.ok(!liquiditySectionCss.includes('background'), 'liquidity section keeps the neutral panel background');
+  assert.ok(css.includes('align-items: start'), 'CSS prevents opened group cards from stretching sibling cards');
+  assert.ok(css.includes('.group-visual-options .switch-field'), 'CSS aligns group display option controls');
+});
+
+test('frontend confirmations use the custom modal instead of native browser dialogs', () => {
+  const html = read('apps/web/index.html');
+  const app = read(path.join('apps', 'web', 'src', 'app.js'));
+  const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
+  const confirmDialog = read(path.join('apps', 'web', 'src', 'confirm-dialog.js'));
+  const nativeDialogPattern = /\b(?:window\.)?(?:confirm|alert|prompt)\s*\(/;
+
+  assert.ok(html.includes('id="confirm-action-dialog"'), 'index.html contains the shared confirmation dialog');
+  assert.ok(app.includes("from './confirm-dialog.js'"), 'app bootstraps the confirmation dialog module');
+  assert.ok(dom.includes("document.querySelector('#confirm-action-dialog')"), 'dom.js registers confirmation dialog refs');
+  assert.ok(confirmDialog.includes('confirmAction'), 'confirm-dialog.js exposes confirmAction');
+  assert.ok(confirmDialog.includes('showModal()'), 'confirm-dialog.js uses the app modal pattern');
+
+  for (const file of filesUnder(path.join('apps', 'web', 'src'))) {
+    const source = read(file);
+    assert.ok(!nativeDialogPattern.test(source), `${file} does not use native browser dialogs`);
+  }
 });
 
 test('dividend review UI uses toolbar alert and automatic startup scan', () => {

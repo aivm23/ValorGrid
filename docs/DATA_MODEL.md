@@ -32,10 +32,12 @@ Campos principales:
 - `symbol`: ticker interno.
 - `yahoo_symbol`: símbolo usado para precios.
 - `name`
-- `type`: `etf`, `stock`, `crypto`, `commodity` o `fx`.
+- `type`: `etf`, `stock`, `crypto`, `commodity`, `fx` o `cash`.
 - `currency`
 - `color`
 - `base_shares`
+- `cash_balance`: saldo actual de cuentas de liquidez técnica (`cash`), default 0.
+- `cash_balance_updated_at`: timestamp de la ultima actualizacion del saldo de liquidez.
 - `fallback_price`: precio de respaldo cuando no hay datos de mercado (REAL, default 0).
 - `active`
 - `group_id`: puede ser `NULL` cuando los grupos están deshabilitados.
@@ -44,6 +46,8 @@ Campos principales:
 - `show_in_monthly`: controla si aparece en la revisión YTD por grupos (INTEGER, default 1).
 
 `fx` se usa para instrumentos técnicos internos de conversión y no debe aparecer como posición visible.
+
+`cash` se usa para cuentas de liquidez gestionadas desde su sección propia; suma al valor visible actual, no crea movimientos y no forma parte de históricos ni operaciones normales.
 
 ### `instrument_identifiers`
 

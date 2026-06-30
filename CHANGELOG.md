@@ -1,23 +1,59 @@
 # Changelog
 
+## 3.29.0
+
+- feat: add liquidity accounts backed by cash-type instruments with current balance tracking.
+- feat: add ledger export dialog with symbol, type, origin and date range filters.
+- fix: replace browser-native confirmation dialogs with ValorGrid's shared modal for backups, imports, groups and liquidity deletes.
+- fix: restore the instrument dialog config header background without the left border.
+- fix: align the general preferences section into the intended 3-column layout.
+- fix: use canonical donut item identity to avoid groupId collisions in detail-chart hover.
+- docs: document the reusable frontend confirmation modal in the architecture guide.
+- test: guard against native browser confirm, alert and prompt dialogs in frontend code.
+
+## 3.28.16
+
+- fix: keep only the save action per Liquidity row and move deletion to the bulk-selection toolbar.
+- fix: prevent the Liquidity save button from being compressed in the row actions column.
+- test: guard Liquidity rows against per-row delete actions.
+
+## 3.28.15
+
+- fix: align the Liquidity table with the selection and bulk-delete pattern used by Instruments.
+- fix: show the technical liquidity identifier as the first fixed column and keep the account name editable.
+- fix: remove the blue background from the Liquidity panel while keeping the section accent.
+- test: guard the neutral Liquidity panel background.
+
+## 3.28.14
+
+- fix: render liquidity accounts with the same editable-table pattern used by Instruments.
+- fix: reuse the standard checkbox styling for Liquidity dashboard visibility.
+- fix: prevent an expanded group card from stretching sibling cards and realign display options.
+- test: cover Liquidity table markup and group-card visual alignment.
+
+## 3.28.13
+
+- feat: wire Liquidity creation into frontend startup and the local `/api/liquidity` API.
+- fix: sync fresh schema and versioned SQL migration for technical `cash` instruments.
+- fix: keep liquidity out of normal instrument lists, operation selectors and import matching.
+- docs: document the Liquidity API, data model and financial semantics.
+- test: cover Liquidity account creation and current-summary inclusion without ledger movements.
+
+## 3.28.12
+
+- fix: reorder the Values and groups dialog into separate Groups, Liquidity and Instruments rows.
+- fix: apply the shared modal form styling to Liquidity controls.
+
 ## 3.28.11
 
-### Fixed
-
-- Exportar sin filtros: `buildLedgerExportUrl` lanzaba TypeError al recibir `undefined` al no haber filtros activos.
+- fix: allow `buildLedgerExportUrl` to export without filters instead of throwing on `undefined`.
 
 ## 3.28.10
 
-### Added
-
-- Exportar movimientos admite filtros opcionales (symbol, origin, type, from, to) via query params en `GET /api/export/transactions.xlsx`.
-- Botón `Exportar` en la sección Movimientos con diálogo de confirmación y aviso de operaciones pesadas (>5.000 movimientos).
-- Helpers compartidos entre renderLedger y exportación para garantizar semántica de filtros idéntica.
-
-### Changed
-
-- El botón `Exportar` se mueve desde la cabecera a la sección `Movimientos`.
-- `buildTransactionsXlsx` acepta filtro opcional con la misma lógica que el frontend.
+- feat: support optional ledger export filters (`symbol`, `origin`, `type`, `from`, `to`) in `GET /api/export/transactions.xlsx`.
+- feat: add the Export button to the Movements section with a confirmation dialog and heavy-export warning.
+- refactor: share ledger filter helpers between rendering and export URL generation.
+- refactor: make `buildTransactionsXlsx` accept the same optional filter semantics as the frontend.
 
 ## 3.28.9
 

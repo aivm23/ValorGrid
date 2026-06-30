@@ -436,6 +436,36 @@ test('GET /api/instruments returns configured instruments', async () => {
   assert.ok(body.instruments.some((item) => item.symbol === 'NVO'));
 });
 
+test('liquidity accounts can be created and count in current summary without ledger movements', async () => {
+  const beforeTransactions = getTransactions().length;
+  const create = await jsonRequest('/api/liquidity/accounts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Broker Cash',
+      cashBalance: 1234.56,
+      currency: 'EUR',
+      color: '#06b6d4',
+    }),
+  });
+
+  assert.equal(create.response.status, 201);
+  assert.equal(create.body.account.name, 'Broker Cash');
+  assert.equal(create.body.account.type, 'cash');
+  assert.equal(Number(create.body.account.valueEur.toFixed(2)), 1234.56);
+  assert.equal(getTransactions().length, beforeTransactions);
+
+  const state = await jsonRequest('/api/liquidity');
+  assert.equal(state.response.status, 200);
+  assert.equal(state.body.accounts.length, 1);
+  assert.equal(Number(state.body.totalEur.toFixed(2)), 1234.56);
+
+  const summary = await jsonRequest('/api/portfolio/summary');
+  assert.equal(summary.response.status, 200);
+  assert.ok(summary.body.portfolio.some((item) => item.type === 'group' && item.groupId === 'liquidez'));
+  assert.ok(summary.body.total >= 1234.56);
+});
+
 test('GET /api/onboarding/status returns setup state', async () => {
   const { response, body } = await jsonRequest('/api/onboarding/status');
 
