@@ -32,6 +32,7 @@ import { attach as attachInstrumentColors } from './instrument-colors.js';
 import { attach as attachAlphaVantageSetup } from './alpha-vantage-setup.js';
 import { attach as attachExtensions } from './extensions.js';
 import { attach as attachAportaciones } from './aportaciones.js';
+import { attach as attachUpdates } from './updates.js';
 import { attach as attachEvents } from './events.js';
 
 const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
@@ -42,6 +43,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, 
   attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
   attachReturnBreakdownPreferences,
   attachInstrumentColors, attachAlphaVantageSetup, attachExtensions, attachAportaciones,
+  attachUpdates,
 ].forEach((attach) => attach(ctx));
 
 await ctx.loadExtensions();

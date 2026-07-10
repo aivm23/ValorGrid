@@ -816,3 +816,196 @@ test('operations.js Operativa cards handle edge cases without NaN or Infinity', 
     assert.ok(!tpl.includes('undefined'), 'no undefined in template literals');
   }
 });
+
+// ── 17) Market data provider availability indicator ──
+
+test('index.html includes market provider status indicator next to price-status', () => {
+  const html = read('apps/web/index.html');
+  assert.ok(html.includes('id="market-provider-status"'), 'index.html contains #market-provider-status element');
+  assert.ok(html.includes('class="provider-status'), 'indicator uses provider-status class');
+  assert.ok(html.includes('tabindex="0"'), 'indicator is focusable via tabindex');
+  assert.ok(html.includes('role="img"'), 'indicator has role img for accessibility');
+
+  const priceStatusPos = html.indexOf('id="price-status"');
+  const providerStatusPos = html.indexOf('id="market-provider-status"');
+  assert.ok(priceStatusPos > -1 && providerStatusPos > -1, 'both elements exist');
+  assert.ok(providerStatusPos > priceStatusPos, 'indicator is placed after price-status');
+});
+
+test('index.html wraps provider status indicator with custom tooltip matching metric-info pattern', () => {
+  const html = read('apps/web/index.html');
+  assert.ok(html.includes('class="provider-status-wrap"'), 'indicator is wrapped in provider-status-wrap container');
+  assert.ok(html.includes('id="market-provider-status-tooltip"'), 'custom tooltip element exists');
+  assert.ok(html.includes('class="provider-status-tooltip"'), 'tooltip uses provider-status-tooltip class');
+  assert.ok(html.includes('role="tooltip"'), 'tooltip has role tooltip for accessibility');
+  assert.ok(html.includes('class="sr-only"'), 'sr-only span provides screen reader text');
+  assert.ok(!html.includes('title="Yahoo Finance'), 'native title attribute is not used for the tooltip text');
+});
+
+test('dashboard.js loads /api/market-data/sources and stores it in state', () => {
+  const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  assert.ok(dashboard.includes("ctx.fetchJson('/api/market-data/sources')"), 'dashboard fetches market-data sources');
+  assert.ok(dashboard.includes('state.marketDataSources'), 'dashboard stores marketDataSources in state');
+});
+
+test('dashboard.js exposes renderMarketProviderStatus and computeProviderStatus', () => {
+  const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  assert.ok(dashboard.includes('function renderMarketProviderStatus'), 'dashboard defines renderMarketProviderStatus');
+  assert.ok(dashboard.includes('function computeProviderStatus'), 'dashboard defines computeProviderStatus');
+  assert.ok(dashboard.includes('renderMarketProviderStatus'), 'dashboard exports renderMarketProviderStatus');
+  assert.ok(dashboard.includes('provider-status-${level}'), 'dashboard builds provider-status class from level');
+  assert.ok(dashboard.includes('marketProviderStatusTooltip'), 'dashboard updates custom tooltip element');
+  assert.ok(dashboard.includes('--provider-status-accent'), 'dashboard sets accent color via CSS variable');
+});
+
+test('dashboard.js computeProviderStatus tooltip includes provider names', () => {
+  const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  assert.ok(dashboard.includes('Yahoo Finance'), 'tooltip mentions Yahoo Finance');
+  assert.ok(dashboard.includes('Alpha Vantage'), 'tooltip mentions Alpha Vantage');
+  assert.ok(dashboard.includes('no configurado'), 'tooltip handles unconfigured Alpha Vantage');
+  assert.ok(dashboard.includes('incidencias registradas'), 'tooltip handles both providers down');
+});
+
+test('dom.js registers marketProviderStatus and tooltip elements', () => {
+  const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
+  assert.ok(dom.includes("document.querySelector('#market-provider-status')"), 'dom.js registers marketProviderStatus');
+  assert.ok(dom.includes("document.querySelector('#market-provider-status-tooltip')"), 'dom.js registers marketProviderStatusTooltip');
+});
+
+test('styles.css defines provider status indicator classes and custom tooltip', () => {
+  const css = read(path.join('apps', 'web', 'src', 'styles.css'));
+  assert.ok(css.includes('.provider-status'), 'CSS defines .provider-status base class');
+  assert.ok(css.includes('.provider-status-ok'), 'CSS defines provider-status-ok');
+  assert.ok(css.includes('.provider-status-warn'), 'CSS defines provider-status-warn');
+  assert.ok(css.includes('.provider-status-error'), 'CSS defines provider-status-error');
+  assert.ok(css.includes('border-radius: 50%'), 'indicator is circular');
+  assert.ok(css.includes('.provider-status-wrap'), 'CSS defines wrapper with position relative');
+  assert.ok(css.includes('.provider-status-tooltip'), 'CSS defines custom tooltip class');
+  assert.ok(css.includes('--provider-status-accent'), 'tooltip accent color uses CSS variable');
+  assert.ok(css.includes('border-left: 3px solid'), 'tooltip has left accent border like metric-info-tooltip');
+  assert.ok(css.includes('box-shadow: var(--shadow-sm)'), 'tooltip uses same shadow as metric-info-tooltip');
+  assert.ok(css.includes('background: var(--card)'), 'tooltip uses card background');
+  assert.ok(css.includes('opacity: 0'), 'tooltip starts hidden');
+  assert.ok(css.includes(':focus-within .provider-status-tooltip'), 'tooltip shows on keyboard focus');
+});
+
+test('computeProviderStatus helper returns correct level for each provider state combination', async () => {
+  const { computeProviderStatus } = await import(pathToFileURL(path.join(root, 'apps', 'web', 'src', 'dashboard.js')).href);
+
+  const providers = [
+    { key: 'yahoo', label: 'Yahoo Finance', enabled: true, primary: true },
+    { key: 'alpha_vantage', label: 'Alpha Vantage', enabled: false, primary: false },
+  ];
+
+  // No known errors -> ok
+  assert.equal(computeProviderStatus({ providers, states: [] }).level, 'ok');
+
+  // No data at all -> ok
+  assert.equal(computeProviderStatus(null).level, 'ok');
+
+  // Only Yahoo error -> warn
+  const yahooError = computeProviderStatus({
+    providers,
+    states: [{ provider: 'yahoo', status: 'error', reason: 'timeout' }],
+  });
+  assert.equal(yahooError.level, 'warn');
+  assert.ok(yahooError.tooltip.includes('Yahoo Finance'), 'warn tooltip mentions Yahoo Finance');
+
+  // Only Alpha error (but Alpha not configured) -> ok (does not degrade)
+  const alphaErrorUnconfigured = computeProviderStatus({
+    providers,
+    states: [{ provider: 'alpha_vantage', status: 'error', reason: 'rate limit' }],
+  });
+  assert.equal(alphaErrorUnconfigured.level, 'ok');
+
+  // Only Alpha error (Alpha configured) -> warn
+  const alphaConfiguredProviders = [
+    { key: 'yahoo', label: 'Yahoo Finance', enabled: true, primary: true },
+    { key: 'alpha_vantage', label: 'Alpha Vantage', enabled: true, primary: false },
+  ];
+  const alphaError = computeProviderStatus({
+    providers: alphaConfiguredProviders,
+    states: [{ provider: 'alpha_vantage', status: 'error', reason: 'rate limit' }],
+  });
+  assert.equal(alphaError.level, 'warn');
+  assert.ok(alphaError.tooltip.includes('Alpha Vantage'), 'warn tooltip mentions Alpha Vantage');
+
+  // Both error -> error
+  const bothError = computeProviderStatus({
+    providers: alphaConfiguredProviders,
+    states: [
+      { provider: 'yahoo', status: 'error', reason: 'down' },
+      { provider: 'alpha_vantage', status: 'error', reason: 'rate limit' },
+    ],
+  });
+  assert.equal(bothError.level, 'error');
+  assert.ok(bothError.tooltip.includes('incidencias registradas'), 'error tooltip mentions both providers down');
+
+  // Alpha unconfigured, no errors -> ok with "no configurado" tooltip
+  const okUnconfigured = computeProviderStatus({ providers, states: [] });
+  assert.equal(okUnconfigured.level, 'ok');
+  assert.ok(okUnconfigured.tooltip.includes('no configurado'), 'ok tooltip says Alpha Vantage is no configurado');
+});
+
+test('administration dialog contains an update card wired to the update service', () => {
+  const html = read('apps/web/index.html');
+  const dom = read('apps/web/src/dom.js');
+  const events = read('apps/web/src/events.js');
+  const app = read('apps/web/src/app.js');
+  const updates = read('apps/web/src/updates.js');
+
+  assert.ok(html.includes('admin-card--update'), 'admin dialog contains an update card');
+  assert.ok(html.includes('id="update-check"'), 'update card has a check button');
+  assert.ok(html.includes('id="update-download"'), 'update card has a download button');
+  assert.ok(html.includes('id="update-docker-commands"'), 'update card has docker commands button');
+  assert.ok(html.includes('id="update-release-notes"'), 'update card links to release notes');
+  assert.ok(html.includes('id="update-current-version"'), 'update card shows current version');
+  assert.ok(html.includes('id="update-latest-version"'), 'update card shows latest version');
+  assert.ok(html.includes('id="update-db-status"'), 'update card shows DB status');
+  assert.ok(dom.includes('updateCheck'), 'dom module exposes update check button');
+  assert.ok(dom.includes('updateDownload'), 'dom module exposes update download button');
+  assert.ok(dom.includes('updateDockerCommands'), 'dom module exposes docker commands button');
+  assert.ok(dom.includes('proRequestLink'), 'dom module exposes Pro request link');
+  assert.ok(app.includes("from './updates.js'"), 'app imports the updates module');
+  assert.ok(app.includes('attachUpdates'), 'app attaches the updates module');
+  assert.ok(events.includes('loadUpdateStatus'), 'admin dialog triggers update status on open');
+  assert.ok(updates.includes('fetchJson'), 'updates module fetches update status from the API');
+  assert.ok(updates.includes('/api/update/status'), 'updates module calls the update status endpoint');
+});
+
+test('Solicitar Professional Edition button links to valorgrid.app/pro', () => {
+  const html = read('apps/web/index.html');
+
+  assert.ok(html.includes('id="pro-request-link"'), 'admin dialog contains a Pro request link');
+  assert.ok(
+    html.includes('href="https://valorgrid.app/pro/"'),
+    'Pro request link points to https://valorgrid.app/pro/',
+  );
+  assert.ok(
+    html.includes('target="_blank" rel="noopener"'),
+    'Pro request link opens in a new tab safely',
+  );
+  assert.ok(html.includes('data-i18n="pro.request"'), 'Pro request button uses i18n key');
+});
+
+test('update and Pro request i18n keys exist in both ES and EN catalogs', () => {
+  const catalog = read('apps/web/src/i18n-catalog-ui.js');
+
+  for (const key of [
+    'updates.title',
+    'updates.currentVersion',
+    'updates.latestVersion',
+    'updates.check',
+    'updates.download',
+    'updates.dockerCommands',
+    'updates.dbStatus',
+    'updates.openRelease',
+    'updates.available',
+    'updates.error',
+    'updates.downloadHint',
+    'pro.request',
+    'pro.requestDescription',
+  ]) {
+    assert.ok(catalog.includes(`'${key}'`), `${key} must exist in the i18n catalog`);
+  }
+});

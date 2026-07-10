@@ -190,6 +190,11 @@
                   <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
                 </svg>
               </button>
+              <span class="provider-status-wrap">
+                <span id="market-provider-status" class="provider-status provider-status-ok" role="img" aria-label="Estado de proveedores de precios" tabindex="0"></span>
+                <span id="market-provider-status-sr" class="sr-only">Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.</span>
+                <div id="market-provider-status-tooltip" class="provider-status-tooltip" role="tooltip" aria-hidden="true">Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.</div>
+              </span>
             </div>
           </div>
 
@@ -1016,6 +1021,62 @@
             </div>
             <p class="subtle">Revierte lotes importados si necesitas corregirlos.</p>
             <div id="import-batches" class="import-batches"></div>
+          </section>
+
+          <section class="admin-card admin-card--update">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v5m0 0l2.5-2.5M8 7L5.5 4.5M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="2" r="1" fill="currentColor"/></svg>
+              </span>
+              <h3 data-i18n="updates.title">Actualización</h3>
+            </div>
+            <div id="update-status" class="update-status">
+              <div class="update-status-row">
+                <span class="update-status-label" data-i18n="updates.currentVersion">Versión actual</span>
+                <span id="update-current-version" class="update-status-value">—</span>
+              </div>
+              <div class="update-status-row">
+                <span class="update-status-label" data-i18n="updates.latestVersion">Última versión</span>
+                <span id="update-latest-version" class="update-status-value">—</span>
+              </div>
+              <div class="update-status-row">
+                <span class="update-status-label" data-i18n="updates.dbStatus">Estado DB</span>
+                <span id="update-db-status" class="update-status-value">—</span>
+              </div>
+              <div class="update-status-row">
+                <span class="update-status-label" data-i18n="updates.lastCheck">Último check</span>
+                <span id="update-last-check" class="update-status-value">—</span>
+              </div>
+            </div>
+            <div id="update-notice" class="update-notice" hidden></div>
+            <div class="update-actions">
+              <button id="update-check" class="button button-compact admin-action-btn" type="button">
+                <span data-i18n="updates.check">Buscar actualizaciones</span>
+              </button>
+              <button id="update-download" class="button button-compact admin-action-btn" type="button" hidden>
+                <span data-i18n="updates.download">Descargar actualización</span>
+              </button>
+              <button id="update-docker-commands" class="button button-compact admin-action-btn" type="button" hidden>
+                <span data-i18n="updates.dockerCommands">Copiar comandos Docker</span>
+              </button>
+              <a id="update-release-notes" class="button button-compact admin-action-btn" href="#" target="_blank" rel="noopener" hidden>
+                <span data-i18n="updates.openRelease">Ver notas de release</span>
+              </a>
+            </div>
+            <div id="update-docker-output" class="update-docker-output" hidden></div>
+          </section>
+
+          <section class="admin-card admin-card--pro-request">
+            <div class="admin-card-head">
+              <span class="admin-card-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
+              <h3>Professional Edition</h3>
+            </div>
+            <p class="subtle" data-i18n="pro.requestDescription">Conectores de broker, importación automática y soporte prioritario.</p>
+            <a id="pro-request-link" class="button button-compact admin-action-btn" href="https://valorgrid.app/pro/" target="_blank" rel="noopener">
+              <span data-i18n="pro.request">Solicitar Professional Edition</span>
+            </a>
           </section>
         </div>
 
