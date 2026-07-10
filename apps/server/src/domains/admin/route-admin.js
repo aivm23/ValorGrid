@@ -21,6 +21,8 @@ sendJson,
     createBackup,
     resolveBackupPath,
     deleteBackupFile,
+    getUpdateStatus,
+    getDockerCommands,
   } = resolveRouteHandlers(ctx);
 
   const { appInfo, dbPath } = ctx.config || ctx;
@@ -34,6 +36,22 @@ sendJson,
 
   if (url.pathname === '/api/health' && request.method === 'GET') {
     sendJson(response, 200, buildHealth());
+    return true;
+  }
+
+  if (url.pathname === '/api/update/status' && request.method === 'GET') {
+    try {
+      const status = await getUpdateStatus();
+      sendJson(response, 200, status);
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
+  if (url.pathname === '/api/update/docker-commands' && request.method === 'GET') {
+    const version = url.searchParams.get('version') || undefined;
+    sendJson(response, 200, { commands: getDockerCommands(version) });
     return true;
   }
 

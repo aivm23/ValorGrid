@@ -1,5 +1,4 @@
-const { assertCtxDeps } = require('./platform/ctx-utils');
-
+const { assertCtxDeps } = require('./platform/ctx-utils'), { CURRENT_SCHEMA_VERSION } = require('./platform/db-migrations');
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'metaKeys', 'defaultInstruments', 'defaultAutoPlans'], 'schema');
 
@@ -420,6 +419,7 @@ module.exports = function attach(ctx) {
   `);
   ensureMetaKey(metaKeys.ledgerVersion, 1);
   ensureMetaKey(metaKeys.priceVersion, 1);
+  ensureMetaKey('schema_version', CURRENT_SCHEMA_VERSION);
 
   const instrumentInsert = db.prepare(`
     INSERT OR IGNORE INTO instruments

@@ -131,6 +131,8 @@ listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources'
     resolveBackupPath: pickServiceFn(adminServices, 'resolveBackupPath', ctx.resolveBackupPath),
     createRiskBackup: pickServiceFn(adminServices, 'createRiskBackup', ctx.createRiskBackup),
     deleteBackupFile: pickServiceFn(adminServices, 'deleteBackupFile', ctx.deleteBackupFile),
+    getUpdateStatus: pickServiceFn(adminServices, 'getUpdateStatus', ctx.getUpdateStatus),
+    getDockerCommands: pickServiceFn(adminServices, 'getDockerCommands', ctx.getDockerCommands),
   };
 }
 

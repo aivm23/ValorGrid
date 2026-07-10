@@ -189,6 +189,7 @@ Object.assign(ctx, {
 
 const modules = [
   './schema',
+  './platform/db-migrations',
   './schema-seed',
   './domains/meta/meta-repository',
   './domains/meta/meta-state',
@@ -220,6 +221,7 @@ const modules = [
   './domains/history/history-service',
   './domains/admin/diagnostics-repository',
   './domains/admin/diagnostics-service',
+  './domains/admin/update-service',
   './platform/extensions-runtime',
   './routes',
   './platform/http',
@@ -236,6 +238,7 @@ for (const modulePath of modules) {
 
 bindGroupedCtxNamespaces(ctx);
 
+ctx.runMigrations();
 ctx.initDatabase();
 
 module.exports = {
