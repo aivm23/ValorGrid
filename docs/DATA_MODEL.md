@@ -468,6 +468,10 @@ La clave `instr_groups_enabled` controla si los grupos de instrumentos están ac
 
 Claves adicionales de `app_meta`:
 
+- `schema_version`: versión de schema de la DB. Fresh install la inserta `schema.js` con `CURRENT_SCHEMA_VERSION`. El migrador (`platform/db-migrations.js`) la lee/infiere y la actualiza tras aplicar migraciones.
+- `last_migration_at`: timestamp ISO de la última migración automática aplicada.
+- `last_migration_from`: versión de schema origen de la última migración.
+- `last_migration_to`: versión de schema destino de la última migración.
 - `brand_palette_enabled`: controla la paleta corporativa automática. Valor `'1'` activada, `'0'` desactivada (default). No modifica datos financieros.
 - `brand_palette_previous_colors`: snapshot JSON de colores de grupos e instrumentos antes de activar la paleta. Se usa para restaurar colores al desactivarla. Contiene `createdAt`, `version`, `groups` (mapa de id->color) e `instruments` (mapa de symbol->color).
 

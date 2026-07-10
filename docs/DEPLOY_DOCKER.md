@@ -86,6 +86,8 @@ Para Docker personal (local, scripts personales) puedes usar `latest` sin proble
 
 ## Upgrade y rollback en CasaOS
 
+> **Docker/CasaOS/Umbrel se actualiza desde fuera del contenedor.** ValorGrid no monta el Docker socket ni muta el contenedor desde dentro. La sección **Administración → Actualización** de la app muestra los comandos y el checklist, pero la actualización se ejecuta desde el host.
+
 Checklist de upgrade:
 
 1. Ejecutar backup antes de actualizar:
@@ -95,6 +97,18 @@ Checklist de upgrade:
 3. Comprobar que `deploy/docker/compose.casaos.yml` tiene `x-casaos.version` y el tag de `image` sincronizados con `package.json`.
 4. Comprobar salud en `/api/health`.
 5. Revisar que los datos siguen presentes.
+
+Comandos Docker equivalentes (mostrados también desde la app en **Administración → Actualización → Copiar comandos Docker**):
+
+```bash
+docker pull ghcr.io/aivm23/valorgrid:vX.Y.Z
+docker compose pull
+docker compose up -d
+```
+
+### Migraciones automáticas en Docker
+
+Por defecto, la migración automática de schema está deshabilitada en Docker para evitar mutar la DB sin control operatorio. La sección **Actualización** muestra las migraciones pendientes y los comandos para ejecutarlas manualmente con `scripts/run-sql-migration.js`. Para habilitar la migración automática al arrancar, definir `VALORGRID_AUTO_MIGRATE=1` en el entorno del contenedor. Ver [DB_OPERATIONS.md](DB_OPERATIONS.md) para más detalle.
 
 Rollback:
 

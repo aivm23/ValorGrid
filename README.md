@@ -60,6 +60,14 @@ No deben subirse a GitHub: `.env`, `data/*.sqlite`, `.backups/`, hojas Excel per
 
 Más detalle: [docs/PRIVACY_SECURITY.md](docs/PRIVACY_SECURITY.md).
 
+## Actualización
+
+La sección **Administración → Actualización** detecta la última release estable y guía la descarga del instalador correcto (desktop) o muestra los comandos Docker (server). La app no hace silent update; tú controlas cuándo instalar. Ver [docs/FIRST_STEPS.md](docs/FIRST_STEPS.md) y [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md).
+
+## Professional Edition
+
+ValorGrid Community cubre gestión local de cartera con plantilla Excel. Si necesitas conectores de broker, importación automática o soporte prioritario: [valorgrid.app/pro/](https://valorgrid.app/pro/) o pulsa **Solicitar Professional Edition** en Administración. Ver [docs/EDITIONS.md](docs/EDITIONS.md).
+
 ## Capturas
 
 | Dashboard                                           | Movimientos                                             | Histórico                                           |

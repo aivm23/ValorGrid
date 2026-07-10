@@ -18,6 +18,8 @@ GET /api/extensions
 GET /api/health
 GET /api/state
 GET /api/diagnostics/performance
+GET /api/update/status
+GET /api/update/docker-commands
 ```
 
 - `GET /api/version`: devuelve la versión definida en `package.json` y la edición (`community` o `professional`).
@@ -25,6 +27,8 @@ GET /api/diagnostics/performance
 - `GET /api/health`: devuelve estado local, ruta de base de datos activa, versiones internas y último build histórico.
 - `GET /api/state`: devuelve el estado completo de la aplicación: instrumentos, grupos, movimientos, planes automáticos y ruta de base de datos activa.
 - `GET /api/diagnostics/performance`: devuelve métricas de rendimiento, tamaños de caché e invalidaciones pendientes.
+- `GET /api/update/status`: consulta la última release estable en GitHub Releases y la compara con la versión actual. Devuelve `currentVersion`, `latestVersion`, `updateAvailable`, `runtimeMode` (`desktop`, `docker` o `server`), `releaseUrl`, `recommendedAsset` (solo desktop, con `name` y `downloadUrl`), `dockerImage` (tag GHCR esperado) y `checkedAt`. Si GitHub no responde, devuelve `updateAvailable: false` y `error` sin interrumpir la app.
+- `GET /api/update/docker-commands?version=X.Y.Z`: devuelve los comandos Docker de actualización (`docker pull`, `docker compose pull`, `docker compose up -d`) para la versión indicada.
 
 ## Preferencias de interfaz
 
@@ -216,7 +220,10 @@ Si el instrumento tiene fuentes configuradas, se consultan por prioridad. Yahoo 
 
 Si el proveedor no responde y existe un precio local anterior, la respuesta puede ser `200` con `stale: true`, `dataQuality: "stale"`, `fallbackReason` y `priceAgeDays`. Si no hay dato local, devuelve un error accionable.
 
-`GET /api/market-data/sources` lista proveedores disponibles y su estado local.
+`GET /api/market-data/sources` lista proveedores disponibles y su estado local. La respuesta incluye:
+
+- `providers`: array con `key`, `label`, `enabled` y `primary` de cada proveedor (yahoo, alpha_vantage, manual).
+- `states`: array con el último estado operativo registrado de cada proveedor (`provider`, `status` — `ok` o `error` —, `reason`, `retry_after`, `updated_at`). Los estados se actualizan cuando la app consulta precios; no se hacen llamadas extra a los proveedores para calcularlos.
 
 ### Alpha Vantage (commodities)
 

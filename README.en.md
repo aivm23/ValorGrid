@@ -50,6 +50,14 @@ Umbrel uses a separate package. See [docs/en/DEPLOY_UMBREL.md](docs/en/DEPLOY_UM
 
 Never publish `.env`, `data/*.sqlite`, `.backups/`, personal Excel files, credentials or tokens.
 
+## Updates
+
+The **Administration → Update** section detects the latest stable release and guides you to the correct installer (desktop) or shows Docker commands (server). The app does not do silent updates; you control when to install. See [docs/FIRST_STEPS.md](docs/FIRST_STEPS.md) and [docs/GITHUB_RELEASE.md](docs/GITHUB_RELEASE.md).
+
+## Professional Edition
+
+ValorGrid Community covers local portfolio management with the Excel template. If you need broker connectors, automatic import or priority support: [valorgrid.app/pro/](https://valorgrid.app/pro/) or press **Request Professional Edition** in Administration. See [docs/EDITIONS.md](docs/EDITIONS.md).
+
 ## Screenshots
 
 | Dashboard                                           | Movements                                             | History                                           |

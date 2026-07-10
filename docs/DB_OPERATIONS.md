@@ -93,6 +93,7 @@ Hay dos versiones del script, una para cada entorno:
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.20.0-to-3.21.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.26.1-to-3.27.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.28.12-to-3.28.13.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.29.0-to-3.30.0.sql
 ```
 
 **Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
@@ -105,6 +106,7 @@ node scripts/run-sql-migration.js --sql deploy/sql/update-3.17.0-to-3.18.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.20.0-to-3.21.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.26.1-to-3.27.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.28.12-to-3.28.13.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.29.0-to-3.30.0.sql
 
 # Docker (ejecutar dentro del contenedor)
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
@@ -113,6 +115,7 @@ docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/upd
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.20.0-to-3.21.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.26.1-to-3.27.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.28.12-to-3.28.13.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.29.0-to-3.30.0.sql
 
 # Con opciones explícitas
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
@@ -157,6 +160,38 @@ node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.28.12-to-3.28.1
 5. Ejecutar `npm run db:doctor` para verificar salud.
 
 Cualquiera de los dos scripts (PowerShell o Node.js) reemplaza los pasos 2, 3 y 5: incluye backup automático, ejecución SQL y verificación de integridad (PRAGMA foreign_key_check + integrity_check).
+
+## Migraciones automáticas (`schema_version`)
+
+A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones automáticas en `apps/server/src/platform/db-migrations.js`.
+
+### `schema_version`
+
+- La meta key `schema_version` en `app_meta` registra la versión de schema de la DB.
+- Fresh install: `schema.js` inserta `schema_version` con `CURRENT_SCHEMA_VERSION` (definida en `db-migrations.js`).
+- DBs existentes sin `schema_version`: el migrador infiere la versión por columnas/tablas conocidas (p. ej. `cash_balance` en `instruments` → `3.29.0`). Si no puede inferir, bloquea el arranque con un error claro y no aplica migraciones.
+- Tras migrar, registra también `last_migration_at`, `last_migration_from` y `last_migration_to` en `app_meta`.
+
+### Orden de arranque
+
+1. Abrir DB.
+2. Cargar módulos (incluyendo `db-migrations`).
+3. `ctx.runMigrations()`: si la DB está vacía (sin `app_meta`), no migra. Si tiene tablas, lee/infiere `schema_version`, aplica SQL pendientes en orden, crea backup previo y verifica integridad.
+4. `ctx.initDatabase()`: crea schema fresh idempotente.
+
+### Comportamiento por runtime
+
+- **Desktop (Windows/Linux/macOS)**: migración automática al arrancar una versión nueva, siempre con backup previo.
+- **Docker/CasaOS/Umbrel**: por defecto la migración automática está deshabilitada. El endpoint `/api/update/status` muestra las migraciones pendientes y los comandos a ejecutar. Para habilitarla, definir `VALORGRID_AUTO_MIGRATE=1`.
+
+### Stop rule
+
+- Si una migración falla, no se continúa con el arranque normal.
+- El error incluye: ruta del backup creado, versión origen/destino y ruta de la DB.
+
+### SQL versionados
+
+Los archivos SQL viven en `deploy/sql/` con el patrón `update-X-to-Y.sql`. El migrador los aplica en orden ascendente según `from`. El registro de migraciones está en `MIGRATIONS` dentro de `db-migrations.js`.
 
 ## Dataset demo/loadtest
 

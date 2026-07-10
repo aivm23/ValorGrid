@@ -168,40 +168,42 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 **Cargados en bucle `for...of` (orden secuencial):**
 
 1. `schema`: creación fresh idempotente de tablas.
-2. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
-3. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
-4. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-5. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; Operativa e Histórico configurables se registran desde extensiones profesionales privadas.
-6. `platform/i18n`: traducción server-side de errores visibles según `Accept-Language`.
-7. `platform/utils`: helpers compartidos (formato, validación, fechas).
-8. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
-9. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
-10. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
-11. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
-12. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
-13. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
-14. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales, FX y eventos de dividendos. Carga internamente `market-data-providers`, `market-data-admin` y `market-data-dividends`.
-15. `domains/market-data/route-market-data-alpha-vantage`: ruta HTTP para status, guardado y borrado de claves Alpha Vantage. Se carga en el bucle principal (no vía `routes.js`) y se invoca desde `routes.js` a través de `ctx.handleAlphaVantageKeyRoutes`.
-16. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-17. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
-18. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-19. `domains/dividends/dividend-repository`: SQL de eventos de dividendos, settings por instrumento, scans y confirmación atómica en ledger.
-20. `domains/dividends/dividend-service`: detección desde Yahoo Finance, borradores, edición, confirmación y auto-inclusión.
-21. `domains/liquidity/liquidity-repository`: SQL de cuentas de liquidez técnica (`cash`) y grupo Liquidez.
-22. `domains/liquidity/liquidity-service`: CRUD de liquidez actual sin movimientos ni histórico.
-23. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-24. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
-25. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-26. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-27. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-28. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-29. `domains/history/history-core`: motor de materialización de histórico.
-30. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-31. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-32. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-33. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
-34. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-35. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+2. `platform/db-migrations`: sistema de migraciones automáticas con backup previo, inferencia de `schema_version` y verificación de integridad. Se ejecuta antes de `initDatabase()` al arrancar.
+3. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
+4. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
+5. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
+6. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; Operativa e Histórico configurables se registran desde extensiones profesionales privadas.
+7. `platform/i18n`: traducción server-side de errores visibles según `Accept-Language`.
+8. `platform/utils`: helpers compartidos (formato, validación, fechas).
+9. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
+10. `domains/portfolio/portfolio-repository`: lecturas SQL de onboarding y lookup de instrumentos.
+11. `domains/ticker-suggestions/ticker-suggestions-repository`: lookup SQL de sugerencias de ticker por ISIN histórico.
+12. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
+13. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
+14. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
+15. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales, FX y eventos de dividendos. Carga internamente `market-data-providers`, `market-data-admin` y `market-data-dividends`.
+16. `domains/market-data/route-market-data-alpha-vantage`: ruta HTTP para status, guardado y borrado de claves Alpha Vantage. Se carga en el bucle principal (no vía `routes.js`) y se invoca desde `routes.js` a través de `ctx.handleAlphaVantageKeyRoutes`.
+17. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+18. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
+19. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+20. `domains/dividends/dividend-repository`: SQL de eventos de dividendos, settings por instrumento, scans y confirmación atómica en ledger.
+21. `domains/dividends/dividend-service`: detección desde Yahoo Finance, borradores, edición, confirmación y auto-inclusión.
+22. `domains/liquidity/liquidity-repository`: SQL de cuentas de liquidez técnica (`cash`) y grupo Liquidez.
+23. `domains/liquidity/liquidity-service`: CRUD de liquidez actual sin movimientos ni histórico.
+24. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+25. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+26. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+27. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+28. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+29. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+30. `domains/history/history-core`: motor de materialización de histórico.
+31. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+32. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+33. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+34. `domains/admin/update-service`: consulta de última release estable en GitHub Releases, comparación semver, detección de runtime y selección de asset de escritorio. Registra `ctx.services.admin.getUpdateStatus` y `ctx.services.admin.getDockerCommands`.
+35. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
+36. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+37. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 
@@ -311,6 +313,8 @@ Módulos principales:
 - `forms.js`: helpers de formularios.
 - `transaction-entry-modes.js`: visibilidad y copy de tabs del modal de compra/venta.
 - `alpha-vantage-setup.js`: diálogo de configuración de clave API de Alpha Vantage (input, validación y persistencia via `/api/market-data/alpha-vantage/key`).
+- `aportaciones.js`: planes de aportación automática.
+- `updates.js`: tarjeta de actualización en Administración. Consulta `/api/update/status`, muestra versión actual/última, estado de DB, y expone descarga de instalador (desktop) o comandos Docker (server/docker).
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
 - `app.js`: orquestador del frontend que crea `ctx`, registra módulos en orden fijo con `attach(ctx)` e inicializa idioma, tema, privacidad y render inicial.

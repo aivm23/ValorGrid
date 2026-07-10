@@ -56,6 +56,21 @@ En desarrollo local también puedes usar:
 npm run db:backup
 ```
 
+## 7. Actualiza ValorGrid
+
+La sección **Administración → Actualización** detecta la última release estable publicada en GitHub Releases y la compara con tu versión actual.
+
+- **Escritorio**: si hay una versión nueva, pulsa **Descargar actualización** para abrir el instalador correcto de tu plataforma en el navegador. Cierra ValorGrid antes de ejecutar el instalador. Si hay migraciones pendientes, crea un backup primero desde **Backups**.
+- **Docker/CasaOS/Umbrel**: la app muestra los comandos Docker de actualización y un enlace a las notas de release. La actualización se ejecuta desde el host, no desde dentro del contenedor.
+
+La app no hace silent update ni reemplazo en caliente; tú controlas cuándo instalar.
+
+Guía completa de release y upgrade: [GITHUB_RELEASE.md](GITHUB_RELEASE.md).
+
+## Solicitar Professional Edition
+
+Si necesitas conectores de broker, importación automática o soporte prioritario, pulsa **Solicitar Professional Edition** en **Administración** para abrir `https://valorgrid.app/pro/`.
+
 ## Que No Hace ValorGrid
 
 ValorGrid no recomienda compras, ventas ni carteras. No sustituye a tu broker, asesor financiero ni asesor fiscal.

@@ -120,7 +120,33 @@ npm run db:backup
 
 En escritorio, descargar el nuevo instalador desde GitHub Releases y ejecutarlo. La instalación conserva los datos locales de usuario; la DB de escritorio vive fuera del directorio instalado.
 
-En Docker/CasaOS, comprobar que `deploy/docker/compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z` (tag versionado, nunca `latest`), que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
+### Actualización desde la app (desktop)
+
+A partir de la versión 3.30.0, la sección **Administración → Actualización** detecta automáticamente la última release estable publicada en GitHub Releases:
+
+1. Al abrir **Administración**, se consulta `/api/update/status` (cacheado 1 hora).
+2. La app compara la versión actual con la última release mediante semver.
+3. Si hay actualización, muestra el botón **Descargar actualización** que abre el asset correcto en el navegador externo:
+   - Windows: `ValorGrid-Setup-X.Y.Z-x64.exe`
+   - Linux: `ValorGrid-Linux-X.Y.Z-x64.AppImage` (o `.deb` como alternativa)
+   - macOS Intel: `ValorGrid-macOS-X.Y.Z-x64.dmg`
+   - macOS Apple Silicon: `ValorGrid-macOS-X.Y.Z-arm64.dmg`
+4. Antes de ejecutar el instalador, cerrar ValorGrid. Si hay migraciones pendientes, crear un backup desde **Backups**.
+5. La app no hace silent update ni reemplazo en caliente; el usuario controla cuándo instalar.
+
+### Actualización en Docker/CasaOS/Umbrel
+
+La app no autoactualiza el contenedor desde dentro. La sección **Actualización** muestra los comandos Docker y enlaces a la documentación:
+
+```bash
+docker pull ghcr.io/aivm23/valorgrid:vX.Y.Z
+docker compose pull
+docker compose up -d
+```
+
+En CasaOS y Umbrel, actualizar desde el panel de la plataforma correspondiente.
+
+En Docker/CasaOS/Umbrel, comprobar que `deploy/docker/compose.casaos.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z` (tag versionado, nunca `latest`), que `x-casaos.version` coincide con `package.json`, arrancar y comprobar `/api/health`.
 
 En Umbrel, comprobar que `deploy/umbrel/official/valorgrid/docker-compose.yml` usa `ghcr.io/aivm23/valorgrid:vX.Y.Z@sha256:<digest-multiarch>` y que no declara `ports:` ni `build:`.
 
