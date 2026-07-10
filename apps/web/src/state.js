@@ -12,6 +12,7 @@ export function attach(ctx) {
   const assetColors = {};
   const state = {
     summary: null,
+    marketDataSources: null,
     onboarding: null,
     monthly: null,
     history: null,

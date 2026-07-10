@@ -1,3 +1,30 @@
+export function computeProviderStatus(marketDataSources) {
+  const providers = marketDataSources?.providers || [];
+  const states = marketDataSources?.states || [];
+  const yahooProvider = providers.find((p) => p.key === 'yahoo');
+  const alphaProvider = providers.find((p) => p.key === 'alpha_vantage');
+  const yahooState = states.find((s) => s.provider === 'yahoo');
+  const alphaState = states.find((s) => s.provider === 'alpha_vantage');
+
+  const yahooEnabled = yahooProvider?.enabled !== false;
+  const alphaConfigured = alphaProvider?.enabled === true;
+
+  const yahooDown = yahooEnabled && yahooState?.status === 'error';
+  const alphaDown = alphaConfigured && alphaState?.status === 'error';
+
+  if (yahooDown && alphaDown) {
+    return { level: 'error', tooltip: 'Yahoo Finance y Alpha Vantage tienen incidencias registradas.' };
+  }
+  if (yahooDown) {
+    return { level: 'warn', tooltip: `Proveedor con incidencia: Yahoo Finance - ${yahooState?.reason || 'motivo desconocido'}` };
+  }
+  if (alphaDown) {
+    return { level: 'warn', tooltip: `Proveedor con incidencia: Alpha Vantage - ${alphaState?.reason || 'motivo desconocido'}` };
+  }
+  const alphaLabel = alphaConfigured ? 'operativo o sin fallo registrado' : 'no configurado';
+  return { level: 'ok', tooltip: `Yahoo Finance: operativo. Alpha Vantage: ${alphaLabel}.` };
+}
+
 export function attach(ctx) {
   function setBootState(status, message = '') {
     const { elements } = ctx;
@@ -20,7 +47,7 @@ export function attach(ctx) {
     if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
-      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, liquidityData, backupData, importData] = await Promise.all([
+      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, liquidityData, backupData, importData, marketDataSources] = await Promise.all([
         ctx.fetchJson('/api/portfolio/summary'),
         ctx.fetchJson('/api/portfolio/monthly?year=2026'),
         ctx.fetchJson('/api/version'),
@@ -30,6 +57,7 @@ export function attach(ctx) {
         ctx.fetchJson('/api/liquidity'),
         ctx.fetchJson('/api/backups'),
         ctx.fetchJson('/api/import/batches'),
+        ctx.fetchJson('/api/market-data/sources'),
       ]);
       state.summary = summary;
       state.groupsEnabled = summary.groupsEnabled !== false;
@@ -44,6 +72,7 @@ export function attach(ctx) {
       state.liquidity = liquidityData || state.liquidity;
       state.backups = backupData.backups || [];
       state.importBatches = importData.batches || [];
+      state.marketDataSources = marketDataSources || null;
       state.autoPlans = summary.autoPlans || state.autoPlans;
 
       state.brandPaletteEnabled =
@@ -91,6 +120,7 @@ export function attach(ctx) {
       }
     }
     elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
+    renderMarketProviderStatus();
     ctx.renderSummary();
     ctx.renderMonthly();
     ctx.renderHistory();
@@ -106,6 +136,18 @@ export function attach(ctx) {
 
     ctx.syncProPreferencesPanel?.();
     ctx.syncBrandPaletteUi?.();
+  }
+
+  function renderMarketProviderStatus() {
+    const { elements, state } = ctx;
+    if (!elements.marketProviderStatus) return;
+    const { level, tooltip } = computeProviderStatus(state.marketDataSources);
+    elements.marketProviderStatus.className = `provider-status provider-status-${level}`;
+    elements.marketProviderStatus.setAttribute('aria-label', tooltip);
+    if (elements.marketProviderStatusTooltip) {
+      elements.marketProviderStatusTooltip.textContent = tooltip;
+      elements.marketProviderStatusTooltip.style.setProperty('--provider-status-accent', `var(--accent-${level === 'ok' ? 'green' : level === 'warn' ? 'amber' : 'negative'})`);
+    }
   }
 
   async function refreshHistory(options = {}) {
@@ -143,5 +185,5 @@ export function attach(ctx) {
     }
   }
 
-  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory, setBootState });
+  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory, setBootState, renderMarketProviderStatus });
 }

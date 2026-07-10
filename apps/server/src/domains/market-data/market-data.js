@@ -253,6 +253,7 @@ async function fetchDatedYahooPrice(yahooSymbol, requestedDate) {
   }
 
   upsertPriceQuote(yahooSymbol, requestedDate, quote);
+  upsertProviderState('yahoo', 'ok');
 
   return quote;
 }
@@ -261,6 +262,7 @@ async function fetchDatedYahooPriceWithFallback(yahooSymbol, requestedDate, opti
   try {
     return await fetchDatedYahooPrice(yahooSymbol, requestedDate);
   } catch (error) {
+    upsertProviderState('yahoo', 'error', error.message);
     if (!options.allowStale) throw error;
     const cached = getBestLocalQuote(yahooSymbol, requestedDate);
     if (cached) return cached;
@@ -272,8 +274,10 @@ async function fetchLatestYahooPriceWithFallback(yahooSymbol, options = {}) {
   try {
     const quote = await fetchLatestYahooPrice(yahooSymbol);
     upsertPriceQuote(yahooSymbol, getToday(), quote);
+    upsertProviderState('yahoo', 'ok');
     return quote;
   } catch (error) {
+    upsertProviderState('yahoo', 'error', error.message);
     if (!options.allowStale) throw error;
     const cached = getBestLocalQuote(yahooSymbol, getToday());
     if (cached) return cached;
@@ -325,6 +329,7 @@ async function getDailyPrices(yahooSymbol, fromDate, toDate) {
     const prices = parseDailyPrices(result);
     replaceDailyPricesRange(yahooSymbol, fromDate, toDate, prices);
     invalidatePrices(fromDate, 'daily-price-cache');
+    upsertProviderState('yahoo', 'ok');
   } catch (error) {
     const cachedRows = getDailyPricesInRange(yahooSymbol, fromDate, toDate);
     if (cachedRows.length) {

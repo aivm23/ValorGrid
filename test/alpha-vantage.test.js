@@ -7,7 +7,7 @@ delete process.env.VALORGRID_ALPHA_VANTAGE_API_KEY;
 delete process.env.ALPHA_VANTAGE_API_KEY;
 delete process.env.VALORGRID_ALPHA_VANTAGE_API_KEY_SOURCE;
 
-const { assert, jsonRequest, registerLifecycle } = require('./integration-helpers');
+const { assert, jsonRequest, registerLifecycle, seedTestInstrument } = require('./integration-helpers');
 
 registerLifecycle(test);
 
@@ -16,6 +16,7 @@ const {
   saveAlphaVantageKey,
   deleteAlphaVantageKey,
 } = require('../apps/server/src/platform/runtime-secrets');
+const { normalizeAlphaMessage } = require('../apps/server/src/domains/market-data/market-data-providers');
 
 function makeBackupDir() {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-secrets-'));
@@ -226,4 +227,91 @@ test('POST and DELETE keep env-managed Alpha Vantage keys immutable from the API
     delete process.env.VALORGRID_ALPHA_VANTAGE_API_KEY;
     delete process.env.VALORGRID_ALPHA_VANTAGE_API_KEY_SOURCE;
   }
+});
+
+test('GET /api/market-data/sources includes provider states when records exist', async () => {
+  seedTestInstrument({ symbol: 'MDSRC', yahooSymbol: 'MDSRC.DE', name: 'Market Data Source Test', type: 'stock' });
+  const { response: quoteResponse } = await jsonRequest('/api/quote?symbol=MDSRC');
+  assert.equal(quoteResponse.status, 200);
+
+  const { response, body } = await jsonRequest('/api/market-data/sources');
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.states), 'response includes states array');
+  const yahooState = body.states.find((s) => s.provider === 'yahoo');
+  assert.ok(yahooState, 'yahoo provider state is registered');
+  assert.equal(yahooState.status, 'ok');
+});
+
+test('successful Yahoo quote registers yahoo provider state as ok', async () => {
+  seedTestInstrument({ symbol: 'YAHOK', yahooSymbol: 'YAHOK.DE', name: 'Yahoo OK Test', type: 'stock' });
+  const { response } = await jsonRequest('/api/quote?symbol=YAHOK');
+  assert.equal(response.status, 200);
+
+  const { body } = await jsonRequest('/api/market-data/sources');
+  const yahooState = body.states.find((s) => s.provider === 'yahoo');
+  assert.ok(yahooState, 'yahoo state exists after successful quote');
+  assert.equal(yahooState.status, 'ok');
+  assert.ok(yahooState.updatedAt, 'yahoo state has updatedAt timestamp');
+});
+
+test('failed Yahoo quote registers yahoo provider state as error with reason', async () => {
+  seedTestInstrument({ symbol: 'YAHERR', yahooSymbol: 'YAHERR.DE', name: 'Yahoo Error Test', type: 'stock' });
+  const previousFetch = global.fetch;
+  global.fetch = async () => {
+    throw new Error('Yahoo Finance is down');
+  };
+
+  try {
+    await jsonRequest('/api/quote?symbol=YAHERR&date=2026-07-01');
+  } finally {
+    global.fetch = previousFetch;
+  }
+
+  const { body } = await jsonRequest('/api/market-data/sources');
+  const yahooState = body.states.find((s) => s.provider === 'yahoo');
+  assert.ok(yahooState, 'yahoo state exists after failed quote');
+  assert.equal(yahooState.status, 'error');
+  assert.ok(yahooState.reason, 'yahoo error state includes a reason');
+  assert.ok(yahooState.reason.includes('Yahoo Finance is down'), 'reason matches the error message');
+});
+
+test('normalizeAlphaMessage shortens the Alpha Vantage rate-limit promotional text', () => {
+  const rateLimitNote =
+    'Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-second burst limit, and instantly unlock all premium endpoints';
+  const normalized = normalizeAlphaMessage(rateLimitNote);
+  assert.ok(normalized.length < 80, 'normalized message is short');
+  assert.ok(normalized.includes('Límite de frecuencia'), 'normalized message identifies the rate limit');
+  assert.ok(!normalized.includes('Thank you'), 'normalized message drops the promotional text');
+  assert.ok(!normalized.includes('premium'), 'normalized message drops the premium upsell');
+});
+
+test('normalizeAlphaMessage identifies the daily quota limit', () => {
+  const dailyNote =
+    'Thank you for using Alpha Vantage! Our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly unlock all premium endpoints.';
+  const normalized = normalizeAlphaMessage(dailyNote);
+  assert.ok(normalized.includes('Límite diario'), 'normalized message identifies the daily limit');
+  assert.ok(!normalized.includes('premium'), 'normalized message drops the premium upsell');
+});
+
+test('normalizeAlphaMessage identifies invalid API key errors', () => {
+  const normalized = normalizeAlphaMessage('Invalid API key. Please subscribe to any of the premium plans.');
+  assert.ok(normalized.includes('no válida'), 'normalized message identifies the invalid key');
+});
+
+test('normalizeAlphaMessage truncates long generic messages', () => {
+  const long = 'A'.repeat(200);
+  const normalized = normalizeAlphaMessage(long);
+  assert.equal(normalized.length, 120, 'long generic messages are truncated to 120 chars');
+  assert.ok(normalized.endsWith('...'), 'truncated message ends with ellipsis');
+});
+
+test('normalizeAlphaMessage keeps short messages unchanged', () => {
+  const short = 'Alpha Vantage returned no data';
+  const normalized = normalizeAlphaMessage(short);
+  assert.equal(normalized, short, 'short messages are kept as-is');
+});
+
+test('normalizeAlphaMessage handles empty input', () => {
+  const normalized = normalizeAlphaMessage('');
+  assert.ok(normalized.includes('vacía'), 'empty input returns a descriptive message');
 });

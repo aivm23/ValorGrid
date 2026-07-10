@@ -153,6 +153,28 @@ function alphaSpotUrl(source) {
   return `https://www.alphavantage.co/query?${params.toString()}`;
 }
 
+function normalizeAlphaMessage(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return 'Alpha Vantage devolvió una respuesta vacía';
+  const lower = text.toLowerCase();
+  if (lower.includes('spreading out') || lower.includes('1 request per second') || lower.includes('per second burst')) {
+    return 'Límite de frecuencia de Alpha Vantage alcanzado (1 petición/segundo)';
+  }
+  if (lower.includes('25 requests per day') || lower.includes('free key rate limit')) {
+    return 'Límite diario de la clave gratuita de Alpha Vantage alcanzado (25 peticiones/día)';
+  }
+  if (lower.includes('thank you for using')) {
+    return 'Límite de frecuencia de Alpha Vantage alcanzado (1 petición/segundo)';
+  }
+  if (lower.includes('invalid api key') || lower.includes('apikey invalid') || lower.includes('invalid apikey')) {
+    return 'Clave de Alpha Vantage no válida';
+  }
+  if (text.length > 120) {
+    return `${text.slice(0, 117)}...`;
+  }
+  return text;
+}
+
 function parseAlphaDaily(payload, source, instrument) {
   const currency = source.metadata?.currency || instrument?.currency || 'USD';
   if (payload['Time Series (Daily)']) return parseSeries(payload['Time Series (Daily)'], currency);
@@ -163,7 +185,7 @@ function parseAlphaDaily(payload, source, instrument) {
       .filter((row) => row.date && Number.isFinite(row.price) && row.price > 0)
       .sort((a, b) => a.date.localeCompare(b.date));
   }
-  throw new Error(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage returned no data');
+  throw new Error(normalizeAlphaMessage(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage returned no data'));
 }
 
 function parseAlphaSpot(payload, source, instrument) {
@@ -176,7 +198,7 @@ function parseAlphaSpot(payload, source, instrument) {
       source: 'Alpha Vantage',
     };
   }
-  throw new Error(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage spot returned no data');
+  throw new Error(normalizeAlphaMessage(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage spot returned no data'));
 }
 
 function parseSeries(series, currency) {
@@ -197,6 +219,7 @@ module.exports = {
   alphaUrl,
   alphaSpotUrl,
   alphaSpotFunctionForSource,
+  normalizeAlphaMessage,
   parseAlphaDaily,
   parseAlphaSpot,
   makeResolvePriceSources,
