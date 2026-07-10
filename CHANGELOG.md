@@ -1,9 +1,22 @@
 # Changelog
 
+## 3.30.0
+
+- feat: add in-app update checker in Administration with GitHub Releases integration, semver comparison, runtime detection (desktop/docker/server) and recommended asset selection per platform/arch.
+- feat: add `GET /api/update/status` and `GET /api/update/docker-commands` endpoints for update status and Docker upgrade commands.
+- feat: add automatic database migration system with `schema_version` tracking, backup-before-migrate, integrity checks and inference of existing schema version from known columns.
+- feat: add update card in Administration showing current/latest version, DB status, last check, download button (desktop) or Docker commands (server/docker).
+- feat: add Solicitar Professional Edition button in Administration linking to https://valorgrid.app/pro/.
+- feat: desktop auto-migrates on startup with backup; Docker shows pending migrations and commands by default (enable with `VALORGRID_AUTO_MIGRATE=1`).
+- feat: add i18n keys for update and Professional Edition sections in ES/EN catalogs.
+- docs: document update endpoints, migration system, Docker update flow and Professional Edition link across API, ARCHITECTURE, DB_OPERATIONS, GITHUB_RELEASE, DEPLOY_DOCKER, FIRST_STEPS and READMEs.
+
 ## 3.29.0
 
 - feat: add liquidity accounts backed by cash-type instruments with current balance tracking.
 - feat: add ledger export dialog with symbol, type, origin and date range filters.
+- feat: add market data provider availability indicator next to price refresh button showing aggregated Yahoo Finance and Alpha Vantage status.
+- fix: register Yahoo Finance provider state (ok/error) on every quote attempt, matching Alpha Vantage behaviour.
 - fix: replace browser-native confirmation dialogs with ValorGrid's shared modal for backups, imports, groups and liquidity deletes.
 - fix: restore the instrument dialog config header background without the left border.
 - fix: align the general preferences section into the intended 3-column layout.
