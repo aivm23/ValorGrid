@@ -14,7 +14,7 @@ export function attach(ctx) {
     stockDetail: requiredElement(document, '#stock-detail'),
     stockDetailTitle: requiredElement(document, '#stock-detail-title'),
     stockDetailClose: requiredElement(document, '#stock-detail-close'),
-    monthlyHead: requiredElement(document, '#monthly-head'),
+    monthlyHead: optionalElement(document, '#monthly-head'),
     monthlyTracking: requiredElement(document, '#monthly-tracking'),
     monthlySummary: requiredElement(document, '#monthly-summary'),
     ytdSubtitle: requiredElement(document, '#ytd-subtitle'),

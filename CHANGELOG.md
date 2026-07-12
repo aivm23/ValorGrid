@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.32.4
+
+- refactor: split the monolithic stylesheet into six ordered cascade files while preserving the previous effective order.
+- fix: prevent the provider-status tooltip from causing horizontal viewport overflow on mobile.
+- feat: give every dialog valid accessible title/description relationships, deterministic Escape handling and focus restoration.
+- test: add static accessibility checks for unique IDs, ARIA references, button names and inline events, plus a CSS split gate.
+
 ## 3.32.3
 
 - refactor: route every frontend HTTP operation through explicit domain API adapters so features no longer own URLs, verbs or timeouts.

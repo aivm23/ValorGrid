@@ -300,6 +300,7 @@ Módulos principales:
 - `dom.js`: composición de referencias a nodos.
 - `dom-query.js`: `requiredElement`, `optionalElement` y `elementList`; los elementos core obligatorios fallan temprano si el HTML está incompleto.
 - `confirm-dialog.js`: modal de confirmación propio y reutilizable para evitar diálogos nativos del navegador.
+- `dialog-behavior.js`: comportamiento común de diálogos nativos: foco inicial, Escape y devolución del foco al disparador.
 - `extensions.js`: aplica el manifiesto público de capacidades opcionales por edición.
 - `charts.js`: donut e histórico SVG.
 - `format.js`: formato monetario, fechas, porcentajes y privacidad de saldos usando la locale activa.
@@ -339,7 +340,7 @@ Módulos principales:
 - `onboarding.js`: wizard de onboarding.
 - `summary.js`: resumen de cartera expandido.
 - `app.js`: orquestador del frontend que crea `ctx`, registra módulos en orden fijo con `attach(ctx)` e inicializa idioma, tema, privacidad y render inicial.
-- `styles.css`: única hoja de estilos, cargada desde `index.html`. Contiene todos los estilos visuales de la aplicación (temas claro/oscuro, modales, tablas, botones, animaciones, scrollbar, responsive).
+- `styles.css`: entrypoint de cascada que importa, en orden estable, `styles/foundation.css`, `components.css`, `dialogs.css`, `admin.css`, `responsive.css` e `import-overrides.css`. `scripts/split-css.js --check` comprueba que la estructura y el orden sigan completos.
 
 Los módulos de frontend ya no usan loaders dinámicos con `new Function`; cada uno exporta `attach(ctx)` y registra su API con `Object.assign(ctx, { ... })`.
 

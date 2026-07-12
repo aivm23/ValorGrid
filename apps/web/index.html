@@ -427,7 +427,7 @@
       </section>
     </main>
 
-    <dialog id="add-dialog" class="modal">
+    <dialog id="add-dialog" class="modal" aria-labelledby="operation-title" aria-describedby="operation-subtitle">
       <form id="add-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
@@ -540,12 +540,19 @@
       </form>
     </dialog>
 
-    <dialog id="instrument-dialog" class="modal">
+    <dialog
+      id="instrument-dialog"
+      class="modal"
+      aria-labelledby="instrument-dialog-title"
+      aria-describedby="instrument-dialog-description"
+    >
       <div class="modal-panel modal-panel-wide">
         <div class="modal-header">
           <div>
-            <h2>Valores y grupos</h2>
-            <p class="subtle">Define la estructura de cartera, los grupos visibles y los desgloses.</p>
+            <h2 id="instrument-dialog-title">Valores y grupos</h2>
+            <p id="instrument-dialog-description" class="subtle">
+              Define la estructura de cartera, los grupos visibles y los desgloses.
+            </p>
           </div>
           <button id="instrument-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -814,12 +821,18 @@
       </div>
     </dialog>
 
-    <dialog id="auto-dialog" class="modal">
+    <dialog
+      id="auto-dialog"
+      class="modal"
+      aria-labelledby="auto-dialog-title"
+      aria-describedby="auto-dialog-description"
+    >
       <form id="auto-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2 data-i18n="Aportaciones">Aportaciones</h2>
+            <h2 id="auto-dialog-title" data-i18n="Aportaciones">Aportaciones</h2>
             <p
+              id="auto-dialog-description"
               class="subtle"
               data-i18n="Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento."
             >
@@ -891,12 +904,17 @@
       </form>
     </dialog>
 
-    <dialog id="import-dialog" class="modal">
+    <dialog
+      id="import-dialog"
+      class="modal"
+      aria-labelledby="import-dialog-title"
+      aria-describedby="import-dialog-description"
+    >
       <form id="import-form" class="modal-panel modal-panel-wide" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Importar movimientos</h2>
-            <p class="subtle">
+            <h2 id="import-dialog-title">Importar movimientos</h2>
+            <p id="import-dialog-description" class="subtle">
               Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.
             </p>
           </div>
@@ -1040,12 +1058,17 @@
       </form>
     </dialog>
 
-    <dialog id="admin-dialog" class="modal">
+    <dialog
+      id="admin-dialog"
+      class="modal"
+      aria-labelledby="admin-dialog-title"
+      aria-describedby="admin-dialog-description"
+    >
       <div class="modal-panel modal-panel-wide admin-panel">
         <div class="admin-header">
           <div class="admin-header-text">
-            <h2>Administración</h2>
-            <p class="subtle">Backups, importaciones y preferencias de visualización.</p>
+            <h2 id="admin-dialog-title">Administración</h2>
+            <p id="admin-dialog-description" class="subtle">Backups, importaciones y preferencias de visualización.</p>
           </div>
           <button id="admin-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -1292,12 +1315,19 @@
       </div>
     </dialog>
 
-    <dialog id="instrument-delete-dialog" class="modal">
+    <dialog
+      id="instrument-delete-dialog"
+      class="modal"
+      aria-labelledby="instrument-delete-title"
+      aria-describedby="instrument-delete-description"
+    >
       <div class="modal-panel modal-panel-wide">
         <div class="modal-header">
           <div>
-            <h2>Eliminar instrumentos</h2>
-            <p class="subtle">Revisa el estado de cada instrumento antes de confirmar.</p>
+            <h2 id="instrument-delete-title">Eliminar instrumentos</h2>
+            <p id="instrument-delete-description" class="subtle">
+              Revisa el estado de cada instrumento antes de confirmar.
+            </p>
           </div>
           <button id="instrument-delete-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -1309,11 +1339,16 @@
       </div>
     </dialog>
 
-    <dialog id="ledger-export-dialog" class="modal">
+    <dialog
+      id="ledger-export-dialog"
+      class="modal"
+      aria-labelledby="ledger-export-title"
+      aria-describedby="ledger-export-summary"
+    >
       <div class="modal-panel">
         <div class="modal-header">
           <div>
-            <h2 data-i18n="ledger.export.title">Exportar movimientos</h2>
+            <h2 id="ledger-export-title" data-i18n="ledger.export.title">Exportar movimientos</h2>
             <p class="subtle" id="ledger-export-summary"></p>
           </div>
           <button id="ledger-export-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
@@ -1332,12 +1367,19 @@
       </div>
     </dialog>
 
-    <dialog id="transaction-edit-dialog" class="modal">
+    <dialog
+      id="transaction-edit-dialog"
+      class="modal"
+      aria-labelledby="transaction-edit-title"
+      aria-describedby="transaction-edit-description"
+    >
       <form id="transaction-edit-form" class="modal-panel" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Editar movimiento</h2>
-            <p class="subtle">Corrige los datos de ejecución sin consultar cotizaciones actuales.</p>
+            <h2 id="transaction-edit-title">Editar movimiento</h2>
+            <p id="transaction-edit-description" class="subtle">
+              Corrige los datos de ejecución sin consultar cotizaciones actuales.
+            </p>
           </div>
           <button id="transaction-edit-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -1379,7 +1421,12 @@
       </form>
     </dialog>
 
-    <dialog id="confirm-action-dialog" class="modal">
+    <dialog
+      id="confirm-action-dialog"
+      class="modal"
+      aria-labelledby="confirm-action-title"
+      aria-describedby="confirm-action-message"
+    >
       <div class="modal-panel confirm-action-panel">
         <div class="modal-header">
           <div>
@@ -1395,12 +1442,19 @@
       </div>
     </dialog>
 
-    <dialog id="wizard-dialog" class="modal">
+    <dialog
+      id="wizard-dialog"
+      class="modal"
+      aria-labelledby="wizard-dialog-title"
+      aria-describedby="wizard-dialog-description"
+    >
       <form id="wizard-form" class="modal-panel modal-panel-wide" method="dialog">
         <div class="modal-header">
           <div>
-            <h2>Alta guiada</h2>
-            <p class="subtle">Crea grupo, instrumento y, si quieres, primera compra y plan de aportación.</p>
+            <h2 id="wizard-dialog-title">Alta guiada</h2>
+            <p id="wizard-dialog-description" class="subtle">
+              Crea grupo, instrumento y, si quieres, primera compra y plan de aportación.
+            </p>
           </div>
           <button id="wizard-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -1624,11 +1678,16 @@
       </form>
     </dialog>
 
-    <dialog id="alpha-vantage-dialog" class="modal">
+    <dialog
+      id="alpha-vantage-dialog"
+      class="modal"
+      aria-labelledby="alpha-vantage-title"
+      aria-describedby="alpha-vantage-assistant-copy"
+    >
       <div class="modal-panel">
         <div class="admin-header">
           <div class="admin-header-text">
-            <h2>Activar precios de commodities</h2>
+            <h2 id="alpha-vantage-title">Activar precios de commodities</h2>
             <p class="subtle">Alpha Vantage proporciona precios para oro, plata, petróleo y gas natural.</p>
           </div>
           <button id="alpha-vantage-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
@@ -1669,12 +1728,17 @@
       </div>
     </dialog>
 
-    <dialog id="dividend-draft-dialog" class="modal">
+    <dialog
+      id="dividend-draft-dialog"
+      class="modal"
+      aria-labelledby="dividend-draft-title"
+      aria-describedby="dividend-draft-description"
+    >
       <div class="modal-panel dividend-modal-panel">
         <div class="admin-header">
           <div class="admin-header-text">
-            <h2 data-i18n="dividends.title">Dividendos pendientes</h2>
-            <p class="subtle" data-i18n="dividends.subtitle">
+            <h2 id="dividend-draft-title" data-i18n="dividends.title">Dividendos pendientes</h2>
+            <p id="dividend-draft-description" class="subtle" data-i18n="dividends.subtitle">
               Revisa los dividendos detectados desde Yahoo Finance antes de incorporarlos a movimientos.
             </p>
           </div>

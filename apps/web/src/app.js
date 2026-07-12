@@ -10,6 +10,7 @@ import { attach as attachState } from './state.js';
 import { attach as attachI18n } from './i18n.js';
 import { attach as attachDom } from './dom.js';
 import { attach as attachConfirmDialog } from './confirm-dialog.js';
+import { attach as attachDialogBehavior } from './dialog-behavior.js';
 import { attach as attachFormat } from './format.js';
 import { attach as attachCharts } from './charts.js';
 import { attach as attachSummary } from './summary.js';
@@ -55,6 +56,7 @@ const ctx = {
   attachState,
   attachI18n,
   attachDom,
+  attachDialogBehavior,
   attachConfirmDialog,
   attachFormat,
   attachCharts,

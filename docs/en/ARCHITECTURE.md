@@ -21,4 +21,6 @@ The frontend uses `attach(ctx)` modules. `i18n.js` owns Spanish/English language
 
 Large orchestration modules delegate focused work to collaborators: Yahoo/Alpha market-data helpers, portfolio monthly/onboarding builders, transaction auto-plan policy, import batch/instrument-choice modules, auto-plan forms, instrument event handlers and the operations metric renderer. These collaborators keep the existing native ESM/CommonJS runtime and explicit composition boundaries.
 
+The CSS entrypoint imports six ordered cascade files (foundation, components, dialogs, administration, responsive rules and import overrides). Native dialogs share accessible labelling, deterministic Escape handling and focus restoration through `dialog-behavior.js`.
+
 Professional functionality is loaded as a private extension outside the Community repository. Community keeps public teasers and blocked endpoints but not private implementation details.

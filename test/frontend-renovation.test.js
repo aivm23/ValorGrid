@@ -16,7 +16,13 @@ registerLifecycle(test);
 const root = path.resolve(__dirname, '..');
 
 function read(relativePath) {
-  return fs.readFileSync(path.join(root, relativePath), 'utf8');
+  const filePath = path.join(root, relativePath);
+  const source = fs.readFileSync(filePath, 'utf8');
+  if (!filePath.endsWith(path.join('apps', 'web', 'src', 'styles.css'))) return source;
+  const imported = Array.from(source.matchAll(/@import url\(['"](.+?)['"]\);/g), (match) => match[1]);
+  return [source, ...imported.map((item) => fs.readFileSync(path.resolve(path.dirname(filePath), item), 'utf8'))].join(
+    '\n',
+  );
 }
 
 // ── 1) KPI cards with semantic border-left colors and micro-info context ──
