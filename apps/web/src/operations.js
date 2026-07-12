@@ -98,7 +98,7 @@ export function attach(ctx) {
     ctx.elements.backupList.innerHTML = `<h4>${ctx.t('backups.recent')}</h4>${backups
       .slice(0, 5)
       .map((backup) => {
-        const downloadUrl = `/api/backups/${encodeURIComponent(backup.file)}`;
+        const downloadUrl = ctx.api.admin.backupDownloadUrl(backup.file);
         const downloadIcon =
           '<svg class="toolbar-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 18h16"></path></svg>';
         const deleteIcon =

@@ -232,7 +232,7 @@ export function attach(ctx) {
     setWizardFeedback('Validando alta completa...');
     try {
       const payload = buildWizardPayload();
-      const previewData = await ctx.sendJson('/api/onboarding/wizard/preview', 'POST', payload, { timeoutMs: 20000 });
+      const previewData = await ctx.api.onboarding.preview(payload, { timeoutMs: 20000 });
       ctx.state.wizardPreview = previewData.preview;
       renderWizardPlanPreview(previewData.preview);
       if (previewData.preview.requiresRetroactiveConfirmation && !payload.confirmRetroactive) {
@@ -241,7 +241,7 @@ export function attach(ctx) {
       }
 
       setWizardFeedback('Guardando alta completa...');
-      const data = await ctx.sendJson('/api/onboarding/wizard/commit', 'POST', payload, { timeoutMs: 30000 });
+      const data = await ctx.api.onboarding.commit(payload, { timeoutMs: 30000 });
       ctx.state.autoPlans = data.autoPlans || ctx.state.autoPlans;
       setWizardFeedback('Cartera inicial creada.');
       ctx.state.historyCache = {};

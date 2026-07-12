@@ -71,7 +71,7 @@ export function attach(ctx) {
     const enabled = checkbox.checked;
     checkbox.disabled = true;
     try {
-      const result = await ctx.sendJson('/api/instruments/brand-palette', 'PUT', { enabled });
+      const result = await ctx.api.instruments.setBrandPalette(enabled);
       ctx.state.brandPaletteEnabled = result.brandPaletteEnabled === true;
 
       if (enabled) {

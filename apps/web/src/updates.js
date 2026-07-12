@@ -1,10 +1,10 @@
 export function attach(ctx) {
-  const { elements, fetchJson, window } = ctx;
+  const { elements, window } = ctx;
 
   async function loadUpdateStatus() {
     const el = elements;
     try {
-      const status = await fetchJson('/api/update/status');
+      const status = await ctx.api.admin.updateStatus();
       el.updateCurrentVersion.textContent = status.currentVersion || '—';
       el.updateLatestVersion.textContent = status.latestVersion || '—';
       el.updateLastCheck.textContent = status.checkedAt ? new Date(status.checkedAt).toLocaleString() : '—';
@@ -19,7 +19,7 @@ export function attach(ctx) {
         el.updateNotice.hidden = true;
       }
 
-      const dbStatus = await fetchJson('/api/health');
+      const dbStatus = await ctx.api.admin.health();
       el.updateDbStatus.textContent = dbStatus.status === 'ok' ? ctx.t('updates.dbOk') : ctx.t('updates.dbDegraded');
 
       if (status.runtimeMode === 'desktop') {
@@ -50,7 +50,7 @@ export function attach(ctx) {
     try {
       const status = ctx._lastUpdateStatus;
       const version = status?.latestVersion || '';
-      const result = await fetchJson(`/api/update/docker-commands?version=${encodeURIComponent(version)}`);
+      const result = await ctx.api.admin.dockerCommands(version);
       const commands = (result.commands || []).join('\n');
       await window.navigator.clipboard.writeText(commands);
       elements.updateDockerOutput.hidden = false;

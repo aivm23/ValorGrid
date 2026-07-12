@@ -17,7 +17,7 @@ Layering:
 3. Repositories own SQL.
 4. `platform/db.js` is the only direct `node:sqlite` boundary.
 
-The frontend uses `attach(ctx)` modules. `i18n.js` owns Spanish/English language preference, DOM translation, locale-aware formatters and extension dictionary registration.
+The frontend uses `attach(ctx)` modules. `i18n.js` owns Spanish/English language preference, DOM translation, locale-aware formatters and extension dictionary registration. Domain API adapters are the only frontend boundary that owns `/api/...` routes, verbs and endpoint-specific timeouts. State is split into dashboard, transactions, instruments, imports, history, preferences and UI slices; non-enumerable flat accessors are a temporary migration bridge. Core DOM references use required/optional query guards.
 
 Large orchestration modules delegate focused work to collaborators: Yahoo/Alpha market-data helpers, portfolio monthly/onboarding builders, transaction auto-plan policy, import batch/instrument-choice modules, auto-plan forms, instrument event handlers and the operations metric renderer. These collaborators keep the existing native ESM/CommonJS runtime and explicit composition boundaries.
 

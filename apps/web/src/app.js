@@ -3,8 +3,8 @@
  * Carga todos los módulos de cliente en orden, inyecta ctx y arranca la UI.
  */
 
-import { fetchJson, normalizeErrorMessage, sendJson } from './api.js';
-import { deleteBackup } from './api-client.js';
+import { fetchBlob, fetchJson, normalizeErrorMessage, sendJson } from './api.js';
+import { createApiClient } from './api-client.js';
 import storage from './storage.js';
 import { attach as attachState } from './state.js';
 import { attach as attachI18n } from './i18n.js';
@@ -37,10 +37,8 @@ import { attach as attachUpdates } from './updates.js';
 import { attach as attachEvents } from './events.js';
 
 const ctx = {
-  fetchJson,
+  api: createApiClient({ fetchBlob, fetchJson, sendJson }),
   normalizeErrorMessage,
-  sendJson,
-  deleteBackup,
   window,
   document,
   localStorage: storage,

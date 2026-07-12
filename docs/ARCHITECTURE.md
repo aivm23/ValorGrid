@@ -289,15 +289,16 @@ Orquestador del frontend:
 Módulos principales:
 
 - `storage.js`: wrapper seguro para preferencias del usuario con fallback a cookies.
-- `api.js`: fetch local, errores y timeouts.
-- `api-client.js`: wrapper HTTP tipado con JSDoc para cada endpoint de la API.
-- `state.js`: estado global de UI.
+- `api.js`: transporte local privado para JSON y binarios, errores y timeouts; no contiene intención de dominio.
+- `api-client.js`: adaptadores por dominio (`portfolio`, `transactions`, `instruments`, `imports`, `liquidity`, `dividends`, `admin`, etc.). Es el único módulo frontend que conoce rutas `/api/...`, métodos HTTP y timeouts específicos.
+- `state.js`: slices explícitos `dashboard`, `transactions`, `instruments`, `imports`, `history`, `preferences` y `ui`. Mantiene getters/setters planos no enumerables como puente temporal mientras los consumidores migran a acceso directo por slice.
 - `i18n.js`: preferencia de idioma ES/EN, traducción de DOM estático/dinámico, formateadores locales y registro de diccionarios privados de extensiones.
 - `i18n-catalog.js`: catálogo agregador de traducciones ES/EN del frontend. Mergea los sub-catálogos (`i18n-catalog-ui`, `i18n-catalog-modals`, `i18n-catalog-import`) y aporta las claves core de Operativa/métricas.
 - `i18n-catalog-ui.js`: sub-catálogo de traducciones de UI general (formato, cantidades, confirmaciones, revisión YTD, estados de mercado).
 - `i18n-catalog-modals.js`: sub-catálogo de traducciones de modales (modos de entrada de transacción, selección de instrumentos/grupos, formularios).
 - `i18n-catalog-import.js`: sub-catálogo de traducciones del asistente de importación (fuentes, sugerencias, badges, decisiones de instrumentos).
-- `dom.js`: referencias a nodos.
+- `dom.js`: composición de referencias a nodos.
+- `dom-query.js`: `requiredElement`, `optionalElement` y `elementList`; los elementos core obligatorios fallan temprano si el HTML está incompleto.
 - `confirm-dialog.js`: modal de confirmación propio y reutilizable para evitar diálogos nativos del navegador.
 - `extensions.js`: aplica el manifiesto público de capacidades opcionales por edición.
 - `charts.js`: donut e histórico SVG.

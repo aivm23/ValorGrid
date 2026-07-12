@@ -19,7 +19,7 @@ export function attach(ctx) {
 
   async function checkAlphaVantageStatus() {
     try {
-      const data = await ctx.fetchJson('/api/market-data/alpha-vantage/status');
+      const data = await ctx.api.marketData.alphaVantage.status();
       return data;
     } catch {
       return { configured: false, mode: 'server', hint: 'No se pudo comprobar el estado' };
@@ -72,7 +72,7 @@ export function attach(ctx) {
     setFeedback('Validando clave con Alpha Vantage...');
     elements.saveKey.disabled = true;
     try {
-      const result = await ctx.sendJson('/api/market-data/alpha-vantage/key', 'POST', { apiKey: key });
+      const result = await ctx.api.marketData.alphaVantage.saveKey(key);
       setFeedback(result.message || 'Clave guardada correctamente.');
       elements.saveKey.disabled = false;
       if (pendingCommodityCreate) {
@@ -105,13 +105,13 @@ export function attach(ctx) {
   async function createCommodityWithAlphaVantageCheck(payload) {
     const status = await checkAlphaVantageStatus();
     if (status.configured) {
-      await ctx.sendJson('/api/instruments', 'POST', payload);
+      await ctx.api.instruments.create(payload);
       return true;
     }
     return new Promise((resolve) => {
       openAlphaVantageAssistant(async () => {
         try {
-          await ctx.sendJson('/api/instruments', 'POST', payload);
+          await ctx.api.instruments.create(payload);
           resolve(true);
         } catch (error) {
           const errEl = document.getElementById('instrument-create-error');

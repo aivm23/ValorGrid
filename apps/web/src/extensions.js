@@ -2,7 +2,7 @@ export function attach(ctx) {
   async function loadExtensions() {
     let manifest;
     try {
-      manifest = await ctx.fetchJson('/api/extensions');
+      manifest = await ctx.api.extensions.manifest();
     } catch {
       return;
     }

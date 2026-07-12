@@ -114,7 +114,7 @@ export function attach(ctx) {
 
   async function findTransactionById(id) {
     if (!id) return null;
-    const data = await ctx.fetchJson('/api/transactions', { timeoutMs: 15000 });
+    const data = await ctx.api.transactions.list({ timeoutMs: 15000 });
     return (data.transactions || []).find((transaction) => transaction.id === id) || null;
   }
 

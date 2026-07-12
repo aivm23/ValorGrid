@@ -33,13 +33,13 @@ export function createImportBatchManager(ctx) {
 
   async function loadImportBatches() {
     try {
-      const data = await ctx.fetchJson('/api/import/batches');
+      const data = await ctx.api.imports.batches();
       ctx.state.importBatches = data.batches || [];
     } catch {
       ctx.state.importBatches = [];
     }
     try {
-      const logData = await ctx.fetchJson('/api/import/rollback-log');
+      const logData = await ctx.api.imports.rollbackLog();
       ctx.state.importRollbackLog = logData.entries || [];
     } catch {
       ctx.state.importRollbackLog = [];
@@ -59,11 +59,7 @@ export function createImportBatchManager(ctx) {
     if (!confirmed) return;
     button.disabled = true;
     try {
-      await ctx.sendJson(
-        `/api/import/batches/${encodeURIComponent(button.dataset.rollbackImport)}/rollback`,
-        'POST',
-        {},
-      );
+      await ctx.api.imports.rollback(button.dataset.rollbackImport);
       ctx.state.historyCache = {};
       ctx.elements.importFeedback.textContent = 'Importación revertida.';
       await loadImportBatches();

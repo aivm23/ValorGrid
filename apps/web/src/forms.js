@@ -92,7 +92,7 @@ export function attach(ctx) {
     ctx.state.transactionPreviewOk = false;
     if (!payload.symbol || !payload.date || !hasValidAmount()) return false;
     try {
-      const data = await ctx.sendJson('/api/transactions/preview', 'POST', payload, { timeoutMs: 20000 });
+      const data = await ctx.api.transactions.preview(payload, { timeoutMs: 20000 });
       renderTransactionPreview(data.preview);
       ctx.state.transactionPreviewOk = true;
       return true;
@@ -223,7 +223,7 @@ export function attach(ctx) {
       const previewOk = ctx.state.transactionPreviewOk || (await refreshTransactionPreview());
       if (!previewOk) throw new Error(ctx.t('Revisa la previsualización antes de guardar'));
       setAddFeedback(ctx.t('Guardando movimiento...'));
-      const data = await ctx.sendJson('/api/transactions', 'POST', payload);
+      const data = await ctx.api.transactions.create(payload);
       setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: data.transaction.symbol }));
       window.setTimeout(closeAddDialog, 1800);
       ctx.state.historyCache = {};

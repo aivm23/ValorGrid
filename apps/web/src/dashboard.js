@@ -53,7 +53,7 @@ export function attach(ctx) {
     if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
-      const [
+      const {
         summary,
         monthly,
         appInfo,
@@ -64,18 +64,7 @@ export function attach(ctx) {
         backupData,
         importData,
         marketDataSources,
-      ] = await Promise.all([
-        ctx.fetchJson('/api/portfolio/summary'),
-        ctx.fetchJson('/api/portfolio/monthly?year=2026'),
-        ctx.fetchJson('/api/version'),
-        ctx.fetchJson('/api/transactions'),
-        ctx.fetchJson('/api/instruments'),
-        ctx.fetchJson('/api/instrument-groups'),
-        ctx.fetchJson('/api/liquidity'),
-        ctx.fetchJson('/api/backups'),
-        ctx.fetchJson('/api/import/batches'),
-        ctx.fetchJson('/api/market-data/sources'),
-      ]);
+      } = await ctx.api.dashboard.loadInitial(2026);
       state.summary = summary;
       state.groupsEnabled = summary.groupsEnabled !== false;
       state.onboarding = summary.onboarding || null;
@@ -95,7 +84,7 @@ export function attach(ctx) {
       state.brandPaletteEnabled = instrumentData.brandPaletteEnabled === true || groupData.brandPaletteEnabled === true;
 
       try {
-        const prefs = await ctx.fetchJson('/api/preferences/ui');
+        const prefs = await ctx.api.preferences.ui();
         state.uiPreferences = prefs.preferences || state.uiPreferences;
         state.uiPreferencesEditable = prefs.editable !== false;
       } catch {
@@ -117,7 +106,7 @@ export function attach(ctx) {
       if (!state.initialLoadComplete)
         setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
       try {
-        state.onboarding = await ctx.fetchJson('/api/onboarding/status');
+        state.onboarding = await ctx.api.onboarding.status();
         elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
       } catch {
         // Keep the previous toolbar state if even onboarding cannot be read.
@@ -192,7 +181,7 @@ export function attach(ctx) {
     elements.historyGranularity.textContent = '';
 
     try {
-      const history = await ctx.fetchJson(`/api/portfolio/history?range=${encodeURIComponent(state.historyRange)}`, {
+      const history = await ctx.api.portfolio.history(state.historyRange, 'auto', {
         timeoutMs: 60000,
         signal: controller.signal,
       });

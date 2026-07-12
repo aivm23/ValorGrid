@@ -135,6 +135,7 @@ test('ledger transaction editor is available only for one non-dividend selection
   const html = read('apps/web/index.html');
   const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
   const editor = read(path.join('apps', 'web', 'src', 'transaction-editor.js'));
+  const apiClient = read(path.join('apps', 'web', 'src', 'api-client.js'));
   const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
 
   assert.ok(html.includes('id="edit-selected-transaction"'), 'ledger toolbar includes an edit action');
@@ -143,8 +144,9 @@ test('ledger transaction editor is available only for one non-dividend selection
   assert.ok(ledger.includes('selectedCount === 1'), 'ledger requires exactly one selected row for edit');
   assert.ok(ledger.includes("selectedTransaction.type === 'dividend'"), 'ledger hides edit for dividends');
   assert.ok(ledger.includes('ledger-note-tooltip'), 'ledger shows saved notes without a new table column');
-  assert.ok(editor.includes('/preview`'), 'editor requests server-side edit preview');
-  assert.ok(editor.includes("'PUT'"), 'editor saves through PUT');
+  assert.ok(editor.includes('ctx.api.transactions.previewEdit'), 'editor requests server-side edit preview');
+  assert.ok(editor.includes('ctx.api.transactions.update'), 'editor saves through the transaction API');
+  assert.ok(apiClient.includes("'PUT'"), 'transaction API adapter owns the PUT transport detail');
   assert.ok(forms.includes('payload.note = note'), 'creation payload includes optional note');
 });
 
@@ -153,6 +155,7 @@ test('liquidity is separated from groups and instruments in the values dialog', 
   const app = read(path.join('apps', 'web', 'src', 'app.js'));
   const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
   const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
+  const apiClient = read(path.join('apps', 'web', 'src', 'api-client.js'));
   const routes = read(path.join('apps', 'server', 'src', 'routes.js'));
   const liquidity = read(path.join('apps', 'web', 'src', 'liquidity.js'));
   const operations = read(path.join('apps', 'web', 'src', 'operations.js'));
@@ -175,10 +178,11 @@ test('liquidity is separated from groups and instruments in the values dialog', 
     dom.includes("document.querySelector('#create-liquidity-account')"),
     'DOM registers create liquidity button',
   );
-  assert.ok(dashboard.includes("ctx.fetchJson('/api/liquidity')"), 'dashboard loads liquidity state');
+  assert.ok(dashboard.includes('ctx.api.dashboard.loadInitial'), 'dashboard loads its initial domain data');
+  assert.ok(apiClient.includes('liquidity.list()'), 'dashboard API composition includes liquidity state');
   assert.ok(dashboard.includes('ctx.renderLiquidity?.()'), 'dashboard renders liquidity section');
   assert.ok(routes.includes('route-liquidity'), 'backend registers liquidity routes');
-  assert.ok(liquidity.includes('/api/liquidity/accounts'), 'liquidity module uses liquidity API');
+  assert.ok(liquidity.includes('ctx.api.liquidity'), 'liquidity module uses its domain API');
   assert.ok(liquidity.includes('class="instrument-table liquidity-table"'), 'liquidity accounts render as a table');
   assert.ok(liquidity.includes('<th>ID</th>'), 'liquidity table starts with fixed technical identifier');
   assert.ok(liquidity.includes('data-select-liquidity'), 'liquidity rows can be selected like instruments');
@@ -240,6 +244,7 @@ test('dividend review UI uses toolbar alert and automatic startup scan', () => {
   const app = read(path.join('apps', 'web', 'src', 'app.js'));
   const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
   const dividends = read(path.join('apps', 'web', 'src', 'dividends.js'));
+  const apiClient = read(path.join('apps', 'web', 'src', 'api-client.js'));
   const css = read(path.join('apps', 'web', 'src', 'styles.css'));
 
   assert.ok(html.includes('id="dividend-alert"'), 'toolbar contains dividend alert');
@@ -247,8 +252,9 @@ test('dividend review UI uses toolbar alert and automatic startup scan', () => {
   assert.ok(html.includes('Dividendos pendientes'), 'dialog title is visible');
   assert.ok(app.includes("from './dividends.js'"), 'app imports dividends module');
   assert.ok(dashboard.includes('startDividendStartupScan'), 'dashboard starts dividend scan after load');
-  assert.ok(dividends.includes('/api/dividends/scan'), 'dividend module calls scan API');
-  assert.ok(dividends.includes("mode: 'startup'"), 'scan is startup-driven');
+  assert.ok(dividends.includes('ctx.api.dividends.scan'), 'dividend module calls its domain API');
+  assert.ok(dividends.includes("scan('startup'"), 'scan is startup-driven');
+  assert.ok(apiClient.includes("'/api/dividends/scan'"), 'dividend route stays inside the API client');
   assert.equal(dividends.includes('Buscar dividendos'), false, 'UI does not expose manual search button');
   assert.ok(dividends.includes("ctx.t('dividends.confirm')"), 'draft modal can confirm dividend');
   assert.ok(dividends.includes("ctx.t('dividends.autoNext')"), 'draft modal exposes auto include checkbox');
@@ -944,7 +950,9 @@ test('index.html wraps provider status indicator with custom tooltip matching me
 
 test('dashboard.js loads /api/market-data/sources and stores it in state', () => {
   const dashboard = read(path.join('apps', 'web', 'src', 'dashboard.js'));
-  assert.ok(dashboard.includes("ctx.fetchJson('/api/market-data/sources')"), 'dashboard fetches market-data sources');
+  const apiClient = read(path.join('apps', 'web', 'src', 'api-client.js'));
+  assert.ok(dashboard.includes('ctx.api.dashboard.loadInitial'), 'dashboard uses its initial-load adapter');
+  assert.ok(apiClient.includes('marketData.sources()'), 'initial-load adapter fetches market-data sources');
   assert.ok(dashboard.includes('state.marketDataSources'), 'dashboard stores marketDataSources in state');
 });
 
@@ -1058,6 +1066,7 @@ test('administration dialog contains an update card wired to the update service'
   const events = read('apps/web/src/events.js');
   const app = read('apps/web/src/app.js');
   const updates = read('apps/web/src/updates.js');
+  const apiClient = read('apps/web/src/api-client.js');
 
   assert.ok(html.includes('admin-card--update'), 'admin dialog contains an update card');
   assert.ok(html.includes('id="update-check"'), 'update card has a check button');
@@ -1074,8 +1083,8 @@ test('administration dialog contains an update card wired to the update service'
   assert.ok(app.includes("from './updates.js'"), 'app imports the updates module');
   assert.ok(app.includes('attachUpdates'), 'app attaches the updates module');
   assert.ok(events.includes('loadUpdateStatus'), 'admin dialog triggers update status on open');
-  assert.ok(updates.includes('fetchJson'), 'updates module fetches update status from the API');
-  assert.ok(updates.includes('/api/update/status'), 'updates module calls the update status endpoint');
+  assert.ok(updates.includes('ctx.api.admin.updateStatus'), 'updates module uses the admin API adapter');
+  assert.ok(apiClient.includes("'/api/update/status'"), 'admin adapter owns the update status endpoint');
 });
 
 test('Solicitar Professional Edition button links to valorgrid.app/pro', () => {

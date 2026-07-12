@@ -9,7 +9,7 @@ import {
 } from './instrument-events.js';
 
 export function attach(ctx) {
-  const { elements, state, document, window, fetchJson, sendJson, normalizeErrorMessage, deleteBackup } = ctx;
+  const { elements, state, document, window, normalizeErrorMessage } = ctx;
   const syncStickyToolbar = () => {
     elements.headerActions.classList.toggle('is-fixed', window.scrollY > 120);
   };
@@ -262,8 +262,8 @@ export function attach(ctx) {
     const confirmed = await ctx.confirmAction({ title: label, message, confirmLabel: label });
     if (!confirmed) return;
     try {
-      await deleteBackup(backupFile);
-      const backupData = await fetchJson('/api/backups');
+      await ctx.api.admin.deleteBackup(backupFile);
+      const backupData = await ctx.api.admin.backups();
       state.backups = backupData.backups || [];
       ctx.renderBackups();
     } catch (error) {
@@ -274,8 +274,8 @@ export function attach(ctx) {
   async function createBackup(localCtx) {
     elements.createBackup.disabled = true;
     try {
-      await sendJson('/api/backups', 'POST', {});
-      const backupData = await fetchJson('/api/backups');
+      await ctx.api.admin.createBackup();
+      const backupData = await ctx.api.admin.backups();
       state.backups = backupData.backups || [];
       localCtx.renderBackups();
     } catch (error) {

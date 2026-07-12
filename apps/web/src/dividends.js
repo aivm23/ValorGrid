@@ -2,7 +2,7 @@ export function attach(ctx) {
   async function refreshDividendSummary() {
     const { state } = ctx;
     try {
-      state.dividendSummary = await ctx.fetchJson('/api/dividends/summary', { timeoutMs: 10000 });
+      state.dividendSummary = await ctx.api.dividends.summary({ timeoutMs: 10000 });
       renderDividendToolbarAlert();
     } catch {
       state.dividendSummary = null;
@@ -29,7 +29,7 @@ export function attach(ctx) {
     state.dividendScanInProgress = true;
     renderDividendToolbarAlert();
     try {
-      await ctx.sendJson('/api/dividends/scan', 'POST', { mode: 'startup' }, { timeoutMs: 120000 });
+      await ctx.api.dividends.scan('startup', { timeoutMs: 120000 });
     } catch {
       // Dividend scans are advisory. Startup must not be blocked by Yahoo/FX failures.
     } finally {
@@ -41,7 +41,7 @@ export function attach(ctx) {
 
   async function refreshDividendDrafts() {
     const { state } = ctx;
-    const data = await ctx.fetchJson('/api/dividends/drafts', { timeoutMs: 10000 });
+    const data = await ctx.api.dividends.drafts({ timeoutMs: 10000 });
     state.dividendDrafts = data.drafts || [];
     renderDividendDraftDialog();
   }
@@ -149,7 +149,7 @@ export function attach(ctx) {
   }
 
   async function saveDividendDraft(id, card) {
-    await ctx.sendJson(`/api/dividends/drafts/${encodeURIComponent(id)}`, 'PATCH', readDraftForm(card));
+    await ctx.api.dividends.updateDraft(id, readDraftForm(card));
     card.querySelector('[data-dividend-save]')?.setAttribute('hidden', '');
     await refreshDividendDrafts();
     await refreshDividendSummary();
@@ -158,7 +158,7 @@ export function attach(ctx) {
   async function confirmDividendDraft(id, card) {
     const autoIncludeNext = Boolean(card.querySelector('[data-dividend-auto-next]')?.checked);
     await saveDividendDraft(id, card);
-    await ctx.sendJson(`/api/dividends/drafts/${encodeURIComponent(id)}/confirm`, 'POST', { autoIncludeNext });
+    await ctx.api.dividends.confirmDraft(id, autoIncludeNext);
     await refreshDividendSummary();
     await refreshDividendDrafts();
     await ctx.refreshDashboard();
@@ -166,7 +166,7 @@ export function attach(ctx) {
   }
 
   async function ignoreDividendDraft(id) {
-    await ctx.sendJson(`/api/dividends/drafts/${encodeURIComponent(id)}/ignore`, 'POST', {});
+    await ctx.api.dividends.ignoreDraft(id);
     await refreshDividendSummary();
     await refreshDividendDrafts();
   }
@@ -188,7 +188,7 @@ export function attach(ctx) {
     const card = event.target.closest('[data-dividend-draft]');
     const draft = card ? draftById(card.dataset.dividendDraft) : null;
     if (!draft) return;
-    await ctx.sendJson(`/api/dividends/settings/${encodeURIComponent(draft.symbol)}`, 'PUT', {
+    await ctx.api.dividends.updateSettings(draft.symbol, {
       autoInclude: checkbox.checked,
     });
     await refreshDividendDrafts();

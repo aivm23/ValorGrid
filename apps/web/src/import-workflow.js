@@ -323,9 +323,7 @@ export function updateCommitButton(ctx) {
 
 export async function downloadImportTemplate(ctx) {
   try {
-    const response = await fetch('/api/import/template.xlsx');
-    if (!response.ok) throw new Error('No se pudo descargar la plantilla');
-    const blob = await response.blob();
+    const blob = await ctx.api.imports.template();
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -341,7 +339,7 @@ export async function downloadImportTemplate(ctx) {
 
 export async function loadImportSources(ctx) {
   try {
-    const { sources = [] } = await ctx.fetchJson('/api/import/sources');
+    const { sources = [] } = await ctx.api.imports.sources();
     const select = ctx.elements.importSource;
     const bannersContainer = ctx.elements.importProBanners;
     if (!select) return;

@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.32.3
+
+- refactor: route every frontend HTTP operation through explicit domain API adapters so features no longer own URLs, verbs or timeouts.
+- refactor: introduce dashboard, transactions, instruments, imports, history, preferences and UI state slices with a temporary compatibility bridge.
+- refactor: add required and optional DOM query guards for early startup failures on incomplete core markup.
+- test: enforce frontend API ownership and the sliced state contract in architecture tests.
+
 ## 3.32.2
 
 - chore: extend the Prettier gate to all application, script and test sources and establish an informative clone audit.

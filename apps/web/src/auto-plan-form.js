@@ -121,7 +121,7 @@ export function createAutoPlanForm(ctx, { visibleInstruments }) {
   async function saveAutoPlansFromForm() {
     const autoPlans = collectAutoPlansFromForm();
     try {
-      const previewData = await ctx.sendJson('/api/auto-plans/preview', 'POST', { autoPlans });
+      const previewData = await ctx.api.transactions.autoPlans.preview(autoPlans);
       const warnings = previewData.preview.warnings || [];
       if ((warnings.length || previewData.preview.pendingCount > 1) && !ctx.state.autoPlanRetroactiveConfirmed) {
         ctx.state.autoPlanRetroactiveConfirmed = true;
@@ -142,7 +142,7 @@ export function createAutoPlanForm(ctx, { visibleInstruments }) {
         ctx.elements.autoFeedback.dataset.state = 'error';
         return;
       }
-      const data = await ctx.sendJson('/api/auto-plans', 'PUT', { autoPlans });
+      const data = await ctx.api.transactions.autoPlans.save(autoPlans);
       ctx.state.autoPlans = data.autoPlans;
       ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
       ctx.state.autoPlanRetroactiveConfirmed = false;

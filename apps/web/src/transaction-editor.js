@@ -47,11 +47,7 @@ export function attach(ctx) {
     ctx.elements.transactionEditSubmit.disabled = true;
     setFeedback(ctx.t('Validando cambios...'));
     try {
-      const data = await ctx.sendJson(
-        `/api/transactions/${encodeURIComponent(transactionId)}/preview`,
-        'POST',
-        buildPayload(),
-      );
+      const data = await ctx.api.transactions.previewEdit(transactionId, buildPayload());
       if (requestId !== previewRequest) return false;
       renderPreview(data.preview);
       setFeedback('');
@@ -108,7 +104,7 @@ export function attach(ctx) {
     ctx.elements.transactionEditSubmit.disabled = true;
     setFeedback(ctx.t('Guardando cambios...'));
     try {
-      await ctx.sendJson(`/api/transactions/${encodeURIComponent(transactionId)}`, 'PUT', buildPayload());
+      await ctx.api.transactions.update(transactionId, buildPayload());
       ctx.state.historyCache = {};
       await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
       closeTransactionEditor();

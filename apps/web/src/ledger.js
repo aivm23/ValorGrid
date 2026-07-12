@@ -42,16 +42,8 @@ function filterLedgerTransactions(transactions, filters) {
     .reverse();
 }
 
-function buildLedgerExportUrl(filters) {
-  if (!filters) return '/api/export/transactions.xlsx';
-  const params = new URLSearchParams();
-  if (filters.symbol) params.set('symbol', filters.symbol);
-  if (filters.origin) params.set('origin', filters.origin);
-  if (filters.type) params.set('type', filters.type);
-  if (filters.from) params.set('from', filters.from);
-  if (filters.to) params.set('to', filters.to);
-  const qs = params.toString();
-  return '/api/export/transactions.xlsx' + (qs ? '?' + qs : '');
+function buildLedgerExportUrl(ctx, filters) {
+  return ctx.api.exports.transactionsUrl(filters);
 }
 
 export function attach(ctx) {
@@ -194,7 +186,7 @@ export function attach(ctx) {
     const filtered = hasFilters ? filterLedgerTransactions(allTransactions, filters) : allTransactions;
     const count = filtered.length;
 
-    const url = buildLedgerExportUrl(hasFilters ? filters : undefined);
+    const url = buildLedgerExportUrl(ctx, hasFilters ? filters : undefined);
     const summaryEl = elements.ledgerExportSummary;
     const warningEl = elements.ledgerExportWarning;
     const warningTextEl = elements.ledgerExportWarningText;

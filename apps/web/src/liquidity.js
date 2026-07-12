@@ -148,7 +148,7 @@ export function attach(ctx) {
       color: ctx.elements.newLiquidityColor?.value || '#06b6d4',
     };
     try {
-      const result = await ctx.sendJson('/api/liquidity/accounts', 'POST', body);
+      const result = await ctx.api.liquidity.create(body);
       ctx.state.liquidity = result.state || ctx.state.liquidity;
       if (ctx.elements.newLiquidityName) ctx.elements.newLiquidityName.value = '';
       if (ctx.elements.newLiquidityBalance) ctx.elements.newLiquidityBalance.value = '';
@@ -165,11 +165,7 @@ export function attach(ctx) {
     );
     if (!row) return;
     try {
-      const result = await ctx.sendJson(
-        `/api/liquidity/accounts/${encodeURIComponent(symbol)}`,
-        'PUT',
-        liquidityPayloadFromRow(row),
-      );
+      const result = await ctx.api.liquidity.update(symbol, liquidityPayloadFromRow(row));
       ctx.state.liquidity = result.state || ctx.state.liquidity;
       setLiquidityFeedback('Liquidez actualizada.', 'success');
       await ctx.refreshDashboard();
@@ -191,7 +187,7 @@ export function attach(ctx) {
     try {
       let nextState = ctx.state.liquidity;
       for (const symbol of symbols) {
-        const result = await ctx.sendJson(`/api/liquidity/accounts/${encodeURIComponent(symbol)}`, 'DELETE', {});
+        const result = await ctx.api.liquidity.remove(symbol);
         nextState = result.state || nextState;
       }
       ctx.state.liquidity = nextState;

@@ -189,7 +189,7 @@ export function attach(ctx) {
     ctx.elements.importPreview.disabled = true;
     ctx.elements.importFeedback.textContent = options.feedback || ctx.t('import.feedback.analyzing');
     try {
-      const data = await ctx.sendJson('/api/import/preview', 'POST', buildImportPayload(ctx));
+      const data = await ctx.api.imports.preview(buildImportPayload(ctx));
       ctx.state.importPreview = data.preview;
       updateSheetSelector(ctx, data.preview);
       if (!options.keepStep) ctx.state.importStep = 'file';
@@ -222,7 +222,7 @@ export function attach(ctx) {
     ctx.elements.importPreviewOutput.innerHTML = `<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>${ctx.t('import.commit.overlay.title')}</strong><span>${ctx.t('import.commit.overlay.subtitle')}</span></div></div>`;
     try {
       ensureDefaultRowActions(ctx);
-      await ctx.sendJson('/api/import/commit', 'POST', buildImportPayload(ctx), { timeoutMs: 60000 });
+      await ctx.api.imports.commit(buildImportPayload(ctx));
       ctx.state.historyCache = {};
       // data.backup disabled: automatic risk backups are not performed
       // if (response?.backup) {

@@ -284,9 +284,19 @@ test('frontend architecture stays modular', () => {
     'client/app.js must remain a small orchestrator',
   );
   for (const file of filesUnder('apps/web/src')) {
+    const source = read(file);
     assert.ok(lineCount(file) <= 400, `${file} must stay below 400 lines`);
-    assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
-    assert.equal(/new Function\(/.test(read(file)), false, `${file} must not use dynamic Function loaders`);
+    assert.equal(/with\s*\(\s*ctx\s*\)/.test(source), false, `${file} must not use with(ctx)`);
+    assert.equal(/new Function\(/.test(source), false, `${file} must not use dynamic Function loaders`);
+    if (!file.endsWith('api-client.js') && !file.endsWith('api.js')) {
+      assert.equal(/['"`]\/api\//.test(source), false, `${file} must not own API routes`);
+      assert.equal(/ctx\.(fetchJson|sendJson)/.test(source), false, `${file} must use a domain API adapter`);
+    }
+  }
+
+  const stateSource = read(path.join('apps', 'web', 'src', 'state.js'));
+  for (const slice of ['dashboard', 'transactions', 'instruments', 'imports', 'history', 'preferences', 'ui']) {
+    assert.match(stateSource, new RegExp(`\\b${slice}: \\{`), `state must define the ${slice} slice`);
   }
 
   assert.equal(/fetch\(/.test(read(path.join('apps', 'web', 'src', 'charts.js'))), false, 'charts must not fetch data');

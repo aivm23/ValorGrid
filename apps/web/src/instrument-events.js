@@ -13,7 +13,7 @@ export async function handleInstrumentGroupsToggle(ctx) {
   const enabled = ctx.elements.instrumentGroupsEnabled.checked;
   ctx.elements.instrumentGroupsEnabled.disabled = true;
   try {
-    const result = await ctx.sendJson('/api/instrument-groups/settings', 'PUT', { enabled });
+    const result = await ctx.api.instruments.groups.setEnabled(enabled);
     ctx.state.groupsEnabled = result.groupsEnabled !== false;
     ctx.state.historyCache = {};
     if (result.createdDefaultGroup && result.assignedInstrumentCount > 0) {
@@ -44,7 +44,7 @@ export async function saveInstrument(ctx, event) {
   });
   button.disabled = true;
   try {
-    await ctx.sendJson(`/api/instruments/${encodeURIComponent(row.dataset.instrument)}`, 'PUT', payload);
+    await ctx.api.instruments.update(row.dataset.instrument, payload);
     ctx.state.historyCache = {};
     await ctx.refreshDashboard();
     await ctx.refreshHistory({ force: true });
@@ -66,7 +66,7 @@ export async function saveGroup(ctx, event) {
   });
   button.disabled = true;
   try {
-    await ctx.sendJson(`/api/instrument-groups/${encodeURIComponent(row.dataset.group)}`, 'PUT', payload);
+    await ctx.api.instruments.groups.update(row.dataset.group, payload);
     ctx.state.historyCache = {};
     await ctx.refreshDashboard();
     await ctx.refreshHistory({ force: true });
@@ -86,7 +86,7 @@ export async function createGroup(ctx) {
       isExpandable: false,
     };
     if (!ctx.state.brandPaletteEnabled) payload.color = ctx.elements.newGroupColor.value;
-    await ctx.sendJson('/api/instrument-groups', 'POST', payload);
+    await ctx.api.instruments.groups.create(payload);
     ctx.elements.newGroupName.value = '';
     await ctx.refreshDashboard();
   } catch (error) {
@@ -104,7 +104,7 @@ export async function createInstrument(ctx) {
       const created = await ctx.createCommodityWithAlphaVantageCheck(payload);
       if (!created) return;
     } else {
-      await ctx.sendJson('/api/instruments', 'POST', payload);
+      await ctx.api.instruments.create(payload);
     }
     resetInstrumentForm(elements);
     await ctx.refreshDashboard();

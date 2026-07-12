@@ -137,7 +137,7 @@ export function attach(ctx) {
     if (!ids.length) return;
     try {
       ctx.elements.instrumentDeletePreview.innerHTML = `<p class="subtle">${ctx.t('delete.transactions.deleting')}</p>`;
-      const response = await ctx.sendJson('/api/transactions', 'DELETE', { ids });
+      const response = await ctx.api.transactions.removeMany(ids);
       ctx.state.selectedTransactionIds = [];
       ctx.state.pendingTransactionDelete = [];
       ctx.state.historyCache = {};
@@ -159,14 +159,7 @@ export function attach(ctx) {
     if (!symbols.length) return;
 
     try {
-      const response = await fetch('/api/instruments/preview-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbols }),
-        cache: 'no-store',
-      });
-      if (!response.ok) throw new Error('No se pudo obtener la vista previa de eliminación');
-      const data = await response.json();
+      const data = await ctx.api.instruments.previewDelete(symbols);
       showInstrumentDeletePreview(data.results || []);
     } catch (error) {
       ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
@@ -223,7 +216,7 @@ export function attach(ctx) {
     const symbols = ctx.state.pendingInstrumentDelete || [];
     if (!symbols.length) return;
     try {
-      const response = await ctx.sendJson('/api/instruments', 'DELETE', { symbols });
+      const response = await ctx.api.instruments.removeMany(symbols);
       ctx.state.selectedInstrumentSymbols = ctx.state.selectedInstrumentSymbols.filter((s) => !symbols.includes(s));
       ctx.state.pendingInstrumentDelete = [];
       ctx.state.historyCache = {};
@@ -266,7 +259,7 @@ export function attach(ctx) {
     });
     if (!confirmed) return;
     try {
-      const response = await ctx.sendJson('/api/instrument-groups', 'DELETE', { ids });
+      const response = await ctx.api.instruments.groups.removeMany(ids);
       ctx.state.selectedGroupIds = [];
       ctx.state.historyCache = {};
       if (response?.backup) {
