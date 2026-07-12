@@ -250,6 +250,16 @@ test('app composition root initializes grouped ctx namespaces', () => {
   );
 });
 
+test('route dependencies are strict grouped services and refactored domains register directly', () => {
+  const bindings = read(path.join('apps', 'server', 'src', 'route-service-bindings.js'));
+  const transactions = read(path.join('apps', 'server', 'src', 'domains', 'transactions', 'transaction-service.js'));
+  const instruments = read(path.join('apps', 'server', 'src', 'domains', 'instruments', 'instrument-service.js'));
+  assert.doesNotMatch(bindings, /\bfallback\b/, 'route bindings must not fall back to flat ctx aliases');
+  assert.match(bindings, /Missing grouped route dependency/, 'missing grouped route dependencies fail early');
+  assert.match(transactions, /ctx\.services\.transactions/, 'transaction service registers its grouped API directly');
+  assert.match(instruments, /ctx\.services\.instruments/, 'instrument service registers its grouped API directly');
+});
+
 test('server public exports remain stable after modularization', () => {
   process.env.PORTFOLIO_DB_PATH ||= path.join(
     fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'arch-db-')),

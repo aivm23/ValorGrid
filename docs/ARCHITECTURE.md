@@ -119,7 +119,7 @@ ctx.services.<domain>
 
 Reglas de transición:
 
-- Se permiten aliases legacy en `ctx` mientras se migra por fases.
+- Se permiten aliases legacy en `ctx` mientras se migra por fases, pero las rutas resuelven dependencias exclusivamente desde `ctx.services.*`; una dependencia agrupada ausente falla temprano y nunca recurre al alias plano.
 - Todo módulo nuevo/refactorizado debe preferir los namespaces agrupados.
 - `ctx.http` se conserva como primitiva Node por compatibilidad; APIs HTTP se agrupan en `ctx.services.http`.
 - No se reintroduce `with (ctx)` en backend ni frontend.
@@ -230,6 +230,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `portfolio-cash`: valoración de liquidez actual sin histórico ni movimientos.
 - `portfolio-dates`: helpers puros de fechas mensuales y fechas programadas.
 - `portfolio-flows`: helpers puros de resumen de compras, ventas, dividendos, comisiones y cash-flow por periodo.
+- `portfolio-item`: mapper canónico de los campos comunes del contrato de posición, reutilizado por efectivo y activos valorados.
 - `portfolio-monthly-helpers`: agregación y ranking de grupos para la revisión mensual.
 - `portfolio-onboarding-status`: construcción del estado público de configuración inicial.
 
@@ -253,6 +254,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
+
+`shared/repository-filters.js` centraliza la composición equivalente de filtros `fromDate`/`toDate` para repositories; no ejecuta SQL ni se usa desde services o rutas.
 
 `node:sqlite` debe quedar aislado detrás de `apps/server/src/platform/db.js`.
 

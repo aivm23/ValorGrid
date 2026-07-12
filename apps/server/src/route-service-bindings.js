@@ -2,16 +2,16 @@
  * @template T
  * @param {Record<string, unknown>} service
  * @param {string} fnName
- * @param {T} fallback
  * @returns {T}
  */
-function pickServiceFn(service, fnName, fallback) {
+function pickServiceFn(service, fnName) {
   const candidate = service?.[fnName];
-  return typeof candidate === 'function' ? candidate : fallback;
+  if (typeof candidate !== 'function') throw new Error(`Missing grouped route dependency: ${fnName}`);
+  return candidate;
 }
 
 /**
- * Resuelve todos los handlers HTTP desde ctx.services.* con fallback a ctx plano.
+ * Resuelve todos los handlers HTTP exclusivamente desde ctx.services.*.
  * @param {Record<string, unknown>} ctx
  * @returns {import('./types').RouteHandlers}
  */

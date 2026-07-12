@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.32.5
+
+- refactor: make HTTP route dependencies resolve strictly from grouped services instead of flat `ctx` fallbacks.
+- refactor: register transaction and instrument APIs directly in their domain service namespaces while retaining temporary flat compatibility aliases.
+- refactor: centralize the portfolio output mapper and equivalent repository date-range filters.
+- test: enforce strict grouped route bindings and direct registration for refactored domains.
+
 ## 3.32.4
 
 - refactor: split the monolithic stylesheet into six ordered cascade files while preserving the previous effective order.

@@ -99,14 +99,7 @@ module.exports = function attach(ctx) {
       where.push('symbol = ?');
       params.push(filters.symbol);
     }
-    if (filters.fromDate) {
-      where.push('effective_date >= ?');
-      params.push(filters.fromDate);
-    }
-    if (filters.toDate) {
-      where.push('effective_date <= ?');
-      params.push(filters.toDate);
-    }
+    appendDateRangeFilters(where, params, filters, 'effective_date');
     const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
     return db
       .prepare(
@@ -177,3 +170,4 @@ module.exports = function attach(ctx) {
     listSplitsUntil,
   };
 };
+const { appendDateRangeFilters } = require('../../shared/repository-filters');

@@ -1,13 +1,10 @@
+const { toPortfolioItem } = require('./portfolio-item');
+
 async function buildCashValuation(instrument, deps, asOfDate = null) {
   const balance = Number(instrument.cash_balance || 0);
-  const base = {
-    symbol: instrument.symbol,
+  const base = toPortfolioItem(instrument, {
     yahooSymbol: instrument.yahoo_symbol,
-    name: instrument.name,
     type: instrument.type,
-    groupId: instrument.group_id,
-    showInDistribution: Boolean(instrument.show_in_distribution),
-    showInMonthly: Boolean(instrument.show_in_monthly),
     color: instrument.color,
     shares: balance,
     price: 1,
@@ -19,7 +16,7 @@ async function buildCashValuation(instrument, deps, asOfDate = null) {
     priceSource: 'cash-balance',
     priceAgeDays: null,
     valuationAvailable: true,
-  };
+  });
   if (balance <= 0.0000001) return base;
   const currency = String(instrument.currency || 'EUR').toUpperCase();
   const fxToEur =
@@ -30,12 +27,7 @@ async function buildCashValuation(instrument, deps, asOfDate = null) {
 }
 
 function buildCashHistoricalValuation(instrument) {
-  return {
-    symbol: instrument.symbol,
-    name: instrument.name,
-    groupId: instrument.group_id,
-    showInDistribution: Boolean(instrument.show_in_distribution),
-    showInMonthly: Boolean(instrument.show_in_monthly),
+  return toPortfolioItem(instrument, {
     shares: 0,
     price: 0,
     priceEur: 0,
@@ -43,7 +35,7 @@ function buildCashHistoricalValuation(instrument) {
     marketDate: null,
     value: 0,
     dataQuality: 'cash-current-only',
-  };
+  });
 }
 
 module.exports = { buildCashValuation, buildCashHistoricalValuation };

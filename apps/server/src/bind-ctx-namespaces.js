@@ -60,6 +60,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'updateInstrumentGroup',
       'deleteInstrumentGroup',
       'deleteInstrumentGroups',
+      'setInstrumentGroupsEnabled',
       'ensureInstrument',
       'isBrandPaletteEnabled',
       'setBrandPaletteEnabled',
@@ -118,6 +119,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'previewTransactionEdit',
       'updateTransaction',
       'deleteTransaction',
+      'bulkDeleteTransactions',
       'isAutoPlanSkipped',
     ]),
   );
@@ -158,7 +160,10 @@ function bindGroupedCtxNamespaces(ctx) {
       'getImportTemplate',
     ]),
   );
-  Object.assign(ctx.services.onboarding, pickCtxFunctions(ctx, ['previewOnboardingWizard', 'commitOnboardingWizard']));
+  Object.assign(
+    ctx.services.onboarding,
+    pickCtxFunctions(ctx, ['buildOnboardingStatus', 'previewOnboardingWizard', 'commitOnboardingWizard']),
+  );
   Object.assign(
     ctx.services.portfolio,
     pickCtxFunctions(ctx, [

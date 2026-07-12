@@ -386,7 +386,7 @@ module.exports = function attach(ctx) {
     }
     return false;
   }
-  Object.assign(ctx, {
+  const transactionApi = {
     getTransactions,
     getAutoPlans,
     buildLedgerAnalytics,
@@ -408,7 +408,9 @@ module.exports = function attach(ctx) {
     deleteTransaction,
     bulkDeleteTransactions,
     isAutoPlanSkipped,
-  });
+  };
+  Object.assign(ctx.services.transactions, transactionApi);
+  Object.assign(ctx, transactionApi);
   function autoKeyForPlan(plan, scheduledDate) {
     return `auto:${plan.symbol}:${scheduledDate}`;
   }

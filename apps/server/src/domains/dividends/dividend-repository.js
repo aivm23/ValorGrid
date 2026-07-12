@@ -76,14 +76,7 @@ module.exports = function attach(ctx) {
       where.push('e.symbol = ?');
       params.push(filters.symbol);
     }
-    if (filters.fromDate) {
-      where.push('e.ex_date >= ?');
-      params.push(filters.fromDate);
-    }
-    if (filters.toDate) {
-      where.push('e.ex_date <= ?');
-      params.push(filters.toDate);
-    }
+    appendDateRangeFilters(where, params, filters, 'e.ex_date');
     const sql = `${eventSelect()} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY e.ex_date DESC, e.symbol ASC`;
     return db
       .prepare(sql)
@@ -372,3 +365,4 @@ module.exports = function attach(ctx) {
     insertDividendTransactionAndConfirm,
   };
 };
+const { appendDateRangeFilters } = require('../../shared/repository-filters');

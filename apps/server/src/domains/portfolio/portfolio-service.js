@@ -10,6 +10,7 @@ const { buildCashHistoricalValuation, buildCashValuation } = require('./portfoli
 const { summarizeTransactions } = require('./portfolio-flows');
 const { createPortfolioMonthlyHelpers } = require('./portfolio-monthly-helpers');
 const { createPortfolioOnboardingStatus } = require('./portfolio-onboarding-status');
+const { toPortfolioItem } = require('./portfolio-item');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -439,30 +440,20 @@ module.exports = function attach(ctx) {
 
     const shares = getPositionShares(instrument.symbol, asOfDate);
     if (Math.abs(shares) <= 0.0000001) {
-      return {
-        symbol: instrument.symbol,
-        name: instrument.name,
-        groupId: instrument.group_id,
-        showInDistribution: Boolean(instrument.show_in_distribution),
-        showInMonthly: Boolean(instrument.show_in_monthly),
+      return toPortfolioItem(instrument, {
         shares,
         price: Number(instrument.fallback_price || 0),
         priceEur: Number(instrument.fallback_price || 0),
         currency: instrument.currency,
         marketDate: null,
         value: 0,
-      };
+      });
     }
     const quote = await getQuoteForSymbol(instrument.symbol, requestedDate, { allowStale: true });
     const fxToEur = (await getFxToEur(quote.currency, quote.marketDate || requestedDate, { allowStale: true })) ?? 1;
     const priceEur = toEur(quote.price, quote.currency, fxToEur);
 
-    return {
-      symbol: instrument.symbol,
-      name: instrument.name,
-      groupId: instrument.group_id,
-      showInDistribution: Boolean(instrument.show_in_distribution),
-      showInMonthly: Boolean(instrument.show_in_monthly),
+    return toPortfolioItem(instrument, {
       shares,
       price: quote.price,
       priceEur,
@@ -470,7 +461,7 @@ module.exports = function attach(ctx) {
       marketDate: quote.marketDate,
       value: shares * priceEur,
       dataQuality: quote.dataQuality || (quote.stale ? 'stale' : 'ok'),
-    };
+    });
   }
 
   const buildOnboardingStatus = createPortfolioOnboardingStatus({

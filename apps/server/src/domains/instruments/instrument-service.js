@@ -456,7 +456,7 @@ module.exports = function attach(ctx) {
     return getInstrument(normalized);
   }
 
-  Object.assign(ctx, {
+  const instrumentApi = {
     getInstrument,
     getInstrumentByInput,
     listInstruments,
@@ -489,5 +489,7 @@ module.exports = function attach(ctx) {
     saveBrandPaletteColorSnapshot: brandPalette.saveBrandPaletteColorSnapshot,
     clearBrandPaletteColorSnapshot: brandPalette.clearBrandPaletteColorSnapshot,
     restoreBrandPaletteColorSnapshot: brandPalette.restoreBrandPaletteColorSnapshot,
-  });
+  };
+  Object.assign(ctx.services.instruments, instrumentApi);
+  Object.assign(ctx, instrumentApi);
 };

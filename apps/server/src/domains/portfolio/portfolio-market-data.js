@@ -1,12 +1,9 @@
+const { toPortfolioItem } = require('./portfolio-item');
+
 function buildBaseValuation(instrument, shares) {
-  return {
-    symbol: instrument.symbol,
+  return toPortfolioItem(instrument, {
     yahooSymbol: instrument.yahoo_symbol,
-    name: instrument.name,
     type: instrument.type,
-    groupId: instrument.group_id,
-    showInDistribution: Boolean(instrument.show_in_distribution),
-    showInMonthly: Boolean(instrument.show_in_monthly),
     color: instrument.color,
     shares,
     price: Number(instrument.fallback_price || 0),
@@ -18,7 +15,7 @@ function buildBaseValuation(instrument, shares) {
     priceSource: 'fallback_price',
     priceAgeDays: null,
     valuationAvailable: false,
-  };
+  });
 }
 
 function summarizeMarketDataStatus(valuations) {
