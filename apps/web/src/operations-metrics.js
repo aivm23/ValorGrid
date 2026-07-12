@@ -3,27 +3,7 @@
  * Registry público de métricas renderizables para las tarjetas de performance.
  * Las 6 métricas por defecto son fijas en Community; PRO puede reordenarlas.
  */
-
-export const DEFAULT_OPERATION_METRIC_IDS = [
-  'marketValue',
-  'netContributed',
-  'totalGain',
-  'unrealizedGain',
-  'realizedGain',
-  'commissions',
-];
-
-export const OPERATION_METRIC_IDS = new Set([
-  ...DEFAULT_OPERATION_METRIC_IDS,
-  'simpleReturnPct',
-  'transactionCount',
-  'averageCommission',
-  'openInvestment',
-  'netCashFlow',
-  'grossBought',
-  'grossSold',
-  'dividendIncome',
-]);
+export { DEFAULT_OPERATION_METRIC_IDS, OPERATION_METRIC_IDS } from './operations-metric-catalog.js';
 
 /** @type {Record<string, OperationMetricDefinition>} */
 export const OPERATION_METRICS = {

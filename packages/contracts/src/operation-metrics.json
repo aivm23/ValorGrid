@@ -1,0 +1,19 @@
+{
+  "defaultMetricIds": ["marketValue", "netContributed", "totalGain", "unrealizedGain", "realizedGain", "commissions"],
+  "metricIds": [
+    "marketValue",
+    "netContributed",
+    "totalGain",
+    "unrealizedGain",
+    "realizedGain",
+    "commissions",
+    "simpleReturnPct",
+    "transactionCount",
+    "averageCommission",
+    "openInvestment",
+    "netCashFlow",
+    "grossBought",
+    "grossSold",
+    "dividendIncome"
+  ]
+}

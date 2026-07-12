@@ -26,3 +26,5 @@ Large orchestration modules delegate focused work to collaborators: Yahoo/Alpha 
 The CSS entrypoint imports six ordered cascade files (foundation, components, dialogs, administration, responsive rules and import overrides). Native dialogs share accessible labelling, deterministic Escape handling and focus restoration through `dialog-behavior.js`.
 
 Professional functionality is loaded as a private extension outside the Community repository. Community keeps public teasers and blocked endpoints but not private implementation details.
+
+`packages/contracts/src/operation-metrics.json` is the canonical Operativa metric ID catalog. A CommonJS adapter and a generated browser ESM adapter are kept identical by `contracts:check`.

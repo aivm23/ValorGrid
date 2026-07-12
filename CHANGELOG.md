@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.32.6
+
+- refactor: make the Operativa metric ID catalog canonical in `packages/contracts` with synchronized CommonJS and browser ESM adapters.
+- chore: add `contracts:sync` and a blocking `contracts:check` to the standard quality gate.
+- test: verify catalog parity, uniqueness and default metric membership across module formats.
+
 ## 3.32.5
 
 - refactor: make HTTP route dependencies resolve strictly from grouped services instead of flat `ctx` fallbacks.

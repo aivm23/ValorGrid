@@ -155,7 +155,7 @@ Reglas de transición:
 - `schema.js`: creación fresh idempotente de tablas.
 - `schema-seed.js`: datos iniciales de instrumentos y planes automáticos.
 
-**Interfaces TypeScript compartidas en `packages/contracts/src/index.ts`:** definiciones de tipos de dominio compartidos entre backend y frontend.
+**Contratos compartidos en `packages/contracts/src/`:** `index.ts` define tipos de dominio; `operation-metrics.json` es la fuente canónica de IDs de métricas de Operativa. `operation-metrics.cjs` y el adaptador ESM generado del frontend exponen el mismo catálogo, verificado por `npm run contracts:check`.
 
 **Dominios en `apps/server/src/domains/`**:
 
@@ -313,7 +313,7 @@ Módulos principales:
 - `operations.js`: instrumentos, grupos, backups y administración.
 - `operations-metric-renderer.js`: markup y copy de las tarjetas de métricas de Operativa.
 - `liquidity.js`: gestion de cuentas de liquidez actuales dentro de Valores, separadas de instrumentos operables.
-- `operations-metrics.js`: catálogo de métricas de Operativa (registry de tarjetas de performance).
+- `operations-metrics.js`: comportamiento de las métricas de Operativa; sus IDs proceden del adaptador generado `operations-metric-catalog.js`.
 - `ledger.js`: movimientos y filtros.
 - `dividends.js`: alerta de toolbar, modal de borradores y scan automático de dividendos al arrancar.
 - `monthly.js`: revisión YTD.
