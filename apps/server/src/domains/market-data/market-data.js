@@ -293,6 +293,13 @@ function getCachedDailyPrices(yahooSymbol, fromDate, toDate) {
   return getDailyPricesInRange(yahooSymbol, fromDate, toDate);
 }
 
+async function scanSplitsForYahooInstrument(instrument, fromDate = null, toDate = null) {
+  if (typeof ctx.scanCorporateActionsForInstrument !== 'function') return;
+  try {
+    await ctx.scanCorporateActionsForInstrument(instrument, fromDate, toDate);
+  } catch { /* split scans are advisory for market-data reads */ }
+}
+
 function parseDailyPrices(result) {
   const timestamps = result.timestamp || [];
   const closes = result.indicators?.quote?.[0]?.close || [];
@@ -343,6 +350,7 @@ async function getDailyPrices(yahooSymbol, fromDate, toDate) {
 
 async function getDailyPricesFromSource(instrument, source, fromDate, toDate) {
   if (source.provider === 'yahoo') {
+    await scanSplitsForYahooInstrument(instrument, fromDate, toDate);
     return getDailyPrices(source.providerSymbol, fromDate, toDate);
   }
 if (source.provider === 'alpha_vantage') {
@@ -403,6 +411,7 @@ async function quoteFromSource(instrument, source, requestedDate, options = {}) 
     return makeAlphaQuote(exact, date, source);
   }
   if (source.provider === 'yahoo') {
+    await scanSplitsForYahooInstrument(instrument, null, date);
     return requestedDate
       ? await fetchDatedYahooPriceWithFallback(source.providerSymbol, requestedDate, options)
       : await fetchLatestYahooPriceWithFallback(source.providerSymbol, options);

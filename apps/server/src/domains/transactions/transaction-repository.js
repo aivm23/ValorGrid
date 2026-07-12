@@ -63,8 +63,12 @@ module.exports = function attach(ctx) {
 
   function listTransactionSharesForSymbol(symbol, asOfDate = null) {
     return asOfDate
-      ? db.prepare('SELECT type, shares FROM transactions WHERE symbol = ? AND date <= ?').all(symbol, asOfDate)
-      : db.prepare('SELECT type, shares FROM transactions WHERE symbol = ?').all(symbol);
+      ? db
+          .prepare('SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? AND date <= ? ORDER BY date ASC, created_at ASC')
+          .all(symbol, asOfDate)
+      : db
+          .prepare('SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? ORDER BY date ASC, created_at ASC')
+          .all(symbol);
   }
 
   function listStockColors() {

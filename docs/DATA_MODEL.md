@@ -189,6 +189,32 @@ Campos principales:
 - `failed_symbols_json`
 - `error`
 
+### `corporate_actions`
+
+Registra splits y reverse splits de acciones/ETF detectados desde Yahoo Finance. No forma parte del ledger contable y no crea cash-flow.
+
+Campos principales:
+
+- `id`
+- `type`: actualmente solo `split`.
+- `symbol`
+- `yahoo_symbol`
+- `source`: por defecto `Yahoo Finance`.
+- `source_event_id`: identificador idempotente del evento de proveedor.
+- `effective_date`: fecha desde la que se aplican las nuevas unidades.
+- `old_shares`: acciones antiguas del ratio.
+- `new_shares`: acciones nuevas del ratio.
+- `ratio`: `new_shares / old_shares`.
+- `created_at`
+- `updated_at`
+
+Reglas:
+
+- Split `1 -> 20`: `old_shares = 1`, `new_shares = 20`, `ratio = 20`.
+- Reverse split `20 -> 1`: `old_shares = 20`, `new_shares = 1`, `ratio = 0.05`.
+- El evento ajusta acciones y lotes abiertos desde `effective_date`; no modifica `transactions`, dividendos, cash-flow ni caches de precios.
+- `UNIQUE(symbol, source_event_id)` evita duplicar el mismo evento al reescanear Yahoo Finance.
+
 ### `auto_plans`
 
 Define aportaciones automáticas.

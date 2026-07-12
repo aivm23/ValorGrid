@@ -67,6 +67,13 @@ function bindGroupedCtxNamespaces(ctx) {
     ]),
   );
   Object.assign(
+    ctx.services.corporateActions,
+    pickCtxFunctions(ctx, [
+      'getYahooSplitEvents', 'scanCorporateActions', 'scanCorporateActionsForInstrument',
+      'listCorporateActions', 'listSplitsForSymbolUntil', 'listSplitsUntil',
+    ]),
+  );
+  Object.assign(
     ctx.services.dataIngestion,
     pickCtxFunctions(ctx, ['previewImport', 'commitImport', 'listImportBatches', 'getImportBatch', 'getImportRows', 'rollbackImportBatch', 'listImportRollbackLog', 'getImportTemplate']),
   );
@@ -124,6 +131,10 @@ function bindGroupedCtxNamespaces(ctx) {
   Object.assign(
     ctx.repositories.transactions,
     pickCtxFunctions(ctx, ['getTransactions', 'getAutoPlans', 'getPositionShares', 'isAutoPlanSkipped']),
+  );
+  Object.assign(
+    ctx.repositories.corporateActions,
+    pickCtxFunctions(ctx, ['listCorporateActions', 'listSplitsForSymbolUntil', 'listSplitsUntil']),
   );
   Object.assign(
     ctx.repositories.history,

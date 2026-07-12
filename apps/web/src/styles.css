@@ -2723,12 +2723,20 @@ td:last-child {
   stroke: var(--event-color, #dc2626);
 }
 
+.history-event-ring-split {
+  stroke: var(--event-color, #f59e0b);
+}
+
 .history-event-add {
   stroke: var(--event-color, #16a34a);
 }
 
 .history-event-remove {
   stroke: var(--event-color, #dc2626);
+}
+
+.history-event-split {
+  stroke: var(--event-color, #f59e0b);
 }
 
 .history-tooltip {

@@ -10,6 +10,8 @@ const {
   deleteTransaction,
   getPositionShares,
   getTransactions,
+  scanCorporateActions,
+  listCorporateActions,
   getQuoteForSymbol,
   buildPortfolioPerformance,
   cachePrice,
@@ -434,6 +436,66 @@ test('GET /api/instruments returns configured instruments', async () => {
   assert.equal(response.status, 200);
   assert.ok(body.instruments.some((item) => item.symbol === 'SPPW'));
   assert.ok(body.instruments.some((item) => item.symbol === 'NVO'));
+});
+
+test('automatic Yahoo split adjusts positions and is idempotent', async () => {
+  seedTestInstrument({ symbol: 'GOOGS', yahooSymbol: 'GOOGS', name: 'Google Split Test', type: 'stock' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'GOOGS',
+    date: '2026-01-10',
+    shares: 1,
+    euros: 1000,
+    entryMode: 'manual_total_eur',
+  });
+  mockSplitEvents.set('GOOGS', [{ date: '2026-02-01', numerator: 20, denominator: 1 }]);
+  const ledgerVersionBefore = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'ledger_version'").get().value);
+  const priceVersionBefore = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'price_version'").get().value);
+
+  const firstScan = await scanCorporateActions({ symbols: ['GOOGS'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+  const secondScan = await scanCorporateActions({ symbols: ['GOOGS'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+  const actions = listCorporateActions({ symbol: 'GOOGS' }).actions;
+  const ledgerVersionAfter = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'ledger_version'").get().value);
+  const priceVersionAfter = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'price_version'").get().value);
+
+  assert.equal(firstScan.summary.createdActions, 1);
+  assert.equal(secondScan.summary.createdActions, 0);
+  assert.ok(ledgerVersionAfter > ledgerVersionBefore);
+  assert.equal(priceVersionAfter, priceVersionBefore);
+  assert.equal(actions.length, 1);
+  assert.equal(Number(actions[0].ratio), 20);
+  assert.equal(getPositionShares('GOOGS', '2026-01-31'), 1);
+  assert.equal(getPositionShares('GOOGS', '2026-02-01'), 20);
+
+  await createTransaction({
+    type: 'remove',
+    symbol: 'GOOGS',
+    date: '2026-03-01',
+    shares: 3,
+    euros: 180,
+    entryMode: 'manual_total_eur',
+  });
+  assert.equal(getPositionShares('GOOGS', '2026-03-01'), 17);
+  mockSplitEvents.delete('GOOGS');
+});
+
+test('automatic Yahoo reverse split reduces positions from the effective date', async () => {
+  seedTestInstrument({ symbol: 'REVS', yahooSymbol: 'REVS', name: 'Reverse Split Test', type: 'stock' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'REVS',
+    date: '2026-01-10',
+    shares: 60,
+    euros: 600,
+    entryMode: 'manual_total_eur',
+  });
+  mockSplitEvents.set('REVS', [{ date: '2026-02-01', numerator: 1, denominator: 20 }]);
+
+  await scanCorporateActions({ symbols: ['REVS'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+
+  assert.equal(getPositionShares('REVS', '2026-01-31'), 60);
+  assert.equal(getPositionShares('REVS', '2026-02-01'), 3);
+  mockSplitEvents.delete('REVS');
 });
 
 test('liquidity accounts can be created and count in current summary without ledger movements', async () => {

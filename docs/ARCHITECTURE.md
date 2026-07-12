@@ -67,6 +67,8 @@ apps/server/src/
 │   ├── instruments/    (instrument-*, route-instruments)
 │   ├── transactions/   (transaction-*, route-transactions)
 │   ├── dividends/      (dividend-*, route-dividends)
+│   ├── corporate-actions/ (corporate-action-*, route-corporate-actions)
+│   ├── liquidity/      (liquidity-*, route-liquidity)
 │   ├── data-ingestion/ (ingestion-*, route-data-ingestion)
 │   ├── portfolio/      (portfolio-*, route-portfolio)
 │   ├── history/        (history-*)
@@ -181,35 +183,38 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 12. `domains/instruments/instrument-service`: reglas de negocio y flujo de instrumentos. Carga internamente `instrument-brand-palette` para gestión de paleta corporativa automática, `instrument-group-service` para operaciones CRUD de grupos e `instrument-price-sources` para normalizar fuentes de precio por instrumento.
 13. `domains/ticker-suggestions/ticker-suggestions`: resolución de tickers por ISIN, nombre o historial.
 14. `domains/market-data/market-data-repository`: acceso a `price_cache`, `daily_price_cache` y tablas de fuentes/precios alternativos.
-15. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales, FX y eventos de dividendos. Carga internamente `market-data-providers`, `market-data-admin` y `market-data-dividends`.
+15. `domains/market-data/market-data`: precios, Yahoo Finance, fuentes alternativas, precios manuales, FX y eventos de dividendos; delega los splits de acciones/ETF al dominio de acciones corporativas cuando consulta Yahoo. Carga internamente `market-data-providers`, `market-data-admin` y `market-data-dividends`.
 16. `domains/market-data/route-market-data-alpha-vantage`: ruta HTTP para status, guardado y borrado de claves Alpha Vantage. Se carga en el bucle principal (no vía `routes.js`) y se invoca desde `routes.js` a través de `ctx.handleAlphaVantageKeyRoutes`.
-17. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
-18. `domains/transactions/transaction-service`: CRUD de transacciones, preview y planes automáticos. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
-19. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
-20. `domains/dividends/dividend-repository`: SQL de eventos de dividendos, settings por instrumento, scans y confirmación atómica en ledger.
-21. `domains/dividends/dividend-service`: detección desde Yahoo Finance, borradores, edición, confirmación y auto-inclusión.
-22. `domains/liquidity/liquidity-repository`: SQL de cuentas de liquidez técnica (`cash`) y grupo Liquidez.
-23. `domains/liquidity/liquidity-service`: CRUD de liquidez actual sin movimientos ni histórico.
-24. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-25. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
-26. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
-27. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
-28. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
-29. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
-30. `domains/history/history-core`: motor de materialización de histórico.
-31. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
-32. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
-33. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
-34. `domains/admin/update-service`: consulta de última release estable en GitHub Releases, comparación semver, detección de runtime y selección de asset de escritorio. Registra `ctx.services.admin.getUpdateStatus` y `ctx.services.admin.getDockerCommands`.
-35. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
-36. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
-37. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
+17. `domains/corporate-actions/corporate-action-repository`: acceso SQL de splits/reverse splits detectados como acciones corporativas.
+18. `domains/transactions/transaction-repository`: acceso SQL de transacciones, auto planes y skips.
+19. `domains/corporate-actions/corporate-action-service`: escaneo Yahoo Finance de splits de acciones/ETF, persistencia idempotente e invalidación de histórico.
+20. `domains/transactions/transaction-service`: CRUD de transacciones, preview, planes automáticos y posiciones split-aware. Carga internamente `transaction-pricing` para resolución estricta de FX en escrituras.
+21. `domains/transactions/auto-plan-date-service`: cálculo de fechas de planes automáticos (frecuencias diaria, semanal, bisemanal, mensual).
+22. `domains/dividends/dividend-repository`: SQL de eventos de dividendos, settings por instrumento, scans y confirmación atómica en ledger.
+23. `domains/dividends/dividend-service`: detección desde Yahoo Finance, borradores, edición, confirmación y auto-inclusión.
+24. `domains/liquidity/liquidity-repository`: SQL de cuentas de liquidez técnica (`cash`) y grupo Liquidez.
+25. `domains/liquidity/liquidity-service`: CRUD de liquidez actual sin movimientos ni histórico.
+26. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
+27. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+28. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
+29. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
+30. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
+31. `domains/history/history-repository`: acceso SQL de builds, invalidaciones, precios y eventos.
+32. `domains/history/history-core`: motor de materialización de histórico.
+33. `domains/history/history-service`: API de histórico, invalidaciones y reconstrucción.
+34. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
+35. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
+36. `domains/admin/update-service`: consulta de última release estable en GitHub Releases, comparación semver, detección de runtime y selección de asset de escritorio. Registra `ctx.services.admin.getUpdateStatus` y `ctx.services.admin.getDockerCommands`.
+37. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
+38. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
+39. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
 **Route modules (cargados por `routes.js`):**
 
 - `domains/instruments/route-instruments.js`
 - `domains/transactions/route-transactions.js`
 - `domains/dividends/route-dividends.js`
+- `domains/corporate-actions/route-corporate-actions.js`
 - `domains/liquidity/route-liquidity.js`
 - `domains/data-ingestion/route-data-ingestion.js`
 - `domains/portfolio/route-portfolio.js`
@@ -231,6 +236,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `transaction-entry-modes`: normalización y validación de modos de entrada de operaciones (`market_eur`, `manual_total_eur`, `manual_unit_price`).
 - `transaction-pricing`: resolución estricta de precios/FX para escrituras de movimientos.
 - `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
+- `corporate-actions/corporate-action-timeline`: helper puro para aplicar splits antes de transacciones en la misma fecha.
 
 **Sub-módulos de import-service (cargados internamente):**
 
@@ -283,6 +289,10 @@ Módulos principales:
 - `api-client.js`: wrapper HTTP tipado con JSDoc para cada endpoint de la API.
 - `state.js`: estado global de UI.
 - `i18n.js`: preferencia de idioma ES/EN, traducción de DOM estático/dinámico, formateadores locales y registro de diccionarios privados de extensiones.
+- `i18n-catalog.js`: catálogo agregador de traducciones ES/EN del frontend. Mergea los sub-catálogos (`i18n-catalog-ui`, `i18n-catalog-modals`, `i18n-catalog-import`) y aporta las claves core de Operativa/métricas.
+- `i18n-catalog-ui.js`: sub-catálogo de traducciones de UI general (formato, cantidades, confirmaciones, revisión YTD, estados de mercado).
+- `i18n-catalog-modals.js`: sub-catálogo de traducciones de modales (modos de entrada de transacción, selección de instrumentos/grupos, formularios).
+- `i18n-catalog-import.js`: sub-catálogo de traducciones del asistente de importación (fuentes, sugerencias, badges, decisiones de instrumentos).
 - `dom.js`: referencias a nodos.
 - `confirm-dialog.js`: modal de confirmación propio y reutilizable para evitar diálogos nativos del navegador.
 - `extensions.js`: carga módulos web de extensiones profesionales registradas por el host de extensiones.
@@ -346,6 +356,7 @@ Tablas clave:
 - `portfolio_events`
 - `history_invalidations`
 - `history_builds`
+- `corporate_actions`
 
 ## Importaciones
 

@@ -113,17 +113,31 @@ export function attach(ctx) {
   }
 
   function historyEventColor(event) {
+    if (event.type === 'split') return '#f59e0b';
     if (event.type === 'dividend') return '#06b6d4';
     if (event.type === 'remove') return '#dc2626';
     return '#16a34a';
   }
 
   function historyEventLabel(type) {
+    if (type === 'split') return ctx.t('history.events.split');
     if (type === 'dividend') return ctx.t('history.events.dividend');
     return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
   }
 
   function eventTooltip(event) {
+    if (event.type === 'split') {
+      const oldShares = Number(event.price || 0);
+      const newShares = Number(event.shares || 0);
+      const ratio = oldShares > 0 ? newShares / oldShares : 0;
+      return [
+        `${ctx.t('history.events.split')} ${event.symbol}`,
+        formatPlainDate(event.date),
+        `${ctx.formatShareNumber(oldShares)} -> ${ctx.formatShareNumber(newShares)}`,
+        ctx.t('history.tooltip.splitRatio', { value: `x${ctx.formatShareNumber(ratio)}` }),
+        ctx.t('history.tooltip.origin', { value: ctx.t('history.origin.market') }),
+      ].join('\n');
+    }
     const type = historyEventLabel(event.type);
     const origin = event.origin === 'auto'
       ? ctx.t('history.origin.auto')
@@ -152,6 +166,12 @@ export function attach(ctx) {
       '---',
       ...events.map((event) => {
         const type = historyEventLabel(event.type);
+        if (event.type === 'split') {
+          const oldShares = Number(event.price || 0);
+          const newShares = Number(event.shares || 0);
+          const ratio = oldShares > 0 ? newShares / oldShares : 0;
+          return `${type} ${event.symbol}: ${ctx.formatShareNumber(oldShares)} -> ${ctx.formatShareNumber(newShares)} (${ctx.formatShareNumber(ratio)}x)`;
+        }
         return `${type} ${event.symbol}: ${formatInstrumentQuantity(event.shares, event)}, ${formatCurrency(Number(event.valueEur))}`;
       }).flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
     ].join('\n');
@@ -184,7 +204,7 @@ export function attach(ctx) {
     const last = history.series[history.series.length - 1];
     const first = history.series[0];
     const invested = visibleEvents.reduce((sum, event) => {
-      const sign = event.type === 'remove' ? -1 : event.type === 'dividend' ? 0 : 1;
+      const sign = event.type === 'add' ? 1 : event.type === 'remove' ? -1 : 0;
       return sum + sign * Number(event.valueEur || 0) + (event.type === 'add' ? Number(event.commissionEur || 0) : 0);
     }, 0);
     elements.historyStats.innerHTML = `
@@ -259,7 +279,9 @@ export function attach(ctx) {
         const y = scale.y(point.value);
         const tooltip = escapeHtml(eventGroupTooltip(group));
         const eventColor = group.length > 1 ? 'url(#historyEventMultiGrad)' : historyEventColor(group[0]);
-        const eventType = group.some((event) => event.type === 'remove') ? 'remove' : 'add';
+        const eventType = group.every((event) => event.type === 'split')
+          ? 'split'
+          : group.some((event) => event.type === 'remove') ? 'remove' : 'add';
         const r = group.length > 1 ? 6 : 5;
         return `
         <circle

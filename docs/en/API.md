@@ -7,6 +7,7 @@ Main areas:
 - Portfolio: summary, performance, monthly and history.
 - Instruments and groups.
 - Transactions and automatic plans.
+- Corporate actions: automatic Yahoo Finance stock/ETF splits and reverse splits, exposed through read/scan audit endpoints.
 - Imports and rollbacks.
 - Backups and diagnostics.
 - Version, health and extension manifest.

@@ -195,6 +195,15 @@ module.exports = function attach(ctx) {
       error TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS corporate_actions (
+      id TEXT PRIMARY KEY, type TEXT NOT NULL DEFAULT 'split' CHECK (type IN ('split')), symbol TEXT NOT NULL,
+      yahoo_symbol TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'Yahoo Finance', source_event_id TEXT NOT NULL,
+      effective_date TEXT NOT NULL, old_shares REAL NOT NULL CHECK (old_shares > 0),
+      new_shares REAL NOT NULL CHECK (new_shares > 0), ratio REAL NOT NULL CHECK (ratio > 0),
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(symbol, source_event_id)
+    );
+
     CREATE TABLE IF NOT EXISTS auto_plan_skips (
       auto_key TEXT PRIMARY KEY,
       skipped_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -353,28 +362,17 @@ module.exports = function attach(ctx) {
       rolled_back_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `);
-
   db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_transactions_symbol_date_created
-      ON transactions (symbol, date, created_at);
-    CREATE INDEX IF NOT EXISTS idx_transactions_date_created
-      ON transactions (date, created_at);
-    CREATE INDEX IF NOT EXISTS idx_transactions_origin_auto_key
-      ON transactions (origin, auto_key);
-    CREATE INDEX IF NOT EXISTS idx_instruments_type_active
-      ON instruments (type, active);
-    CREATE INDEX IF NOT EXISTS idx_instruments_group_active
-      ON instruments (group_id, active);
-    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_symbol
-      ON instrument_identifiers (instrument_symbol);
-    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_lookup
-      ON instrument_identifiers (provider, identifier_type, identifier_value);
-    CREATE INDEX IF NOT EXISTS idx_instrument_groups_order
-      ON instrument_groups (display_order, active);
-    CREATE INDEX IF NOT EXISTS idx_market_prices_symbol_date
-      ON market_prices_daily (symbol, date);
-    CREATE INDEX IF NOT EXISTS idx_instrument_price_sources_symbol_priority
-      ON instrument_price_sources (instrument_symbol, enabled, priority);
+    CREATE INDEX IF NOT EXISTS idx_transactions_symbol_date_created ON transactions (symbol, date, created_at);
+    CREATE INDEX IF NOT EXISTS idx_transactions_date_created ON transactions (date, created_at);
+    CREATE INDEX IF NOT EXISTS idx_transactions_origin_auto_key ON transactions (origin, auto_key);
+    CREATE INDEX IF NOT EXISTS idx_instruments_type_active ON instruments (type, active);
+    CREATE INDEX IF NOT EXISTS idx_instruments_group_active ON instruments (group_id, active);
+    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_symbol ON instrument_identifiers (instrument_symbol);
+    CREATE INDEX IF NOT EXISTS idx_instrument_identifiers_lookup ON instrument_identifiers (provider, identifier_type, identifier_value);
+    CREATE INDEX IF NOT EXISTS idx_instrument_groups_order ON instrument_groups (display_order, active);
+    CREATE INDEX IF NOT EXISTS idx_market_prices_symbol_date ON market_prices_daily (symbol, date);
+    CREATE INDEX IF NOT EXISTS idx_instrument_price_sources_symbol_priority ON instrument_price_sources (instrument_symbol, enabled, priority);
     CREATE INDEX IF NOT EXISTS idx_market_price_points_symbol_date
       ON market_price_points (instrument_symbol, date);
     CREATE INDEX IF NOT EXISTS idx_market_price_points_provider_date
@@ -389,6 +387,8 @@ module.exports = function attach(ctx) {
       ON dividend_events (transaction_id);
     CREATE INDEX IF NOT EXISTS idx_dividend_scan_runs_started
       ON dividend_scan_runs (started_at);
+    CREATE INDEX IF NOT EXISTS idx_corporate_actions_symbol_date ON corporate_actions (symbol, effective_date);
+    CREATE INDEX IF NOT EXISTS idx_corporate_actions_type_date ON corporate_actions (type, effective_date);
     CREATE INDEX IF NOT EXISTS idx_fx_rates_pair_date
       ON fx_rates_daily (pair, date);
     CREATE INDEX IF NOT EXISTS idx_portfolio_positions_symbol_date

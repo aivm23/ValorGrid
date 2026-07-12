@@ -13,6 +13,7 @@ module.exports = function attach(ctx) {
       'formatDateUtc',
       'historyBuildKey',
       'getTransactions',
+      'listSplitsUntil',
     ],
     'history-core',
   );
@@ -27,6 +28,7 @@ module.exports = function attach(ctx) {
     formatDateUtc,
     historyBuildKey,
     getTransactions,
+    listSplitsUntil,
   } = ctx;
 
   const historyRepository = repositories.history;
@@ -78,7 +80,36 @@ function getTransactionsUntil(toDate) {
 }
 
 function getHistoryEvents(fromDate, toDate) {
-  return historyRepository.listHistoryEventsFromTransactions(fromDate, toDate);
+  return [
+    ...historyRepository.listHistoryEventsFromTransactions(fromDate, toDate),
+    ...splitEventsForRange(fromDate, toDate),
+  ].sort((a, b) => {
+    const dateCompare = String(a.plotDate || a.date).localeCompare(String(b.plotDate || b.date));
+    if (dateCompare !== 0) return dateCompare;
+    if (a.type !== b.type) return a.type === 'split' ? -1 : 1;
+    return String(a.createdAt || '').localeCompare(String(b.createdAt || ''));
+  });
+}
+
+function splitEventsForRange(fromDate, toDate) {
+  return listSplitsUntil(toDate)
+    .filter((split) => split.effectiveDate >= fromDate && split.effectiveDate <= toDate)
+    .map((split) => ({
+      id: split.id,
+      type: 'split',
+      symbol: split.symbol,
+      name: 'Split aplicado automaticamente',
+      date: split.effectiveDate,
+      marketDate: null,
+      plotDate: split.effectiveDate,
+      shares: Number(split.newShares),
+      valueEur: 0,
+      price: Number(split.oldShares),
+      currency: '',
+      origin: 'market',
+      color: null,
+      createdAt: split.createdAt,
+    }));
 }
 
 function weekKey(dateValue) {
@@ -161,8 +192,15 @@ function replaceFxRates(pair, rows) {
 }
 
 function rebuildPortfolioEvents() {
-  historyRepository.replacePortfolioEvents(getTransactions());
+  const transactions = getTransactions();
+  const dates = transactions.map((transaction) => transaction.date).filter(Boolean).sort();
+  const fromDate = dates[0] || '0000-01-01';
+  const toDate = getToday();
+  historyRepository.replacePortfolioEvents([
+    ...transactions,
+    ...splitEventsForRange(fromDate, toDate),
+  ]);
 }
 
-  Object.assign(ctx, { firstTransactionDate, resolveHistoryWindow, getHistoryInstruments, getTransactionsUntil, getHistoryEvents, weekKey, reduceDatesForGranularity, pointDatesFromPriceRows, getHistoryBuild, getOldestHistoryInvalidation, historyBuildIsFresh, markHistoryBuild, replaceMarketPrices, replaceFxRates, rebuildPortfolioEvents });
+  Object.assign(ctx, { firstTransactionDate, resolveHistoryWindow, getHistoryInstruments, getTransactionsUntil, getHistoryEvents, splitEventsForRange, weekKey, reduceDatesForGranularity, pointDatesFromPriceRows, getHistoryBuild, getOldestHistoryInvalidation, historyBuildIsFresh, markHistoryBuild, replaceMarketPrices, replaceFxRates, rebuildPortfolioEvents });
 };

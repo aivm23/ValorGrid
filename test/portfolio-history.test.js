@@ -9,6 +9,8 @@ const {
   getPositionShares,
   getTransactions,
   cachePrice,
+  mockSplitEvents,
+  scanCorporateActions,
   seedTestInstrument,
   seedLoadtestDb,
   bumpTestMeta,
@@ -326,6 +328,42 @@ test('portfolio history stores persistent materialized values and positions', as
   assert.ok(weeklyCount > 0);
   assert.ok(positionCount > 0);
   assert.equal(second.meta.cached, true);
+});
+
+test('portfolio history materializes split-adjusted shares from effective date', async () => {
+  db.exec(
+    'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
+  seedTestInstrument({
+    symbol: 'HISTSPL',
+    yahooSymbol: 'HISTSPL',
+    name: 'History Split Test',
+    type: 'stock',
+    currency: 'EUR',
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'HISTSPL',
+    date: '2026-01-10',
+    shares: 3,
+    euros: 300,
+    entryMode: 'manual_total_eur',
+  });
+  mockSplitEvents.set('HISTSPL', [{ date: '2026-02-01', numerator: 20, denominator: 1 }]);
+  await scanCorporateActions({ symbols: ['HISTSPL'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+
+  const history = await buildPortfolioHistory('all', 'daily');
+  const before = db
+    .prepare("SELECT shares FROM portfolio_positions_daily WHERE symbol = 'HISTSPL' AND date = '2026-01-31'")
+    .get();
+  const after = db
+    .prepare("SELECT shares FROM portfolio_positions_daily WHERE symbol = 'HISTSPL' AND date = '2026-02-01'")
+    .get();
+
+  assert.equal(Number(before.shares), 3);
+  assert.equal(Number(after.shares), 60);
+  assert.ok(history.events.some((event) => event.type === 'split' && event.symbol === 'HISTSPL'));
+  mockSplitEvents.delete('HISTSPL');
 });
 
 test('ledger writes invalidate materialized portfolio history versions', async () => {

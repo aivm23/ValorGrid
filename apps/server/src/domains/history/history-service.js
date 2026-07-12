@@ -17,6 +17,7 @@ module.exports = function attach(ctx) {
       'getHistoryEvents',
       'pointDatesFromPriceRows',
       'getTransactionsUntil',
+      'listSplitsUntil',
       'transactionSign',
       'toEur',
       'rebuildPortfolioEvents',
@@ -46,6 +47,7 @@ module.exports = function attach(ctx) {
     getHistoryEvents,
     pointDatesFromPriceRows,
     getTransactionsUntil,
+    listSplitsUntil,
     transactionSign,
     toEur,
     rebuildPortfolioEvents,
@@ -64,6 +66,15 @@ module.exports = function attach(ctx) {
   const historyRepository = repositories.history;
   if (!historyRepository) {
     throw new Error('history-service requires ctx.repositories.history');
+  }
+
+  async function scanCorporateActionsQuietly(toDate = getToday()) {
+    if (typeof ctx.scanCorporateActions !== 'function') return;
+    try {
+      await ctx.scanCorporateActions({ toDate });
+    } catch {
+      // History rebuilds should keep using existing market data if split scanning fails.
+    }
   }
 
   function replaceMaterializedHistory(pointRows, positionRows, replaceFromDate) {
@@ -147,21 +158,38 @@ module.exports = function attach(ctx) {
         instruments.map((instrument) => [instrument.symbol, Number(instrument.baseShares || 0)]),
       );
       const transactionRows = getTransactionsUntil(toDate);
+      const splitRows = listSplitsUntil(toDate);
       const priceIndexes = new Map(instruments.map((instrument) => [instrument.symbol, -1]));
       let transactionIndex = 0;
+      let splitIndex = 0;
       const pointRows = [];
       const positionRows = [];
 
       for (const date of pointDates) {
-        while (transactionIndex < transactionRows.length && transactionRows[transactionIndex].date <= date) {
+        while (
+          (transactionIndex < transactionRows.length && transactionRows[transactionIndex].date <= date) ||
+          (splitIndex < splitRows.length && splitRows[splitIndex].effectiveDate <= date)
+        ) {
           const transaction = transactionRows[transactionIndex];
-          if (positions.has(transaction.symbol)) {
-            positions.set(
-              transaction.symbol,
-              positions.get(transaction.symbol) + transactionSign(transaction.type) * Number(transaction.shares),
-            );
+          const split = splitRows[splitIndex];
+          const applySplit =
+            split &&
+            (!transaction || String(split.effectiveDate).localeCompare(String(transaction.date)) <= 0);
+
+          if (applySplit) {
+            if (positions.has(split.symbol)) {
+              positions.set(split.symbol, positions.get(split.symbol) * Number(split.ratio));
+            }
+            splitIndex += 1;
+          } else {
+            if (positions.has(transaction.symbol)) {
+              positions.set(
+                transaction.symbol,
+                positions.get(transaction.symbol) + transactionSign(transaction.type) * Number(transaction.shares),
+              );
+            }
+            transactionIndex += 1;
           }
-          transactionIndex += 1;
         }
 
         for (const currency of currencies) {
@@ -296,6 +324,7 @@ module.exports = function attach(ctx) {
 
   async function buildPortfolioHistory(inputRange = 'all', inputGranularity = 'auto') {
     await executeDueAutoPlans();
+    await scanCorporateActionsQuietly();
 
     const window = resolveHistoryWindow(inputRange);
     if (inputGranularity === 'daily' || inputGranularity === 'weekly') {

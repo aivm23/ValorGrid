@@ -4,6 +4,7 @@ const ALLOWED_COUNT_TABLES = new Set([
   'history_invalidations',
   'instruments',
   'transactions',
+  'corporate_actions',
   'price_cache',
   'daily_price_cache',
   'daily_price_cache_ranges',

@@ -10,6 +10,7 @@ Core concepts:
 - Market price cache and daily materialized prices.
 - Portfolio history materialization.
 - Dividend drafts and confirmation settings.
+- Corporate actions for automatic stock/ETF splits and reverse splits.
 - App metadata and invalidations.
 
 Schema changes follow the DB operations policy. Fresh installs are created from the current schema; production schema updates use versioned SQL under `deploy/sql/`.

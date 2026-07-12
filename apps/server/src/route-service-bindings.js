@@ -21,6 +21,7 @@ function resolveRouteHandlers(ctx) {
   const onboardingServices = ctx.services?.onboarding || {};
   const transactionServices = ctx.services?.transactions || {};
   const dividendServices = ctx.services?.dividends || {};
+  const corporateActionServices = ctx.services?.corporateActions || {};
   const liquidityServices = ctx.services?.liquidity || {};
   const importServices = ctx.services?.dataIngestion || {};
   const suggestionServices = ctx.services?.suggestions || {};
@@ -95,6 +96,8 @@ listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources'
     confirmDividendDraft: pickServiceFn(dividendServices, 'confirmDividendDraft', ctx.confirmDividendDraft),
     ignoreDividendDraft: pickServiceFn(dividendServices, 'ignoreDividendDraft', ctx.ignoreDividendDraft),
     setDividendAutoInclude: pickServiceFn(dividendServices, 'setDividendAutoInclude', ctx.setDividendAutoInclude),
+    scanCorporateActions: pickServiceFn(corporateActionServices, 'scanCorporateActions', ctx.scanCorporateActions),
+    listCorporateActions: pickServiceFn(corporateActionServices, 'listCorporateActions', ctx.listCorporateActions),
     getLiquidityState: pickServiceFn(liquidityServices, 'getLiquidityState', ctx.getLiquidityState),
     createLiquidityAccount: pickServiceFn(liquidityServices, 'createLiquidityAccount', ctx.createLiquidityAccount),
     updateLiquidityAccount: pickServiceFn(liquidityServices, 'updateLiquidityAccount', ctx.updateLiquidityAccount),

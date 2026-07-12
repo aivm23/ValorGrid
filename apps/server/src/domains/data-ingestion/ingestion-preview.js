@@ -112,14 +112,11 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
 }
 
 function positionWithPendingRows(ctx, symbol, date, pendingRows, excludeRowIndex) {
-  let shares = ctx.getPositionShares(symbol, date);
-  for (const row of pendingRows) {
-    if (row.rowIndex === excludeRowIndex) continue;
-    if (row.symbol === symbol && row.date <= date) {
-      shares += ctx.transactionSign(row.type) * row.shares;
-    }
-  }
-  return shares;
+  return ctx.getPositionShares(
+    symbol,
+    date,
+    pendingRows.filter((row) => row.rowIndex !== excludeRowIndex && row.symbol === symbol && row.date <= date),
+  );
 }
 
 function almostEqual(a, b, relative = 0.02, absolute = 0.05) {
@@ -163,18 +160,20 @@ function validateFuturePositions(ctx, importRepository, pendingRows) {
   const errors = [];
   for (const [symbol, rows] of bySymbol) {
     const firstDate = rows.map((row) => row.date).sort()[0];
-    let shares = ctx.getPositionShares(symbol, ctx.addDays(firstDate, -1));
     const events = importRepository.listLedgerEventsSince({ symbol, fromDate: firstDate });
-    events.push(...rows.map((row) => ({ date: row.date, type: row.type, shares: row.shares })));
-    events.sort((a, b) => a.date.localeCompare(b.date));
+    const dates = [
+      ...new Set([
+        ...events.map((event) => event.date),
+        ...rows.map((row) => row.date),
+      ]),
+    ].sort();
 
-    const grouped = new Map();
-    for (const event of events) {
-      grouped.set(event.date, (grouped.get(event.date) || 0) + ctx.transactionSign(event.type) * event.shares);
-    }
-
-    for (const [date, delta] of [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-      shares += delta;
+    for (const date of dates) {
+      const shares = ctx.getPositionShares(
+        symbol,
+        date,
+        rows.filter((row) => row.date <= date),
+      );
       if (shares < -0.0000001) {
         errors.push({ symbol, date });
         break;

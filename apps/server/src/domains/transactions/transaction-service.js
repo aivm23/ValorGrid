@@ -2,6 +2,7 @@ const { assertCtxDeps, getCtxDep } = require('../../platform/ctx-utils');
 const { resolveFxToEur } = require('./transaction-pricing');
 const { normalizeEntryMode, validateTransactionAmountInput } = require('./transaction-entry-modes');
 const { buildLedgerAnalyticsFromTransactions } = require('./transaction-analytics');
+const { calculateSharesWithSplits } = require('../corporate-actions/corporate-action-timeline');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -41,6 +42,7 @@ module.exports = function attach(ctx) {
   } = ctx;
 
   const transactionRepository = repositories.transactions;
+  const corporateActionRepository = repositories.corporateActions || {};
   if (!transactionRepository) {
     throw new Error('transaction-service requires ctx.repositories.transactions');
   }
@@ -58,6 +60,8 @@ module.exports = function attach(ctx) {
     insertAutoPlanSkip,
     autoPlanSkipExists,
   } = transactionRepository;
+  const listSplitsForSymbolUntil = corporateActionRepository.listSplitsForSymbolUntil || (() => []);
+  const listSplitsUntil = corporateActionRepository.listSplitsUntil || (() => []);
 
   function getTransactions() { return listTransactions(); }
 
@@ -72,7 +76,7 @@ module.exports = function attach(ctx) {
   }
 
   function buildLedgerAnalytics(currentValue = 0) {
-    return buildLedgerAnalyticsFromTransactions(getTransactions(), currentValue);
+    return buildLedgerAnalyticsFromTransactions(getTransactions(), currentValue, listSplitsUntil());
   }
 
   async function buildPortfolioPerformance() {
@@ -184,16 +188,22 @@ module.exports = function attach(ctx) {
     return { plans: adjusted, warnings };
   }
 
-  function getPositionShares(symbol, asOfDate = null) {
+  function getPositionShares(symbol, asOfDate = null, pendingTransactions = []) {
     const instrument = getInstrument(symbol);
     if (!instrument) return 0;
 
-    const transactions = listTransactionSharesForSymbol(instrument.symbol, asOfDate);
-
-    return transactions.reduce(
-      (shares, transaction) => shares + transactionSign(transaction.type) * Number(transaction.shares),
-      Number(instrument.base_shares || 0),
-    );
+    const transactions = [
+      ...listTransactionSharesForSymbol(instrument.symbol, asOfDate),
+      ...(pendingTransactions || [])
+        .filter((transaction) => String(transaction.symbol || '').toUpperCase() === instrument.symbol)
+        .filter((transaction) => !asOfDate || transaction.date <= asOfDate),
+    ];
+    return calculateSharesWithSplits({
+      baseShares: Number(instrument.base_shares || 0),
+      transactions,
+      splits: listSplitsForSymbolUntil(instrument.symbol, asOfDate),
+      transactionSign,
+    });
   }
 
   async function createTransaction(input, options = {}) {
@@ -437,27 +447,7 @@ module.exports = function attach(ctx) {
     }
     return false;
   }
-  Object.assign(ctx, {
-    getTransactions,
-    getAutoPlans,
-    buildLedgerAnalytics,
-    buildPortfolioPerformance,
-    replaceAutoPlans,
-    autoPlanFrequency,
-    normalizeAutoPlans,
-    autoPlanMateriallyChanged,
-    applyAutoPlanEditPolicy,
-    getAutoPlanScheduledDates: ctx.getAutoPlanScheduledDates,
-    autoKeyForPlan,
-    autoPlanExists,
-    previewAutoPlanExecutions,
-    getPositionShares,
-    createTransaction,
-    previewTransaction,
-    deleteTransaction,
-    bulkDeleteTransactions,
-    isAutoPlanSkipped,
-  });
+  Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates: ctx.getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, createTransaction, previewTransaction, deleteTransaction, bulkDeleteTransactions, isAutoPlanSkipped });
   function autoKeyForPlan(plan, scheduledDate) { return `auto:${plan.symbol}:${scheduledDate}`; }
   function autoPlanExists(autoKey) {
     if (transactionExistsByAutoKey(autoKey)) return true;

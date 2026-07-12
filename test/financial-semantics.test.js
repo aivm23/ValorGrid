@@ -7,6 +7,9 @@ const {
   buildMonthly,
   buildPortfolioHistory,
   cachePrice,
+  mockSplitEvents,
+  scanCorporateActions,
+  seedTestInstrument,
   registerLifecycle,
 } = require('./integration-helpers');
 
@@ -21,6 +24,7 @@ function resetFinancialState() {
     DELETE FROM auto_plan_skips;
     DELETE FROM auto_plans;
     DELETE FROM transactions;
+    DELETE FROM corporate_actions;
     DELETE FROM history_builds;
     DELETE FROM history_invalidations;
     DELETE FROM portfolio_value_daily;
@@ -46,6 +50,39 @@ test('buildPortfolioPerformance: only buys keep netCashFlow negative and netCont
   approx(performance.totalGain, -2);
   approx(performance.unrealizedGain, -2);
   approx(performance.simpleReturnPct, (-2 / 102) * 100);
+});
+
+test('buildPortfolioPerformance: split adjusts FIFO shares without changing contributed capital', async () => {
+  resetFinancialState();
+
+  seedTestInstrument({ symbol: 'GOOGF', yahooSymbol: 'GOOGF', name: 'Google FIFO Split', type: 'stock' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'GOOGF',
+    date: '2026-01-10',
+    shares: 1,
+    euros: 1000,
+    entryMode: 'manual_total_eur',
+  });
+  mockSplitEvents.set('GOOGF', [{ date: '2026-02-01', numerator: 20, denominator: 1 }]);
+  await scanCorporateActions({ symbols: ['GOOGF'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+  await createTransaction({
+    type: 'remove',
+    symbol: 'GOOGF',
+    date: '2026-03-01',
+    shares: 3,
+    euros: 180,
+    entryMode: 'manual_total_eur',
+  });
+
+  const performance = await buildPortfolioPerformance();
+
+  approx(performance.grossInvested, 1000);
+  approx(performance.grossWithdrawn, 180);
+  approx(performance.netContributed, 820);
+  approx(performance.realizedGain, 30);
+  assert.equal(performance.transactionCount, 2);
+  mockSplitEvents.delete('GOOGF');
 });
 
 test('buildPortfolioPerformance: buys + sells + fees preserve FIFO and expected signs', async () => {

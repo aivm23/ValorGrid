@@ -167,6 +167,10 @@ module.exports = function attach(ctx) {
       active: Boolean(item.active),
       showInDistribution: Boolean(item.showInDistribution),
       showInMonthly: Boolean(item.showInMonthly),
+      currentShares:
+        typeof ctx.getPositionShares === 'function'
+          ? ctx.getPositionShares(item.symbol)
+          : undefined,
     }));
   }
 

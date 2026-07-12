@@ -1,4 +1,11 @@
-function buildLedgerAnalyticsFromTransactions(transactions, currentValue = 0) {
+function compareLedgerEvents(a, b) {
+  const dateCompare = String(a.date || '').localeCompare(String(b.date || ''));
+  if (dateCompare !== 0) return dateCompare;
+  if (a.kind !== b.kind) return a.kind === 'split' ? -1 : 1;
+  return Number(a.index || 0) - Number(b.index || 0);
+}
+
+function buildLedgerAnalyticsFromTransactions(transactions, currentValue = 0, splits = []) {
   const lotsBySymbol = new Map();
   let grossInvested = 0;
   let grossWithdrawn = 0;
@@ -8,7 +15,29 @@ function buildLedgerAnalyticsFromTransactions(transactions, currentValue = 0) {
   let dividendIncomeEur = 0;
   let dividendCount = 0;
 
-  for (const transaction of transactions) {
+  const events = [
+    ...transactions.map((transaction, index) => ({ kind: 'transaction', date: transaction.date, transaction, index })),
+    ...splits.map((split, index) => ({
+      kind: 'split',
+      date: split.effectiveDate || split.effective_date,
+      split,
+      index,
+    })),
+  ].sort(compareLedgerEvents);
+
+  for (const event of events) {
+    if (event.kind === 'split') {
+      const split = event.split;
+      const ratio = Number(split.ratio);
+      if (!Number.isFinite(ratio) || ratio <= 0) continue;
+      const lots = lotsBySymbol.get(split.symbol) || [];
+      for (const lot of lots) {
+        lot.shares *= ratio;
+      }
+      continue;
+    }
+
+    const { transaction } = event;
     const shares = Number(transaction.shares || 0);
     const valueEur = Number(transaction.valueEur || 0);
     const commissionEur = Number(transaction.commissionEur || 0);

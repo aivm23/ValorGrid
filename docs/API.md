@@ -165,8 +165,23 @@ Reglas:
 - Solo se escanean instrumentos `stock` y `etf`.
 - El primer dividendo de un instrumento queda como borrador porque `autoInclude` empieza desactivado.
 - Si `autoInclude` esta activo, los siguientes dividendos se confirman automáticamente salvo que Yahoo informe split/dividend split.
-- Los split/dividend split solo se informan; no se procesan en esta versión.
+- Los avisos de dividend split siguen siendo informativos. Los splits/reverse splits de acciones y ETF se tratan como acciones corporativas automáticas, separadas de dividendos.
 - No se pueden crear dividendos manuales sin evento Yahoo.
+
+## Acciones corporativas
+
+```text
+GET /api/corporate-actions
+GET /api/corporate-actions?symbol=GOOG
+POST /api/corporate-actions/scan
+```
+
+- `GET /api/corporate-actions`: lista splits/reverse splits registrados automáticamente desde Yahoo Finance. Acepta filtros opcionales `symbol`, `fromDate` y `toDate`.
+- `POST /api/corporate-actions/scan`: escanea Yahoo Finance para instrumentos `stock` y `etf` con `yahoo_symbol`. Body opcional: `{ "symbols": ["GOOG"], "fromDate": "2026-01-01", "toDate": "2026-12-31" }`.
+- Los eventos se registran de forma idempotente por `symbol + source_event_id`.
+- Registrar o actualizar un split invalida el histórico desde `effective_date` vía `ledger_version`; no modifica `price_version`.
+- No existe confirmación manual: el mercado ya cotiza con el split/reverse split aplicado.
+- No se crean movimientos en `transactions`; no hay cash-flow, comisión, dividendo ni compra/venta asociada.
 
 ## Aportaciones automáticas
 

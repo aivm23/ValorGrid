@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.31.0
+
+- feat: add automatic Yahoo Finance stock/ETF split and reverse-split detection as corporate actions outside the ledger.
+- feat: recalculate position shares, sale validation, import previews, FIFO metrics and materialized history with split-adjusted quantities from the effective date.
+- feat: show split markers as informational history events without adding transactions, cash-flow, dividends or price-cache rescaling.
+- docs: document corporate actions API, data model, financial semantics and architecture load order.
+- test: cover split idempotency, reverse splits, FIFO cost basis and materialized history quantities.
+
 ## 3.30.0
 
 - feat: add in-app update checker in Administration with GitHub Releases integration, semver comparison, runtime detection (desktop/docker/server) and recommended asset selection per platform/arch.

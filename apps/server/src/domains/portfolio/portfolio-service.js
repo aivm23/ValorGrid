@@ -94,13 +94,11 @@ async function executeDueAutoPlans() {
           { type: 'add', symbol: plan.symbol, date: quote.marketDate || scheduledDate, euros: plan.amountEur },
           { origin: 'auto', autoKey },
         );
-      } catch {
-        // Retry on next summary/monthly request.
-      }
+      } catch { /* Retry on next summary/monthly request. */ }
     }
   }
 }
-
+async function scanCorporateActionsQuietly(toDate = getToday()) { if (typeof ctx.scanCorporateActions === 'function') await ctx.scanCorporateActions({ toDate }).catch(() => {}); }
 async function getInstrumentValuation(instrument, asOfDate = null) {
   if (instrument.type === 'cash') return buildCashValuation(instrument, { getFxToEur, getToday, toEur }, asOfDate);
   const shares = getPositionShares(instrument.symbol, asOfDate);
@@ -155,6 +153,7 @@ async function getInstrumentValuation(instrument, asOfDate = null) {
 
 async function buildSummary() {
   await executeDueAutoPlans();
+  await scanCorporateActionsQuietly();
 
   const instruments = listInstruments().filter((instrument) => instrument.type !== 'fx');
   const valuations = await Promise.all(
@@ -220,6 +219,8 @@ async function buildMonthly(year) {
   const groupsEnabled = areInstrumentGroupsEnabled();
 
   const today = getToday();
+  const scanToDate = `${year}-12-31` < today ? `${year}-12-31` : today;
+  await scanCorporateActionsQuietly(scanToDate);
   const currentYearValue = Number(today.slice(0, 4));
   const currentMonthValue = Number(today.slice(5, 7));
   const monthLimit = year < currentYearValue ? 12 : year === currentYearValue ? currentMonthValue : 0;
@@ -494,6 +495,5 @@ function buildOnboardingStatus() {
     groupsEnabled: areInstrumentGroupsEnabled(),
   };
 }
-
   Object.assign(ctx, { getMonthEndDate, getScheduledDate, executeDueAutoPlans, getInstrumentValuation, buildSummary, dbInstrument, withPercentages, summarizeMarketDataStatus, buildMonthly, getInstrumentValuationAt, buildOnboardingStatus, isEffectiveValuation });
 };

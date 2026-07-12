@@ -158,7 +158,33 @@ Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de
 
 ### `getPositionShares(symbol, asOfDate)`
 
-`SUM(transactionSign(type) * shares) + base_shares`. Itera sobre transacciones del symbol, aplicando signo (+1 para buys, -1 para sells, 0 para dividendos). Incluye `base_shares` del instrumento (posicion inicial). Si se pasa `asOfDate`, filtra transacciones hasta esa fecha.
+Itera una linea temporal ordenada por fecha con `base_shares`, transacciones y splits confirmados:
+
+- compras: suman `shares`;
+- ventas: restan `shares`;
+- dividendos: no modifican cantidad;
+- split/reverse split: multiplica la posicion abierta por `ratio`.
+
+Los splits se aplican al inicio de `effective_date`; las compras/ventas con la misma fecha se interpretan en unidades post-split. Si se pasa `asOfDate`, solo se consideran transacciones y splits hasta esa fecha.
+
+### Splits y reverse splits
+
+Los splits de acciones/ETF se registran en `corporate_actions` desde Yahoo Finance y no son movimientos contables.
+
+Reglas financieras:
+
+- No generan `cash_flow_eur`.
+- No cambian `grossInvested`, `grossWithdrawn`, `netCashFlow`, `netContributed`, dividendos ni comisiones.
+- No reescalan precios historicos cacheados del proveedor.
+- Ajustan las acciones abiertas y los lotes FIFO desde `effective_date`.
+
+FIFO:
+
+- Cada split multiplica `lot.shares *= ratio`.
+- `lot.cost` se mantiene igual.
+- El coste unitario cambia de forma implicita.
+
+Ejemplo: compra de 1 accion GOOG por 1.000 EUR, split `1 -> 20`, venta de 3 acciones. ValorGrid consume 150 EUR de coste FIFO y deja 17 acciones con 850 EUR de coste pendiente.
 
 ### `isEffectiveValuation(item)`
 

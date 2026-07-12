@@ -189,6 +189,7 @@ export function attach(ctx) {
   }
 
   function currentSharesForInstrument(instrument) {
+    if (Number.isFinite(Number(instrument.currentShares))) return Number(instrument.currentShares);
     const symbol = String(instrument.symbol || '').toUpperCase();
     const baseShares = Number(instrument.baseShares || instrument.base_shares || 0);
     return (ctx.state.transactions || [])

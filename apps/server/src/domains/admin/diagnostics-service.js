@@ -76,6 +76,7 @@ async function buildPerformanceDiagnostics() {
     counts: {
       instruments: tableCount('instruments'),
       transactions: tableCount('transactions'),
+      corporateActions: tableCount('corporate_actions'),
       priceCache: tableCount('price_cache'),
       dailyPriceCache: tableCount('daily_price_cache'),
       dailyPriceCacheRanges: tableCount('daily_price_cache_ranges'),
