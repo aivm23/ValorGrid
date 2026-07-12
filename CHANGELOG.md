@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.32.1
+
+- fix: make manual, reset and risk backups verify SQLite integrity before they are accepted.
+- fix: restore automatic verified backups before `db:reset` deletes an existing database.
+- docs: reconcile reset and migration policy and remove private extension mechanics from Community documentation.
+- refactor: remove the unused backend operations metrics catalog and reuse canonical DB maintenance helpers from CLI scripts.
+- test: cover safe reset aborts, verified backups and the Community documentation boundary.
+
 ## 3.32.0
 
 - feat: add optional notes to buy and sell transactions, including an accessible ledger indicator.

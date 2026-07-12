@@ -151,11 +151,18 @@ function inspectDatabase(dbPath) {
   });
 }
 
-function resetDatabase({ env = process.env, root = repoRoot() } = {}) {
+function resetDatabase({
+  env = process.env,
+  root = repoRoot(),
+  createBackupFn = createBackupForPath,
+} = {}) {
   const config = resolveRuntimeConfig(env, root);
   const { dbPath, backupDir } = config;
   assertResetPathSafety(dbPath, { root, env });
-  const backup = fs.existsSync(dbPath) ? createBackupForPath({ dbPath, root, backupDir }) : null;
+  const backup = fs.existsSync(dbPath) ? createBackupFn({ dbPath, root, backupDir }) : null;
+  if (backup && backup.verified !== true) {
+    throw new Error('Reset aborted because the automatic backup was not verified');
+  }
   const removedArtifacts = removeDatabaseArtifacts(dbPath);
   initializeFreshSchema(dbPath);
   const verification = inspectDatabase(dbPath);

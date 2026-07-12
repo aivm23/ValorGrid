@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { verifyDatabaseFile } = require('./db');
 
 function ensureBackupDir(root, backupDir = path.join(root, '.backups')) {
   fs.mkdirSync(backupDir, { recursive: true });
@@ -25,20 +26,32 @@ function pruneOldBackups(backupDir, limit = 6) {
   }
 }
 
-function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
-  const backupDir = ensureBackupDir(root, configuredBackupDir);
+function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
   try { db.exec('PRAGMA wal_checkpoint(FULL)'); } catch { /* skip for in-memory or non-WAL databases */ }
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const fileName = `portfolio-${stamp}.sqlite`;
   const targetPath = path.join(backupDir, fileName);
   fs.copyFileSync(dbPath, targetPath);
-  pruneOldBackups(backupDir);
-  return {
-    file: fileName,
-    path: targetPath,
-    size: fs.statSync(targetPath).size,
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    const verification = verifyDatabaseFile(targetPath);
+    pruneOldBackups(backupDir);
+    return {
+      file: fileName,
+      path: targetPath,
+      size: fs.statSync(targetPath).size,
+      createdAt: new Date().toISOString(),
+      verified: true,
+      verification,
+    };
+  } catch (error) {
+    try { fs.unlinkSync(targetPath); } catch { /* best effort cleanup */ }
+    throw new Error(`Backup verification failed: ${error.message}`);
+  }
+}
+
+function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const fileName = `portfolio-${stamp}.sqlite`;
+  return copyVerifiedBackup({ db, dbPath, backupDir, fileName });
 }
 
 function listBackups(root, configuredBackupDir) {
@@ -83,17 +96,10 @@ function createRiskBackup({ db, dbPath, root, backupDir: configuredBackupDir, re
     throw error;
   }
   const backupDir = ensureBackupDir(root, configuredBackupDir);
-  db.exec('PRAGMA wal_checkpoint(FULL)');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fileName = `risk-${reason}-${stamp}.sqlite`;
-  const targetPath = path.join(backupDir, fileName);
-  fs.copyFileSync(dbPath, targetPath);
-  pruneOldBackups(backupDir);
   return {
-    file: fileName,
-    path: targetPath,
-    size: fs.statSync(targetPath).size,
-    createdAt: new Date().toISOString(),
+    ...copyVerifiedBackup({ db, dbPath, backupDir, fileName }),
     reason,
     metadata,
   };

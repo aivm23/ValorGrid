@@ -1,31 +1,23 @@
-const fs = require('node:fs');
 const path = require('node:path');
-const { createConfig } = require('../apps/server/src/platform/config');
+const { createBackupForPath, resolveRuntimeConfig } = require('./db-maintenance');
 
 function run() {
   const root = path.resolve(__dirname, '..');
-  const config = createConfig(process.env, root);
+  const config = resolveRuntimeConfig(process.env, root);
   const { dbPath, backupDir } = config;
-
-  if (!fs.existsSync(dbPath)) {
-    throw new Error(`No database found at: ${dbPath}`);
-  }
-
-  fs.mkdirSync(backupDir, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupName = `portfolio-backup-${stamp}.sqlite`;
-  const targetPath = path.join(backupDir, backupName);
-  fs.copyFileSync(dbPath, targetPath);
+  const backup = createBackupForPath({ dbPath, root, backupDir });
 
   process.stdout.write(
     JSON.stringify(
       {
         dbPath,
         backupDir,
-        backupFile: backupName,
-        backupPath: targetPath,
-        size: fs.statSync(targetPath).size,
-        createdAt: new Date().toISOString(),
+        backupFile: backup.file,
+        backupPath: backup.path,
+        size: backup.size,
+        createdAt: backup.createdAt,
+        verified: backup.verified,
+        verification: backup.verification,
       },
       null,
       2,

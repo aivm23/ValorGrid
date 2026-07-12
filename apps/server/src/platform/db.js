@@ -13,6 +13,26 @@ function openDatabase(dbPath) {
   return db;
 }
 
+function verifyDatabaseFile(dbPath) {
+  const db = new DatabaseSync(dbPath, { readOnly: true });
+  try {
+    const integrity = db.prepare('PRAGMA integrity_check').get();
+    if (integrity?.integrity_check !== 'ok') {
+      throw new Error(`integrity_check failed: ${integrity?.integrity_check || 'unknown result'}`);
+    }
+    const foreignKeyErrors = db.prepare('PRAGMA foreign_key_check').all();
+    if (foreignKeyErrors.length > 0) {
+      throw new Error(`foreign_key_check found ${foreignKeyErrors.length} violation(s)`);
+    }
+    return {
+      integrityCheck: integrity.integrity_check,
+      foreignKeyErrors: foreignKeyErrors.length,
+    };
+  } finally {
+    db.close();
+  }
+}
+
 function withTransaction(db, fn) {
   db.exec('BEGIN');
   try {
@@ -47,6 +67,7 @@ async function withTransactionAsync(db, fn) {
 
 module.exports = {
   openDatabase,
+  verifyDatabaseFile,
   withTransaction,
   withTransactionAsync,
 };

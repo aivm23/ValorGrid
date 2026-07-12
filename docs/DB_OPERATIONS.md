@@ -23,22 +23,26 @@ La app y los scripts comparten la misma política:
 
 - Los backups creados por la app y la API usan la `backupDir` resuelta por `apps/server/src/platform/config.js`.
 - `npm run db:backup` también usa la misma `backupDir` de `config.js`.
+- Toda copia creada por la app o los scripts ejecuta `integrity_check` y `foreign_key_check` antes de considerarse válida.
 - En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` por defecto es `local/valorgrid/backups/` (si no existe `.backups/` legacy).
 - Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
 
-## Flujo recomendado antes de tocar DB real
+## Backup manual antes de mantenimiento
 
 1. Ejecutar `npm run db:doctor`.
 2. Ejecutar `npm run db:backup`.
 3. Confirmar que el backup aparece en el `backupDir` reportado por el comando.
-4. Solo entonces ejecutar cambios de mantenimiento o `db:reset`.
+4. Solo entonces ejecutar cambios de mantenimiento manuales.
+
+`npm run db:reset` añade su propio backup automático verificado. El backup manual sigue disponible para crear un punto de restauración independiente antes de cualquier otra operación.
 
 ## Reset fresh (destructivo)
 
-> **Nota:** El backup previo al reset ya no se crea automáticamente (función `resetDatabase` con backup comentada). Ejecutar `npm run db:backup` manualmente antes si se necesita un backup previo.
-
-- `npm run db:reset` elimina la DB activa y recrea el schema fresh.
+- Si la DB activa existe, `npm run db:reset` hace checkpoint WAL, crea un backup automático y verifica su integridad antes de eliminar ningún archivo.
+- Si el backup no puede crearse o verificarse, el reset aborta y conserva intacta la DB activa.
+- Si no existe una DB activa, crea directamente el schema fresh y devuelve `backup: null`.
+- Una vez verificado el backup, elimina la DB activa y recrea el schema fresh.
 - El script elimina solo:
   - `*.sqlite` activo
   - `*.sqlite-wal`
@@ -70,9 +74,10 @@ Checklist upgrade:
 
 ## Updates SQL versionados
 
-Los cambios de schema productivo se entregan como archivos SQL versionados en `deploy/sql/` con el patrón `update-X-to-Y.sql`.
-No se ejecutan automáticamente al arrancar la app.
-Se aplican manualmente por un operador humano.
+Los cambios de schema productivo se entregan como archivos SQL versionados en `deploy/sql/` con el patrón `update-X-to-Y.sql`. Esos mismos SQL tienen dos vías de ejecución:
+
+- migración automática controlada por runtime, descrita al final de este documento;
+- ejecución manual mediante los scripts operativos cuando el auto-migrate está deshabilitado o el operador necesita control explícito.
 
 ### Script automatizado (recomendado)
 

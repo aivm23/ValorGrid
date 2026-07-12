@@ -61,6 +61,13 @@ const FORBIDDEN_TEXT_PATTERNS = [
   ['portfolio', 'snapshot'].join('_'),
 ];
 
+const FORBIDDEN_PUBLIC_DOC_PATTERNS = [
+  ['VALORGRID', 'EXTENSION', 'PATH'].join('_'),
+  ['VALORGRID', 'PRO', 'ADAPTERS', 'PATH'].join('_'),
+  'loadProAdapters',
+  'index.cjs',
+];
+
 const PUBLIC_BROKER_TEASER_PATTERNS = new Set([
   ['DE', 'GIRO'].join(''),
   ['I', 'BKR'].join(''),
@@ -310,6 +317,23 @@ function checkForbiddenText() {
   }
 }
 
+function checkPublicDocumentationBoundary() {
+  const leaks = [];
+  for (const file of collectPublicFiles()) {
+    const relative = relativePosix(file);
+    if (relative !== 'README.md' && relative !== 'AGENTS.md' && !relative.startsWith('docs/')) continue;
+    const content = fs.readFileSync(file, 'utf8').toLowerCase();
+    for (const pattern of FORBIDDEN_PUBLIC_DOC_PATTERNS) {
+      if (content.includes(pattern.toLowerCase())) leaks.push(`${relative} contains ${pattern}`);
+    }
+  }
+  if (leaks.length) {
+    addCheck('fail', 'public-doc-boundary', 'Public documentation exposes private extension mechanics', leaks);
+  } else {
+    addCheck('ok', 'public-doc-boundary', 'Public documentation keeps private extension mechanics out of Community.');
+  }
+}
+
 function checkAlterTable() {
   const offenders = [];
   for (const relative of [...collectRuntimeFiles('apps/server/src'), ...collectRuntimeFiles('scripts')]) {
@@ -517,6 +541,7 @@ function run() {
   checkDockerignore();
   checkForbiddenFiles();
   checkForbiddenText();
+  checkPublicDocumentationBoundary();
   checkAlterTable();
   checkSeedDemo();
   checkLicenseMetadata(pkg);

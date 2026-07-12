@@ -77,7 +77,7 @@ apps/server/src/
 │   ├── onboarding/     (onboarding-*)
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
-├── shared/             (brand-palette, operations-metrics; cargados internamente por instrument-service y ui-preferences-service respectivamente)
+├── shared/             (brand-palette, usado por el dominio de instrumentos)
 ├── platform/           (db, config, auth, http, i18n, backups, runtime-secrets, ctx-utils, validators, app-error, utils)
 ├── app.js
 ├── routes.js
@@ -133,17 +133,17 @@ Reglas de transición:
 
 - `config.js`: host, puerto, rutas, versión, DB activa y auth opcional.
 - `auth.js`: Basic Auth monousuario opt-in para despliegues Docker/CasaOS (importado por `http.js`, no cargado directamente en `app.js`).
-- `db.js`: apertura SQLite, PRAGMAs, helpers `withTransaction`/`withTransactionAsync`.
+- `db.js`: apertura SQLite, PRAGMAs, verificación de ficheros y helpers `withTransaction`/`withTransactionAsync`.
 - `http.js`: servidor HTTP estático, Basic Auth opt-in y listener.
 - `i18n.js`: resolución de `Accept-Language` y traducción mínima de errores visibles sin cambiar payloads HTTP.
-- `backups.js`: creación, listado y descarga de backups SQLite.
+- `backups.js`: creación, verificación, retención, listado y descarga de backups SQLite.
 - `ctx-utils.js`: `assertCtxDeps`, `getCtxDep`.
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
 - `runtime-secrets.js`: persistencia local de claves API (Alpha Vantage) en `secrets.json`, fuera de SQLite. En desktop vive bajo `app.getPath('userData')`; en Docker/CasaOS vive en el volumen de datos (`/data/secrets.json`). Cargado antes del bucle de módulos.
-- `extensions.js`: fábrica `createExtensionHost` que normaliza extensiones, resuelve assets web y registra adaptadores de importación profesionales.
-- `extensions-runtime.js`: carga la extensión configurada en `VALORGRID_EXTENSION_PATH` y la registra en el host de extensiones antes de montar rutas HTTP. Cargado en paso 28 del bucle.
+- `extensions.js`: frontera pública de capacidades opcionales por edición. Normaliza únicamente el manifiesto y los assets que Community puede exponer.
+- `extensions-runtime.js`: integración interna de capacidades opcionales antes de montar rutas HTTP. La configuración y operación de ediciones privadas se documenta exclusivamente fuera del repositorio Community.
 
 **Archivos raíz en `apps/server/src/`:**
 
@@ -174,7 +174,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 3. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 4. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 5. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
-6. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; Operativa e Histórico configurables se registran desde extensiones profesionales privadas.
+6. `domains/meta/ui-preferences-service`: respuesta pública no editable para preferencias UI. Community no persiste preferencias visuales avanzadas; otras ediciones pueden aportar implementaciones sin cambiar el contrato Community.
 7. `platform/i18n`: traducción server-side de errores visibles según `Accept-Language`.
 8. `platform/utils`: helpers compartidos (formato, validación, fechas).
 9. `domains/instruments/instrument-repository`: acceso SQL de instrumentos, grupos e identificadores.
@@ -195,7 +195,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 24. `domains/liquidity/liquidity-repository`: SQL de cuentas de liquidez técnica (`cash`) y grupo Liquidez.
 25. `domains/liquidity/liquidity-service`: CRUD de liquidez actual sin movimientos ni histórico.
 26. `domains/data-ingestion/ingestion-repository`: acceso SQL de lotes importados, filas, rollback y matching en `ctx.repositories.dataIngestion`.
-27. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit, rollback) y registro genérico de adaptadores profesionales aportados por extensiones privadas.
+27. `domains/data-ingestion/ingestion-service`: orquestación de importaciones (preview, commit y rollback) detrás del contrato público de fuentes por edición.
 28. `domains/onboarding/onboarding-repository`: acceso SQL del wizard (grupos, auto-planes).
 29. `domains/onboarding/onboarding-service`: wizard de configuración inicial.
 30. `domains/portfolio/portfolio-service`: resumen de cartera, revisión mensual y métricas.
@@ -205,7 +205,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 34. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
 35. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
 36. `domains/admin/update-service`: consulta de última release estable en GitHub Releases, comparación semver, detección de runtime y selección de asset de escritorio. Registra `ctx.services.admin.getUpdateStatus` y `ctx.services.admin.getDockerCommands`.
-37. `platform/extensions-runtime`: registra extensiones opcionales ya resueltas por el composition root antes de montar rutas HTTP.
+37. `platform/extensions-runtime`: inicializa capacidades opcionales por edición antes de montar rutas HTTP.
 38. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 39. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
@@ -296,7 +296,7 @@ Módulos principales:
 - `i18n-catalog-import.js`: sub-catálogo de traducciones del asistente de importación (fuentes, sugerencias, badges, decisiones de instrumentos).
 - `dom.js`: referencias a nodos.
 - `confirm-dialog.js`: modal de confirmación propio y reutilizable para evitar diálogos nativos del navegador.
-- `extensions.js`: carga módulos web de extensiones profesionales registradas por el host de extensiones.
+- `extensions.js`: aplica el manifiesto público de capacidades opcionales por edición.
 - `charts.js`: donut e histórico SVG.
 - `format.js`: formato monetario, fechas, porcentajes y privacidad de saldos usando la locale activa.
 - `events.js`: eventos de UI.

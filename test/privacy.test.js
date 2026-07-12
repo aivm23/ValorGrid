@@ -159,6 +159,7 @@ test('publishable text does not contain local paths or personal import labels', 
 
 test('public documentation does not expose professional connector internals', () => {
   const forbidden = [
+    ['VALORGRID', 'EXTENSION', 'PATH'].join('_'),
     ['VALORGRID', 'PRO', 'ADAPTERS', 'PATH'].join('_'),
     ['degiro', 'csv'].join('-'),
     ['ibkr', 'csv'].join('-'),
@@ -166,6 +167,7 @@ test('public documentation does not expose professional connector internals', ()
     ['I', 'BKR'].join(''),
     'knownProAdapters',
     'loadProAdapters',
+    'index.cjs',
     'repositorio privado',
     'private repo',
     ['transactions', 'export'].join('_'),

@@ -1,8 +1,16 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 // const os = require('node:os'); // disabled — backup tests commented out
 const path = require('node:path');
 const test = require('node:test');
+const {
+  resolveRuntimeConfig,
+  createBackupForPath,
+  resetDatabase,
+  collectDoctorReport,
+} = require('../scripts/db-maintenance');
+const { openDatabase, verifyDatabaseFile } = require('../apps/server/src/platform/db');
 // Backup-dependent functions commented out: db-maintenance.js backup features disabled
 // const {
 //   resolveRuntimeConfig,
@@ -140,6 +148,145 @@ const root = path.resolve(__dirname, '..');
 //     assert.equal(validReport.summary.fail, 0);
 //   });
 // });
+
+function withActiveTempRoot(fn) {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-db-ops-'));
+  try {
+    return fn(tempRoot);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function createLegacyDatabase(dbPath) {
+  const db = openDatabase(dbPath);
+  db.exec(`
+    CREATE TABLE pre_reset_data (id INTEGER PRIMARY KEY);
+    INSERT INTO pre_reset_data (id) VALUES (1);
+  `);
+  db.close();
+}
+
+test('database runtime path resolution follows app policy', () => {
+  withActiveTempRoot((tempRoot) => {
+    const plain = resolveRuntimeConfig({}, tempRoot);
+    assert.equal(plain.dbPath, path.join(tempRoot, 'local', 'valorgrid', 'data', 'portfolio.sqlite'));
+    assert.equal(plain.backupDir, path.join(tempRoot, 'local', 'valorgrid', 'backups'));
+    assert.equal(plain.port, 1325);
+
+    const explicit = resolveRuntimeConfig(
+      {
+        PORTFOLIO_DB_PATH: path.join(tempRoot, 'custom', 'override.sqlite'),
+        VALORGRID_BACKUP_DIR: path.join(tempRoot, 'custom', 'backups'),
+        PORT: '0',
+      },
+      tempRoot,
+    );
+    assert.equal(explicit.dbPath, path.join(tempRoot, 'custom', 'override.sqlite'));
+    assert.equal(explicit.backupDir, path.join(tempRoot, 'custom', 'backups'));
+    assert.equal(explicit.port, 0);
+  });
+});
+
+test('resetDatabase creates and verifies a backup before recreating a fresh schema', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'reset-target.sqlite');
+    const env = { PORTFOLIO_DB_PATH: dbPath };
+    createLegacyDatabase(dbPath);
+
+    const result = resetDatabase({ env, root: tempRoot });
+    assert.ok(result.backup);
+    assert.equal(result.backup.verified, true);
+    assert.ok(fs.existsSync(result.backup.path));
+    assert.deepEqual(verifyDatabaseFile(result.backup.path), {
+      integrityCheck: 'ok',
+      foreignKeyErrors: 0,
+    });
+    assert.ok(result.removedArtifacts.removed.includes(dbPath));
+    assert.deepEqual(result.verification.missingTables, []);
+    assert.deepEqual(result.verification.missingMetaKeys, []);
+
+    const reopened = openDatabase(dbPath);
+    const stale = reopened
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'pre_reset_data'")
+      .get();
+    reopened.close();
+    assert.equal(stale, undefined);
+  });
+});
+
+test('resetDatabase creates a fresh database without a backup when no database exists', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'missing.sqlite');
+    const result = resetDatabase({ env: { PORTFOLIO_DB_PATH: dbPath }, root: tempRoot });
+    assert.equal(result.backup, null);
+    assert.ok(fs.existsSync(dbPath));
+    assert.deepEqual(result.verification.missingTables, []);
+  });
+});
+
+test('resetDatabase leaves the active database untouched when backup creation fails', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'protected.sqlite');
+    createLegacyDatabase(dbPath);
+    assert.throws(
+      () =>
+        resetDatabase({
+          env: { PORTFOLIO_DB_PATH: dbPath },
+          root: tempRoot,
+          createBackupFn() {
+            throw new Error('simulated backup failure');
+          },
+        }),
+      /simulated backup failure/,
+    );
+    assert.ok(fs.existsSync(dbPath));
+    const db = openDatabase(dbPath);
+    assert.equal(db.prepare('SELECT COUNT(*) AS count FROM pre_reset_data').get().count, 1);
+    db.close();
+  });
+});
+
+test('resetDatabase rejects an unverified backup before deleting the active database', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'protected.sqlite');
+    createLegacyDatabase(dbPath);
+    assert.throws(
+      () =>
+        resetDatabase({
+          env: { PORTFOLIO_DB_PATH: dbPath },
+          root: tempRoot,
+          createBackupFn() {
+            return { path: path.join(tempRoot, 'invalid.sqlite'), verified: false };
+          },
+        }),
+      /automatic backup was not verified/,
+    );
+    assert.ok(fs.existsSync(dbPath));
+  });
+});
+
+test('manual and reset backups share the configured backup directory', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'desktop-data', 'portfolio.sqlite');
+    const backupDir = path.join(tempRoot, 'desktop-backups');
+    const env = { PORTFOLIO_DB_PATH: dbPath, VALORGRID_BACKUP_DIR: backupDir };
+    createLegacyDatabase(dbPath);
+
+    const manual = createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    assert.equal(manual.verified, true);
+    assert.equal(path.dirname(manual.path), backupDir);
+
+    const result = resetDatabase({ env, root: tempRoot });
+    assert.equal(result.backup.verified, true);
+    assert.equal(path.dirname(result.backup.path), backupDir);
+
+    const report = collectDoctorReport({ env, root: tempRoot });
+    assert.equal(report.backupDir, backupDir);
+    assert.equal(report.backupsCount, 2);
+    assert.ok(report.checks.some((check) => check.id === 'backups' && check.status === 'ok'));
+  });
+});
 
 test('schema tables in DATA_MODEL docs stay synchronized with src/schema.js', () => {
   // parseSchemaTableNames commented out — using inline implementation
