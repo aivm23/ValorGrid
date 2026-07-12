@@ -14,6 +14,8 @@ Fuentes de verdad actuales:
 
 > Nota: Las cuentas de liquidez (`type = cash`) representan saldo actual. Suman al total visible actual si están marcadas como visibles, pero no crean movimientos, no alteran `cash_flow_eur`, no entran en FIFO y no generan histórico/YTD.
 
+> Nota: Corregir una compra o venta recalcula `value_eur` y `cash_flow_eur` desde sus datos de ejecución y vuelve a materializar el histórico desde la primera fecha afectada. La nota opcional de un movimiento no interviene en ningún cálculo financiero.
+
 ## Convencion de signos base
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).
@@ -75,7 +77,7 @@ Este porcentaje compara la plusvalía latente con la inversión que sigue abiert
   - Valor de cartera a `YYYY-01-01`, valorando posiciones con precios de esa fecha.
   - Si falla la valoracion, cae a `0`.
 - `currentValue`:
-  - Valor de la ultima fila mensual completada del ano solicitado.
+  - Valor de la última fila mensual completada del año solicitado.
 - `contributions`:
   - Suma anual de `value_eur` en compras.
 - `withdrawals`:
@@ -96,9 +98,9 @@ Este porcentaje compara la plusvalía latente con la inversión que sigue abiert
 
 Para cada mes se exponen `contributions`, `withdrawals`, `dividends`, `dividendCount`, `commissions`, `netContribution`, `autoContributions` y `autoDividends` con la misma semántica anterior, pero filtradas a operaciones del mes.
 
-## Serie historica (`/api/portfolio/history`, campo `series[].contributed`)
+## Serie histórica (`/api/portfolio/history`, campo `series[].contributed`)
 
-- `series[].contributed` es acumulado de aportacion neta hasta cada punto de fecha:
+- `series[].contributed` es acumulado de aportación neta hasta cada punto de fecha:
   - `contributed_t = -SUM(cash_flow_eur WHERE tx.date <= point.date)`
 - Se actualiza en orden cronologico de transacciones (`ORDER BY date ASC, created_at ASC`).
 
@@ -109,14 +111,14 @@ Consecuencia directa:
 - Dividendos: `contributed` decrece porque son entrada de caja.
 - Si ventas netas superan compras historicas, `contributed` puede ser negativo.
 
-## relación entre distribucion actual e histórico
+## Relación entre distribución actual e histórico
 
 - `Distribucion actual`:
   - `buildSummary().total` suma solo las posiciones con `showInDistribution = true` y `value >= minimumDisplayValueEur`.
   - Los grupos y posiciones ocultos no entran en ese total visible.
 - `Histórico`:
   - La serie materializa la cartera activa sobre el tiempo y no aplica `showInDistribution`.
-  - Por eso puede incluir instrumentos que hoy estan ocultos en la distribucion actual.
+  - Por eso puede incluir instrumentos que hoy están ocultos en la distribución actual.
 - Consecuencia:
   - Ambos totales pueden diferir y seguir siendo correctos porque responden a reglas distintas.
 
@@ -126,7 +128,7 @@ Consecuencia directa:
 
 Numero total de transacciones en el ledger. Fuente: `getTransactions().length`.
 
-### `pct` (porcentaje de distribucion)
+### `pct` (porcentaje de distribución)
 
 `(value / total) * 100`. Calculado por `withPercentages` en `apps/server/src/domains/portfolio/portfolio-service.js:200`. Se aplica a posiciones individuales dentro de un grupo o cartera.
 
@@ -154,7 +156,7 @@ La plantilla Excel de ValorGrid (`valorgrid-xlsx`) usa las siguientes reglas:
 
 Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de ValorGrid Pro/Enterprise deben normalizar sus datos a esta semántica antes de llegar al ledger.
 
-## cálculos de posicion
+## Cálculos de posición
 
 ### `getPositionShares(symbol, asOfDate)`
 
@@ -163,7 +165,7 @@ Itera una linea temporal ordenada por fecha con `base_shares`, transacciones y s
 - compras: suman `shares`;
 - ventas: restan `shares`;
 - dividendos: no modifican cantidad;
-- split/reverse split: multiplica la posicion abierta por `ratio`.
+- split/reverse split: multiplica la posición abierta por `ratio`.
 
 Los splits se aplican al inicio de `effective_date`; las compras/ventas con la misma fecha se interpretan en unidades post-split. Si se pasa `asOfDate`, solo se consideran transacciones y splits hasta esa fecha.
 
@@ -192,7 +194,7 @@ Ejemplo: compra de 1 accion GOOG por 1.000 EUR, split `1 -> 20`, venta de 3 acci
 
 ### `minimumDisplayValueEur`
 
-Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las posiciones con valor inferior no se muestran en distribucion ni monthly.
+Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las posiciones con valor inferior no se muestran en distribución ni monthly.
 
 ## Fuentes de precio por instrumento
 
@@ -201,7 +203,7 @@ Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las pos
   - **Commodity**: Alpha Vantage (requiere clave API guardada desde el asistente o `VALORGRID_ALPHA_VANTAGE_API_KEY`).
 - Alpha Vantage para commodities usa los endpoints `GOLD_SILVER_HISTORY` y `GOLD_SILVER_SPOT` en lugar de `FX_DAILY`.
 - Los precios de proveedores alternativos se cachean en `market_price_points`.
-- Las escrituras de transacciones siguen siendo estrictas: no usan cache antiguo de Yahoo de forma automatica.
+- Las escrituras de transacciones siguen siendo estrictas: no usan caché antiguo de Yahoo de forma automática.
 
 ## Notas sobre crypto y commodity
 

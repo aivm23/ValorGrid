@@ -56,6 +56,7 @@ export interface Transaction {
   fxToEur: number;
   commissionEur: number;
   cashFlowEur: number;
+  note: string | null;
   color: string;
   origin: string;
   autoKey: string | null;

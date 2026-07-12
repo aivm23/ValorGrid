@@ -1,7 +1,6 @@
 const { assertCtxDeps } = require('./platform/ctx-utils'), { CURRENT_SCHEMA_VERSION } = require('./platform/db-migrations');
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'metaKeys', 'defaultInstruments', 'defaultAutoPlans'], 'schema');
-
   const { db, metaKeys, defaultInstruments, defaultAutoPlans } = ctx;
 
   function initDatabase() {
@@ -63,6 +62,7 @@ module.exports = function attach(ctx) {
       fx_to_eur REAL NOT NULL,
       commission_eur REAL NOT NULL DEFAULT 0,
       cash_flow_eur REAL NOT NULL DEFAULT 0,
+      note TEXT,
       color TEXT,
       origin TEXT NOT NULL DEFAULT 'manual' CHECK (origin IN ('manual', 'auto', 'import')),
       auto_key TEXT UNIQUE,

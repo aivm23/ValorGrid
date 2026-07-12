@@ -47,47 +47,47 @@ function applyRowEdit(normalized, edit = {}, source = 'import', rebuildIdentity 
 
   if (edit.symbol !== undefined) {
     const symbol = String(edit.symbol || '').trim().toUpperCase();
-    if (!symbol) errors.push('Ticker vacio en edicion');
+    if (!symbol) errors.push('Ticker vacío en edición');
     else next.symbol = symbol;
   }
   if (edit.type !== undefined) {
     const type = String(edit.type || '').trim().toLowerCase();
-    if (!['add', 'remove'].includes(type)) errors.push('Tipo invalido en edicion');
+    if (!['add', 'remove'].includes(type)) errors.push('Tipo inválido en edición');
     else next.type = type;
   }
   if (edit.date !== undefined) {
     const date = parseEditDate(edit.date);
-    if (!date) errors.push('Fecha invalida en edicion');
+    if (!date) errors.push('Fecha inválida en edición');
     else next.date = date;
   }
   if (edit.shares !== undefined) {
     const shares = parseEditNumber(edit.shares);
-    if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones invalidas en edicion');
+    if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones inválidas en edición');
     else next.shares = Number(shares);
   }
   if (edit.price !== undefined) {
     const price = parseEditNumber(edit.price);
-    if (!Number.isFinite(price) || price <= 0) errors.push('Precio invalido en edicion');
+    if (!Number.isFinite(price) || price <= 0) errors.push('Precio inválido en edición');
     else next.price = Number(price);
   }
   if (edit.valueEur !== undefined) {
     const valueEur = parseEditNumber(edit.valueEur);
-    if (!Number.isFinite(valueEur) || valueEur <= 0) errors.push('Valor EUR invalido en edicion');
+    if (!Number.isFinite(valueEur) || valueEur <= 0) errors.push('Valor EUR inválido en edición');
     else next.valueEur = Number(valueEur);
   }
   if (edit.commissionEur !== undefined) {
     const commissionEur = parseEditNumber(edit.commissionEur);
-    if (!Number.isFinite(commissionEur) || commissionEur < 0) errors.push('Comision invalida en edicion');
+    if (!Number.isFinite(commissionEur) || commissionEur < 0) errors.push('Comisión inválida en edición');
     else next.commissionEur = Number(commissionEur);
   }
   if (edit.currency !== undefined) {
     const currency = String(edit.currency || '').trim().toUpperCase();
-    if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa invalida en edicion');
+    if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa inválida en edición');
     else next.currency = currency;
   }
   if (edit.fxToEur !== undefined) {
     const fx = parseEditNumber(edit.fxToEur);
-    if (!Number.isFinite(fx) || fx <= 0) errors.push('FX invalido en edicion');
+    if (!Number.isFinite(fx) || fx <= 0) errors.push('FX inválido en edición');
     else next.fxToEur = Number(fx);
   }
 

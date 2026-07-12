@@ -103,7 +103,7 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
 
   const dataRows = matrix.slice(1);
   if (dataRows.length > MAX_ROWS_FREE) {
-    throw new Error('La version gratuita permite importar hasta 500 movimientos');
+    throw new Error('La versión gratuita permite importar hasta 500 movimientos');
   }
 
   return {
@@ -171,7 +171,7 @@ function normalizeType(value) {
 function resolveAdapter(sourceInput = 'valorgrid-xlsx') {
   const source = String(sourceInput || 'valorgrid-xlsx').trim().toLowerCase();
   const adapter = adapterDefinitions[source] || knownProAdapters[source];
-  if (!adapter) throw new Error(`Origen de importacion no soportado: ${sourceInput}`);
+  if (!adapter) throw new Error(`Origen de importación no soportado: ${sourceInput}`);
   return { source, ...adapter };
 }
 
@@ -231,9 +231,9 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
 
   if (!inferredType) errors.push('Tipo no reconocido');
   if (inferredType === 'dividend') {
-    errors.push('Los dividendos se generan desde eventos de Yahoo Finance; en esta version no se importan manualmente');
+    errors.push('Los dividendos se generan desde eventos de Yahoo Finance; en esta versión no se importan manualmente');
   }
-  if (!date) errors.push('Fecha invalida');
+  if (!date) errors.push('Fecha inválida');
   if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
   if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
   if (rowKind === 'trade' && price === 0 && inferredType === 'add') warnings.push('Compra a 0 EUR (split/dividendo) - se importa con precio minimo');

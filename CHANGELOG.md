@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.32.0
+
+- feat: add optional notes to buy and sell transactions, including an accessible ledger indicator.
+- feat: allow a selected buy or sell transaction to be previewed and corrected without repricing from market data.
+- fix: protect transaction corrections with automatic backups and full position-history validation.
+- docs: document transaction notes and correction API semantics.
+- test: cover transaction note storage, editing and invalid future-sale protection.
+
 ## 3.31.4
 
 - test: add two current-balance liquidity accounts to the canonical demo/loadtest dataset without creating ledger movements.

@@ -330,6 +330,9 @@
           <button id="deselect-all-transactions" class="button button-compact" type="button" hidden>
             <span data-i18n="html.bulk.deselectAll">Deseleccionar todos</span>
           </button>
+          <button id="edit-selected-transaction" class="button button-compact" type="button" hidden>
+            <span aria-hidden="true">&#9998;</span> Editar
+          </button>
           <button
             id="delete-selected-transactions"
             class="button icon-bulk-delete"
@@ -456,6 +459,11 @@
         <label id="add-commission-field" class="field">
           <span>Comisión EUR</span>
           <input id="add-commission" name="commission" type="number" min="0" step="0.01" placeholder="0" />
+        </label>
+
+        <label id="add-note-field" class="field">
+          <span>Nota opcional</span>
+          <textarea id="add-note" name="note" maxlength="1000" rows="3" placeholder="Ejemplo: compra para cartera a largo plazo"></textarea>
         </label>
 
         <p id="add-feedback" class="form-feedback" role="status"></p>
@@ -1122,6 +1130,35 @@
           <button id="ledger-export-confirm" class="button" type="button" data-i18n="ledger.export.confirm">Exportar</button>
         </div>
       </div>
+    </dialog>
+
+    <dialog id="transaction-edit-dialog" class="modal">
+      <form id="transaction-edit-form" class="modal-panel" method="dialog">
+        <div class="modal-header">
+          <div>
+            <h2>Editar movimiento</h2>
+            <p class="subtle">Corrige los datos de ejecución sin consultar cotizaciones actuales.</p>
+          </div>
+          <button id="transaction-edit-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
+        </div>
+        <div id="transaction-edit-summary" class="transaction-edit-summary"></div>
+        <p class="transaction-edit-notice">Al guardar se creará un backup automático y se recalculará el histórico desde la primera fecha afectada.</p>
+        <div class="field-grid transaction-edit-fields">
+          <label class="field"><span>Fecha</span><input id="transaction-edit-date" type="date" lang="es" required /></label>
+          <label class="field"><span>Cantidad</span><input id="transaction-edit-shares" type="number" min="0" step="0.000001" required /></label>
+          <label class="field"><span>Precio unitario</span><input id="transaction-edit-price" type="number" min="0" step="0.000001" required /></label>
+          <label class="field"><span>Divisa</span><input id="transaction-edit-currency" maxlength="3" required /></label>
+          <label class="field"><span>FX a EUR</span><input id="transaction-edit-fx" type="number" min="0" step="0.000001" required /></label>
+          <label class="field"><span>Comisión EUR</span><input id="transaction-edit-commission" type="number" min="0" step="0.01" required /></label>
+        </div>
+        <label class="field"><span>Nota opcional</span><textarea id="transaction-edit-note" maxlength="1000" rows="3"></textarea></label>
+        <p id="transaction-edit-feedback" class="form-feedback" role="status"></p>
+        <div id="transaction-edit-preview" class="transaction-preview" hidden></div>
+        <div class="modal-actions">
+          <button id="transaction-edit-cancel" class="button btn-cancel" type="button">Cancelar</button>
+          <button id="transaction-edit-submit" class="button btn-save" type="submit">Guardar cambios</button>
+        </div>
+      </form>
     </dialog>
 
     <dialog id="confirm-action-dialog" class="modal">

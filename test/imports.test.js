@@ -266,12 +266,12 @@ test('adapterDefinitions community only contains valorgrid-xlsx; unknown sources
 
   await assert.rejects(
     () => previewImport({ source: 'generic-csv', content: 'type,symbol,date,shares,price\nadd,IMPA,2026-01-01,1,1' }),
-    /Origen de importacion no soportado/,
+    /Origen de importación no soportado/,
   );
   const contentBase64 = await valorGridWorkbook([['compra', '2026-01-01', 'IMPA', 1, 1, 'EUR', 1, 1, 0, 'legacy']]);
   await assert.rejects(
     () => previewImport({ source: 'generic-xlsx', contentBase64 }),
-    /Origen de importacion no soportado/,
+    /Origen de importación no soportado/,
   );
 
   const api = await jsonRequest('/api/import/preview', {
@@ -280,7 +280,7 @@ test('adapterDefinitions community only contains valorgrid-xlsx; unknown sources
     body: JSON.stringify({ source: 'generic-csv', filename: 'legacy.csv', content: 'a,b\n1,2' }),
   });
   assert.equal(api.response.status, 400);
-  assert.match(api.body.error, /Origen de importacion no soportado/);
+  assert.match(api.body.error, /Origen de importación no soportado/);
 });
 
 test('professional csv adapters load from index.cjs folders and use canonical rows', async () => {

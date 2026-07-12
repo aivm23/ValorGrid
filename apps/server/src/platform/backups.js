@@ -70,6 +70,7 @@ const ALLOWED_RISK_REASONS = new Set([
   'before-import-commit',
   'before-import-rollback',
   'before-bulk-transaction-delete',
+  'before-transaction-update',
   'before-instrument-delete',
   'before-group-delete',
   'before-auto-plans-replace',

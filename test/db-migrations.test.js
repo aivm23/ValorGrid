@@ -33,6 +33,26 @@ function buildCtx(db, dbPath, backupDir, options = {}) {
 
 function createOldSchema29(db) {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS transactions (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL CHECK (type IN ('add', 'remove', 'dividend')),
+      symbol TEXT NOT NULL,
+      name TEXT,
+      date TEXT NOT NULL,
+      market_date TEXT,
+      shares REAL NOT NULL,
+      value_eur REAL NOT NULL,
+      price REAL NOT NULL,
+      currency TEXT NOT NULL,
+      fx_to_eur REAL NOT NULL,
+      commission_eur REAL NOT NULL DEFAULT 0,
+      cash_flow_eur REAL NOT NULL DEFAULT 0,
+      color TEXT,
+      origin TEXT NOT NULL DEFAULT 'manual' CHECK (origin IN ('manual', 'auto', 'import')),
+      auto_key TEXT UNIQUE,
+      import_batch_id TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE instruments (
       symbol TEXT PRIMARY KEY,
       yahoo_symbol TEXT NOT NULL,
@@ -96,16 +116,16 @@ test('migration updates schema_version in app_meta', () => {
     migrations(ctx);
     const result = ctx.runMigrations();
     assert.equal(result.migrated, true);
-    assert.equal(result.toVersion, '3.31.0');
+    assert.equal(result.toVersion, '3.32.0');
 
     const schemaVersion = db.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get();
-    assert.equal(schemaVersion.value, '3.31.0');
+    assert.equal(schemaVersion.value, '3.32.0');
 
     const lastFrom = db.prepare("SELECT value FROM app_meta WHERE key = 'last_migration_from'").get();
     assert.equal(lastFrom.value, '3.29.0');
 
     const lastTo = db.prepare("SELECT value FROM app_meta WHERE key = 'last_migration_to'").get();
-    assert.equal(lastTo.value, '3.31.0');
+    assert.equal(lastTo.value, '3.32.0');
 
     const lastAt = db.prepare("SELECT value FROM app_meta WHERE key = 'last_migration_at'").get();
     assert.ok(lastAt, 'last_migration_at is recorded');
@@ -132,7 +152,7 @@ test('migration is idempotent when already up to date', () => {
     const db = openDatabase(dbPath);
     createOldSchema29(db);
     db.prepare(
-      "INSERT INTO app_meta (key, value) VALUES ('schema_version', '3.31.0')",
+      "INSERT INTO app_meta (key, value) VALUES ('schema_version', '3.32.0')",
     ).run();
     const ctx = buildCtx(db, dbPath, backupDir);
     migrations(ctx);
@@ -184,7 +204,7 @@ test('auto-migrate can be enabled in Docker via env var', () => {
       migrations(ctx);
       const result = ctx.runMigrations();
       assert.equal(result.migrated, true);
-      assert.equal(result.toVersion, '3.31.0');
+      assert.equal(result.toVersion, '3.32.0');
     } finally {
       delete process.env.VALORGRID_AUTO_MIGRATE;
     }
@@ -198,6 +218,7 @@ test('findPendingMigrations returns only migrations after current version', () =
   assert.ok(pending.every((m) => migrations.compareSemver(m.from, '3.29.0') >= 0));
   assert.ok(pending.some((m) => m.to === '3.30.0'));
   assert.ok(pending.some((m) => m.to === '3.31.0'));
+  assert.ok(pending.some((m) => m.to === '3.32.0'));
 });
 
 test('update-3.30.0-to-3.31.0.sql exists in deploy/sql', () => {
@@ -210,5 +231,5 @@ test('update-3.30.0-to-3.31.0.sql exists in deploy/sql', () => {
 });
 
 test('CURRENT_SCHEMA_VERSION matches the expected value', () => {
-  assert.equal(migrations.CURRENT_SCHEMA_VERSION, '3.31.0');
+  assert.equal(migrations.CURRENT_SCHEMA_VERSION, '3.32.0');
 });

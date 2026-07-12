@@ -21,7 +21,7 @@ export function attach(ctx) {
 
   function toggleTransactionRow(event) {
     const row = event.target.closest('tr[data-transaction-id]');
-    if (!row || event.target.closest('[data-select-transaction]')) return;
+    if (!row || event.target.closest('[data-select-transaction], [data-transaction-note]')) return;
     const id = row.dataset.transactionId;
     const selected = new Set(ctx.state.selectedTransactionIds || []);
     if (selected.has(id)) selected.delete(id);

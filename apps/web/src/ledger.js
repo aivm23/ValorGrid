@@ -101,6 +101,10 @@ export function attach(ctx) {
       elements.ledgerSelectionCount.textContent = ctx.tn('ledger.selected', selectedCount);
     }
     if (elements.deleteSelectedTransactions) elements.deleteSelectedTransactions.hidden = selectedCount === 0;
+    const selectedTransaction = selectedCount === 1 ? allTransactions.find((item) => selectedIds.has(String(item.id))) : null;
+    if (elements.editSelectedTransaction) {
+      elements.editSelectedTransaction.hidden = !selectedTransaction || selectedTransaction.type === 'dividend';
+    }
     if (elements.selectVisibleTransactions) {
       elements.selectVisibleTransactions.hidden =
         selectedCount === 0 || !state.visibleTransactionIds.length || selectedCount === state.visibleTransactionIds.length;
@@ -123,7 +127,10 @@ export function attach(ctx) {
               </label>
             </td>
             <td data-label="${ctx.t('ledger.col.date')}">${ctx.formatDate(item.date)}</td>
-            <td data-label="${ctx.t('ledger.col.ticker')}">${ctx.escapeHtml(item.symbol)}</td>
+            <td data-label="${ctx.t('ledger.col.ticker')}">${ctx.escapeHtml(item.symbol)}${item.note ? `
+              <span class="ledger-note" tabindex="0" data-transaction-note aria-label="${ctx.escapeHtml(ctx.t('Nota'))}">
+                <span aria-hidden="true">&#128221;</span><span class="ledger-note-tooltip" role="tooltip">${ctx.escapeHtml(item.note)}</span>
+              </span>` : ''}</td>
             <td data-label="${ctx.t('ledger.col.type')}"><span class="type-badge ${typeClass}">${transactionTypeLabel(ctx, item.type)}</span></td>
             <td data-label="${ctx.t('ledger.col.quantity')}">${ctx.formatInstrumentQuantity(item.shares, item)}</td>
             <td data-label="${ctx.t('ledger.col.price')}">${Number(item.price).toFixed(2)} ${ctx.escapeHtml(item.currency)}</td>

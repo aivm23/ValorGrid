@@ -55,7 +55,7 @@ module.exports = function attach(ctx) {
   async function commitImport(input = {}) {
     const preview = await previewImport(input);
     if (!preview.canCommit) {
-      throw new Error('La importacion contiene errores y no se puede guardar');
+      throw new Error('La importación contiene errores y no se puede guardar');
     }
 
     const duplicateOnly = preview.rows.every((row) => ['duplicate', 'ignored', 'skipped'].includes(row.status));

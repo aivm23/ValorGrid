@@ -79,6 +79,8 @@ listMarketDataSources: pickServiceFn(marketDataServices, 'listMarketDataSources'
     getTransactions: pickServiceFn(transactionServices, 'getTransactions', ctx.getTransactions),
     createTransaction: pickServiceFn(transactionServices, 'createTransaction', ctx.createTransaction),
     previewTransaction: pickServiceFn(transactionServices, 'previewTransaction', ctx.previewTransaction),
+    previewTransactionEdit: pickServiceFn(transactionServices, 'previewTransactionEdit', ctx.previewTransactionEdit),
+    updateTransaction: pickServiceFn(transactionServices, 'updateTransaction', ctx.updateTransaction),
     deleteTransaction: pickServiceFn(transactionServices, 'deleteTransaction', ctx.deleteTransaction),
     bulkDeleteTransactions: pickServiceFn(transactionServices, 'bulkDeleteTransactions', ctx.bulkDeleteTransactions),
     getAutoPlans: pickServiceFn(transactionServices, 'getAutoPlans', ctx.getAutoPlans),

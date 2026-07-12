@@ -98,7 +98,7 @@ function splitEventsForRange(fromDate, toDate) {
       id: split.id,
       type: 'split',
       symbol: split.symbol,
-      name: 'Split aplicado automaticamente',
+      name: 'Split aplicado automáticamente',
       date: split.effectiveDate,
       marketDate: null,
       plotDate: split.effectiveDate,

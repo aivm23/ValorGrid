@@ -55,7 +55,7 @@ function bindGroupedCtxNamespaces(ctx) {
       'replaceAutoPlans', 'autoPlanFrequency', 'normalizeAutoPlans',
       'autoPlanMateriallyChanged', 'applyAutoPlanEditPolicy', 'getAutoPlanScheduledDates',
       'autoKeyForPlan', 'autoPlanExists', 'previewAutoPlanExecutions', 'getPositionShares',
-      'createTransaction', 'previewTransaction', 'deleteTransaction', 'isAutoPlanSkipped',
+      'createTransaction', 'previewTransaction', 'previewTransactionEdit', 'updateTransaction', 'deleteTransaction', 'isAutoPlanSkipped',
     ]),
   );
   Object.assign(

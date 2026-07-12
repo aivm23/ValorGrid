@@ -137,13 +137,13 @@ module.exports = function attach(ctx) {
       }
       return result;
     } catch (error) {
-      logger?.warn?.(`update-service: no se pudo consultar la ultima version: ${error.message}`);
+      logger?.warn?.(`update-service: no se pudo consultar la última versión: ${error.message}`);
       return {
         currentVersion: base.currentVersion,
         latestVersion: base.currentVersion,
         updateAvailable: false,
         runtimeMode: base.runtimeMode,
-        error: 'No se pudo consultar la ultima version',
+        error: 'No se pudo consultar la última versión',
         checkedAt: new Date().toISOString(),
       };
     }

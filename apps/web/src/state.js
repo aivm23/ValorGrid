@@ -42,6 +42,7 @@ export function attach(ctx) {
     initialLoadComplete: false,
     transactionEntryMode: 'market_eur',
     transactionPreviewOk: false,
+    transactionEditPreviewOk: false,
     version: null,
     expandedGroupId: null,
     hideBalances: false,

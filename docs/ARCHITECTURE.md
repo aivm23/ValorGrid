@@ -235,6 +235,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `transaction-entry-modes`: normalización y validación de modos de entrada de operaciones (`market_eur`, `manual_total_eur`, `manual_unit_price`).
 - `transaction-pricing`: resolución estricta de precios/FX para escrituras de movimientos.
+- `transaction-editor`: validación y recálculo de correcciones de compras y ventas existentes.
 - `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
 - `corporate-actions/corporate-action-timeline`: helper puro para aplicar splits antes de transacciones en la misma fecha.
 
@@ -304,7 +305,7 @@ Módulos principales:
 - `liquidity.js`: gestion de cuentas de liquidez actuales dentro de Valores, separadas de instrumentos operables.
 - `operations-metrics.js`: catálogo de métricas de Operativa (registry de tarjetas de performance).
 - `ledger.js`: movimientos y filtros.
-- `dividends.js`: alerta de toolbar, modal de borradores y scan automatico de dividendos al arrancar.
+- `dividends.js`: alerta de toolbar, modal de borradores y scan automático de dividendos al arrancar.
 - `monthly.js`: revisión YTD.
 - `history.js`: histórico lineal.
 - `history-preferences.js`: teaser de preferencias profesionales del gráfico Histórico y sincronización visual del panel de edición.
@@ -320,8 +321,9 @@ Módulos principales:
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
-- `forms.js`: helpers de formularios.
-- `transaction-entry-modes.js`: visibilidad y copy de tabs del modal de compra/venta.
+  - `forms.js`: helpers de formularios.
+  - `transaction-editor.js`: corrección y previsualización de compras y ventas ya registradas.
+  - `transaction-entry-modes.js`: visibilidad y copy de tabs del modal de compra/venta.
 - `alpha-vantage-setup.js`: diálogo de configuración de clave API de Alpha Vantage (input, validación y persistencia via `/api/market-data/alpha-vantage/key`).
 - `aportaciones.js`: planes de aportación automática.
 - `updates.js`: tarjeta de actualización en Administración. Consulta `/api/update/status`, muestra versión actual/última, estado de DB, y expone descarga de instalador (desktop) o comandos Docker (server/docker).

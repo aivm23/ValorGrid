@@ -2489,6 +2489,67 @@ td:last-child {
   color: var(--accent);
 }
 
+.transaction-edit-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+}
+
+.transaction-edit-summary span,
+.transaction-edit-notice {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.transaction-edit-notice {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 2px solid var(--accent-amber);
+  background: color-mix(in srgb, var(--accent-amber) 7%, transparent);
+}
+
+.ledger-note {
+  position: relative;
+  display: inline-flex;
+  margin-left: 5px;
+  color: var(--accent);
+  cursor: help;
+  outline: none;
+}
+
+.ledger-note-tooltip {
+  position: absolute;
+  z-index: 25;
+  left: 0;
+  top: calc(100% + 6px);
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.ledger-note:hover .ledger-note-tooltip,
+.ledger-note:focus .ledger-note-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .dividend-alert {
   position: relative;
 }

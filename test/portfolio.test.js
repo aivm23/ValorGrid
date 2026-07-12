@@ -878,6 +878,80 @@ test('POST /api/transactions stores optional commission fields', async () => {
   assert.equal(body.transaction.cashFlowEur, -41.2);
 });
 
+test('transactions store notes and can be previewed and edited without market pricing', async () => {
+  seedTestInstrument({ symbol: 'EDIT1', yahooSymbol: 'EDIT1.DE', name: 'Editable instrument', type: 'stock' });
+  const created = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: 'editable-transaction',
+      type: 'add',
+      symbol: 'EDIT1',
+      date: '2026-06-01',
+      entryMode: 'manual_unit_price',
+      shares: 5,
+      unitPrice: 10,
+      priceCurrency: 'EUR',
+      fxToEur: 1,
+      commissionEur: 1,
+      note: ' Primera compra ',
+    }),
+  });
+
+  assert.equal(created.response.status, 201);
+  assert.equal(created.body.transaction.note, 'Primera compra');
+
+  const payload = {
+    date: '2026-06-02',
+    shares: 4,
+    price: 12,
+    currency: 'EUR',
+    fxToEur: 1,
+    commissionEur: 2,
+    note: 'Comisión corregida',
+  };
+  const preview = await jsonRequest('/api/transactions/editable-transaction/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  assert.equal(preview.response.status, 200);
+  assert.equal(preview.body.preview.valueEur, 48);
+  assert.equal(preview.body.preview.cashFlowEur, -50);
+  assert.equal(getTransactions().find((item) => item.id === 'editable-transaction').shares, 5);
+
+  const updated = await jsonRequest('/api/transactions/editable-transaction', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  assert.equal(updated.response.status, 200);
+  assert.equal(updated.body.transaction.shares, 4);
+  assert.equal(updated.body.transaction.valueEur, 48);
+  assert.equal(updated.body.transaction.cashFlowEur, -50);
+  assert.equal(updated.body.transaction.note, 'Comisión corregida');
+  assert.ok(updated.body.backup?.file, 'editing creates a risk backup');
+});
+
+test('transaction edit rejects a correction that would make a later sale invalid', async () => {
+  seedTestInstrument({ symbol: 'EDIT2', yahooSymbol: 'EDIT2.DE', name: 'Edit validation', type: 'stock' });
+  await createTransaction({ type: 'add', symbol: 'EDIT2', date: '2026-06-01', entryMode: 'manual_unit_price', shares: 4, unitPrice: 10, priceCurrency: 'EUR', fxToEur: 1 });
+  await createTransaction({ type: 'remove', symbol: 'EDIT2', date: '2026-06-02', entryMode: 'manual_total_eur', shares: 3, euros: 33 });
+  const buy = getTransactions().find((item) => item.symbol === 'EDIT2' && item.type === 'add');
+
+  const result = await jsonRequest(`/api/transactions/${encodeURIComponent(buy.id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date: '2026-06-01', shares: 2, price: 10, currency: 'EUR', fxToEur: 1, commissionEur: 0, note: null }),
+  });
+
+  assert.equal(result.response.status, 400);
+  assert.match(result.body.error, /Not enough shares/);
+  assert.equal(getTransactions().find((item) => item.id === buy.id).shares, 4);
+});
+
 test('POST /api/transactions/preview calculates movement without storing it', async () => {
   cachePrice('NOV.DE', '2026-05-14', 40);
   const before = getTransactions().length;

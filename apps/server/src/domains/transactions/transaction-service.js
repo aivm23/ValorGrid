@@ -3,7 +3,7 @@ const { resolveFxToEur } = require('./transaction-pricing');
 const { normalizeEntryMode, validateTransactionAmountInput } = require('./transaction-entry-modes');
 const { buildLedgerAnalyticsFromTransactions } = require('./transaction-analytics');
 const { calculateSharesWithSplits } = require('../corporate-actions/corporate-action-timeline');
-
+const { createTransactionEditor, normalizeTransactionNote } = require('./transaction-editor');
 module.exports = function attach(ctx) {
   assertCtxDeps(
     ctx,
@@ -56,6 +56,7 @@ module.exports = function attach(ctx) {
     listStockColors,
     insertTransactionRow,
     findTransactionForDelete,
+    updateTransactionEconomics,
     deleteTransactionById,
     insertAutoPlanSkip,
     autoPlanSkipExists,
@@ -63,8 +64,16 @@ module.exports = function attach(ctx) {
   const listSplitsForSymbolUntil = corporateActionRepository.listSplitsForSymbolUntil || (() => []);
   const listSplitsUntil = corporateActionRepository.listSplitsUntil || (() => []);
 
-  function getTransactions() { return listTransactions(); }
+  const { previewTransactionEdit, updateTransaction } = createTransactionEditor({
+    getTransactions,
+    getInstrument,
+    transactionSign,
+    listSplitsForSymbolUntil,
+    updateTransactionEconomics,
+    invalidateLedger,
+  });
 
+  function getTransactions() { return listTransactions(); }
   function getAutoPlans() {
     return listAutoPlans().map((plan) => ({
       ...plan,
@@ -231,6 +240,7 @@ module.exports = function attach(ctx) {
       fxToEur: preview.fxToEur,
       commissionEur: preview.commissionEur,
       cashFlowEur: preview.cashFlowEur,
+      note: normalizeTransactionNote(input.note),
       color: instrument.color,
       origin,
       autoKey,
@@ -447,7 +457,7 @@ module.exports = function attach(ctx) {
     }
     return false;
   }
-  Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates: ctx.getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, createTransaction, previewTransaction, deleteTransaction, bulkDeleteTransactions, isAutoPlanSkipped });
+  Object.assign(ctx, { getTransactions, getAutoPlans, buildLedgerAnalytics, buildPortfolioPerformance, replaceAutoPlans, autoPlanFrequency, normalizeAutoPlans, autoPlanMateriallyChanged, applyAutoPlanEditPolicy, getAutoPlanScheduledDates: ctx.getAutoPlanScheduledDates, autoKeyForPlan, autoPlanExists, previewAutoPlanExecutions, getPositionShares, createTransaction, previewTransaction, previewTransactionEdit, updateTransaction, deleteTransaction, bulkDeleteTransactions, isAutoPlanSkipped });
   function autoKeyForPlan(plan, scheduledDate) { return `auto:${plan.symbol}:${scheduledDate}`; }
   function autoPlanExists(autoKey) {
     if (transactionExistsByAutoKey(autoKey)) return true;

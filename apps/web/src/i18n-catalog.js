@@ -66,7 +66,7 @@ const CORE_TEXT_TRANSLATIONS = {
     'summary.legend.breakdownAvailable': 'Desglose disponible',
     'summary.visibleTotal.label': 'Total visible estimado',
     'summary.visibleTotal.tooltip':
-      'Suma solo las posiciones marcadas como visibles en distribucion. Las posiciones ocultas en el dashboard no entran en este total.',
+      'Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.',
     'summary.empty.noValuePositions': 'Sin posiciones con valor',
     'summary.empty.noPositionsSetup': 'Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.',
     'summary.empty.createPortfolio': 'Crear cartera',

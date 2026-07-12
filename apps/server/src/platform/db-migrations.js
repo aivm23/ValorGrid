@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const backups = require('./backups');
 
-const CURRENT_SCHEMA_VERSION = '3.31.0';
+const CURRENT_SCHEMA_VERSION = '3.32.0';
 const SCHEMA_VERSION_KEY = 'schema_version';
 const LAST_MIGRATION_AT_KEY = 'last_migration_at';
 const LAST_MIGRATION_FROM_KEY = 'last_migration_from';
@@ -17,6 +17,7 @@ const MIGRATIONS = [
   { from: '3.28.12', to: '3.28.13', file: 'update-3.28.12-to-3.28.13.sql' },
   { from: '3.29.0', to: '3.30.0', file: 'update-3.29.0-to-3.30.0.sql' },
   { from: '3.30.0', to: '3.31.0', file: 'update-3.30.0-to-3.31.0.sql' },
+  { from: '3.31.4', to: '3.32.0', file: 'update-3.31.4-to-3.32.0.sql' },
 ];
 
 function compareSemver(a, b) {
@@ -44,6 +45,7 @@ function columnExists(db, table, column) {
 }
 
 function inferSchemaVersion(db) {
+  if (columnExists(db, 'transactions', 'note')) return '3.32.0';
   if (tableExists(db, 'corporate_actions')) return '3.31.0';
   if (columnExists(db, 'instruments', 'cash_balance')) return '3.29.0';
   if (tableExists(db, 'dividend_events')) return '3.27.0';
@@ -144,7 +146,7 @@ function attach(ctx) {
       const inferred = inferSchemaVersion(db);
       if (!inferred) {
         const error = new Error(
-          'No se pudo determinar la version de schema de la base de datos existente. ' +
+          'No se pudo determinar la versión del schema de la base de datos existente. ' +
             'Crea un backup y ejecuta las migraciones manualmente con scripts/run-sql-migration.',
         );
         error.code = 'SCHEMA_VERSION_UNKNOWN';

@@ -19,6 +19,7 @@ import { attach as attachOperations } from './operations.js';
 import { attach as attachLiquidity } from './liquidity.js';
 import { attach as attachDashboard } from './dashboard.js';
 import { attach as attachForms } from './forms.js';
+import { attach as attachTransactionEditor } from './transaction-editor.js';
 import { attach as attachOnboarding } from './onboarding.js';
 import { attach as attachImports } from './imports.js';
 import { attach as attachDividends } from './dividends.js';
@@ -39,7 +40,7 @@ const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, 
 
 [
   attachState, attachI18n, attachDom, attachConfirmDialog, attachFormat, attachCharts, attachSummary, attachMonthly,
-  attachLedger, attachOperations, attachLiquidity, attachDashboard, attachForms, attachTheme, attachHistory,
+  attachLedger, attachOperations, attachLiquidity, attachDashboard, attachForms, attachTransactionEditor, attachTheme, attachHistory,
   attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
   attachReturnBreakdownPreferences,
   attachInstrumentColors, attachAlphaVantageSetup, attachExtensions, attachAportaciones,

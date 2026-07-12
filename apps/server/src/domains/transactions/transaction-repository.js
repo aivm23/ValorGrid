@@ -12,7 +12,7 @@ module.exports = function attach(ctx) {
         `SELECT t.id, t.type, t.symbol, t.name, t.date, t.market_date AS marketDate,
                 t.shares, t.value_eur AS valueEur, t.price, t.currency,
                 t.fx_to_eur AS fxToEur, t.commission_eur AS commissionEur,
-                t.cash_flow_eur AS cashFlowEur, t.color, t.origin,
+                t.cash_flow_eur AS cashFlowEur, t.note, t.color, t.origin,
                 t.auto_key AS autoKey, t.import_batch_id AS importBatchId,
                 t.external_id AS externalId, t.raw_hash AS rawHash,
                 t.created_at AS createdAt,
@@ -82,9 +82,9 @@ module.exports = function attach(ctx) {
     db.prepare(
       `INSERT INTO transactions
         (id, type, symbol, name, date, market_date, shares, value_eur, price, currency,
-          fx_to_eur, commission_eur, cash_flow_eur, color, origin, auto_key,
+          fx_to_eur, commission_eur, cash_flow_eur, note, color, origin, auto_key,
           import_batch_id, external_id, raw_hash)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       row.id,
       row.type,
@@ -99,6 +99,7 @@ module.exports = function attach(ctx) {
       row.fxToEur,
       row.commissionEur,
       row.cashFlowEur,
+      row.note || null,
       row.color,
       row.origin,
       row.autoKey,
@@ -110,6 +111,28 @@ module.exports = function attach(ctx) {
 
   function findTransactionForDelete(id) {
     return db.prepare('SELECT auto_key AS autoKey, date FROM transactions WHERE id = ?').get(id);
+  }
+
+  function updateTransactionEconomics(id, row) {
+    return db
+      .prepare(
+        `UPDATE transactions
+         SET date = ?, shares = ?, value_eur = ?, price = ?, currency = ?, fx_to_eur = ?,
+             commission_eur = ?, cash_flow_eur = ?, note = ?
+         WHERE id = ?`,
+      )
+      .run(
+        row.date,
+        row.shares,
+        row.valueEur,
+        row.price,
+        row.currency,
+        row.fxToEur,
+        row.commissionEur,
+        row.cashFlowEur,
+        row.note || null,
+        id,
+      );
   }
 
   function deleteTransactionById(id) {
@@ -134,6 +157,7 @@ module.exports = function attach(ctx) {
     listStockColors,
     insertTransactionRow,
     findTransactionForDelete,
+    updateTransactionEconomics,
     deleteTransactionById,
     insertAutoPlanSkip,
     autoPlanSkipExists,

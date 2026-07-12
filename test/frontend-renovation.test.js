@@ -128,6 +128,23 @@ test('CSS defines hover states for ledger table rows', () => {
   assert.ok(css.includes('.origin-import'), 'CSS defines origin-import style');
 });
 
+test('ledger transaction editor is available only for one non-dividend selection', () => {
+  const html = read('apps/web/index.html');
+  const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
+  const editor = read(path.join('apps', 'web', 'src', 'transaction-editor.js'));
+  const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
+
+  assert.ok(html.includes('id="edit-selected-transaction"'), 'ledger toolbar includes an edit action');
+  assert.ok(html.includes('id="transaction-edit-dialog"'), 'transaction editor has its own modal');
+  assert.ok(html.includes('id="add-note"'), 'buy/sell modal includes optional note field');
+  assert.ok(ledger.includes('selectedCount === 1'), 'ledger requires exactly one selected row for edit');
+  assert.ok(ledger.includes("selectedTransaction.type === 'dividend'"), 'ledger hides edit for dividends');
+  assert.ok(ledger.includes('ledger-note-tooltip'), 'ledger shows saved notes without a new table column');
+  assert.ok(editor.includes('/preview`'), 'editor requests server-side edit preview');
+  assert.ok(editor.includes("'PUT'"), 'editor saves through PUT');
+  assert.ok(forms.includes('payload.note = note'), 'creation payload includes optional note');
+});
+
 test('liquidity is separated from groups and instruments in the values dialog', () => {
   const html = read('apps/web/index.html');
   const app = read(path.join('apps', 'web', 'src', 'app.js'));

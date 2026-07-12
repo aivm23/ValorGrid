@@ -14,6 +14,8 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     getTransactions,
     createTransaction,
     previewTransaction,
+    previewTransactionEdit,
+    updateTransaction,
     deleteTransaction,
     bulkDeleteTransactions,
     getAutoPlans,
@@ -54,6 +56,33 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     return true;
   }
 
+  const editPreviewMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)\/preview$/);
+  if (editPreviewMatch && request.method === 'POST') {
+    try {
+      const preview = previewTransactionEdit(decodeURIComponent(editPreviewMatch[1]), await readJsonBody(request));
+      sendJson(response, 200, { preview });
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
+  const transactionMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)$/);
+  const transactionId = transactionMatch ? decodeURIComponent(transactionMatch[1]) : null;
+
+  if (transactionId && request.method === 'PUT') {
+    try {
+      const body = await readJsonBody(request);
+      previewTransactionEdit(transactionId, body);
+      const backup = createRiskBackup({ reason: 'before-transaction-update', metadata: { id: transactionId } });
+      const transaction = updateTransaction(transactionId, body);
+      sendJson(response, 200, { transaction, backup });
+    } catch (error) {
+      sendError(response, sendJson, error);
+    }
+    return true;
+  }
+
   if (url.pathname === '/api/transactions' && request.method === 'DELETE') {
     try {
       const body = await readJsonBody(request);
@@ -77,9 +106,8 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
     return true;
   }
 
-  const deleteMatch = url.pathname.match(/^\/api\/transactions\/([^/]+)$/);
-  if (deleteMatch && request.method === 'DELETE') {
-    sendJson(response, deleteTransaction(decodeURIComponent(deleteMatch[1])) ? 200 : 404, {
+  if (transactionId && request.method === 'DELETE') {
+    sendJson(response, deleteTransaction(transactionId) ? 200 : 404, {
       ok: true,
     });
     return true;

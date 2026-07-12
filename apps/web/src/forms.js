@@ -1,5 +1,4 @@
 import { attachTransactionEntryModes } from './transaction-entry-modes.js';
-
 export function attach(ctx) {
   function setAddFeedback(message, isError = false) {
     ctx.elements.addFeedback.textContent = message;
@@ -16,6 +15,7 @@ export function attach(ctx) {
     const priceCurrency = String(ctx.elements.addPriceCurrency.value || '').trim().toUpperCase();
     const fxToEur = Number(ctx.elements.addFx.value);
     const commission = Number(ctx.elements.addCommission.value);
+    const note = String(ctx.elements.addNote.value || '').trim();
     const payload = { type, symbol, date: ctx.elements.addDate.value, entryMode };
     if (includeId) payload.id = ctx.clientRequestId('tx');
     if (entryMode === 'market_eur' && Number.isFinite(euros) && euros > 0) {
@@ -30,6 +30,7 @@ export function attach(ctx) {
       if (Number.isFinite(fxToEur) && fxToEur > 0) payload.fxToEur = fxToEur;
     }
     if (Number.isFinite(commission) && commission > 0) payload.commissionEur = commission;
+    if (note) payload.note = note;
     return payload;
   }
 

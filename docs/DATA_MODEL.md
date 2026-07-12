@@ -21,7 +21,7 @@ Campos principales:
 - `is_expandable`
 - `active`
 
-Se usa para distribucion actual, revisión YTD, desglose del donut y organizacion de instrumentos. Estos flags no definen la frecuencia de aportacion automatica.
+Se usa para distribución actual, revisión YTD, desglose del donut y organización de instrumentos. Estos flags no definen la frecuencia de aportación automática.
 
 ### `instruments`
 
@@ -37,12 +37,12 @@ Campos principales:
 - `color`
 - `base_shares`
 - `cash_balance`: saldo actual de cuentas de liquidez técnica (`cash`), default 0.
-- `cash_balance_updated_at`: timestamp de la ultima actualizacion del saldo de liquidez.
+- `cash_balance_updated_at`: timestamp de la última actualización del saldo de liquidez.
 - `fallback_price`: precio de respaldo cuando no hay datos de mercado (REAL, default 0).
 - `active`
 - `group_id`: puede ser `NULL` cuando los grupos están deshabilitados.
 - `display_order`: orden de visualización (INTEGER, default 0).
-- `show_in_distribution`: controla si aparece en la distribucion del dashboard (INTEGER, default 1).
+- `show_in_distribution`: controla si aparece en la distribución del dashboard (INTEGER, default 1).
 - `show_in_monthly`: controla si aparece en la revisión YTD por grupos (INTEGER, default 1).
 
 `fx` se usa para instrumentos técnicos internos de conversión y no debe aparecer como posición visible.
@@ -93,6 +93,7 @@ Campos principales:
 - `fx_to_eur`: tipo de cambio de la divisa local a EUR (REAL). Aplica a cualquier divisa, no solo USD.
 - `commission_eur`
 - `cash_flow_eur`
+- `note`: anotación opcional de compra o venta (TEXT, nullable); no afecta a cálculos.
 - `color`: color del instrumento en el momento de la operación (TEXT, nullable).
 - `origin`: `manual`, `auto`, `import`.
 - `auto_key`

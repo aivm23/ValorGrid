@@ -95,6 +95,8 @@ El wizard permite crear grupo, instrumento, primera compra opcional y plan autom
 GET /api/transactions
 POST /api/transactions
 POST /api/transactions/preview
+POST /api/transactions/:id/preview
+PUT /api/transactions/:id
 DELETE /api/transactions/:id
 DELETE /api/transactions (bulk)
 ```
@@ -113,6 +115,7 @@ Los movimientos son la verdad contable principal. Una compra o venta puede inclu
 - comisión,
 - cash-flow firmado,
 - origen.
+- nota opcional.
 
 ### Parámetros de `POST /api/transactions` y `POST /api/transactions/preview`
 
@@ -139,6 +142,12 @@ Reglas de validación:
 - `unitPrice` requiere un instrumento existente.
 - Para instrumentos no EUR con precio manual legacy, se puede enviar `fxToEur` manual. Si no se envia, la API exige FX de mercado disponible para la fecha; no usa FX antiguo automáticamente en escrituras.
 - `type = dividend` no se acepta en estos endpoints. Los dividendos solo se crean desde eventos de Yahoo Finance revisados o auto-confirmados por `/api/dividends/*`.
+
+### Corrección de un movimiento existente
+
+`POST /api/transactions/:id/preview` valida una corrección sin escribir nada y devuelve los importes derivados. `PUT /api/transactions/:id` aplica exactamente la misma validación, crea un backup automático y devuelve el movimiento actualizado junto al backup creado.
+
+El cuerpo de corrección admite `date`, `shares`, `price`, `currency`, `fxToEur`, `commissionEur` y `note`. El servidor recalcula `valueEur` y `cashFlowEur`; no consulta proveedores de mercado. No se pueden modificar ticker, tipo, origen, fecha de mercado ni metadatos de importación o automatismo. Los dividendos no usan este flujo.
 
 ## Dividendos
 
@@ -179,7 +188,7 @@ POST /api/corporate-actions/scan
 - `GET /api/corporate-actions`: lista splits/reverse splits registrados automáticamente desde Yahoo Finance. Acepta filtros opcionales `symbol`, `fromDate` y `toDate`.
 - `POST /api/corporate-actions/scan`: escanea Yahoo Finance para instrumentos `stock` y `etf` con `yahoo_symbol`. Body opcional: `{ "symbols": ["GOOG"], "fromDate": "2026-01-01", "toDate": "2026-12-31" }`.
 - Los eventos se registran de forma idempotente por `symbol + source_event_id`.
-- Registrar o actualizar un split invalida el histórico desde `effective_date` vía `ledger_version`; no modifica `price_version`.
+- Registrar o actualizar un split inválida el histórico desde `effective_date` vía `ledger_version`; no modifica `price_version`.
 - No existe confirmación manual: el mercado ya cotiza con el split/reverse split aplicado.
 - No se crean movimientos en `transactions`; no hay cash-flow, comisión, dividendo ni compra/venta asociada.
 
