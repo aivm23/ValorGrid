@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.32.7
+
+- fix: count all served web resources, including split nested stylesheets, in the reproducible performance baseline.
+- fix: refresh compatible desktop tooling transitives to remove reported `form-data` and `undici` vulnerabilities.
+- perf: report the first cold request separately from warmed median and p95 measurements for every benchmarked endpoint.
+- test: cover recursive static-resource accounting and cold/warm endpoint sampling.
+
 ## 3.32.6
 
 - refactor: make the Operativa metric ID catalog canonical in `packages/contracts` with synchronized CommonJS and browser ESM adapters.

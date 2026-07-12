@@ -8,6 +8,7 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 | ---------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `test/architecture.test.js`        | Arquitectura  | Reglas estructurales: sin `with(ctx)`, sin `node:sqlite` fuera de `db.js`, sin SQL en services/rutas, límites de tamaño, propiedad exclusiva de rutas HTTP en `api-client.js`, slices de estado, orden repository -> service y exports estables. |
 | `test/accessibility.test.js`       | Accesibilidad | IDs únicos, referencias ARIA válidas, títulos/descripciones de diálogos, nombres accesibles de botones, ausencia de eventos inline, restauración de foco y orden completo de la cascada CSS dividida.                                            |
+| `test/benchmark.test.js`           | Rendimiento   | Contabilidad recursiva de recursos estáticos y contrato de muestreo frío/caliente del benchmark local reproducible.                                                                                                                              |
 | `test/contracts.test.js`           | Contratos     | Paridad del catálogo canónico de métricas de Operativa entre JSON, CommonJS y ESM de navegador; IDs únicos y defaults válidos.                                                                                                                   |
 | `test/backup-delete.test.js`       | Backups       | Eliminación de backups via API: creación y borrado, verificación de persistencia, errores 404/400, protección contra path traversal.                                                                                                             |
 | `test/brand-palette.test.js`       | Paleta        | Algoritmo de paleta corporativa: posiciones, interpolación, colores hex válidos, sin duplicados en primeros 20.                                                                                                                                  |
@@ -41,7 +42,7 @@ npm run styles:check
 npm run contracts:check
 ```
 
-`format:check` cubre JavaScript, TypeScript, HTML y CSS de aplicaciones, paquetes, scripts y tests, además de documentación y manifiestos. `audit:duplication` informa clones de al menos 10 líneas sin bloquear todavía por deuda heredada. `benchmark` regenera el dataset sintético canónico, trabaja sobre una copia SQLite temporal y publica mediana, p95, memoria y tamaño de recursos; no forma parte del gate de CI porque sus tiempos dependen de la máquina.
+`format:check` cubre JavaScript, TypeScript, HTML y CSS de aplicaciones, paquetes, scripts y tests, además de documentación y manifiestos. `audit:duplication` informa clones de al menos 10 líneas sin bloquear todavía por deuda heredada. `benchmark` regenera el dataset sintético canónico, trabaja sobre una copia SQLite temporal y publica arranque, primera petición en frío, mediana, p95, memoria y tamaño total de los recursos web servidos, incluidas las hojas CSS anidadas. No forma parte del gate de CI porque sus tiempos dependen de la máquina.
 
 ## Ejecución en CI
 

@@ -17,9 +17,11 @@ npm run styles:check
 npm run contracts:check
 ```
 
-The Prettier gate covers application, package, script and test JavaScript/TypeScript, HTML and CSS as well as documentation and manifests. The duplication audit is initially informative for inherited clones. The benchmark regenerates the canonical synthetic dataset, uses a temporary SQLite copy and reports median, p95, memory and static-resource size outside the machine-sensitive CI gate.
+The Prettier gate covers application, package, script and test JavaScript/TypeScript, HTML and CSS as well as documentation and manifests. The duplication audit is initially informative for inherited clones. The benchmark regenerates the canonical synthetic dataset, uses a temporary SQLite copy and reports startup, first cold request, median, p95, memory and the total size of served web resources, including nested CSS. It stays outside the machine-sensitive CI gate.
 
 `test/accessibility.test.js` validates IDs, ARIA references, dialog names/descriptions, button names, inline-event absence, focus behavior and the ordered CSS cascade split.
+
+`test/benchmark.test.js` validates recursive static-resource accounting and the cold/warm sampling contract.
 
 `test/contracts.test.js` validates the canonical Operativa metric catalog across JSON, CommonJS and browser ESM adapters.
 
