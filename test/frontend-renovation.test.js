@@ -793,6 +793,13 @@ test('history-preferences.js syncProPreferencesPanel toggles edition classes and
   assert.ok(hp.includes('delete card.dataset.fixed'), 'Community removes data-fixed attribute');
 });
 
+test('history-preferences.js syncProPreferencesPanel hides Pro request card on PRO edition', () => {
+  const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
+  assert.ok(hp.includes('admin-card--pro-request'), 'targets the Pro request card selector');
+  assert.ok(hp.includes('proRequestCard.hidden = isPro'), 'hides Pro request card when edition is professional');
+  assert.ok(hp.includes('if (proRequestCard)'), 'guards against missing Pro request card');
+});
+
 test('dashboard.js calls syncProPreferencesPanel after edition known', () => {
   const dash = read(path.join('apps', 'web', 'src', 'dashboard.js'));
   assert.ok(dash.includes('ctx.syncProPreferencesPanel?.()'), 'calls syncProPreferencesPanel');

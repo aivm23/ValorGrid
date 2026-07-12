@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.31.1
+
+- fix: hide the "Solicitar Professional Edition" admin card when the running edition is already Professional, via `syncProPreferencesPanel`, avoiding the brief flash and DOM coupling of PRO-side overrides.
+- test: guard `syncProPreferencesPanel` Pro request card visibility by edition.
+
 ## 3.31.0
 
 - feat: add automatic Yahoo Finance stock/ETF split and reverse-split detection as corporate actions outside the ledger.

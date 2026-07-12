@@ -46,6 +46,10 @@ export function attach(ctx) {
       card.open = false;
       delete card.dataset.fixed;
     }
+
+    const proRequestCard = ctx.document.querySelector('.admin-card--pro-request');
+    if (proRequestCard) proRequestCard.hidden = isPro;
+
     ctx.initReturnBreakdownToggle?.();
   };
 }
