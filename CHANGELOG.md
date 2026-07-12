@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.31.4
+
+- test: add two current-balance liquidity accounts to the canonical demo/loadtest dataset without creating ledger movements.
+
+## 3.31.3
+
+- test: seed all stock purchases and sales in the canonical demo/loadtest dataset with whole-share quantities while keeping fractional coverage for ETFs, commodities and crypto.
+
+## 3.31.2
+
+- test: seed the canonical demo/loadtest dataset with Alphabet (GOOG)'s 20-for-1 split effective on 2022-07-18, including split-aware subsequent simulated sales and history coverage.
+
 ## 3.31.1
 
 - fix: hide the "Solicitar Professional Edition" admin card when the running edition is already Professional, via `syncProPreferencesPanel`, avoiding the brief flash and DOM coupling of PRO-side overrides.

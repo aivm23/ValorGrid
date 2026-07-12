@@ -615,6 +615,48 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   const result = seedLoadtestDb(db, { from: '2020-01-01', to: '2026-05-16' });
   assert.ok(result.transactions >= 200);
   assert.ok(result.prices > 25000);
+  assert.equal(result.corporateActions, 1);
+  assert.equal(result.liquidityAccounts, 2);
+  const liquidityAccounts = db
+    .prepare(
+      `SELECT name, currency, cash_balance AS cashBalance
+       FROM instruments WHERE type = 'cash' AND active = 1 ORDER BY display_order ASC`,
+    )
+    .all();
+  assert.equal(liquidityAccounts[0].name, 'Cuenta operativa EUR');
+  assert.equal(liquidityAccounts[0].cashBalance, 2500);
+  assert.equal(liquidityAccounts[1].name, 'Broker USD');
+  assert.equal(liquidityAccounts[1].cashBalance, 1500);
+
+  const alphabetSplit = db
+    .prepare(
+      `SELECT effective_date AS effectiveDate, old_shares AS oldShares, new_shares AS newShares, ratio
+       FROM corporate_actions WHERE symbol = 'GOOG'`,
+    )
+    .get();
+  assert.equal(alphabetSplit.effectiveDate, '2022-07-18');
+  assert.equal(alphabetSplit.oldShares, 1);
+  assert.equal(alphabetSplit.newShares, 20);
+  assert.equal(alphabetSplit.ratio, 20);
+  const googSharesBeforeSplit = getPositionShares('GOOG', '2022-07-17');
+  assert.ok(googSharesBeforeSplit > 0);
+  assert.equal(getPositionShares('GOOG', '2022-07-18'), googSharesBeforeSplit * 20);
+  const fractionalStockTransactions = db
+    .prepare(
+      `SELECT COUNT(*) AS count
+       FROM transactions
+       JOIN instruments ON instruments.symbol = transactions.symbol
+       WHERE instruments.type = 'stock' AND ABS(transactions.shares - ROUND(transactions.shares)) > 0.00000001`,
+    )
+    .get().count;
+  assert.equal(fractionalStockTransactions, 0);
+  assert.ok(
+    db.prepare(
+      `SELECT COUNT(*) AS count FROM transactions
+       JOIN instruments ON instruments.symbol = transactions.symbol
+       WHERE instruments.type = 'stock' AND transactions.shares IN (20, 12, 8, 4)`,
+    ).get().count > 0,
+  );
 
   const started = performance.now();
   const first = await buildPortfolioHistory('5y');
@@ -648,6 +690,16 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
   assert.ok(first.events.some((event) => event.symbol === 'SPPW'));
   assert.ok(first.events.some((event) => event.symbol === 'GOLD'));
   assert.ok(first.events.some((event) => event.type === 'remove'));
+  assert.ok(
+    all.events.some(
+      (event) =>
+        event.type === 'split' &&
+        event.symbol === 'GOOG' &&
+        event.date === '2022-07-18' &&
+        event.shares === 20 &&
+        event.price === 1,
+    ),
+  );
   assert.equal(db.prepare("SELECT frequency FROM auto_plans WHERE symbol = 'GOLD'").get().frequency, 'monthly');
   assert.ok(
     db.prepare("SELECT COUNT(*) AS count FROM transactions WHERE symbol = 'GOLD' AND origin = 'auto'").get().count >=

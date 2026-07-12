@@ -18,6 +18,29 @@ const instruments = [
   { symbol: 'BTC', yahooSymbol: 'BTC-EUR', name: 'Bitcoin', type: 'crypto', currency: 'EUR', color: '#f7931a', base: 70000 },
 ];
 
+// Alphabet's 20-for-1 split began trading on a split-adjusted basis on 2022-07-18.
+const corporateActions = [
+  {
+    id: 'split:GOOG:loadtest-20220718',
+    type: 'split',
+    symbol: 'GOOG',
+    yahooSymbol: 'GOOG',
+    source: 'Yahoo Finance',
+    sourceEventId: 'GOOG:2022-07-18:20:1',
+    effectiveDate: '2022-07-18',
+    oldShares: 1,
+    newShares: 20,
+    ratio: 20,
+  },
+];
+
+const stockShareAmounts = [20, 12, 8, 4];
+
+const liquidityAccounts = [
+  { symbol: 'CASH_CUENTA_OPERATIVA_EUR', name: 'Cuenta operativa EUR', currency: 'EUR', color: '#06b6d4', cashBalance: 2500 },
+  { symbol: 'CASH_BROKER_USD', name: 'Broker USD', currency: 'USD', color: '#0284c7', cashBalance: 1500 },
+];
+
 function dateUtc(value) {
   return new Date(`${value}T00:00:00.000Z`);
 }
@@ -74,6 +97,19 @@ function deterministicPrice(instrument, date, fromDate) {
   return Number(Math.max(1, instrument.base + trend + cycle + drawdown).toFixed(4));
 }
 
+function loadtestPurchaseShares(instrument, index, slot, valueEur, priceEur) {
+  if (instrument.type === 'stock') return stockShareAmounts[(index + slot) % stockShareAmounts.length];
+  return Number((valueEur / priceEur).toFixed(8));
+}
+
+function loadtestSaleShares(instrument, held, ratio) {
+  if (instrument.type === 'stock') {
+    const maxShares = Math.max(0, Math.floor(held) - 1);
+    return Math.min(Math.floor(held * ratio), maxShares);
+  }
+  return Number(Math.min(held * ratio, held - 0.000001).toFixed(8));
+}
+
 function clearLoadtestTables(db) {
   db.exec(`
     DELETE FROM history_builds;
@@ -90,6 +126,7 @@ function clearLoadtestTables(db) {
     DELETE FROM market_price_points;
     DELETE FROM market_price_ranges;
     DELETE FROM instrument_price_sources;
+    DELETE FROM corporate_actions;
     DELETE FROM auto_plan_skips;
     DELETE FROM transactions;
     DELETE FROM auto_plans;
@@ -160,6 +197,23 @@ function seedLoadtestDb(db, options = {}) {
       (instrument_symbol, provider, provider_symbol, date, price, currency, source, quality)
      VALUES (?, 'alpha_vantage', ?, ?, ?, ?, 'loadtest', 'ok')`,
   );
+  const insertLiquidityGroup = db.prepare(
+    `INSERT OR REPLACE INTO instrument_groups
+      (id, name, color, display_order, show_in_distribution, show_in_monthly, is_expandable, active)
+     VALUES ('liquidez', 'Liquidez', '#06b6d4', 95, 1, 0, 0, 1)`,
+  );
+  const insertLiquidityAccount = db.prepare(
+    `INSERT OR REPLACE INTO instruments
+      (symbol, yahoo_symbol, name, type, currency, color, base_shares, cash_balance,
+       cash_balance_updated_at, fallback_price, active, group_id, display_order,
+       show_in_distribution, show_in_monthly)
+     VALUES (?, ?, ?, 'cash', ?, ?, 0, ?, CURRENT_TIMESTAMP, 0, 1, 'liquidez', ?, 1, 0)`,
+  );
+  const insertCorporateAction = db.prepare(
+    `INSERT OR REPLACE INTO corporate_actions
+      (id, type, symbol, yahoo_symbol, source, source_event_id, effective_date, old_shares, new_shares, ratio)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
 
   clearLoadtestTables(db);
   db.exec('BEGIN');
@@ -172,6 +226,18 @@ function seedLoadtestDb(db, options = {}) {
     ];
     for (const group of groups) {
       insertGroup.run(group.id, group.name, group.color, group.order, group.expandable);
+    }
+    insertLiquidityGroup.run();
+    for (const [index, account] of liquidityAccounts.entries()) {
+      insertLiquidityAccount.run(
+        account.symbol,
+        account.symbol,
+        account.name,
+        account.currency,
+        account.color,
+        account.cashBalance,
+        index + 1,
+      );
     }
 
     function groupFor(symbol, type) {
@@ -217,6 +283,30 @@ function seedLoadtestDb(db, options = {}) {
       }
     }
 
+    for (const action of corporateActions) {
+      insertCorporateAction.run(
+        action.id,
+        action.type,
+        action.symbol,
+        action.yahooSymbol,
+        action.source,
+        action.sourceEventId,
+        action.effectiveDate,
+        action.oldShares,
+        action.newShares,
+        action.ratio,
+      );
+    }
+
+    let nextCorporateActionIndex = 0;
+    function applyCorporateActionsThrough(date) {
+      while (corporateActions[nextCorporateActionIndex]?.effectiveDate <= date) {
+        const action = corporateActions[nextCorporateActionIndex];
+        holdings.set(action.symbol, holdings.get(action.symbol) * action.ratio);
+        nextCorporateActionIndex += 1;
+      }
+    }
+
     for (const [index, { year, month }] of months.entries()) {
       if (index % 7 === 5) continue;
       const extraSymbols = ['GOLD', 'BTC'];
@@ -232,11 +322,13 @@ function seedLoadtestDb(db, options = {}) {
         const symbol = buySymbols[slot];
         const instrument = bySymbol.get(symbol);
         const date = buyDates[slot] <= to ? buyDates[slot] : to;
+        applyCorporateActionsThrough(date);
         const price = deterministicPrice(instrument, date, from);
         const fx = instrument.currency === 'USD' ? deterministicPrice(bySymbol.get('USDEUR'), date, from) : 1;
         const priceEur = instrument.currency === 'USD' ? price * fx : price;
-        const valueEur = 125 + ((index + slot) % 6) * 35;
-        const shares = Number((valueEur / priceEur).toFixed(8));
+        const plannedValueEur = 125 + ((index + slot) % 6) * 35;
+        const shares = loadtestPurchaseShares(instrument, index, slot, plannedValueEur, priceEur);
+        const valueEur = instrument.type === 'stock' ? Number((shares * priceEur).toFixed(2)) : plannedValueEur;
         holdings.set(symbol, holdings.get(symbol) + shares);
         insertTransaction.run(
           `loadtest-buy-${index}-${slot}`,
@@ -257,10 +349,11 @@ function seedLoadtestDb(db, options = {}) {
       if (index > 4 && index % 3 === 0) {
         const symbol = buySymbols[0];
         const instrument = bySymbol.get(symbol);
+        const date = addDays(monthDate(year, month, 24), 0) <= to ? monthDate(year, month, 24) : to;
+        applyCorporateActionsThrough(date);
         const held = holdings.get(symbol);
-        const shares = Number(Math.min(held * 0.35, held - 0.000001).toFixed(8));
+        const shares = loadtestSaleShares(instrument, held, 0.35);
         if (shares > 0) {
-          const date = addDays(monthDate(year, month, 24), 0) <= to ? monthDate(year, month, 24) : to;
           const price = deterministicPrice(instrument, date, from);
           const fx = instrument.currency === 'USD' ? deterministicPrice(bySymbol.get('USDEUR'), date, from) : 1;
           const valueEur = Number((shares * (instrument.currency === 'USD' ? price * fx : price)).toFixed(2));
@@ -286,10 +379,11 @@ function seedLoadtestDb(db, options = {}) {
         const extraSymbols = ['GOLD', 'BTC'];
         const sym = extraSymbols[index % 2];
         const extraInstrument = bySymbol.get(sym);
+        const date = addDays(monthDate(year, month, 25), 0) <= to ? monthDate(year, month, 25) : to;
+        applyCorporateActionsThrough(date);
         const held = holdings.get(sym);
-        const shares = Number(Math.min(held * 0.2, held - 0.000001).toFixed(8));
+        const shares = loadtestSaleShares(extraInstrument, held, 0.2);
         if (shares > 0) {
-          const date = addDays(monthDate(year, month, 25), 0) <= to ? monthDate(year, month, 25) : to;
           const price = deterministicPrice(extraInstrument, date, from);
           const fx = extraInstrument.currency === 'USD' ? deterministicPrice(bySymbol.get('USDEUR'), date, from) : 1;
           const valueEur = Number((shares * (extraInstrument.currency === 'USD' ? price * fx : price)).toFixed(2));
@@ -354,6 +448,8 @@ function seedLoadtestDb(db, options = {}) {
     instruments: instruments.filter((instrument) => instrument.type !== 'fx').map((instrument) => instrument.symbol),
     transactions: db.prepare('SELECT COUNT(*) AS count FROM transactions').get().count,
     prices: db.prepare('SELECT COUNT(*) AS count FROM daily_price_cache').get().count,
+    corporateActions: db.prepare('SELECT COUNT(*) AS count FROM corporate_actions').get().count,
+    liquidityAccounts: db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE type = 'cash' AND active = 1").get().count,
   };
 }
 
@@ -361,5 +457,8 @@ module.exports = {
   defaultFrom,
   defaultTo,
   instruments,
+  corporateActions,
+  liquidityAccounts,
+  stockShareAmounts,
   seedLoadtestDb,
 };
