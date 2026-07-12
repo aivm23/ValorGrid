@@ -9,11 +9,15 @@ module.exports = async function handleCorporateActionRoutes(ctx, request, respon
   const { sendJson, readJsonBody, listCorporateActions, scanCorporateActions } = resolveRouteHandlers(ctx);
 
   if (url.pathname === '/api/corporate-actions' && request.method === 'GET') {
-    sendJson(response, 200, listCorporateActions({
-      symbol: url.searchParams.get('symbol'),
-      fromDate: url.searchParams.get('fromDate'),
-      toDate: url.searchParams.get('toDate'),
-    }));
+    sendJson(
+      response,
+      200,
+      listCorporateActions({
+        symbol: url.searchParams.get('symbol'),
+        fromDate: url.searchParams.get('fromDate'),
+        toDate: url.searchParams.get('toDate'),
+      }),
+    );
     return true;
   }
 

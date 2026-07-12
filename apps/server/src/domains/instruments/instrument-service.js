@@ -19,15 +19,7 @@ module.exports = function attach(ctx) {
     'instrument-service',
   );
 
-  const {
-    repositories,
-    normalizeSymbol,
-    stockColors,
-    ensureGroup,
-    invalidatePrices,
-    invalidateLedger,
-    getToday,
-  } = ctx;
+  const { repositories, normalizeSymbol, stockColors, ensureGroup, invalidatePrices, invalidateLedger, getToday } = ctx;
 
   const instrumentRepository = repositories.instruments;
   if (!instrumentRepository) {
@@ -113,7 +105,14 @@ module.exports = function attach(ctx) {
   }
 
   function hasPriceSourceInput(input = {}) {
-    return Boolean(input.priceSources || input.pricingMode || input.pricing_mode || input.provider || input.priceProvider || input.price_provider);
+    return Boolean(
+      input.priceSources ||
+      input.pricingMode ||
+      input.pricing_mode ||
+      input.provider ||
+      input.priceProvider ||
+      input.price_provider,
+    );
   }
 
   function syncInstrumentMarketDataConfig(symbol, input = {}, fallback = {}, force = false) {
@@ -167,10 +166,7 @@ module.exports = function attach(ctx) {
       active: Boolean(item.active),
       showInDistribution: Boolean(item.showInDistribution),
       showInMonthly: Boolean(item.showInMonthly),
-      currentShares:
-        typeof ctx.getPositionShares === 'function'
-          ? ctx.getPositionShares(item.symbol)
-          : undefined,
+      currentShares: typeof ctx.getPositionShares === 'function' ? ctx.getPositionShares(item.symbol) : undefined,
     }));
   }
 
@@ -198,14 +194,22 @@ module.exports = function attach(ctx) {
     const next = {
       yahooSymbol: String(input.yahooSymbol ?? input.yahoo_symbol ?? existing.yahoo_symbol).trim(),
       name: String(input.name ?? existing.name).trim(),
-      type: String(input.type ?? existing.type).trim().toLowerCase(),
-      currency: String(input.currency ?? existing.currency).trim().toUpperCase(),
+      type: String(input.type ?? existing.type)
+        .trim()
+        .toLowerCase(),
+      currency: String(input.currency ?? existing.currency)
+        .trim()
+        .toUpperCase(),
       color: paletteEnabled ? existing.color : String(input.color ?? existing.color).trim(),
       fallbackPrice: Number(input.fallbackPrice ?? input.fallback_price ?? existing.fallback_price),
       groupId,
       displayOrder: Number(input.displayOrder ?? input.display_order ?? existing.display_order ?? 0),
       showInDistribution:
-        input.showInDistribution === undefined ? Number(existing.show_in_distribution) : input.showInDistribution ? 1 : 0,
+        input.showInDistribution === undefined
+          ? Number(existing.show_in_distribution)
+          : input.showInDistribution
+            ? 1
+            : 0,
       showInMonthly: input.showInMonthly === undefined ? Number(existing.show_in_monthly) : input.showInMonthly ? 1 : 0,
       active: input.active === undefined ? Number(existing.active) : input.active ? 1 : 0,
     };
@@ -306,10 +310,14 @@ module.exports = function attach(ctx) {
     if (existing.type === 'fx') throw new Error('Los instrumentos técnicos de divisa no se pueden eliminar');
     const deps = instrumentDependencyCounts(existing.symbol);
     if (deps.currentShares > 0.000001) {
-      throw new Error(`No se puede eliminar ${existing.symbol}: tiene ${deps.currentShares.toFixed(6)} ${portfolioQuantityLabel(existing)} en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`);
+      throw new Error(
+        `No se puede eliminar ${existing.symbol}: tiene ${deps.currentShares.toFixed(6)} ${portfolioQuantityLabel(existing)} en cartera. Realiza una venta para dejarlo a cero antes de eliminarlo.`,
+      );
     }
     if (deps.autoPlans > 0) {
-      throw new Error(`No se puede eliminar ${existing.symbol}: tiene una automatización activa. Desactívala primero desde Planes automáticos.`);
+      throw new Error(
+        `No se puede eliminar ${existing.symbol}: tiene una automatización activa. Desactívala primero desde Planes automáticos.`,
+      );
     }
     if (deps.transactions > 0 || Math.abs(Number(existing.base_shares || 0)) > 0.000001) {
       deactivateInstrumentBySymbol(existing.symbol);
@@ -333,8 +341,12 @@ module.exports = function attach(ctx) {
     if (getInstrument(symbol)) throw new Error('Instrument already exists');
     const yahooSymbol = String(input.yahooSymbol || input.yahoo_symbol || symbol).trim();
     const name = String(input.name || symbol).trim();
-    const type = String(input.type || 'stock').trim().toLowerCase();
-    const currency = String(input.currency || 'EUR').trim().toUpperCase();
+    const type = String(input.type || 'stock')
+      .trim()
+      .toLowerCase();
+    const currency = String(input.currency || 'EUR')
+      .trim()
+      .toUpperCase();
     const groupsEnabled = areInstrumentGroupsEnabled();
     const paletteEnabled = brandPalette.isBrandPaletteEnabled();
     let color;
@@ -343,9 +355,7 @@ module.exports = function attach(ctx) {
     } else {
       color = String(input.color || stockColors[listInstruments().length % stockColors.length]).trim();
     }
-    const groupId = groupsEnabled
-      ? String(input.groupId || input.group_id || ensureGeneralGroup().id).trim()
-      : null;
+    const groupId = groupsEnabled ? String(input.groupId || input.group_id || ensureGeneralGroup().id).trim() : null;
     const fallbackPrice = Number(input.fallbackPrice || input.fallback_price || 0);
     if (!['etf', 'stock', 'crypto', 'commodity', 'fx'].includes(type)) throw new Error('Invalid instrument type');
     if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Color must be a hex value');

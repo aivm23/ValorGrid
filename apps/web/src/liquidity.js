@@ -160,11 +160,16 @@ export function attach(ctx) {
   }
 
   async function saveLiquidityAccount(symbol) {
-    const row = [...(ctx.elements.liquidityAccounts?.querySelectorAll('[data-liquidity-symbol]') || [])]
-      .find((item) => item.dataset.liquiditySymbol === symbol);
+    const row = [...(ctx.elements.liquidityAccounts?.querySelectorAll('[data-liquidity-symbol]') || [])].find(
+      (item) => item.dataset.liquiditySymbol === symbol,
+    );
     if (!row) return;
     try {
-      const result = await ctx.sendJson(`/api/liquidity/accounts/${encodeURIComponent(symbol)}`, 'PUT', liquidityPayloadFromRow(row));
+      const result = await ctx.sendJson(
+        `/api/liquidity/accounts/${encodeURIComponent(symbol)}`,
+        'PUT',
+        liquidityPayloadFromRow(row),
+      );
       ctx.state.liquidity = result.state || ctx.state.liquidity;
       setLiquidityFeedback('Liquidez actualizada.', 'success');
       await ctx.refreshDashboard();

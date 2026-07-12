@@ -182,7 +182,9 @@ test('dividend scan creates editable draft and confirmation stores dividend move
     body: JSON.stringify({ autoIncludeNext: true }),
   });
   assert.equal(confirm.response.status, 200);
-  const dividend = getTransactions().find((transaction) => transaction.symbol === 'DIVT' && transaction.type === 'dividend');
+  const dividend = getTransactions().find(
+    (transaction) => transaction.symbol === 'DIVT' && transaction.type === 'dividend',
+  );
   assert.ok(dividend);
   assert.equal(Number(dividend.shares), 10);
   assert.equal(Number(dividend.valueEur), 5.5);
@@ -237,11 +239,12 @@ test('dividend scan does not duplicate and auto includes next dividend unless sp
     body: JSON.stringify({ mode: 'test', fromDate: '2026-03-01', toDate: '2026-03-31', symbols: ['DIVA'] }),
   });
   assert.equal(auto.body.summary.autoConfirmed, 1);
-  assert.equal(getTransactions().filter((transaction) => transaction.symbol === 'DIVA' && transaction.type === 'dividend').length, 2);
+  assert.equal(
+    getTransactions().filter((transaction) => transaction.symbol === 'DIVA' && transaction.type === 'dividend').length,
+    2,
+  );
 
-  mockDividendEvents.set('DIVA.DE', [
-    { exDate: '2026-04-10', amount: 1.5 },
-  ]);
+  mockDividendEvents.set('DIVA.DE', [{ exDate: '2026-04-10', amount: 1.5 }]);
   mockSplitEvents.set('DIVA.DE', [{ date: '2026-04-10', numerator: 2, denominator: 1 }]);
   const split = await jsonRequest('/api/dividends/scan', {
     method: 'POST',
@@ -383,7 +386,10 @@ test('deletes transactions atomically', async () => {
   });
 
   assert.equal(deleteTransaction(transaction.id), true);
-  assert.equal(getTransactions().some((item) => item.id === transaction.id), false);
+  assert.equal(
+    getTransactions().some((item) => item.id === transaction.id),
+    false,
+  );
   assert.equal(deleteTransaction(transaction.id), false);
 });
 
@@ -419,7 +425,11 @@ test('backup API creates, lists, and downloads SQLite backups', async () => {
   assert.match(create.body.backup.file, /^portfolio-.+\.sqlite$/);
 
   const list = await jsonRequest('/api/backups');
-  assert.equal(list.response.status, 200, `GET /api/backups returned ${list.response.status}: ${JSON.stringify(list.body)}`);
+  assert.equal(
+    list.response.status,
+    200,
+    `GET /api/backups returned ${list.response.status}: ${JSON.stringify(list.body)}`,
+  );
   assert.ok(list.body.backups.some((backup) => backup.file === create.body.backup.file));
 
   const download = await request(`/api/backups/${encodeURIComponent(create.body.backup.file)}`);
@@ -680,7 +690,13 @@ test('GET /api/transactions returns stored transactions', async () => {
 });
 
 test('export endpoint returns ledger XLSX in ValorGrid template format', async () => {
-  seedTestInstrument({ symbol: 'XLSXEXP', yahooSymbol: 'XLSXEXP', name: 'Export XLSX', type: 'stock', currency: 'USD' });
+  seedTestInstrument({
+    symbol: 'XLSXEXP',
+    yahooSymbol: 'XLSXEXP',
+    name: 'Export XLSX',
+    type: 'stock',
+    currency: 'USD',
+  });
   db.prepare(
     `INSERT OR REPLACE INTO transactions
       (id, type, symbol, name, date, market_date, shares, value_eur, price, currency, fx_to_eur,
@@ -694,18 +710,36 @@ test('export endpoint returns ledger XLSX in ValorGrid template format', async (
 
   const response = await request('/api/export/transactions.xlsx');
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get('content-type'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  assert.equal(
+    response.headers.get('content-type'),
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  );
   assert.ok(response.headers.get('content-disposition').includes('ValorGrid_Movimientos.xlsx'));
 
   const workbook = await readWorkbook(Buffer.from(await response.arrayBuffer()));
-  assert.deepEqual(workbook.worksheets.map((sheet) => sheet.name), ['Movimientos']);
+  assert.deepEqual(
+    workbook.worksheets.map((sheet) => sheet.name),
+    ['Movimientos'],
+  );
   const rows = worksheetRows(workbook.getWorksheet('Movimientos'), MOVIMIENTOS_HEADERS.length);
   assert.deepEqual(rows[0], MOVIMIENTOS_HEADERS);
 
   const buy = rows.find((row) => row[10] === 'broker-ref-001');
   const sell = rows.find((row) => row[10] === 'export-xlsx-sell');
   assert.deepEqual(buy, ['compra', '2026-06-01', 'XLSXEXP', 'XLSXEXP', 2, 100, 'USD', 0.9, 180, 1.5, 'broker-ref-001']);
-  assert.deepEqual(sell, ['venta', '2026-06-02', 'XLSXEXP', 'XLSXEXP', -1, 100, 'USD', 0.95, 95, 0.5, 'export-xlsx-sell']);
+  assert.deepEqual(sell, [
+    'venta',
+    '2026-06-02',
+    'XLSXEXP',
+    'XLSXEXP',
+    -1,
+    100,
+    'USD',
+    0.95,
+    95,
+    0.5,
+    'export-xlsx-sell',
+  ]);
 });
 
 test('export with symbol filter returns only matching transactions', async () => {
@@ -937,14 +971,38 @@ test('transactions store notes and can be previewed and edited without market pr
 
 test('transaction edit rejects a correction that would make a later sale invalid', async () => {
   seedTestInstrument({ symbol: 'EDIT2', yahooSymbol: 'EDIT2.DE', name: 'Edit validation', type: 'stock' });
-  await createTransaction({ type: 'add', symbol: 'EDIT2', date: '2026-06-01', entryMode: 'manual_unit_price', shares: 4, unitPrice: 10, priceCurrency: 'EUR', fxToEur: 1 });
-  await createTransaction({ type: 'remove', symbol: 'EDIT2', date: '2026-06-02', entryMode: 'manual_total_eur', shares: 3, euros: 33 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'EDIT2',
+    date: '2026-06-01',
+    entryMode: 'manual_unit_price',
+    shares: 4,
+    unitPrice: 10,
+    priceCurrency: 'EUR',
+    fxToEur: 1,
+  });
+  await createTransaction({
+    type: 'remove',
+    symbol: 'EDIT2',
+    date: '2026-06-02',
+    entryMode: 'manual_total_eur',
+    shares: 3,
+    euros: 33,
+  });
   const buy = getTransactions().find((item) => item.symbol === 'EDIT2' && item.type === 'add');
 
   const result = await jsonRequest(`/api/transactions/${encodeURIComponent(buy.id)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date: '2026-06-01', shares: 2, price: 10, currency: 'EUR', fxToEur: 1, commissionEur: 0, note: null }),
+    body: JSON.stringify({
+      date: '2026-06-01',
+      shares: 2,
+      price: 10,
+      currency: 'EUR',
+      fxToEur: 1,
+      commissionEur: 0,
+      note: null,
+    }),
   });
 
   assert.equal(result.response.status, 400);
@@ -979,7 +1037,9 @@ test('GET and PUT /api/auto-plans round-trip plan settings', async () => {
   assert.equal(before.response.status, 200);
   assert.ok(Array.isArray(before.body.autoPlans));
 
-  const nextPlans = [{ symbol: 'NVO', amountEur: 12, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }];
+  const nextPlans = [
+    { symbol: 'NVO', amountEur: 12, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' },
+  ];
   const updated = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -999,7 +1059,10 @@ test('GET and PUT /api/auto-plans round-trip plan settings', async () => {
 });
 
 test('auto plan schema and API validate configurable start dates', async () => {
-  const columns = db.prepare('PRAGMA table_info(auto_plans)').all().map((column) => column.name);
+  const columns = db
+    .prepare('PRAGMA table_info(auto_plans)')
+    .all()
+    .map((column) => column.name);
   assert.ok(columns.includes('start_date'));
   assert.ok(columns.includes('frequency'));
   assert.ok(columns.includes('weekday'));
@@ -1007,7 +1070,11 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const missingInstrument = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'MISSING', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'MISSING', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' },
+      ],
+    }),
   });
   assert.equal(missingInstrument.response.status, 400);
   assert.match(missingInstrument.body.error, /Instrument not found/);
@@ -1015,7 +1082,11 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const fxPlan = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'USDEUR', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'USDEUR', amountEur: 10, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' },
+      ],
+    }),
   });
   assert.equal(fxPlan.response.status, 400);
   assert.match(fxPlan.body.error, /FX instruments/);
@@ -1023,7 +1094,11 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const badDay = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 10, day: 31, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 10, day: 31, frequency: 'monthly', enabled: true, startDate: '2026-06-01' },
+      ],
+    }),
   });
   assert.equal(badDay.response.status, 400);
   assert.match(badDay.body.error, /between 1 and 28/);
@@ -1031,7 +1106,11 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const badAmount = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 0, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 0, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-06-01' },
+      ],
+    }),
   });
   assert.equal(badAmount.response.status, 400);
   assert.match(badAmount.body.error, /greater than 0/);
@@ -1039,7 +1118,11 @@ test('auto plan schema and API validate configurable start dates', async () => {
   const badWeekday = await jsonRequest('/api/auto-plans', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ autoPlans: [{ symbol: 'NVO', amountEur: 10, frequency: 'weekly', weekday: 8, enabled: true, startDate: '2026-06-01' }] }),
+    body: JSON.stringify({
+      autoPlans: [
+        { symbol: 'NVO', amountEur: 10, frequency: 'weekly', weekday: 8, enabled: true, startDate: '2026-06-01' },
+      ],
+    }),
   });
   assert.equal(badWeekday.response.status, 400);
   assert.match(badWeekday.body.error, /weekday/);
@@ -1055,7 +1138,9 @@ test('editing existing auto plans never backdates material changes', async () =>
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: false, startDate: '2026-01-01' }],
+      autoPlans: [
+        { symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: false, startDate: '2026-01-01' },
+      ],
     }),
   });
 
@@ -1063,7 +1148,9 @@ test('editing existing auto plans never backdates material changes', async () =>
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' }],
+      autoPlans: [
+        { symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' },
+      ],
     }),
   });
   assert.equal(activationPreview.response.status, 200);
@@ -1073,7 +1160,9 @@ test('editing existing auto plans never backdates material changes', async () =>
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' }],
+      autoPlans: [
+        { symbol: 'EDITP', amountEur: 20, day: 3, frequency: 'monthly', enabled: true, startDate: '2026-01-01' },
+      ],
     }),
   });
   assert.equal(activated.response.status, 200);
@@ -1084,7 +1173,9 @@ test('editing existing auto plans never backdates material changes', async () =>
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      autoPlans: [{ symbol: 'EDITP', amountEur: 20, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-01-01' }],
+      autoPlans: [
+        { symbol: 'EDITP', amountEur: 20, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-01-01' },
+      ],
     }),
   });
   assert.equal(changedFrequency.response.status, 200);
@@ -1144,7 +1235,6 @@ test('fresh install defaults do not include personal holdings or auto plans', ()
   assert.equal(personalAutoPlans, 0);
 });
 
-
 test('GET /api/state returns persisted state metadata', async () => {
   const { response, body } = await jsonRequest('/api/state');
 
@@ -1193,7 +1283,13 @@ test('manual unit price: buy with shares + unitPrice uses manual price for value
 });
 
 test('manual unit price preview: POST /api/transactions/preview with unitPrice', async () => {
-  seedTestInstrument({ symbol: 'U3O8P', yahooSymbol: 'U3O8P', name: 'S&P 500 Preview', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'U3O8P',
+    yahooSymbol: 'U3O8P',
+    name: 'S&P 500 Preview',
+    type: 'stock',
+    currency: 'EUR',
+  });
   const before = getTransactions().length;
 
   const { response, body } = await jsonRequest('/api/transactions/preview', {
@@ -1218,7 +1314,13 @@ test('manual unit price preview: POST /api/transactions/preview with unitPrice',
 });
 
 test('manual total EUR entry: buy with shares + euros does not query market data', async () => {
-  seedTestInstrument({ symbol: 'GOLDT', yahooSymbol: 'GOLD', name: 'Gold Spot Test', type: 'commodity', currency: 'USD' });
+  seedTestInstrument({
+    symbol: 'GOLDT',
+    yahooSymbol: 'GOLD',
+    name: 'Gold Spot Test',
+    type: 'commodity',
+    currency: 'USD',
+  });
   const previousFetch = global.fetch;
   global.fetch = async () => {
     throw new Error('market data should not be called');
@@ -1248,7 +1350,13 @@ test('manual total EUR entry: buy with shares + euros does not query market data
 });
 
 test('manual total EUR entry: sell with shares + gross euros does not query market data', async () => {
-  seedTestInstrument({ symbol: 'SELLM', yahooSymbol: 'SELLM', name: 'Manual Sell Test', type: 'stock', currency: 'USD' });
+  seedTestInstrument({
+    symbol: 'SELLM',
+    yahooSymbol: 'SELLM',
+    name: 'Manual Sell Test',
+    type: 'stock',
+    currency: 'USD',
+  });
   await createTransaction({
     type: 'add',
     symbol: 'SELLM',
@@ -1286,7 +1394,13 @@ test('manual total EUR entry: sell with shares + gross euros does not query mark
 });
 
 test('explicit market EUR entryMode is rejected for sells', async () => {
-  seedTestInstrument({ symbol: 'SELLMKT', yahooSymbol: 'SELLMKT', name: 'Market Sell Test', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'SELLMKT',
+    yahooSymbol: 'SELLMKT',
+    name: 'Market Sell Test',
+    type: 'stock',
+    currency: 'EUR',
+  });
   await createTransaction({
     type: 'add',
     symbol: 'SELLMKT',
@@ -1448,7 +1562,13 @@ test('crypto instrument buy with cached price on weekend', async () => {
 });
 
 test('crypto instrument buy with manual unitPrice on weekend', async () => {
-  seedTestInstrument({ symbol: 'BTCM', yahooSymbol: 'BTCM-EUR', name: 'Bitcoin Manual', type: 'crypto', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'BTCM',
+    yahooSymbol: 'BTCM-EUR',
+    name: 'Bitcoin Manual',
+    type: 'crypto',
+    currency: 'EUR',
+  });
 
   const transaction = await createTransaction({
     type: 'add',
@@ -1466,4 +1586,3 @@ test('crypto instrument buy with manual unitPrice on weekend', async () => {
   assert.equal(Number(transaction.cashFlowEur.toFixed(2)), -31000);
   assert.ok(getPositionShares('BTCM', '2026-06-13') > 0.499);
 });
-

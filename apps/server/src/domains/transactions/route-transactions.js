@@ -132,7 +132,10 @@ module.exports = async function handleTransactionRoutes(ctx, request, response, 
       const body = await readJsonBody(request);
       let riskBackup = null;
       try {
-        riskBackup = createRiskBackup({ reason: 'before-auto-plans-replace', metadata: { planCount: (body.autoPlans || []).length } });
+        riskBackup = createRiskBackup({
+          reason: 'before-auto-plans-replace',
+          metadata: { planCount: (body.autoPlans || []).length },
+        });
       } catch (backupError) {
         sendError(response, sendJson, backupError);
         return true;

@@ -87,9 +87,10 @@ export function attach(ctx) {
       Number(draft.effectiveAmountPerShare || 0) * Number(draft.effectiveShares || 0) * Number(draft.fxToEur || 1) -
         Number(draft.effectiveTotalEur || 0),
     );
-    const mismatchWarning = mismatch > Math.max(0.05, Number(draft.effectiveTotalEur || 0) * 0.02)
-      ? `<p class="dividend-warning">${ctx.t('dividends.mismatchWarning')}</p>`
-      : '';
+    const mismatchWarning =
+      mismatch > Math.max(0.05, Number(draft.effectiveTotalEur || 0) * 0.02)
+        ? `<p class="dividend-warning">${ctx.t('dividends.mismatchWarning')}</p>`
+        : '';
     const splitWarning = draft.hasSplitNotice
       ? `<p class="dividend-warning">${ctx.escapeHtml(draft.splitNotice || ctx.t('dividends.splitWarning'))}</p>`
       : '';

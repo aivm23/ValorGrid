@@ -33,7 +33,11 @@ ValorGrid usa el test runner nativo de Node.js (`node:test`). La suite mezcla te
 npm test
 node --test test/architecture.test.js
 node --test --test-name-pattern "test name" test/portfolio.test.js
+npm run audit:duplication
+npm run benchmark
 ```
+
+`format:check` cubre JavaScript, TypeScript, HTML y CSS de aplicaciones, paquetes, scripts y tests, además de documentación y manifiestos. `audit:duplication` informa clones de al menos 10 líneas sin bloquear todavía por deuda heredada. `benchmark` regenera el dataset sintético canónico, trabaja sobre una copia SQLite temporal y publica mediana, p95, memoria y tamaño de recursos; no forma parte del gate de CI porque sus tiempos dependen de la máquina.
 
 ## Ejecución en CI
 

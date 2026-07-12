@@ -230,6 +230,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `portfolio-cash`: valoración de liquidez actual sin histórico ni movimientos.
 - `portfolio-dates`: helpers puros de fechas mensuales y fechas programadas.
 - `portfolio-flows`: helpers puros de resumen de compras, ventas, dividendos, comisiones y cash-flow por periodo.
+- `portfolio-monthly-helpers`: agregación y ranking de grupos para la revisión mensual.
+- `portfolio-onboarding-status`: construcción del estado público de configuración inicial.
 
 **Sub-módulos de transaction-service (cargados internamente):**
 
@@ -237,6 +239,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `transaction-pricing`: resolución estricta de precios/FX para escrituras de movimientos.
 - `transaction-editor`: validación y recálculo de correcciones de compras y ventas existentes.
 - `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
+- `auto-plan-policy`: normalización y política de edición de planes automáticos.
 - `corporate-actions/corporate-action-timeline`: helper puro para aplicar splits antes de transacciones en la misma fecha.
 
 **Sub-módulos de import-service (cargados internamente):**
@@ -300,8 +303,10 @@ Módulos principales:
 - `charts.js`: donut e histórico SVG.
 - `format.js`: formato monetario, fechas, porcentajes y privacidad de saldos usando la locale activa.
 - `events.js`: eventos de UI.
+- `instrument-events.js`: handlers de grupos e instrumentos delegados desde `events.js`.
 - `instrument-create-market-data.js`: helpers de fuente de precio y NAV inicial en creación de instrumentos.
 - `operations.js`: instrumentos, grupos, backups y administración.
+- `operations-metric-renderer.js`: markup y copy de las tarjetas de métricas de Operativa.
 - `liquidity.js`: gestion de cuentas de liquidez actuales dentro de Valores, separadas de instrumentos operables.
 - `operations-metrics.js`: catálogo de métricas de Operativa (registry de tarjetas de performance).
 - `ledger.js`: movimientos y filtros.
@@ -313,7 +318,9 @@ Módulos principales:
 - `instrument-colors.js`: sincronización de paleta corporativa automática y bloqueo de inputs de color.
 - `dashboard.js`: arranque de UI y boot overlay.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
+- `import-batches.js`: listado y rollback de lotes importados.
 - `import-workflow.js`: lógica de flujo y validación de importación.
+- `import-instrument-choices.js`: aplicación de decisiones de creación, mapeo u omisión de instrumentos detectados.
 - `import-workflow-helpers.js`: constantes y helpers puros del flujo de importación.
 - `import-preview-renderer.js`: renderizado de preview de importación.
 - `import-confirm-renderer.js`: renderizado del paso de confirmación del asistente de importación.
@@ -321,7 +328,8 @@ Módulos principales:
 - `bulk-actions.js`: acciones masivas de selección y borrado.
 - `privacy.js`: ocultación de saldos.
 - `theme.js`: tema claro/oscuro.
-  - `forms.js`: helpers de formularios.
+- `forms.js`: formulario de alta de compras y ventas.
+  - `auto-plan-form.js`: edición DOM y persistencia de planes de aportación automática.
   - `transaction-editor.js`: corrección y previsualización de compras y ventas ya registradas.
   - `transaction-entry-modes.js`: visibilidad y copy de tabs del modal de compra/venta.
 - `alpha-vantage-setup.js`: diálogo de configuración de clave API de Alpha Vantage (input, validación y persistencia via `/api/market-data/alpha-vantage/key`).

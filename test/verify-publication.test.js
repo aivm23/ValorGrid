@@ -289,7 +289,10 @@ test('verify-publication scans tracked OpenCode files even when the directory is
     writeMinimalLicenseBaseline(tempDir);
     fs.writeFileSync(path.join(tempDir, '.gitignore'), `${requiredGitignore}\n`);
     fs.writeFileSync(path.join(tempDir, '.dockerignore'), `${requiredDockerignore}\n`);
-    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---\nname: leak\ndescription: ${['DE', 'GIRO'].join('')} fixture\n---\n`);
+    fs.writeFileSync(
+      path.join(skillDir, 'SKILL.md'),
+      `---\nname: leak\ndescription: ${['DE', 'GIRO'].join('')} fixture\n---\n`,
+    );
     execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
     execFileSync('git', ['add', '-f', '.opencode/skills/leak/SKILL.md'], { cwd: tempDir, stdio: 'pipe' });
 

@@ -171,7 +171,12 @@
                   Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
                   dashboard no entran en este total.
                 </span>
-                <div class="metric-info-tooltip" role="tooltip" aria-hidden="true" data-i18n="summary.visibleTotal.tooltip">
+                <div
+                  class="metric-info-tooltip"
+                  role="tooltip"
+                  aria-hidden="true"
+                  data-i18n="summary.visibleTotal.tooltip"
+                >
                   Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el
                   dashboard no entran en este total.
                 </div>
@@ -183,17 +188,47 @@
           <div class="source-row">
             <div class="source-row-left">
               <span id="price-status">Cargando precios online...</span>
-              <button id="refresh-prices" class="refresh-button" type="button" aria-label="Actualizar precios" title="Actualizar precios">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button
+                id="refresh-prices"
+                class="refresh-button"
+                type="button"
+                aria-label="Actualizar precios"
+                title="Actualizar precios"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <polyline points="1 20 1 14 7 14"></polyline>
                   <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path>
                 </svg>
               </button>
               <span class="provider-status-wrap">
-                <span id="market-provider-status" class="provider-status provider-status-ok" role="img" aria-label="Estado de proveedores de precios" tabindex="0"></span>
-                <span id="market-provider-status-sr" class="sr-only">Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.</span>
-                <div id="market-provider-status-tooltip" class="provider-status-tooltip" role="tooltip" aria-hidden="true">Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.</div>
+                <span
+                  id="market-provider-status"
+                  class="provider-status provider-status-ok"
+                  role="img"
+                  aria-label="Estado de proveedores de precios"
+                  tabindex="0"
+                ></span>
+                <span id="market-provider-status-sr" class="sr-only"
+                  >Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.</span
+                >
+                <div
+                  id="market-provider-status-tooltip"
+                  class="provider-status-tooltip"
+                  role="tooltip"
+                  aria-hidden="true"
+                >
+                  Yahoo Finance: operativo. Alpha Vantage: sin fallo registrado.
+                </div>
               </span>
             </div>
           </div>
@@ -255,11 +290,26 @@
             <p id="history-subtitle" class="subtle">Valor total de la cartera desde la primera inversión.</p>
           </div>
           <div class="history-controls" aria-label="Filtro histórico">
-            <button class="button history-range" type="button" data-history-range="all" data-i18n="history.range.all">Todo</button>
-            <button class="button history-range" type="button" data-history-range="5y" data-i18n="history.range.5y">5 años</button>
-            <button class="button history-range" type="button" data-history-range="2y" data-i18n="history.range.2y">2 años</button>
-            <button class="button history-range" type="button" data-history-range="1y" data-i18n="history.range.1y">1 año</button>
-            <button class="button history-range is-active" type="button" data-history-range="ytd" data-i18n="history.range.ytd">YTD</button>
+            <button class="button history-range" type="button" data-history-range="all" data-i18n="history.range.all">
+              Todo
+            </button>
+            <button class="button history-range" type="button" data-history-range="5y" data-i18n="history.range.5y">
+              5 años
+            </button>
+            <button class="button history-range" type="button" data-history-range="2y" data-i18n="history.range.2y">
+              2 años
+            </button>
+            <button class="button history-range" type="button" data-history-range="1y" data-i18n="history.range.1y">
+              1 año
+            </button>
+            <button
+              class="button history-range is-active"
+              type="button"
+              data-history-range="ytd"
+              data-i18n="history.range.ytd"
+            >
+              YTD
+            </button>
           </div>
         </div>
         <div id="history-stats" class="history-stats"></div>
@@ -291,7 +341,11 @@
         <div class="ledger-filters">
           <label class="field">
             <span>Ticker</span>
-            <input id="ledger-filter-symbol" placeholder="Filtrar por símbolo..." data-i18n-placeholder="html.ledger.filterSymbol.placeholder" />
+            <input
+              id="ledger-filter-symbol"
+              placeholder="Filtrar por símbolo..."
+              data-i18n-placeholder="html.ledger.filterSymbol.placeholder"
+            />
           </label>
           <label class="field">
             <span>Origen</span>
@@ -378,7 +432,9 @@
         <div class="modal-header">
           <div>
             <h2 id="operation-title">Nueva compra</h2>
-            <p id="operation-subtitle" class="subtle">Define la operación y elige cómo quieres calcular el movimiento.</p>
+            <p id="operation-subtitle" class="subtle">
+              Define la operación y elige cómo quieres calcular el movimiento.
+            </p>
           </div>
           <button id="add-dialog-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
@@ -392,7 +448,9 @@
         </label>
 
         <div class="operation-create-row">
-          <button id="operation-create-instrument" class="button button-compact btn-save" type="button">Crear valor nuevo</button>
+          <button id="operation-create-instrument" class="button button-compact btn-save" type="button">
+            Crear valor nuevo
+          </button>
         </div>
 
         <label class="field" id="ticker-input-field">
@@ -463,7 +521,13 @@
 
         <label id="add-note-field" class="field">
           <span>Nota opcional</span>
-          <textarea id="add-note" name="note" maxlength="1000" rows="3" placeholder="Ejemplo: compra para cartera a largo plazo"></textarea>
+          <textarea
+            id="add-note"
+            name="note"
+            maxlength="1000"
+            rows="3"
+            placeholder="Ejemplo: compra para cartera a largo plazo"
+          ></textarea>
         </label>
 
         <p id="add-feedback" class="form-feedback" role="status"></p>
@@ -493,20 +557,25 @@
                 <input id="instrument-groups-enabled" type="checkbox" checked />
                 Usar grupos de valores
               </label>
-              <p class="subtle">Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.</p>
+              <p class="subtle">
+                Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.
+              </p>
             </div>
             <div class="config-toggle">
               <label class="switch-field">
                 <input id="brand-palette-enabled" type="checkbox" />
                 Paleta corporativa automática
               </label>
-              <p class="subtle">Asigna colores automáticamente y bloquea la edición manual. Se guardan los colores actuales para restaurarlos.</p>
+              <p class="subtle">
+                Asigna colores automáticamente y bloquea la edición manual. Se guardan los colores actuales para
+                restaurarlos.
+              </p>
               <div class="brand-palette-preview" aria-hidden="true">
-                <span style="--palette-color:#06b6d4"></span>
-                <span style="--palette-color:#8b5cf6"></span>
-                <span style="--palette-color:#4989e5"></span>
-                <span style="--palette-color:#27a0dd"></span>
-                <span style="--palette-color:#6a72ee"></span>
+                <span style="--palette-color: #06b6d4"></span>
+                <span style="--palette-color: #8b5cf6"></span>
+                <span style="--palette-color: #4989e5"></span>
+                <span style="--palette-color: #27a0dd"></span>
+                <span style="--palette-color: #6a72ee"></span>
               </div>
             </div>
           </div>
@@ -517,7 +586,12 @@
                 <span class="instrument-config-section-icon" aria-hidden="true">
                   <svg viewBox="0 0 16 16" fill="none">
                     <path d="M3 4h10M3 8h10M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                    <path d="M2 4h.01M2 8h.01M2 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                    <path
+                      d="M2 4h.01M2 8h.01M2 12h.01"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                    />
                   </svg>
                 </span>
                 <div>
@@ -559,19 +633,33 @@
             <div id="group-rows" class="group-card-grid"></div>
           </section>
 
-          <section id="liquidity-section" class="instrument-config-section instrument-config-section--liquidity liquidity-section">
+          <section
+            id="liquidity-section"
+            class="instrument-config-section instrument-config-section--liquidity liquidity-section"
+          >
             <div class="instrument-config-section-head">
               <div class="instrument-config-section-title">
                 <span class="instrument-config-section-icon" aria-hidden="true">
                   <svg viewBox="0 0 16 16" fill="none">
-                    <path d="M3 5.5h10a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 13 12.5H3A1.5 1.5 0 0 1 1.5 11V5.5Z" stroke="currentColor" stroke-width="1.4" />
-                    <path d="M3.5 5.5V4A1.5 1.5 0 0 1 5 2.5h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    <path
+                      d="M3 5.5h10a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 13 12.5H3A1.5 1.5 0 0 1 1.5 11V5.5Z"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                    />
+                    <path
+                      d="M3.5 5.5V4A1.5 1.5 0 0 1 5 2.5h6"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                      stroke-linecap="round"
+                    />
                     <path d="M11.5 9h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
                   </svg>
                 </span>
                 <div>
                   <h3>Liquidez</h3>
-                  <p class="subtle">Saldo actual por broker o cuenta. Suma al total visible, no genera movimientos ni rentabilidad.</p>
+                  <p class="subtle">
+                    Saldo actual por broker o cuenta. Suma al total visible, no genera movimientos ni rentabilidad.
+                  </p>
                 </div>
               </div>
               <div id="liquidity-summary" class="liquidity-summary" aria-live="polite"></div>
@@ -603,39 +691,44 @@
               </div>
             </div>
             <div class="instrument-create-panel">
-                <div>
-                  <h4>Crear valor</h4>
-                  <p class="subtle">Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.</p>
-                  <p id="instrument-create-error" class="field-error" hidden></p>
-                </div>
-                <div class="instrument-create-form instrument-create-form-wide">
-                  <select id="new-instrument-type">
-                    <option value="etf">ETF</option>
-                    <option value="stock">Stock</option>
-                    <option value="crypto">Crypto</option>
-                    <option value="commodity">Commodity</option>
-                  </select>
-                  <input id="new-instrument-symbol" placeholder="Ticker interno" />
-                  <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" class="yahoo-field" />
-                  <select id="new-instrument-commodity" class="commodity-field" hidden>
-                    <option value="">— Commodity —</option>
-                    <option value="GOLD">Gold spot (XAU/USD)</option>
-                    <option value="SILVER">Silver spot (XAG/USD)</option>
-                    <option value="WTI">WTI crude oil</option>
-                    <option value="BRENT">Brent crude oil</option>
-                    <option value="NATURAL_GAS">Natural gas</option>
-                  </select>
-                  <input id="new-instrument-name" placeholder="Nombre" />
-                  <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
-                  <select id="new-instrument-group"></select>
-                  <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
-                  <button id="create-instrument" class="button btn-save" type="button">Crear valor</button>
-                </div>
+              <div>
+                <h4>Crear valor</h4>
+                <p class="subtle">
+                  Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se
+                  asigna automáticamente.
+                </p>
+                <p id="instrument-create-error" class="field-error" hidden></p>
               </div>
+              <div class="instrument-create-form instrument-create-form-wide">
+                <select id="new-instrument-type">
+                  <option value="etf">ETF</option>
+                  <option value="stock">Stock</option>
+                  <option value="crypto">Crypto</option>
+                  <option value="commodity">Commodity</option>
+                </select>
+                <input id="new-instrument-symbol" placeholder="Ticker interno" />
+                <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" class="yahoo-field" />
+                <select id="new-instrument-commodity" class="commodity-field" hidden>
+                  <option value="">— Commodity —</option>
+                  <option value="GOLD">Gold spot (XAU/USD)</option>
+                  <option value="SILVER">Silver spot (XAG/USD)</option>
+                  <option value="WTI">WTI crude oil</option>
+                  <option value="BRENT">Brent crude oil</option>
+                  <option value="NATURAL_GAS">Natural gas</option>
+                </select>
+                <input id="new-instrument-name" placeholder="Nombre" />
+                <input id="new-instrument-currency" placeholder="EUR" value="EUR" />
+                <select id="new-instrument-group"></select>
+                <input id="new-instrument-color" type="color" value="#2563eb" aria-label="Color del instrumento" />
+                <button id="create-instrument" class="button btn-save" type="button">Crear valor</button>
+              </div>
+            </div>
             <div class="instrument-list-heading">
               <div>
                 <h4>Listado de valores</h4>
-                <p class="subtle" data-i18n="html.bulk.actionsHint">Filtra, edita y selecciona valores para acciones en bloque.</p>
+                <p class="subtle" data-i18n="html.bulk.actionsHint">
+                  Filtra, edita y selecciona valores para acciones en bloque.
+                </p>
               </div>
             </div>
             <div class="instrument-filter-grid">
@@ -726,22 +819,43 @@
         <div class="modal-header">
           <div>
             <h2 data-i18n="Aportaciones">Aportaciones</h2>
-            <p class="subtle" data-i18n="Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento.">
+            <p
+              class="subtle"
+              data-i18n="Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento."
+            >
               Registra compras y ventas puntuales o configura aportaciones recurrentes por instrumento.
             </p>
           </div>
-          <button id="auto-dialog-close" class="icon-close" type="button" aria-label="Cerrar" data-i18n-aria-label="Cerrar">x</button>
+          <button
+            id="auto-dialog-close"
+            class="icon-close"
+            type="button"
+            aria-label="Cerrar"
+            data-i18n-aria-label="Cerrar"
+          >
+            x
+          </button>
         </div>
 
         <div class="admin-grid">
           <section class="admin-card admin-card--puntuales">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M3 8h10M9 4l4 4-4 4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </span>
               <h3 data-i18n="Puntuales">Puntuales</h3>
             </div>
-            <p class="subtle" data-i18n="Registra una compra o venta puntual de un instrumento.">Registra una compra o venta puntual de un instrumento.</p>
+            <p class="subtle" data-i18n="Registra una compra o venta puntual de un instrumento.">
+              Registra una compra o venta puntual de un instrumento.
+            </p>
             <div class="aportaciones-puntuales-actions">
               <button id="aportaciones-buy" class="button" type="button" data-i18n="Compra">Compra</button>
               <button id="aportaciones-sell" class="button" type="button" data-i18n="Venta">Venta</button>
@@ -751,11 +865,20 @@
           <section class="admin-card admin-card--programadas">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
               </span>
               <h3 data-i18n="Programadas">Programadas</h3>
             </div>
-            <p class="subtle" data-i18n="Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.">Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible.</p>
+            <p
+              class="subtle"
+              data-i18n="Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre disponible."
+            >
+              Configura DCA o aportaciones recurrentes por instrumento. Si no hay mercado, se usa el siguiente cierre
+              disponible.
+            </p>
             <div id="auto-plan-list" class="auto-plan-list"></div>
             <p id="auto-feedback" class="form-feedback" role="status"></p>
           </section>
@@ -786,7 +909,9 @@
               <span class="import-quickstep-num">1</span>
               <div>
                 <strong data-i18n="Descarga la plantilla">Descarga la plantilla</strong>
-                <small data-i18n="Excel oficial de ValorGrid con instrucciones y ejemplos.">Excel oficial de ValorGrid con instrucciones y ejemplos.</small>
+                <small data-i18n="Excel oficial de ValorGrid con instrucciones y ejemplos."
+                  >Excel oficial de ValorGrid con instrucciones y ejemplos.</small
+                >
                 <button id="import-download-template" class="button btn-accent" type="button">
                   <svg
                     width="16"
@@ -809,14 +934,18 @@
               <span class="import-quickstep-num">2</span>
               <div>
                 <strong data-i18n="Rellena tus movimientos">Rellena tus movimientos</strong>
-                <small data-i18n="Completa la hoja Movimientos con tus operaciones.">Completa la hoja <em>Movimientos</em> con tus operaciones.</small>
+                <small data-i18n="Completa la hoja Movimientos con tus operaciones."
+                  >Completa la hoja <em>Movimientos</em> con tus operaciones.</small
+                >
               </div>
             </div>
             <div class="import-quickstep">
               <span class="import-quickstep-num">3</span>
               <div>
                 <strong data-i18n="Sube el archivo">Sube el archivo</strong>
-                <small data-i18n="Arrastra o selecciona tu Excel para analizarlo.">Arrastra o selecciona tu Excel para analizarlo.</small>
+                <small data-i18n="Arrastra o selecciona tu Excel para analizarlo."
+                  >Arrastra o selecciona tu Excel para analizarlo.</small
+                >
               </div>
             </div>
           </div>
@@ -925,11 +1054,19 @@
           <section class="admin-card admin-card--preferences admin-card--full">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v2m0 10v2M1 8h2m10 0h2m-1.7-5.3-1.4 1.4m-7.8 7.8-1.4 1.4m0-10.6 1.4 1.4m7.8 7.8 1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5" />
+                  <path
+                    d="M8 1v2m0 10v2M1 8h2m10 0h2m-1.7-5.3-1.4 1.4m-7.8 7.8-1.4 1.4m0-10.6 1.4 1.4m7.8 7.8 1.4 1.4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
               </span>
               <h3>Preferencias</h3>
             </div>
-<div class="admin-prefs-grid">
+            <div class="admin-prefs-grid">
               <div class="admin-prefs-section">
                 <div class="admin-prefs-section-title">
                   <h3>General</h3>
@@ -975,9 +1112,27 @@
               </div>
               <details class="pro-preferences-card is-community-edition" id="pro-preferences-card">
                 <summary class="pro-preferences-summary">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                  <span>Personalización disponible en <strong class="pro-edition-label">Professional Edition</strong></span>
-                  <svg class="pro-preferences-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink: 0">
+                    <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5" />
+                    <path
+                      d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                  <span
+                    >Personalización disponible en <strong class="pro-edition-label">Professional Edition</strong></span
+                  >
+                  <svg class="pro-preferences-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 6l4 4 4-4"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </summary>
                 <div class="admin-prefs-section">
                   <div class="admin-prefs-section-body admin-prefs-section-body--3col">
@@ -1009,7 +1164,10 @@
           <section class="admin-card admin-card--backups">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M5 8h6m-6 3h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
               </span>
               <h3>Backups</h3>
             </div>
@@ -1023,7 +1181,15 @@
           <section class="admin-card admin-card--imports">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2M8 2v8m0 0 3-3m-3 3-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2M8 2v8m0 0 3-3m-3 3-3-3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </span>
               <h3>Importaciones</h3>
             </div>
@@ -1034,7 +1200,16 @@
           <section class="admin-card admin-card--update">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v5m0 0l2.5-2.5M8 7L5.5 4.5M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="2" r="1" fill="currentColor"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 2v5m0 0l2.5-2.5M8 7L5.5 4.5M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <circle cx="8" cy="2" r="1" fill="currentColor" />
+                </svg>
               </span>
               <h3 data-i18n="updates.title">Actualización</h3>
             </div>
@@ -1067,7 +1242,14 @@
               <button id="update-docker-commands" class="button button-compact admin-action-btn" type="button" hidden>
                 <span data-i18n="updates.dockerCommands">Copiar comandos Docker</span>
               </button>
-              <a id="update-release-notes" class="button button-compact admin-action-btn" href="#" target="_blank" rel="noopener" hidden>
+              <a
+                id="update-release-notes"
+                class="button button-compact admin-action-btn"
+                href="#"
+                target="_blank"
+                rel="noopener"
+                hidden
+              >
                 <span data-i18n="updates.openRelease">Ver notas de release</span>
               </a>
             </div>
@@ -1077,12 +1259,28 @@
           <section class="admin-card admin-card--pro-request">
             <div class="admin-card-head">
               <span class="admin-card-icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path
+                    d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
               </span>
               <h3>Professional Edition</h3>
             </div>
-            <p class="subtle" data-i18n="pro.requestDescription">Conectores de broker, importación automática y soporte prioritario.</p>
-            <a id="pro-request-link" class="button button-compact admin-action-btn" href="https://valorgrid.app/pro/" target="_blank" rel="noopener">
+            <p class="subtle" data-i18n="pro.requestDescription">
+              Conectores de broker, importación automática y soporte prioritario.
+            </p>
+            <a
+              id="pro-request-link"
+              class="button button-compact admin-action-btn"
+              href="https://valorgrid.app/pro/"
+              target="_blank"
+              rel="noopener"
+            >
               <span data-i18n="pro.request">Solicitar Professional Edition</span>
             </a>
           </section>
@@ -1106,9 +1304,7 @@
         <div id="instrument-delete-preview" class="instrument-delete-preview"></div>
         <div class="modal-actions">
           <button id="instrument-delete-cancel" class="button btn-cancel" type="button">Cancelar</button>
-          <button id="instrument-delete-confirm" class="button btn-danger" type="button">
-            Eliminar seleccionados
-          </button>
+          <button id="instrument-delete-confirm" class="button btn-danger" type="button">Eliminar seleccionados</button>
         </div>
       </div>
     </dialog>
@@ -1126,8 +1322,12 @@
           <p class="subtle" id="ledger-export-warning-text"></p>
         </div>
         <div class="modal-actions">
-          <button id="ledger-export-cancel" class="button btn-cancel" type="button" data-i18n="ledger.export.cancel">Cancelar</button>
-          <button id="ledger-export-confirm" class="button" type="button" data-i18n="ledger.export.confirm">Exportar</button>
+          <button id="ledger-export-cancel" class="button btn-cancel" type="button" data-i18n="ledger.export.cancel">
+            Cancelar
+          </button>
+          <button id="ledger-export-confirm" class="button" type="button" data-i18n="ledger.export.confirm">
+            Exportar
+          </button>
         </div>
       </div>
     </dialog>
@@ -1142,16 +1342,34 @@
           <button id="transaction-edit-close" class="icon-close" type="button" aria-label="Cerrar">x</button>
         </div>
         <div id="transaction-edit-summary" class="transaction-edit-summary"></div>
-        <p class="transaction-edit-notice">Al guardar se creará un backup automático y se recalculará el histórico desde la primera fecha afectada.</p>
+        <p class="transaction-edit-notice">
+          Al guardar se creará un backup automático y se recalculará el histórico desde la primera fecha afectada.
+        </p>
         <div class="field-grid transaction-edit-fields">
-          <label class="field"><span>Fecha</span><input id="transaction-edit-date" type="date" lang="es" required /></label>
-          <label class="field"><span>Cantidad</span><input id="transaction-edit-shares" type="number" min="0" step="0.000001" required /></label>
-          <label class="field"><span>Precio unitario</span><input id="transaction-edit-price" type="number" min="0" step="0.000001" required /></label>
-          <label class="field"><span>Divisa</span><input id="transaction-edit-currency" maxlength="3" required /></label>
-          <label class="field"><span>FX a EUR</span><input id="transaction-edit-fx" type="number" min="0" step="0.000001" required /></label>
-          <label class="field"><span>Comisión EUR</span><input id="transaction-edit-commission" type="number" min="0" step="0.01" required /></label>
+          <label class="field"
+            ><span>Fecha</span><input id="transaction-edit-date" type="date" lang="es" required
+          /></label>
+          <label class="field"
+            ><span>Cantidad</span><input id="transaction-edit-shares" type="number" min="0" step="0.000001" required
+          /></label>
+          <label class="field"
+            ><span>Precio unitario</span
+            ><input id="transaction-edit-price" type="number" min="0" step="0.000001" required
+          /></label>
+          <label class="field"
+            ><span>Divisa</span><input id="transaction-edit-currency" maxlength="3" required
+          /></label>
+          <label class="field"
+            ><span>FX a EUR</span><input id="transaction-edit-fx" type="number" min="0" step="0.000001" required
+          /></label>
+          <label class="field"
+            ><span>Comisión EUR</span
+            ><input id="transaction-edit-commission" type="number" min="0" step="0.01" required
+          /></label>
         </div>
-        <label class="field"><span>Nota opcional</span><textarea id="transaction-edit-note" maxlength="1000" rows="3"></textarea></label>
+        <label class="field"
+          ><span>Nota opcional</span><textarea id="transaction-edit-note" maxlength="1000" rows="3"></textarea>
+        </label>
         <p id="transaction-edit-feedback" class="form-feedback" role="status"></p>
         <div id="transaction-edit-preview" class="transaction-preview" hidden></div>
         <div class="modal-actions">
@@ -1210,9 +1428,12 @@
             <span>Paso 1</span>
             <h3>Grupo</h3>
             <label class="check-field"
-              ><input id="wizard-use-group" type="checkbox" checked /> <span>Crear un grupo para este instrumento</span></label
+              ><input id="wizard-use-group" type="checkbox" checked />
+              <span>Crear un grupo para este instrumento</span></label
             >
-            <p class="subtle wizard-group-hint">Opcional. Puedes crear solo el instrumento y activar grupos más adelante.</p>
+            <p class="subtle wizard-group-hint">
+              Opcional. Puedes crear solo el instrumento y activar grupos más adelante.
+            </p>
             <label class="field" id="wizard-group-name-field">
               <span>Nombre del grupo</span>
               <input id="wizard-group-name" required placeholder="Core, Stock picking, ETFs..." />
@@ -1431,7 +1652,14 @@
           </div>
         </div>
         <div class="alpha-vantage-key-form">
-          <input id="alpha-vantage-key-input" type="text" placeholder="Pega aquí tu clave de Alpha Vantage" maxlength="20" autocomplete="off" spellcheck="false" />
+          <input
+            id="alpha-vantage-key-input"
+            type="text"
+            placeholder="Pega aquí tu clave de Alpha Vantage"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false"
+          />
           <button id="alpha-vantage-save-key" class="button btn-save" type="button">Guardar clave</button>
         </div>
         <p id="alpha-vantage-feedback" class="form-feedback" role="status"></p>
@@ -1446,9 +1674,19 @@
         <div class="admin-header">
           <div class="admin-header-text">
             <h2 data-i18n="dividends.title">Dividendos pendientes</h2>
-            <p class="subtle" data-i18n="dividends.subtitle">Revisa los dividendos detectados desde Yahoo Finance antes de incorporarlos a movimientos.</p>
+            <p class="subtle" data-i18n="dividends.subtitle">
+              Revisa los dividendos detectados desde Yahoo Finance antes de incorporarlos a movimientos.
+            </p>
           </div>
-          <button id="dividend-draft-close" class="icon-close" type="button" aria-label="Cerrar" data-i18n-aria-label="Cerrar">x</button>
+          <button
+            id="dividend-draft-close"
+            class="icon-close"
+            type="button"
+            aria-label="Cerrar"
+            data-i18n-aria-label="Cerrar"
+          >
+            x
+          </button>
         </div>
         <div id="dividend-draft-summary" class="dividend-draft-summary"></div>
         <div id="dividend-draft-rows" class="dividend-draft-list"></div>

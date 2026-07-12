@@ -29,18 +29,7 @@ const localPublicWorkflowDirs = [
   path.join('.opencode', 'commands'),
   path.join('.opencode', 'skills'),
 ];
-const textExtensions = new Set([
-  '',
-  '.css',
-  '.html',
-  '.js',
-  '.json',
-  '.md',
-  '.ps1',
-  '.sh',
-  '.txt',
-  '.yml',
-]);
+const textExtensions = new Set(['', '.css', '.html', '.js', '.json', '.md', '.ps1', '.sh', '.txt', '.yml']);
 const publicBrokerTeaserTokens = new Set([
   ['DE', 'GIRO'].join(''),
   ['I', 'BKR'].join(''),
@@ -93,7 +82,23 @@ function publicFiles() {
 
 function allowsPublicBrokerTeaser(file) {
   const relative = path.relative(root, file);
-  return relative === 'index.html' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-profiles.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-profiles.js' || relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-parser.js' || relative === 'apps/server/src/domains/data-ingestion/ingestion-parser.js' || relative === 'test\\imports.test.js' || relative === 'test/imports.test.js' || relative === 'test\\frontend-renovation.test.js' || relative === 'test/frontend-renovation.test.js' || relative === 'apps/web/src/imports.js' || relative === 'apps\\web\\src\\imports.js' || relative === 'apps/web/src/import-workflow.js' || relative === 'apps\\web\\src\\import-workflow.js' || relative === 'apps/web/src/import-workflow-helpers.js' || relative === 'apps\\web\\src\\import-workflow-helpers.js';
+  return (
+    relative === 'index.html' ||
+    relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-profiles.js' ||
+    relative === 'apps/server/src/domains/data-ingestion/ingestion-profiles.js' ||
+    relative === 'apps\\server\\src\\domains\\data-ingestion\\ingestion-parser.js' ||
+    relative === 'apps/server/src/domains/data-ingestion/ingestion-parser.js' ||
+    relative === 'test\\imports.test.js' ||
+    relative === 'test/imports.test.js' ||
+    relative === 'test\\frontend-renovation.test.js' ||
+    relative === 'test/frontend-renovation.test.js' ||
+    relative === 'apps/web/src/imports.js' ||
+    relative === 'apps\\web\\src\\imports.js' ||
+    relative === 'apps/web/src/import-workflow.js' ||
+    relative === 'apps\\web\\src\\import-workflow.js' ||
+    relative === 'apps/web/src/import-workflow-helpers.js' ||
+    relative === 'apps\\web\\src\\import-workflow-helpers.js'
+  );
 }
 
 function publicDocumentationFiles() {
@@ -106,9 +111,7 @@ function publicDocumentationFiles() {
 test('private database artifacts are ignored and not publishable', () => {
   const privateExtensions = new Set(['.sqlite', '.sqlite-wal', '.sqlite-shm']);
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  const localArtifacts = fs
-    .readdirSync(root)
-    .filter((file) => privateExtensions.has(path.extname(file)));
+  const localArtifacts = fs.readdirSync(root).filter((file) => privateExtensions.has(path.extname(file)));
 
   assert.ok(gitignore.includes('*.sqlite'));
   assert.ok(gitignore.includes('*.sqlite-wal'));
@@ -192,7 +195,8 @@ function plainCellValue(cell) {
   const value = cell?.value;
   if (value === null || value === undefined) return '';
   if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value === 'object' && Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if (typeof value === 'object' && Array.isArray(value.richText))
+    return value.richText.map((part) => part.text || '').join('');
   if (typeof value === 'object' && value.text) return String(value.text);
   if (typeof value === 'object' && value.result !== undefined) return value.result;
   return value;
@@ -218,7 +222,11 @@ test('public XLSX sample files do not contain private broker tokens', async () =
     workbook.worksheets.forEach((worksheet) => {
       worksheet.eachRow({ includeEmpty: false }, (row) => {
         const cells = [];
-        for (let columnIndex = 1; columnIndex <= Math.max(row.actualCellCount || 0, worksheet.actualColumnCount || 0); columnIndex += 1) {
+        for (
+          let columnIndex = 1;
+          columnIndex <= Math.max(row.actualCellCount || 0, worksheet.actualColumnCount || 0);
+          columnIndex += 1
+        ) {
           cells.push(plainCellValue(row.getCell(columnIndex)));
         }
         const text = cells.map((cell) => String(cell)).join(' ');
@@ -268,7 +276,19 @@ test('gitignore protects local portfolio data and user import files', () => {
 
 test('dockerignore protects private data from container build context', () => {
   const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
-  for (const pattern of ['.git', '*.sqlite', '*.sqlite-wal', '*.sqlite-shm', '.backups', 'backups', 'data', '.env', 'local', 'imports', '.opencode']) {
+  for (const pattern of [
+    '.git',
+    '*.sqlite',
+    '*.sqlite-wal',
+    '*.sqlite-shm',
+    '.backups',
+    'backups',
+    'data',
+    '.env',
+    'local',
+    'imports',
+    '.opencode',
+  ]) {
     assert.ok(dockerignore.includes(pattern), `${pattern} is ignored in Docker build context`);
   }
 });

@@ -1,0 +1,9 @@
+{
+  "minLines": 10,
+  "minTokens": 60,
+  "mode": "mild",
+  "reporters": ["console"],
+  "formats": ["javascript", "typescript", "css", "html"],
+  "pattern": "**/*.{js,cjs,ts,css,html}",
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/local/**", "**/i18n/**", "**/translations/**", "**/*.min.js"]
+}

@@ -7,9 +7,7 @@ export function attach(ctx) {
       const status = await fetchJson('/api/update/status');
       el.updateCurrentVersion.textContent = status.currentVersion || '—';
       el.updateLatestVersion.textContent = status.latestVersion || '—';
-      el.updateLastCheck.textContent = status.checkedAt
-        ? new Date(status.checkedAt).toLocaleString()
-        : '—';
+      el.updateLastCheck.textContent = status.checkedAt ? new Date(status.checkedAt).toLocaleString() : '—';
 
       if (status.error) {
         el.updateNotice.hidden = false;

@@ -148,7 +148,12 @@ function runNodeSyntaxCheck(target) {
     execFileSync(process.execPath, ['--check', absolute], { stdio: 'pipe' });
     addCheck('ok', `node-check:${path.basename(target)}`, `Syntax check passed: ${target}`);
   } catch (error) {
-    addCheck('fail', `node-check:${path.basename(target)}`, `Syntax check failed: ${target}`, error.stderr?.toString() || error.message);
+    addCheck(
+      'fail',
+      `node-check:${path.basename(target)}`,
+      `Syntax check failed: ${target}`,
+      error.stderr?.toString() || error.message,
+    );
   }
 }
 
@@ -192,7 +197,9 @@ function collectLocalPublicWorkflowFiles() {
 }
 
 function collectPublicFiles() {
-  return Array.from(new Set([...collectFiles(repoRoot), ...collectLocalPublicWorkflowFiles(), ...collectTrackedPublicFiles()]));
+  return Array.from(
+    new Set([...collectFiles(repoRoot), ...collectLocalPublicWorkflowFiles(), ...collectTrackedPublicFiles()]),
+  );
 }
 
 function collectRuntimeFiles(relativeDir) {
@@ -246,7 +253,12 @@ function checkDockerignore() {
   const dockerignore = fs.readFileSync(dockerignorePath, 'utf8');
   const missing = REQUIRED_DOCKERIGNORE_PATTERNS.filter((pattern) => !dockerignore.includes(pattern));
   if (missing.length) {
-    addCheck('fail', 'dockerignore-patterns', `.dockerignore is missing required patterns: ${missing.join(', ')}`, missing);
+    addCheck(
+      'fail',
+      'dockerignore-patterns',
+      `.dockerignore is missing required patterns: ${missing.join(', ')}`,
+      missing,
+    );
   } else {
     addCheck('ok', 'dockerignore-patterns', '.dockerignore contains all required patterns.');
   }
@@ -378,7 +390,8 @@ function checkLicenseMetadata(pkg) {
   }
 
   const readme = readText('README.md');
-  if (readme.includes('License: MIT') || /^MIT\b/m.test(readme)) errors.push('README.md must not advertise MIT as the current license');
+  if (readme.includes('License: MIT') || /^MIT\b/m.test(readme))
+    errors.push('README.md must not advertise MIT as the current license');
   if (!readme.includes('MPL-2.0')) errors.push('README.md must mention MPL-2.0');
 
   const dockerfile = readText(path.join('deploy', 'docker', 'Dockerfile'));
@@ -407,12 +420,18 @@ function checkCasaosCompose(pkg) {
 
   const compose = fs.readFileSync(composePath, 'utf8');
   const requiredPatterns = [
-    ['image: ghcr.io/aivm23/valorgrid:v' + pkg.version, new RegExp('^\\s*image:\\s*ghcr\\.io\\/aivm23\\/valorgrid:v' + pkg.version.replace(/\./g, '\\.') + '\\s*$', 'm')],
+    [
+      'image: ghcr.io/aivm23/valorgrid:v' + pkg.version,
+      new RegExp('^\\s*image:\\s*ghcr\\.io\\/aivm23\\/valorgrid:v' + pkg.version.replace(/\./g, '\\.') + '\\s*$', 'm'),
+    ],
     [`PORT=1325`, /^\s*PORT:\s*1325\s*$/m],
     [`target: 1325`, /^\s*-\s*target:\s*1325\s*$/m],
     [`published: "1325"`, /^\s*published:\s*["']?1325["']?\s*$/m],
     [`container: "1325"`, /^\s*-\s*container:\s*["']?1325["']?\s*$/m],
-    [`version: v${pkg.version}`, new RegExp(`^\\s*version:\\s*["']?v${pkg.version.replace(/\./g, '\\.')}["']?\\s*$`, 'm')],
+    [
+      `version: v${pkg.version}`,
+      new RegExp(`^\\s*version:\\s*["']?v${pkg.version.replace(/\./g, '\\.')}["']?\\s*$`, 'm'),
+    ],
     ['port_map: "1325"', /^\s*port_map:\s*["']?1325["']?\s*$/m],
   ];
   const missing = requiredPatterns.filter(([, pattern]) => !pattern.test(compose)).map(([label]) => label);
@@ -465,7 +484,10 @@ function checkUmbrelPackage(pkg) {
 
     const requiredManifestPatterns = [
       [`id: ${id}`, new RegExp(`^id:\\s*${id}\\s*$`, 'm')],
-      [`version: ${expectedVersion}`, new RegExp(`^version:\\s*["']?${expectedVersion.replace(/\./g, '\\.')}["']?\\s*$`, 'm')],
+      [
+        `version: ${expectedVersion}`,
+        new RegExp(`^version:\\s*["']?${expectedVersion.replace(/\./g, '\\.')}["']?\\s*$`, 'm'),
+      ],
       ['manifestVersion: 1', /^manifestVersion:\s*1\s*$/m],
       ['category: finance', /^category:\s*finance\s*$/m],
       ['port: 1325', /^port:\s*1325\s*$/m],
@@ -484,7 +506,9 @@ function checkUmbrelPackage(pkg) {
     }
     if (
       label === 'community' &&
-      !/^icon:\s*https:\/\/raw\.githubusercontent\.com\/aivm23\/valorgrid-umbrel-app-store\/main\/valorgrid-store-valorgrid\/icon\.svg\s*$/m.test(manifest)
+      !/^icon:\s*https:\/\/raw\.githubusercontent\.com\/aivm23\/valorgrid-umbrel-app-store\/main\/valorgrid-store-valorgrid\/icon\.svg\s*$/m.test(
+        manifest,
+      )
     ) {
       errors.push('community manifest must point to the public ValorGrid community icon');
     }
@@ -508,7 +532,8 @@ function checkUmbrelPackage(pkg) {
       errors.push(`${label} compose image must use a versioned GHCR image pinned by sha256 digest`);
     } else {
       const image = imageMatch[1];
-      if (!image.startsWith(expectedImage)) errors.push(`${label} compose image tag must match package.json version v${expectedVersion}`);
+      if (!image.startsWith(expectedImage))
+        errors.push(`${label} compose image tag must match package.json version v${expectedVersion}`);
       if (image.endsWith(zeroDigest)) warnings.push(`${label} compose still uses the placeholder Umbrel digest`);
     }
 
@@ -522,9 +547,18 @@ function checkUmbrelPackage(pkg) {
   } else if (errors.length) {
     addCheck('fail', 'umbrel-package', 'Umbrel package is not publication-safe', errors);
   } else if (warnings.length) {
-    addCheck('warn', 'umbrel-package', 'Umbrel package is locally valid but still needs the release digest before App Store submission', warnings);
+    addCheck(
+      'warn',
+      'umbrel-package',
+      'Umbrel package is locally valid but still needs the release digest before App Store submission',
+      warnings,
+    );
   } else {
-    addCheck('ok', 'umbrel-package', `Umbrel package uses v${expectedVersion}, app_proxy and APP_DATA_DIR persistence.`);
+    addCheck(
+      'ok',
+      'umbrel-package',
+      `Umbrel package uses v${expectedVersion}, app_proxy and APP_DATA_DIR persistence.`,
+    );
   }
 }
 

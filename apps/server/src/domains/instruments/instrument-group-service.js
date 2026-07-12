@@ -22,7 +22,9 @@ function attachInstrumentGroupService(ctx, brandPalette) {
     const meta = repositories.meta;
     if (!meta?.setMetaValueByKey) throw new Error('Meta repository not available');
     meta.setMetaValueByKey('instr_groups_enabled', enabled ? '1' : '0');
-    let createdDefaultGroup = false, assignedInstrumentCount = 0, defaultGroup = null;
+    let createdDefaultGroup = false,
+      assignedInstrumentCount = 0,
+      defaultGroup = null;
     if (enabled) {
       const result = ensureGrupoZeroForUngroupedInstruments();
       createdDefaultGroup = result.created;
@@ -80,7 +82,11 @@ function attachInstrumentGroupService(ctx, brandPalette) {
       color: paletteEnabled ? existing.color : String(input.color ?? existing.color).trim(),
       displayOrder: Number(input.displayOrder ?? input.display_order ?? existing.display_order),
       showInDistribution:
-        input.showInDistribution === undefined ? Number(existing.show_in_distribution) : input.showInDistribution ? 1 : 0,
+        input.showInDistribution === undefined
+          ? Number(existing.show_in_distribution)
+          : input.showInDistribution
+            ? 1
+            : 0,
       showInMonthly: input.showInMonthly === undefined ? Number(existing.show_in_monthly) : input.showInMonthly ? 1 : 0,
       isExpandable: input.isExpandable === undefined ? Number(existing.is_expandable) : input.isExpandable ? 1 : 0,
       active: input.active === undefined ? Number(existing.active) : input.active ? 1 : 0,

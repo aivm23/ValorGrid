@@ -23,11 +23,14 @@ function createTransactionEditor({
       .map((item) => (item.id === transaction.id ? { ...item, ...candidate } : item))
       .sort(
         (a, b) =>
-          String(a.date).localeCompare(String(b.date)) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')),
+          String(a.date).localeCompare(String(b.date)) ||
+          String(a.createdAt || '').localeCompare(String(b.createdAt || '')),
       );
     const splits = listSplitsForSymbolUntil(instrument.symbol, null)
       .slice()
-      .sort((a, b) => String(a.effectiveDate || a.effective_date).localeCompare(String(b.effectiveDate || b.effective_date)));
+      .sort((a, b) =>
+        String(a.effectiveDate || a.effective_date).localeCompare(String(b.effectiveDate || b.effective_date)),
+      );
 
     let shares = Number(instrument.base_shares || 0);
     let splitIndex = 0;
@@ -41,7 +44,9 @@ function createTransactionEditor({
       }
       shares += transactionSign(item.type) * Number(item.shares || 0);
       if (shares < -0.0000001) {
-        throw new Error(`Not enough shares. Available before ${item.date}: ${(shares + Number(item.shares || 0)).toFixed(6)}`);
+        throw new Error(
+          `Not enough shares. Available before ${item.date}: ${(shares + Number(item.shares || 0)).toFixed(6)}`,
+        );
       }
     }
   }
@@ -54,14 +59,27 @@ function createTransactionEditor({
       throw error;
     }
     if (transaction.type === 'dividend') throw new Error('Los dividendos se gestionan desde su flujo propio');
-    for (const forbidden of ['symbol', 'ticker', 'type', 'origin', 'marketDate', 'autoKey', 'importBatchId', 'externalId', 'rawHash', 'createdAt']) {
+    for (const forbidden of [
+      'symbol',
+      'ticker',
+      'type',
+      'origin',
+      'marketDate',
+      'autoKey',
+      'importBatchId',
+      'externalId',
+      'rawHash',
+      'createdAt',
+    ]) {
       if (input[forbidden] !== undefined) throw new Error(`${forbidden} no se puede modificar`);
     }
 
     const date = String(input.date || '').trim();
     const shares = Number(input.shares);
     const price = Number(input.price);
-    const currency = String(input.currency || '').trim().toUpperCase();
+    const currency = String(input.currency || '')
+      .trim()
+      .toUpperCase();
     const fxToEur = Number(input.fxToEur);
     const commissionEur = Number(input.commissionEur ?? 0);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('La fecha debe usar YYYY-MM-DD');
@@ -75,7 +93,17 @@ function createTransactionEditor({
 
     const valueEur = shares * price * fxToEur;
     const cashFlowEur = transaction.type === 'remove' ? valueEur - commissionEur : -(valueEur + commissionEur);
-    const candidate = { date, shares, price, currency, fxToEur, commissionEur, valueEur, cashFlowEur, note: normalizeTransactionNote(input.note) };
+    const candidate = {
+      date,
+      shares,
+      price,
+      currency,
+      fxToEur,
+      commissionEur,
+      valueEur,
+      cashFlowEur,
+      note: normalizeTransactionNote(input.note),
+    };
     validateCandidateHistory(transaction, candidate);
     return { ...transaction, ...candidate, affectedFrom: [transaction.date, date].sort()[0] };
   }

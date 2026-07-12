@@ -27,12 +27,9 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
     setInstrumentGroupsEnabled,
   } = resolveRouteHandlers(ctx);
 
-  const isBrandPaletteEnabled = typeof ctx.isBrandPaletteEnabled === 'function'
-    ? ctx.isBrandPaletteEnabled
-    : () => false;
-  const setBrandPaletteEnabled = typeof ctx.setBrandPaletteEnabled === 'function'
-    ? ctx.setBrandPaletteEnabled
-    : null;
+  const isBrandPaletteEnabled =
+    typeof ctx.isBrandPaletteEnabled === 'function' ? ctx.isBrandPaletteEnabled : () => false;
+  const setBrandPaletteEnabled = typeof ctx.setBrandPaletteEnabled === 'function' ? ctx.setBrandPaletteEnabled : null;
 
   if (url.pathname === '/api/instruments' && request.method === 'GET') {
     sendJson(response, 200, {
@@ -124,7 +121,9 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
 
   const instrumentMatch = url.pathname.match(/^\/api\/instruments\/([^/]+)$/);
   if (instrumentMatch && request.method === 'PUT') {
-    sendJson(response, 200, { instrument: updateInstrument(decodeURIComponent(instrumentMatch[1]), await readJsonBody(request)) });
+    sendJson(response, 200, {
+      instrument: updateInstrument(decodeURIComponent(instrumentMatch[1]), await readJsonBody(request)),
+    });
     return true;
   }
 
@@ -191,7 +190,9 @@ module.exports = async function handleInstrumentRoutes(ctx, request, response, u
   const groupMatch = url.pathname.match(/^\/api\/instrument-groups\/([^/]+)$/);
   if (groupMatch && request.method === 'PUT') {
     try {
-      sendJson(response, 200, { group: updateInstrumentGroup(decodeURIComponent(groupMatch[1]), await readJsonBody(request)) });
+      sendJson(response, 200, {
+        group: updateInstrumentGroup(decodeURIComponent(groupMatch[1]), await readJsonBody(request)),
+      });
     } catch (error) {
       sendError(response, sendJson, error);
     }

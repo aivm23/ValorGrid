@@ -16,10 +16,16 @@ export function computeProviderStatus(marketDataSources) {
     return { level: 'error', tooltip: 'Yahoo Finance y Alpha Vantage tienen incidencias registradas.' };
   }
   if (yahooDown) {
-    return { level: 'warn', tooltip: `Proveedor con incidencia: Yahoo Finance - ${yahooState?.reason || 'motivo desconocido'}` };
+    return {
+      level: 'warn',
+      tooltip: `Proveedor con incidencia: Yahoo Finance - ${yahooState?.reason || 'motivo desconocido'}`,
+    };
   }
   if (alphaDown) {
-    return { level: 'warn', tooltip: `Proveedor con incidencia: Alpha Vantage - ${alphaState?.reason || 'motivo desconocido'}` };
+    return {
+      level: 'warn',
+      tooltip: `Proveedor con incidencia: Alpha Vantage - ${alphaState?.reason || 'motivo desconocido'}`,
+    };
   }
   const alphaLabel = alphaConfigured ? 'operativo o sin fallo registrado' : 'no configurado';
   return { level: 'ok', tooltip: `Yahoo Finance: operativo. Alpha Vantage: ${alphaLabel}.` };
@@ -47,7 +53,18 @@ export function attach(ctx) {
     if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
-      const [summary, monthly, appInfo, transactionData, instrumentData, groupData, liquidityData, backupData, importData, marketDataSources] = await Promise.all([
+      const [
+        summary,
+        monthly,
+        appInfo,
+        transactionData,
+        instrumentData,
+        groupData,
+        liquidityData,
+        backupData,
+        importData,
+        marketDataSources,
+      ] = await Promise.all([
         ctx.fetchJson('/api/portfolio/summary'),
         ctx.fetchJson('/api/portfolio/monthly?year=2026'),
         ctx.fetchJson('/api/version'),
@@ -75,9 +92,7 @@ export function attach(ctx) {
       state.marketDataSources = marketDataSources || null;
       state.autoPlans = summary.autoPlans || state.autoPlans;
 
-      state.brandPaletteEnabled =
-        instrumentData.brandPaletteEnabled === true ||
-        groupData.brandPaletteEnabled === true;
+      state.brandPaletteEnabled = instrumentData.brandPaletteEnabled === true || groupData.brandPaletteEnabled === true;
 
       try {
         const prefs = await ctx.fetchJson('/api/preferences/ui');
@@ -90,12 +105,17 @@ export function attach(ctx) {
       renderDashboard();
       state.initialLoadComplete = true;
       setBootState('ready');
-      try { await ctx.loadImportSources(ctx); } catch { /* non-critical */ }
+      try {
+        await ctx.loadImportSources(ctx);
+      } catch {
+        /* non-critical */
+      }
       ctx.refreshDividendSummary?.();
       ctx.window.setTimeout(() => ctx.startDividendStartupScan?.(), 0);
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
-      if (!state.initialLoadComplete) setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
+      if (!state.initialLoadComplete)
+        setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
       try {
         state.onboarding = await ctx.fetchJson('/api/onboarding/status');
         elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
@@ -146,7 +166,10 @@ export function attach(ctx) {
     elements.marketProviderStatus.setAttribute('aria-label', tooltip);
     if (elements.marketProviderStatusTooltip) {
       elements.marketProviderStatusTooltip.textContent = tooltip;
-      elements.marketProviderStatusTooltip.style.setProperty('--provider-status-accent', `var(--accent-${level === 'ok' ? 'green' : level === 'warn' ? 'amber' : 'negative'})`);
+      elements.marketProviderStatusTooltip.style.setProperty(
+        '--provider-status-accent',
+        `var(--accent-${level === 'ok' ? 'green' : level === 'warn' ? 'amber' : 'negative'})`,
+      );
     }
   }
 

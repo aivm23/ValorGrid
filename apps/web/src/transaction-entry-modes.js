@@ -15,7 +15,8 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
   }
 
   function selectedOperationInstrument() {
-    const symbol = ctx.elements.operationType.value === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
+    const symbol =
+      ctx.elements.operationType.value === 'remove' ? ctx.elements.removeTicker.value : ctx.elements.addTicker.value;
     return (ctx.state.instruments || []).find((instrument) => instrument.symbol === symbol) || null;
   }
 
@@ -49,12 +50,17 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
     if (mode === 'manual_unit_price' && (resetCurrency || !ctx.elements.addPriceCurrency.value)) {
       ctx.elements.addPriceCurrency.value = selectedOperationInstrument()?.currency || 'EUR';
     }
-    const priceCurrency = String(ctx.elements.addPriceCurrency.value || 'EUR').trim().toUpperCase();
+    const priceCurrency = String(ctx.elements.addPriceCurrency.value || 'EUR')
+      .trim()
+      .toUpperCase();
     ctx.elements.addPriceCurrency.value = priceCurrency;
     const fxVisible = mode === 'manual_unit_price' && priceCurrency !== 'EUR';
     ctx.elements.addEntryModeTabs.hidden = isSell;
     setFieldLabel(ctx.elements.addSharesField, isSell ? ctx.t('transaction.field.soldQuantity') : ctx.t('Cantidad'));
-    setFieldLabel(ctx.elements.addEurosField, isSell ? ctx.t('transaction.field.grossSellEur') : ctx.t('transaction.field.totalEur'));
+    setFieldLabel(
+      ctx.elements.addEurosField,
+      isSell ? ctx.t('transaction.field.grossSellEur') : ctx.t('transaction.field.totalEur'),
+    );
     setModeField(ctx.elements.addEurosField, ctx.elements.addEuros, mode !== 'manual_unit_price', true);
     setModeField(ctx.elements.addSharesField, ctx.elements.addShares, mode !== 'market_eur', true);
     setModeField(ctx.elements.addPriceField, ctx.elements.addPrice, mode === 'manual_unit_price', true);

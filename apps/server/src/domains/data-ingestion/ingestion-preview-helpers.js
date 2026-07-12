@@ -8,6 +8,26 @@ function normalizeMatchText(value) {
     .trim();
 }
 
+function resolveByHeuristic(ctx, normalized, raw) {
+  if (normalized.symbol) {
+    const exactSymbol = ctx.getInstrument(normalized.symbol);
+    if (exactSymbol) return exactSymbol;
+  }
+  const instruments = ctx.listInstruments().filter((item) => item.type !== 'fx');
+  const product = getRawValue(raw, ['Ticker', 'ticker', 'Symbol', 'symbol']) || normalized.symbol;
+  const productKey = normalizeMatchText(product);
+  if (!productKey) return null;
+  for (const instrument of instruments) {
+    const symbolKey = normalizeMatchText(instrument.symbol);
+    const yahooKey = normalizeMatchText(instrument.yahooSymbol);
+    const nameKey = normalizeMatchText(instrument.name);
+    if (symbolKey && productKey === symbolKey) return instrument;
+    if (yahooKey && productKey === yahooKey) return instrument;
+    if (nameKey && productKey === nameKey) return instrument;
+  }
+  return null;
+}
+
 function getRawValue(raw = {}, names = []) {
   for (const name of names) {
     if (raw[name] !== undefined && raw[name] !== null && String(raw[name]).trim() !== '') return raw[name];
@@ -23,8 +43,12 @@ function rebuildImportIdentity(normalized, source, sha256) {
 }
 
 function mappingKeyForIdentifier(identifier) {
-  const type = String(identifier?.identifierType || identifier?.type || '').trim().toLowerCase();
-  const value = String(identifier?.identifierValue || identifier?.value || '').trim().toUpperCase();
+  const type = String(identifier?.identifierType || identifier?.type || '')
+    .trim()
+    .toLowerCase();
+  const value = String(identifier?.identifierValue || identifier?.value || '')
+    .trim()
+    .toUpperCase();
   if (!type || !value) return null;
   return `${type}:${value}`;
 }
@@ -34,10 +58,13 @@ function buildInstrumentMapping(input = {}) {
   if (!mappingInput || typeof mappingInput !== 'object') return new Map();
   const mapping = new Map();
   for (const [rawKey, rawValue] of Object.entries(mappingInput)) {
-    const key = String(rawKey || '').trim().toLowerCase();
+    const key = String(rawKey || '')
+      .trim()
+      .toLowerCase();
     if (!key || !rawValue) continue;
     if (typeof rawValue === 'string') mapping.set(key, rawValue.trim().toUpperCase());
-    else if (typeof rawValue === 'object' && rawValue.symbol) mapping.set(key, String(rawValue.symbol).trim().toUpperCase());
+    else if (typeof rawValue === 'object' && rawValue.symbol)
+      mapping.set(key, String(rawValue.symbol).trim().toUpperCase());
   }
   return mapping;
 }
@@ -49,13 +76,15 @@ function canCommitRows(rows, rowDecisions) {
     return action === 'import';
   });
   const fatalRows = rows.filter((row) => ['error', 'blocked', 'needs_mapping'].includes(row.status));
-  const selectedCanCommit = fatalRows.length === 0 && selectedRows.length > 0 && selectedRows.every((row) => row.status === 'valid');
+  const selectedCanCommit =
+    fatalRows.length === 0 && selectedRows.length > 0 && selectedRows.every((row) => row.status === 'valid');
   const onlyNonBlockingRows = rows.length > 0 && selectedRows.length === 0 && fatalRows.length === 0;
   return selectedCanCommit || onlyNonBlockingRows;
 }
 
 module.exports = {
   normalizeMatchText,
+  resolveByHeuristic,
   getRawValue,
   rebuildImportIdentity,
   mappingKeyForIdentifier,

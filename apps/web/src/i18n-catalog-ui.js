@@ -8,12 +8,14 @@ export const UI_TEXT_TRANSLATIONS = {
     'confirmDialog.title': 'Confirmar acción',
     'confirmDialog.cancel': 'Cancelar',
     'confirmDialog.confirm': 'Confirmar',
-    'monthly.subtitle.withData': 'Evolucion del ano en curso, flujos y desglose mensual por grupos. {count} de 12 meses con datos.',
+    'monthly.subtitle.withData':
+      'Evolucion del ano en curso, flujos y desglose mensual por grupos. {count} de 12 meses con datos.',
     'monthly.subtitle.empty': 'A la espera del primer movimiento del ano.',
     'monthly.empty': 'Sin movimientos ni valoraciones para el ano en curso.',
     'monthly.zeroNotice.one': '1 mes anterior esta a cero',
     'monthly.zeroNotice.other': '{count} meses anteriores estan a cero',
-    'monthly.zeroNotice.description': 'No se muestran para mantener la revisión centrada en los meses con cartera o movimientos.',
+    'monthly.zeroNotice.description':
+      'No se muestran para mantener la revisión centrada en los meses con cartera o movimientos.',
     'monthly.valueStart': 'Valor inicial',
     'monthly.valueStart.micro': 'inicio del ano',
     'monthly.currentValue': 'Valor actual',
@@ -73,7 +75,8 @@ export const UI_TEXT_TRANSLATIONS = {
     'ledger.export.cancel': 'Cancelar',
     'ledger.export.allSummary': 'Se exportaran los {count} movimientos del ledger.',
     'ledger.export.filteredSummary': 'Se exportaran {count} movimientos del resultado filtrado.',
-    'ledger.export.heavyWarning': 'El exportador usa ExcelJS en memoria. Con {count} movimientos la operación puede ser lenta.',
+    'ledger.export.heavyWarning':
+      'El exportador usa ExcelJS en memoria. Con {count} movimientos la operación puede ser lenta.',
     'history.origin.auto.capitalized': 'Automático',
     'history.origin.import.capitalized': 'Importado',
     'history.origin.manual.capitalized': 'Manual',
@@ -197,7 +200,8 @@ export const UI_TEXT_TRANSLATIONS = {
     'confirmDialog.title': 'Confirm action',
     'confirmDialog.cancel': 'Cancel',
     'confirmDialog.confirm': 'Confirm',
-    'monthly.subtitle.withData': 'Current-year evolution, flows and monthly breakdown by groups. {count} of 12 months with data.',
+    'monthly.subtitle.withData':
+      'Current-year evolution, flows and monthly breakdown by groups. {count} of 12 months with data.',
     'monthly.subtitle.empty': 'Waiting for the first movement of the year.',
     'monthly.empty': 'No movements or valuations for the current year.',
     'monthly.zeroNotice.one': '1 previous month is zero',
@@ -262,7 +266,8 @@ export const UI_TEXT_TRANSLATIONS = {
     'ledger.export.cancel': 'Cancel',
     'ledger.export.allSummary': '{count} movements will be exported.',
     'ledger.export.filteredSummary': '{count} filtered movements will be exported.',
-    'ledger.export.heavyWarning': 'The exporter uses ExcelJS in memory. With {count} movements the operation may be slow.',
+    'ledger.export.heavyWarning':
+      'The exporter uses ExcelJS in memory. With {count} movements the operation may be slow.',
     'history.origin.auto.capitalized': 'Automatic',
     'history.origin.import.capitalized': 'Imported',
     'history.origin.manual.capitalized': 'Manual',

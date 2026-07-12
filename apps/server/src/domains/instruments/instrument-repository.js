@@ -174,11 +174,14 @@ module.exports = function attach(ctx) {
   }
 
   function countIdentifiersBySymbol(symbol) {
-    return db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(symbol).count;
+    return db.prepare('SELECT COUNT(*) AS count FROM instrument_identifiers WHERE instrument_symbol = ?').get(symbol)
+      .count;
   }
 
   function deactivateInstrumentBySymbol(symbol) {
-    db.prepare('UPDATE instruments SET active = 0, show_in_distribution = 0, show_in_monthly = 0 WHERE symbol = ?').run(symbol);
+    db.prepare('UPDATE instruments SET active = 0, show_in_distribution = 0, show_in_monthly = 0 WHERE symbol = ?').run(
+      symbol,
+    );
   }
 
   function deleteIdentifiersBySymbol(symbol) {

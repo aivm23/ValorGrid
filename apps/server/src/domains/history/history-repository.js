@@ -11,11 +11,7 @@ module.exports = function attach(ctx) {
   }
 
   function hasTransactionForSymbolUntil(symbol, toDate) {
-    return Boolean(
-      db
-        .prepare('SELECT 1 FROM transactions WHERE symbol = ? AND date <= ? LIMIT 1')
-        .get(symbol, toDate),
-    );
+    return Boolean(db.prepare('SELECT 1 FROM transactions WHERE symbol = ? AND date <= ? LIMIT 1').get(symbol, toDate));
   }
 
   function listTransactionsUntil(toDate) {
@@ -141,7 +137,14 @@ module.exports = function attach(ctx) {
     });
   }
 
-  function replaceMaterializedHistoryData({ deleteFrom, weekDeleteFrom, positionRows, pointRows, weeklyRows, versions }) {
+  function replaceMaterializedHistoryData({
+    deleteFrom,
+    weekDeleteFrom,
+    positionRows,
+    pointRows,
+    weeklyRows,
+    versions,
+  }) {
     const positionInsert = db.prepare(
       `INSERT INTO portfolio_positions_daily
         (date, symbol, shares, price_eur, value_eur, data_quality)

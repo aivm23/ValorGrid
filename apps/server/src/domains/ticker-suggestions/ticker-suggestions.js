@@ -9,17 +9,51 @@ function normalizeSearchText(value) {
 }
 
 const knownNameHints = [
-  { pattern: /\bADVANCED MICRO DEVICES\b|\bAMD\b/, symbol: 'AMD', name: 'Advanced Micro Devices, Inc.', currency: 'USD', exchange: 'NMS' },
-  { pattern: /\bALPHABET\b.*\bCLASS C\b|\bGOOGLE\b|\bGOOG\b/, symbol: 'GOOG', name: 'Alphabet Inc. Class C', currency: 'USD', exchange: 'NMS' },
-  { pattern: /\bALPHABET\b.*\bCLASS A\b|\bGOOGL\b/, symbol: 'GOOGL', name: 'Alphabet Inc. Class A', currency: 'USD', exchange: 'NMS' },
-  { pattern: /\bMETA PLATFORMS\b|\bFACEBOOK\b/, symbol: 'META', name: 'Meta Platforms, Inc.', currency: 'USD', exchange: 'NMS' },
-  { pattern: /\bINDUSTRIA DE DISENO TEXTIL\b|\bINDITEX\b/, symbol: 'ITX.MC', name: 'Industria de Diseno Textil, S.A.', currency: 'EUR', exchange: 'MCE' },
+  {
+    pattern: /\bADVANCED MICRO DEVICES\b|\bAMD\b/,
+    symbol: 'AMD',
+    name: 'Advanced Micro Devices, Inc.',
+    currency: 'USD',
+    exchange: 'NMS',
+  },
+  {
+    pattern: /\bALPHABET\b.*\bCLASS C\b|\bGOOGLE\b|\bGOOG\b/,
+    symbol: 'GOOG',
+    name: 'Alphabet Inc. Class C',
+    currency: 'USD',
+    exchange: 'NMS',
+  },
+  {
+    pattern: /\bALPHABET\b.*\bCLASS A\b|\bGOOGL\b/,
+    symbol: 'GOOGL',
+    name: 'Alphabet Inc. Class A',
+    currency: 'USD',
+    exchange: 'NMS',
+  },
+  {
+    pattern: /\bMETA PLATFORMS\b|\bFACEBOOK\b/,
+    symbol: 'META',
+    name: 'Meta Platforms, Inc.',
+    currency: 'USD',
+    exchange: 'NMS',
+  },
+  {
+    pattern: /\bINDUSTRIA DE DISENO TEXTIL\b|\bINDITEX\b/,
+    symbol: 'ITX.MC',
+    name: 'Industria de Diseno Textil, S.A.',
+    currency: 'EUR',
+    exchange: 'MCE',
+  },
   { pattern: /\bVIDRALA\b/, symbol: 'VID.MC', name: 'Vidrala, S.A.', currency: 'EUR', exchange: 'MCE' },
 ];
 
 function nameHintSuggestions(identity = {}) {
-  const text = normalizeSearchText(`${identity.name || identity.label || ''} ${identity.isin || ''} ${identity.exchange || ''}`);
-  const currency = String(identity.currency || '').trim().toUpperCase();
+  const text = normalizeSearchText(
+    `${identity.name || identity.label || ''} ${identity.isin || ''} ${identity.exchange || ''}`,
+  );
+  const currency = String(identity.currency || '')
+    .trim()
+    .toUpperCase();
   const suggestions = [];
   for (const hint of knownNameHints) {
     if (!hint.pattern.test(text)) continue;
@@ -37,22 +71,26 @@ function nameHintSuggestions(identity = {}) {
 }
 
 function dbTickerSuggestions(ctx, identity = {}) {
-  const isin = String(identity.isin || '').trim().toUpperCase();
+  const isin = String(identity.isin || '')
+    .trim()
+    .toUpperCase();
   if (!isin) return [];
   const repository = ctx?.repositories?.suggestions;
   if (typeof repository?.findGlobalIsinSuggestion !== 'function') return [];
   try {
     const row = repository.findGlobalIsinSuggestion(isin);
     if (!row) return [];
-    return [{
-      yahooSymbol: row.yahooSymbol || row.symbol,
-      displayName: row.displayName || row.name || row.symbol,
-      currency: row.currency || null,
-      exchange: row.exchange || null,
-      confidence: 'alta',
-      reason: 'Coincidencia por ISIN en importaciones anteriores',
-      source: 'history',
-    }];
+    return [
+      {
+        yahooSymbol: row.yahooSymbol || row.symbol,
+        displayName: row.displayName || row.name || row.symbol,
+        currency: row.currency || null,
+        exchange: row.exchange || null,
+        confidence: 'alta',
+        reason: 'Coincidencia por ISIN en importaciones anteriores',
+        source: 'history',
+      },
+    ];
   } catch {
     return [];
   }
@@ -94,7 +132,9 @@ function mergeSuggestions(...groups) {
   const merged = [];
   for (const group of groups) {
     for (const item of group || []) {
-      const symbol = String(item.yahooSymbol || '').trim().toUpperCase();
+      const symbol = String(item.yahooSymbol || '')
+        .trim()
+        .toUpperCase();
       if (!symbol || seen.has(symbol)) continue;
       seen.add(symbol);
       merged.push({ ...item, yahooSymbol: symbol });

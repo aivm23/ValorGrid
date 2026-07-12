@@ -71,7 +71,10 @@ module.exports = async function handlePortfolioRoutes(ctx, request, response, ur
     sendJson(
       response,
       200,
-      await buildPortfolioHistory(url.searchParams.get('range') || 'all', url.searchParams.get('granularity') || 'auto'),
+      await buildPortfolioHistory(
+        url.searchParams.get('range') || 'all',
+        url.searchParams.get('granularity') || 'auto',
+      ),
     );
     return true;
   }

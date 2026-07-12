@@ -6,7 +6,9 @@ function normalizeRowDecisions(input = {}) {
   for (const [rawIndex, rawAction] of Object.entries(rowActions)) {
     const rowIndex = Number(rawIndex);
     if (!Number.isFinite(rowIndex)) continue;
-    const action = String(rawAction || '').trim().toLowerCase();
+    const action = String(rawAction || '')
+      .trim()
+      .toLowerCase();
     if (!['import', 'skip'].includes(action)) continue;
     byIndex.set(rowIndex, { ...(byIndex.get(rowIndex) || {}), action });
   }
@@ -16,7 +18,9 @@ function normalizeRowDecisions(input = {}) {
     const symbol =
       typeof rawMapping === 'string'
         ? rawMapping.trim().toUpperCase()
-        : String(rawMapping?.symbol || '').trim().toUpperCase();
+        : String(rawMapping?.symbol || '')
+            .trim()
+            .toUpperCase();
     if (!symbol) continue;
     byIndex.set(rowIndex, { ...(byIndex.get(rowIndex) || {}), symbol });
   }
@@ -46,12 +50,16 @@ function applyRowEdit(normalized, edit = {}, source = 'import', rebuildIdentity 
   const errors = [];
 
   if (edit.symbol !== undefined) {
-    const symbol = String(edit.symbol || '').trim().toUpperCase();
+    const symbol = String(edit.symbol || '')
+      .trim()
+      .toUpperCase();
     if (!symbol) errors.push('Ticker vacío en edición');
     else next.symbol = symbol;
   }
   if (edit.type !== undefined) {
-    const type = String(edit.type || '').trim().toLowerCase();
+    const type = String(edit.type || '')
+      .trim()
+      .toLowerCase();
     if (!['add', 'remove'].includes(type)) errors.push('Tipo inválido en edición');
     else next.type = type;
   }
@@ -81,7 +89,9 @@ function applyRowEdit(normalized, edit = {}, source = 'import', rebuildIdentity 
     else next.commissionEur = Number(commissionEur);
   }
   if (edit.currency !== undefined) {
-    const currency = String(edit.currency || '').trim().toUpperCase();
+    const currency = String(edit.currency || '')
+      .trim()
+      .toUpperCase();
     if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa inválida en edición');
     else next.currency = currency;
   }
@@ -105,16 +115,15 @@ function applyRowEdit(normalized, edit = {}, source = 'import', rebuildIdentity 
 }
 
 function buildDetectedInstrumentOutput(detectedInstruments) {
-  return Array.from(detectedInstruments.values())
-    .map((item) => ({
-      ...item,
-      buys: item.buys || 0,
-      sells: item.sells || 0,
-      approxValueEur: Number((item.approxValueEur || 0).toFixed(2)),
-      firstDate: item.firstDate || null,
-      lastDate: item.lastDate || null,
-      rowIndexes: Array.from(item.rowIndexes || []),
-    }));
+  return Array.from(detectedInstruments.values()).map((item) => ({
+    ...item,
+    buys: item.buys || 0,
+    sells: item.sells || 0,
+    approxValueEur: Number((item.approxValueEur || 0).toFixed(2)),
+    firstDate: item.firstDate || null,
+    lastDate: item.lastDate || null,
+    rowIndexes: Array.from(item.rowIndexes || []),
+  }));
 }
 
 function buildImpactPreview(ctx, rows) {

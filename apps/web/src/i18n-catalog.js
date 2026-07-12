@@ -58,7 +58,8 @@ const CORE_TEXT_TRANSLATIONS = {
     'operations.metrics.grossBought.micro': 'total comprado sin comisiones',
     'operations.metrics.grossSold.label': 'Ventas brutas',
     'operations.metrics.grossSold.micro': 'total vendido sin comisiones',
-    'operations.metrics.dividendIncome.tooltip': 'Total cobrado por dividendos confirmados desde eventos de Yahoo Finance.',
+    'operations.metrics.dividendIncome.tooltip':
+      'Total cobrado por dividendos confirmados desde eventos de Yahoo Finance.',
     'operations.metrics.dividendIncome.micro.one': '{count} dividendo',
     'operations.metrics.dividendIncome.micro.other': '{count} dividendos',
     'common.notAvailable': 'N/D',
@@ -68,7 +69,8 @@ const CORE_TEXT_TRANSLATIONS = {
     'summary.visibleTotal.tooltip':
       'Suma solo las posiciones marcadas como visibles en distribución. Las posiciones ocultas en el dashboard no entran en este total.',
     'summary.empty.noValuePositions': 'Sin posiciones con valor',
-    'summary.empty.noPositionsSetup': 'Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.',
+    'summary.empty.noPositionsSetup':
+      'Sin posiciones todavía. Crea tu primer instrumento y añade tu primer movimiento.',
     'summary.empty.createPortfolio': 'Crear cartera',
     'summary.empty.noPositionsAddFirst': 'Sin posiciones todavía. Usa Añadir para registrar el primer movimiento.',
     'summary.empty.noBreakdownPositions': 'Sin posiciones para desglosar.',
@@ -287,8 +289,8 @@ const CORE_TEXT_TRANSLATIONS = {
     'Días en cartera': 'Days held',
     'Incluir posiciones cerradas': 'Include closed positions',
     'Bloques del dashboard': 'Dashboard blocks',
-    'Rentabilidad': 'Return',
-    'Pendiente': 'Pending',
+    Rentabilidad: 'Return',
+    Pendiente: 'Pending',
     'Valor mercado': 'Market value',
     'Aportado neto': 'Net contributed',
     'Resultado total': 'Total result',

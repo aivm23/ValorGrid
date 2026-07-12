@@ -651,11 +651,13 @@ test('loadtest dataset covers real stock tickers, range event boundaries, and ca
     .get().count;
   assert.equal(fractionalStockTransactions, 0);
   assert.ok(
-    db.prepare(
-      `SELECT COUNT(*) AS count FROM transactions
+    db
+      .prepare(
+        `SELECT COUNT(*) AS count FROM transactions
        JOIN instruments ON instruments.symbol = transactions.symbol
        WHERE instruments.type = 'stock' AND transactions.shares IN (20, 12, 8, 4)`,
-    ).get().count > 0,
+      )
+      .get().count > 0,
   );
 
   const started = performance.now();

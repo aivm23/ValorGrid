@@ -62,7 +62,9 @@ module.exports = function attach(ctx) {
    * @returns {string}
    */
   function normalizeSymbol(value) {
-    return String(value || '').trim().toUpperCase();
+    return String(value || '')
+      .trim()
+      .toUpperCase();
   }
 
   /** @returns {string} */
@@ -165,5 +167,20 @@ module.exports = function attach(ctx) {
     return value;
   }
 
-  Object.assign(ctx, { sendJson, sendText, readJsonBody, normalizeSymbol, getToday, dateUtc, formatDateUtc, addDays, addYears, toUnixSeconds, toEur, transactionSign, getMemoryCached, setMemoryCached });
+  Object.assign(ctx, {
+    sendJson,
+    sendText,
+    readJsonBody,
+    normalizeSymbol,
+    getToday,
+    dateUtc,
+    formatDateUtc,
+    addDays,
+    addYears,
+    toUnixSeconds,
+    toEur,
+    transactionSign,
+    getMemoryCached,
+    setMemoryCached,
+  });
 };

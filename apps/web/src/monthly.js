@@ -15,9 +15,7 @@ export function attach(ctx) {
     const monthCount = displayMonths.length;
     if (elements.ytdSubtitle) {
       elements.ytdSubtitle.textContent =
-        monthCount > 0
-          ? ctx.t('monthly.subtitle.withData', { count: monthCount })
-          : ctx.t('monthly.subtitle.empty');
+        monthCount > 0 ? ctx.t('monthly.subtitle.withData', { count: monthCount }) : ctx.t('monthly.subtitle.empty');
     }
 
     if (!displayMonths.length) {
@@ -33,10 +31,7 @@ export function attach(ctx) {
     const latestMonth = displayMonths[displayMonths.length - 1]?.month;
     const zeroNotice = omittedZeroMonths > 0 ? renderYtdZeroNotice(omittedZeroMonths) : '';
     elements.monthlyTracking.innerHTML =
-      zeroNotice +
-      displayMonths
-        .map((month) => renderMonthCard(month, month.month === latestMonth))
-        .join('');
+      zeroNotice + displayMonths.map((month) => renderMonthCard(month, month.month === latestMonth)).join('');
   }
 
   function monthHasActivity(month) {
@@ -113,7 +108,8 @@ export function attach(ctx) {
   }
 
   function renderGroupBreakdown(groups, groupsEnabled) {
-    if (!groups.length) return `<p class="subtle">${ctx.t(groupsEnabled ? 'monthly.emptyGroups' : 'monthly.emptyInstruments')}</p>`;
+    if (!groups.length)
+      return `<p class="subtle">${ctx.t(groupsEnabled ? 'monthly.emptyGroups' : 'monthly.emptyInstruments')}</p>`;
     return `
       <div class="ytd-group-list">
         ${groups.map((group) => renderGroupRow(group)).join('')}

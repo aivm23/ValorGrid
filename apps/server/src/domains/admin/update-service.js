@@ -46,9 +46,7 @@ function selectDesktopAsset(assets, platform, arch, version) {
   if (!Array.isArray(assets)) return null;
   const ver = normalizeVersionTag(version);
   if (platform === 'win32') {
-    return (
-      assets.find((a) => /\.exe$/i.test(a.name) && a.name.includes('-x64') && a.name.includes(ver)) || null
-    );
+    return assets.find((a) => /\.exe$/i.test(a.name) && a.name.includes('-x64') && a.name.includes(ver)) || null;
   }
   if (platform === 'linux') {
     return (
@@ -129,9 +127,7 @@ module.exports = function attach(ctx) {
       };
       if (base.runtimeMode === 'desktop') {
         const asset = selectDesktopAsset(release.assets, base.platform, base.arch, release.latestVersion);
-        result.recommendedAsset = asset
-          ? { name: asset.name, downloadUrl: asset.downloadUrl }
-          : null;
+        result.recommendedAsset = asset ? { name: asset.name, downloadUrl: asset.downloadUrl } : null;
       } else {
         result.recommendedAsset = null;
       }
@@ -151,11 +147,7 @@ module.exports = function attach(ctx) {
 
   function getDockerCommands(version) {
     const tag = version ? `v${normalizeVersionTag(version)}` : 'vX.Y.Z';
-    return [
-      `docker pull ${GHCR_IMAGE}:${tag}`,
-      'docker compose pull',
-      'docker compose up -d',
-    ];
+    return [`docker pull ${GHCR_IMAGE}:${tag}`, 'docker compose pull', 'docker compose up -d'];
   }
 
   ctx.services.admin = {

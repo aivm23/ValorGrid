@@ -42,7 +42,10 @@ test('operations.js renders KPI cards with semantic border classes and metric-mi
   assert.ok(body.performance.netContributed > 0, 'netContributed is positive');
 
   // Verify the operations.js source uses semantic border classes
-  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
+  const ops = [
+    read(path.join('apps', 'web', 'src', 'operations.js')),
+    read(path.join('apps', 'web', 'src', 'operations-metric-renderer.js')),
+  ].join('\n');
   assert.ok(ops.includes('has-border-accent'), 'operations uses has-border-accent');
   assert.ok(ops.includes('has-border-positive'), 'operations uses has-border-positive');
   assert.ok(ops.includes('has-border-amber'), 'operations uses has-border-amber');
@@ -161,11 +164,17 @@ test('liquidity is separated from groups and instruments in the values dialog', 
   assert.ok(html.includes('id="new-liquidity-balance"'), 'liquidity section edits current balance directly');
   assert.ok(!html.includes('new-liquidity-date'), 'liquidity section does not ask for a date');
   assert.ok(html.includes('instrument-config-section--groups'), 'values dialog separates the groups row visually');
-  assert.ok(html.includes('instrument-config-section--liquidity'), 'values dialog separates the liquidity row visually');
+  assert.ok(
+    html.includes('instrument-config-section--liquidity'),
+    'values dialog separates the liquidity row visually',
+  );
   assert.ok(html.includes('instrument-config-section--values'), 'values dialog separates the instruments row visually');
   assert.ok(app.includes("from './liquidity.js'"), 'frontend imports liquidity module');
   assert.ok(app.includes('attachLiquidity'), 'frontend attaches liquidity module during startup');
-  assert.ok(dom.includes("document.querySelector('#create-liquidity-account')"), 'DOM registers create liquidity button');
+  assert.ok(
+    dom.includes("document.querySelector('#create-liquidity-account')"),
+    'DOM registers create liquidity button',
+  );
   assert.ok(dashboard.includes("ctx.fetchJson('/api/liquidity')"), 'dashboard loads liquidity state');
   assert.ok(dashboard.includes('ctx.renderLiquidity?.()'), 'dashboard renders liquidity section');
   assert.ok(routes.includes('route-liquidity'), 'backend registers liquidity routes');
@@ -177,10 +186,23 @@ test('liquidity is separated from groups and instruments in the values dialog', 
   assert.ok(liquidity.includes('data-save-liquidity'), 'liquidity rows expose save action');
   assert.ok(!liquidity.includes('data-delete-liquidity'), 'liquidity rows do not expose per-row delete action');
   assert.ok(liquidity.includes('selectedLiquiditySymbols'), 'liquidity selection is stored in state');
-  assert.ok(liquidity.includes('class="row-select row-select-only"'), 'liquidity visibility uses standard checkbox styling');
-  assert.ok(!liquidity.includes('data-liquidity-field="showInDistribution"') || !liquidity.includes('class="switch-field"><input type="checkbox" data-liquidity-field="showInDistribution"'), 'liquidity does not use switch-field checkbox styling');
-  assert.ok(operations.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"), 'normal instrument table excludes cash');
-  assert.ok(forms.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"), 'operation selectors exclude cash');
+  assert.ok(
+    liquidity.includes('class="row-select row-select-only"'),
+    'liquidity visibility uses standard checkbox styling',
+  );
+  assert.ok(
+    !liquidity.includes('data-liquidity-field="showInDistribution"') ||
+      !liquidity.includes('class="switch-field"><input type="checkbox" data-liquidity-field="showInDistribution"'),
+    'liquidity does not use switch-field checkbox styling',
+  );
+  assert.ok(
+    operations.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"),
+    'normal instrument table excludes cash',
+  );
+  assert.ok(
+    forms.includes("instrument.type !== 'fx' && instrument.type !== 'cash'"),
+    'operation selectors exclude cash',
+  );
   assert.ok(workflow.includes("item.type !== 'fx' && item.type !== 'cash'"), 'import matching excludes cash');
   assert.ok(css.includes('.instrument-config-section-head'), 'CSS styles values dialog section headers');
   assert.ok(css.includes('.liquidity-create-form input'), 'CSS styles liquidity form inputs');
@@ -200,7 +222,10 @@ test('frontend confirmations use the custom modal instead of native browser dial
 
   assert.ok(html.includes('id="confirm-action-dialog"'), 'index.html contains the shared confirmation dialog');
   assert.ok(app.includes("from './confirm-dialog.js'"), 'app bootstraps the confirmation dialog module');
-  assert.ok(dom.includes("document.querySelector('#confirm-action-dialog')"), 'dom.js registers confirmation dialog refs');
+  assert.ok(
+    dom.includes("document.querySelector('#confirm-action-dialog')"),
+    'dom.js registers confirmation dialog refs',
+  );
   assert.ok(confirmDialog.includes('confirmAction'), 'confirm-dialog.js exposes confirmAction');
   assert.ok(confirmDialog.includes('showModal()'), 'confirm-dialog.js uses the app modal pattern');
 
@@ -404,7 +429,10 @@ test('ledger.js uses shared helpers in renderLedger', () => {
   const ledger = read(path.join('apps', 'web', 'src', 'ledger.js'));
   assert.ok(ledger.includes('getLedgerFilterState(elements)'), 'renderLedger uses getLedgerFilterState');
   assert.ok(ledger.includes('hasActiveLedgerFilters(filters)'), 'renderLedger uses hasActiveLedgerFilters');
-  assert.ok(ledger.includes('filterLedgerTransactions(allTransactions, filters)'), 'renderLedger uses filterLedgerTransactions');
+  assert.ok(
+    ledger.includes('filterLedgerTransactions(allTransactions, filters)'),
+    'renderLedger uses filterLedgerTransactions',
+  );
 });
 
 test('ledger i18n keys include export dialog translations', () => {
@@ -464,10 +492,10 @@ test('CSS defines delete button pulse animation on hover', () => {
 
 test('CSS reduces grid line opacity in dark mode', () => {
   const css = read(path.join('apps', 'web', 'src', 'styles.css'));
-  assert.ok(css.includes('[data-theme="dark"] .history-grid-line'), 'CSS targets dark mode grid lines');
+  assert.match(css, /\[data-theme=['"]dark['"]\] \.history-grid-line/, 'CSS targets dark mode grid lines');
   assert.ok(css.includes('opacity: 0.15'), 'dark mode grid lines have reduced opacity');
   assert.ok(css.includes('.history-reference-line'), 'CSS defines reference line style');
-  assert.ok(css.includes('[data-theme="dark"] .history-reference-line'), 'CSS targets dark mode reference lines');
+  assert.match(css, /\[data-theme=['"]dark['"]\] \.history-reference-line/, 'CSS targets dark mode reference lines');
 });
 
 // ── 14) Legend separator between groups ──
@@ -564,13 +592,19 @@ test('import-workflow.js renders Pro sources in plain-text options and banners',
 test('imports.js loads import sources when opening the import dialog', () => {
   const importsSource = read(path.join('apps', 'web', 'src', 'imports.js'));
   assert.ok(importsSource.includes('async function openImportDialog()'), 'openImportDialog can await source loading');
-  assert.ok(importsSource.includes('await loadImportSources(ctx);'), 'openImportDialog refreshes import sources before showing modal');
+  assert.ok(
+    importsSource.includes('await loadImportSources(ctx);'),
+    'openImportDialog refreshes import sources before showing modal',
+  );
 });
 
 test('import-workflow.js option labels include Pro source names and edition', () => {
   const workflow = read(path.join('apps', 'web', 'src', 'import-workflow.js'));
   const helpers = read(path.join('apps', 'web', 'src', 'import-workflow-helpers.js'));
-  assert.ok(workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml, ctx.t)'), 'workflow escapes and translates options through helper');
+  assert.ok(
+    workflow.includes('renderImportSourceOptions(sources, edition, ctx.escapeHtml, ctx.t)'),
+    'workflow escapes and translates options through helper',
+  );
   assert.ok(helpers.includes('Professional Edition'), 'option labels include Professional Edition');
   assert.ok(helpers.includes('import.source.comingSoon'), 'option labels translate coming soon copy');
   assert.ok(helpers.includes('DEGIRO'), 'helpers maps degiro-csv key to DEGIRO');
@@ -606,7 +640,7 @@ test('CSS defines import-pro-banner styles', () => {
   assert.ok(css.includes('.import-pro-banner-clicktrade'), 'CSS defines .import-pro-banner-clicktrade');
   assert.ok(css.includes('.import-soon-label'), 'CSS defines .import-soon-label');
   assert.ok(css.includes('#06b6d4'), 'soon label uses cyan #06b6d4');
-assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap instead of grid to fit text');
+  assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap instead of grid to fit text');
   assert.ok(!css.includes('box-shadow: inset 3px 0 0'), 'left colored border removed from all banners');
   assert.ok(css.includes('#0891b2 8%, var(--card)'), 'both banners use same blue background');
   assert.ok(!css.includes('f59e0b 9%, var(--card)'), 'no amber background in import banners');
@@ -616,13 +650,19 @@ assert.ok(css.includes('display: flex;'), 'banner container uses flex-wrap inste
 
 test('index.html instrument type selects include crypto option', () => {
   const index = read('apps/web/index.html');
-  assert.ok(index.includes('<option value="crypto">Crypto</option>'), 'index.html contains crypto option in instrument selects');
+  assert.ok(
+    index.includes('<option value="crypto">Crypto</option>'),
+    'index.html contains crypto option in instrument selects',
+  );
   const cryptoCount = (index.match(/<option value="crypto">Crypto<\/option>/g) || []).length;
   assert.equal(cryptoCount, 2, 'crypto option appears in both new-instrument-type and wizard-instrument-type selects');
 });
 
 test('operations.js instrument table type select includes crypto', () => {
-  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
+  const ops = [
+    read(path.join('apps', 'web', 'src', 'operations.js')),
+    read(path.join('apps', 'web', 'src', 'operations-metric-renderer.js')),
+  ].join('\n');
   assert.ok(ops.includes("instrument.type === 'crypto'"), 'operations.js references crypto instrument type');
 });
 
@@ -644,14 +684,20 @@ test('history-preferences.js keeps Professional Edition teaser without filter co
   const hp = read(path.join('apps', 'web', 'src', 'history-preferences.js'));
   assert.ok(!hp.includes('history-event-mode'), 'does not render event mode select in Community');
   assert.ok(!hp.includes('data-filter-asset'), 'does not render asset filter controls in Community');
-  assert.ok(!hp.includes("sendJson('/api/preferences/ui', 'PUT', { historyEventFilters"), 'does not save history preferences in Community');
+  assert.ok(
+    !hp.includes("sendJson('/api/preferences/ui', 'PUT', { historyEventFilters"),
+    'does not save history preferences in Community',
+  );
 });
 
 test('forms.js sends unitPrice in transaction payload', () => {
   const forms = read(path.join('apps', 'web', 'src', 'forms.js'));
   assert.ok(forms.includes('payload.unitPrice'), 'forms.js sends unitPrice payload');
   assert.ok(forms.includes('date: ctx.elements.addDate.value, entryMode'), 'forms.js sends entryMode payload');
-  assert.ok(forms.includes("preview.type === 'remove' && preview.entryMode === 'manual_total_eur'"), 'forms.js labels manual EUR sells');
+  assert.ok(
+    forms.includes("preview.type === 'remove' && preview.entryMode === 'manual_total_eur'"),
+    'forms.js labels manual EUR sells',
+  );
   assert.ok(forms.includes('payload.priceCurrency'), 'forms.js sends manual price currency payload');
   assert.ok(
     forms.indexOf("entryMode === 'manual_unit_price'") > forms.indexOf("entryMode === 'manual_total_eur'"),
@@ -668,8 +714,14 @@ test('operation modal uses transaction entry mode tabs with common fields outsid
   assert.ok(index.includes('value="market_eur"'), 'operation modal includes market EUR mode');
   assert.ok(index.includes('value="manual_total_eur"'), 'operation modal includes manual total EUR mode');
   assert.ok(index.includes('value="manual_unit_price"'), 'operation modal includes manual unit price mode');
-  assert.ok(index.indexOf('id="add-date"') < index.indexOf('id="add-calculation-section"'), 'date remains outside tabs');
-  assert.ok(index.indexOf('id="add-commission-field"') > index.indexOf('id="add-calculation-section"'), 'commission remains after tabs');
+  assert.ok(
+    index.indexOf('id="add-date"') < index.indexOf('id="add-calculation-section"'),
+    'date remains outside tabs',
+  );
+  assert.ok(
+    index.indexOf('id="add-commission-field"') > index.indexOf('id="add-calculation-section"'),
+    'commission remains after tabs',
+  );
   assert.ok(modes.includes("operationType.value === 'remove'"), 'sell mode is handled separately');
   assert.ok(modes.includes("return 'manual_total_eur'"), 'sell mode always resolves to manual total EUR');
   assert.ok(modes.includes('addEntryModeTabs.hidden = isSell'), 'sell mode hides entry mode tabs');
@@ -713,10 +765,13 @@ test('deploy/sql/update-3.15.0-to-3.16.0.sql contains crypto CHECK', () => {
 // ── 15) Operativa section microcopy and tooltips ──
 
 test('operations.js Operativa cards use improved microcopy and tooltips', () => {
-  const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
+  const ops = [
+    read(path.join('apps', 'web', 'src', 'operations.js')),
+    read(path.join('apps', 'web', 'src', 'operations-metric-renderer.js')),
+  ].join('\n');
 
   // metricInfo helper defined
-  assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in operations.js');
+  assert.ok(ops.includes('function metricInfo'), 'metricInfo helper defined in the operations renderer');
 
   // Tooltip IDs for buttons i
   assert.ok(ops.includes('op-contributed-info'), 'tooltip id for aportado neto');
@@ -734,12 +789,24 @@ test('operations.js Operativa cards use improved microcopy and tooltips', () => 
 
   // New microcopy for Resultado total
   assert.ok(ops.includes('operations.metrics.totalGain.micro.withdrawn'), 'resultado microcopy: withdrawn key');
-  assert.ok(ops.includes('operations.metrics.totalGain.micro.noContribution'), 'resultado microcopy: no contribution key');
-  assert.ok(ops.includes('operations.metrics.totalGain.micro.overContributed'), 'resultado microcopy: over contributed key');
+  assert.ok(
+    ops.includes('operations.metrics.totalGain.micro.noContribution'),
+    'resultado microcopy: no contribution key',
+  );
+  assert.ok(
+    ops.includes('operations.metrics.totalGain.micro.overContributed'),
+    'resultado microcopy: over contributed key',
+  );
 
   // New microcopy for Plusvalía latente
-  assert.ok(ops.includes('operations.metrics.unrealizedGain.micro.openInvestment'), 'latent microcopy: open investment key');
-  assert.ok(ops.includes('operations.metrics.unrealizedGain.micro.noOpenInvestment'), 'latent microcopy: no open investment key');
+  assert.ok(
+    ops.includes('operations.metrics.unrealizedGain.micro.openInvestment'),
+    'latent microcopy: open investment key',
+  );
+  assert.ok(
+    ops.includes('operations.metrics.unrealizedGain.micro.noOpenInvestment'),
+    'latent microcopy: no open investment key',
+  );
 
   // Plusvalía realizada copy updated
   assert.ok(ops.includes('operations.metrics.realizedGain.micro'), 'realized copy i18n key');
@@ -768,11 +835,17 @@ test('index.html details is closed by default (no open attribute) with community
 test('CSS keeps Community teaser styles and no active PRO preference styles', () => {
   const css = read('apps/web/src/styles.css');
   assert.ok(!css.includes('.pro-preferences-card[open] .pro-preferences-summary'), 'old rule removed');
-  assert.ok(css.includes('.pro-preferences-card.is-community-edition[open] .pro-preferences-summary'), 'Community rule keeps summary visible');
+  assert.ok(
+    css.includes('.pro-preferences-card.is-community-edition[open] .pro-preferences-summary'),
+    'Community rule keeps summary visible',
+  );
   assert.ok(!css.includes('.pro-preferences-card.is-pro-edition'), 'active PRO card styles live outside Community');
   assert.ok(!css.includes('.operations-preference-row'), 'active PRO operations styles live outside Community');
   assert.ok(!css.includes('.history-filter-checkbox'), 'active PRO history filter styles live outside Community');
-  assert.ok(!css.includes('.return-breakdown-visibility-toggle'), 'active PRO return breakdown styles live outside Community');
+  assert.ok(
+    !css.includes('.return-breakdown-visibility-toggle'),
+    'active PRO return breakdown styles live outside Community',
+  );
   assert.ok(!css.includes('.dashboard-layout-row'), 'active PRO dashboard layout styles live outside Community');
 });
 
@@ -780,7 +853,10 @@ test('community operations panel keeps fixed summaries and no metric selector wi
   const ops = read(path.join('apps', 'web', 'src', 'operations.js'));
   assert.ok(ops.includes('const metricIds = DEFAULT_OPERATION_METRIC_IDS'), 'performance cards use fixed defaults');
   assert.ok(!ops.includes('operation-metric-select'), 'does not render metric selector controls');
-  assert.ok(!ops.includes("sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds"), 'does not save metric preferences');
+  assert.ok(
+    !ops.includes("sendJson('/api/preferences/ui', 'PUT', { operationsMetricIds"),
+    'does not save metric preferences',
+  );
 });
 
 test('community history rendering shows all events and no filter predicate', () => {
@@ -893,7 +969,10 @@ test('dashboard.js computeProviderStatus tooltip includes provider names', () =>
 test('dom.js registers marketProviderStatus and tooltip elements', () => {
   const dom = read(path.join('apps', 'web', 'src', 'dom.js'));
   assert.ok(dom.includes("document.querySelector('#market-provider-status')"), 'dom.js registers marketProviderStatus');
-  assert.ok(dom.includes("document.querySelector('#market-provider-status-tooltip')"), 'dom.js registers marketProviderStatusTooltip');
+  assert.ok(
+    dom.includes("document.querySelector('#market-provider-status-tooltip')"),
+    'dom.js registers marketProviderStatusTooltip',
+  );
 });
 
 test('styles.css defines provider status indicator classes and custom tooltip', () => {
@@ -914,7 +993,9 @@ test('styles.css defines provider status indicator classes and custom tooltip', 
 });
 
 test('computeProviderStatus helper returns correct level for each provider state combination', async () => {
-  const { computeProviderStatus } = await import(pathToFileURL(path.join(root, 'apps', 'web', 'src', 'dashboard.js')).href);
+  const { computeProviderStatus } = await import(
+    pathToFileURL(path.join(root, 'apps', 'web', 'src', 'dashboard.js')).href
+  );
 
   const providers = [
     { key: 'yahoo', label: 'Yahoo Finance', enabled: true, primary: true },
@@ -1005,10 +1086,7 @@ test('Solicitar Professional Edition button links to valorgrid.app/pro', () => {
     html.includes('href="https://valorgrid.app/pro/"'),
     'Pro request link points to https://valorgrid.app/pro/',
   );
-  assert.ok(
-    html.includes('target="_blank" rel="noopener"'),
-    'Pro request link opens in a new tab safely',
-  );
+  assert.match(html, /target="_blank"\s+rel="noopener"/, 'Pro request link opens in a new tab safely');
   assert.ok(html.includes('data-i18n="pro.request"'), 'Pro request button uses i18n key');
 });
 

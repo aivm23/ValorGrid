@@ -1,10 +1,10 @@
-const { assertCtxDeps } = require('./platform/ctx-utils'), { CURRENT_SCHEMA_VERSION } = require('./platform/db-migrations');
+const { assertCtxDeps } = require('./platform/ctx-utils'),
+  { CURRENT_SCHEMA_VERSION } = require('./platform/db-migrations');
 module.exports = function attach(ctx) {
   assertCtxDeps(ctx, ['db', 'metaKeys', 'defaultInstruments', 'defaultAutoPlans'], 'schema');
   const { db, metaKeys, defaultInstruments, defaultAutoPlans } = ctx;
-
   function initDatabase() {
-  db.exec(`
+    db.exec(`
     CREATE TABLE IF NOT EXISTS instruments (
       symbol TEXT PRIMARY KEY,
       yahoo_symbol TEXT NOT NULL,
@@ -362,7 +362,7 @@ module.exports = function attach(ctx) {
       rolled_back_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `);
-  db.exec(`
+    db.exec(`
     CREATE INDEX IF NOT EXISTS idx_transactions_symbol_date_created ON transactions (symbol, date, created_at);
     CREATE INDEX IF NOT EXISTS idx_transactions_date_created ON transactions (date, created_at);
     CREATE INDEX IF NOT EXISTS idx_transactions_origin_auto_key ON transactions (origin, auto_key);
@@ -417,78 +417,78 @@ module.exports = function attach(ctx) {
     CREATE INDEX IF NOT EXISTS idx_rollback_log_rolled_back_at
       ON import_rollback_log (rolled_back_at DESC);
   `);
-  ensureMetaKey(metaKeys.ledgerVersion, 1);
-  ensureMetaKey(metaKeys.priceVersion, 1);
-  ensureMetaKey('schema_version', CURRENT_SCHEMA_VERSION);
+    ensureMetaKey(metaKeys.ledgerVersion, 1);
+    ensureMetaKey(metaKeys.priceVersion, 1);
+    ensureMetaKey('schema_version', CURRENT_SCHEMA_VERSION);
 
-  const instrumentInsert = db.prepare(`
+    const instrumentInsert = db.prepare(`
     INSERT OR IGNORE INTO instruments
       (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
-  for (const instrument of defaultInstruments) {
-    instrumentInsert.run(
-      instrument.symbol,
-      instrument.yahooSymbol,
-      instrument.name,
-      instrument.type,
-      instrument.currency,
-      instrument.color,
-      instrument.baseShares,
-      instrument.fallbackPrice,
-    );
-    db.prepare(
-      `INSERT OR IGNORE INTO instrument_identifiers
-        (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      `ident:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`,
-      instrument.symbol,
-      'manual',
-      'ticker',
-      instrument.symbol,
-      instrument.name,
-      instrument.currency,
-      null,
-      null,
-    );
-    if (instrument.yahooSymbol) {
+    for (const instrument of defaultInstruments) {
+      instrumentInsert.run(
+        instrument.symbol,
+        instrument.yahooSymbol,
+        instrument.name,
+        instrument.type,
+        instrument.currency,
+        instrument.color,
+        instrument.baseShares,
+        instrument.fallbackPrice,
+      );
       db.prepare(
         `INSERT OR IGNORE INTO instrument_identifiers
-          (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
         `ident:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`,
         instrument.symbol,
-        'yahoo',
-        'yahoo_symbol',
-        String(instrument.yahooSymbol).toUpperCase(),
+        'manual',
+        'ticker',
+        instrument.symbol,
         instrument.name,
         instrument.currency,
         null,
         null,
       );
+      if (instrument.yahooSymbol) {
+        db.prepare(
+          `INSERT OR IGNORE INTO instrument_identifiers
+          (id, instrument_symbol, provider, identifier_type, identifier_value, display_name, currency, exchange, metadata_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).run(
+          `ident:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`,
+          instrument.symbol,
+          'yahoo',
+          'yahoo_symbol',
+          String(instrument.yahooSymbol).toUpperCase(),
+          instrument.name,
+          instrument.currency,
+          null,
+          null,
+        );
+      }
     }
-  }
 
-  const planCount = db.prepare('SELECT COUNT(*) AS count FROM auto_plans').get().count;
-  if (planCount === 0) {
-    const planInsert = db.prepare(
-      'INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date, frequency, weekday) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    );
-    for (const plan of defaultAutoPlans) {
-      planInsert.run(
-        plan.symbol,
-        plan.amountEur,
-        plan.day,
-        plan.enabled ? 1 : 0,
-        plan.startDate || null,
-        plan.frequency || 'monthly',
-        plan.weekday || null,
+    const planCount = db.prepare('SELECT COUNT(*) AS count FROM auto_plans').get().count;
+    if (planCount === 0) {
+      const planInsert = db.prepare(
+        'INSERT INTO auto_plans (symbol, amount_eur, day, enabled, start_date, frequency, weekday) VALUES (?, ?, ?, ?, ?, ?, ?)',
       );
+      for (const plan of defaultAutoPlans) {
+        planInsert.run(
+          plan.symbol,
+          plan.amountEur,
+          plan.day,
+          plan.enabled ? 1 : 0,
+          plan.startDate || null,
+          plan.frequency || 'monthly',
+          plan.weekday || null,
+        );
+      }
     }
-  }
   }
 
   function ensureMetaKey(key, value) {

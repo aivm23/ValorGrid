@@ -3,7 +3,9 @@ export function renderConfirmStep(ctx, preview) {
   const canCommit = preview.canCommit;
   const fatalRows = (preview.rows || []).filter((row) => ['error', 'blocked', 'needs_mapping'].includes(row.status));
   const selectedRows = (preview.rows || []).filter((row) => row.status === 'valid');
-  const ignoredRows = (preview.rows || []).filter((row) => row.status === 'ignored' || row.status === 'duplicate' || row.status === 'skipped');
+  const ignoredRows = (preview.rows || []).filter(
+    (row) => row.status === 'ignored' || row.status === 'duplicate' || row.status === 'skipped',
+  );
 
   return `
     <div class="import-confirm-hero">
@@ -28,10 +30,11 @@ export function renderConfirmStep(ctx, preview) {
     </div>
     ${!canCommit && fatalRows.length ? `<div class="import-warning-banner"><div>No se puede importar: hay ${fatalRows.length} filas pendientes (${fatalRows.some((r) => r.status === 'needs_mapping') ? 'instrumentos sin asignar' : 'con errores'}). Resuélvelas en los pasos anteriores.</div></div>` : ''}
     <div class="import-impact-list">
-      ${(impact.instruments || [])
-        .map((item) => {
-          const liquidated = Math.abs(item.afterShares || 0) < 0.000001 && (item.beforeShares || 0) > 0;
-          return `
+      ${
+        (impact.instruments || [])
+          .map((item) => {
+            const liquidated = Math.abs(item.afterShares || 0) < 0.000001 && (item.beforeShares || 0) > 0;
+            return `
             <article class="import-impact-card">
               <div>
                 <strong>${ctx.escapeHtml(item.symbol)}</strong>
@@ -45,7 +48,8 @@ export function renderConfirmStep(ctx, preview) {
               </div>
               ${liquidated ? `<small class="import-warning-text">${ctx.t('import.confirm.liquidated')}</small>` : ''}
             </article>`;
-        })
-        .join('') || `<div class="subtle">${ctx.t('import.confirm.noOperations')}</div>`}
+          })
+          .join('') || `<div class="subtle">${ctx.t('import.confirm.noOperations')}</div>`
+      }
     </div>`;
 }

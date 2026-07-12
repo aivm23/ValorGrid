@@ -139,7 +139,10 @@ module.exports = function attach(ctx) {
          WHERE symbol = ? AND type = 'split'
          ORDER BY effective_date ASC, created_at ASC`;
     const params = toDate ? [symbol, toDate] : [symbol];
-    return db.prepare(query).all(...params).map(mapCorporateAction);
+    return db
+      .prepare(query)
+      .all(...params)
+      .map(mapCorporateAction);
   }
 
   function listSplitsUntil(toDate = null) {
@@ -159,7 +162,10 @@ module.exports = function attach(ctx) {
          WHERE type = 'split'
          ORDER BY effective_date ASC, symbol ASC, created_at ASC`;
     const params = toDate ? [toDate] : [];
-    return db.prepare(query).all(...params).map(mapCorporateAction);
+    return db
+      .prepare(query)
+      .all(...params)
+      .map(mapCorporateAction);
   }
 
   repositories.corporateActions = {

@@ -1,15 +1,25 @@
 function normalizeSourceProvider(value) {
-  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_');
 }
 
 function normalizeProviderSymbol(value) {
-  return String(value || '').trim().toUpperCase();
+  return String(value || '')
+    .trim()
+    .toUpperCase();
 }
 
 function normalizeSource(source = {}, fallback = {}) {
   const provider = normalizeSourceProvider(source.provider || fallback.provider || 'yahoo');
   const providerSymbol = String(
-    source.providerSymbol || source.provider_symbol || fallback.providerSymbol || fallback.yahooSymbol || fallback.symbol || '',
+    source.providerSymbol ||
+      source.provider_symbol ||
+      fallback.providerSymbol ||
+      fallback.yahooSymbol ||
+      fallback.symbol ||
+      '',
   ).trim();
   if (!provider || !providerSymbol) return null;
   return {

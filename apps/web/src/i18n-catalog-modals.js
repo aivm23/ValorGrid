@@ -6,7 +6,8 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'transaction.mode.manualTotal.hint': 'Usa esta opcion si tu broker te da cantidad y total liquidado en EUR.',
     'transaction.mode.manualUnit.label': 'Precio unitario',
     'transaction.mode.manualUnit.hint': 'Usa esta opcion si conoces la cantidad y el precio unitario ejecutado.',
-    'transaction.mode.sellHint': 'Registra la cantidad vendida y el importe bruto de la venta en EUR. ValorGrid no consulta mercado para ventas manuales.',
+    'transaction.mode.sellHint':
+      'Registra la cantidad vendida y el importe bruto de la venta en EUR. ValorGrid no consulta mercado para ventas manuales.',
     'transaction.field.soldQuantity': 'Cantidad vendida',
     'transaction.field.grossSellEur': 'Importe bruto venta EUR',
     'transaction.field.totalEur': 'Euros totales',
@@ -32,22 +33,28 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'group.showYtd': 'Mostrar en revisión YTD',
     'group.allowBreakdown': 'Permitir desglose',
     'group.empty': 'Sin grupos. Crea uno para clasificar valores.',
-    'import.file.invalidXlsx': 'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.',
-    'import.file.invalidCsv': 'Has seleccionado un formato CSV pero el archivo es .xlsx. Selecciona "Plantilla Excel de ValorGrid" o carga un archivo CSV.',
+    'import.file.invalidXlsx':
+      'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.',
+    'import.file.invalidCsv':
+      'Has seleccionado un formato CSV pero el archivo es .xlsx. Selecciona "Plantilla Excel de ValorGrid" o carga un archivo CSV.',
     'import.feedback.analyzing': 'Analizando importación...',
-    'import.feedback.ready': 'Previsualización preparada. Revisa instrumentos, operaciones e impacto antes de importar.',
+    'import.feedback.ready':
+      'Previsualización preparada. Revisa instrumentos, operaciones e impacto antes de importar.',
     'import.feedback.pending': 'Revisa los elementos pendientes antes de confirmar la importación.',
     'import.feedback.confirmingInstruments': 'Confirmando instrumentos...',
     'import.feedback.incompleteInstruments': 'Instrumentos incompletos - {details}',
     'import.feedback.missingFields': '{label}: falta {fields}',
-    'import.empty.instructions': 'Selecciona un archivo Excel y pulsa Analizar archivo. Despues revisaremos instrumentos, operaciones e impacto antes de guardar nada.',
+    'import.empty.instructions':
+      'Selecciona un archivo Excel y pulsa Analizar archivo. Despues revisaremos instrumentos, operaciones e impacto antes de guardar nada.',
     'import.row.commission': 'Comisión',
     'import.row.zeroPrice': 'Precio original 0 EUR (split/dividendo)',
     'delete.transactions.title': 'Eliminar movimientos',
-    'delete.transactions.subtitle': 'Confirma el impacto antes de borrar. El histórico se recalculará desde el primer movimiento afectado.',
+    'delete.transactions.subtitle':
+      'Confirma el impacto antes de borrar. El histórico se recalculará desde el primer movimiento afectado.',
     'delete.transactions.confirm': 'Eliminar movimientos',
     'delete.transactions.impactTitle': 'Impacto en histórico',
-    'delete.transactions.impactText': 'Se invalidará la curva histórica desde {date} y se recalcularán dashboard, YTD y ledger.',
+    'delete.transactions.impactText':
+      'Se invalidará la curva histórica desde {date} y se recalcularán dashboard, YTD y ledger.',
     'delete.transactions.firstAffectedDate': 'la primera fecha afectada',
     'delete.transactions.more.one': 'Y 1 movimiento más.',
     'delete.transactions.more.other': 'Y {count} movimientos más.',
@@ -75,9 +82,12 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'dividends.pending': 'Pendientes',
     'dividends.estimatedTotal': 'Total estimado',
     'dividends.latestScan': 'Última búsqueda',
-    'dividends.empty': 'Sin dividendos pendientes. ValorGrid busca dividendos automáticamente al iniciar la aplicación.',
-    'dividends.mismatchWarning': 'El total ha sido ajustado manualmente y puede no coincidir exactamente con dividendo por accion x acciones x cambio.',
-    'dividends.splitWarning': 'Yahoo Finance informa de un split o dividend split relacionado con este valor. ValorGrid todavía no trata splits de dividendos; será una mejora futura de una próxima edición.',
+    'dividends.empty':
+      'Sin dividendos pendientes. ValorGrid busca dividendos automáticamente al iniciar la aplicación.',
+    'dividends.mismatchWarning':
+      'El total ha sido ajustado manualmente y puede no coincidir exactamente con dividendo por accion x acciones x cambio.',
+    'dividends.splitWarning':
+      'Yahoo Finance informa de un split o dividend split relacionado con este valor. ValorGrid todavía no trata splits de dividendos; será una mejora futura de una próxima edición.',
     'dividends.badge': 'Dividendo',
     'dividends.exDate': 'Fecha derecho: {date}',
     'dividends.currency': 'Divisa: {currency}',
@@ -102,14 +112,15 @@ export const MODAL_TEXT_TRANSLATIONS = {
     Cantidad: 'Cantidad',
     Precio: 'Precio',
     Valor: 'Valor',
-    'Comisión': 'Comisión',
+    Comisión: 'Comisión',
     Manual: 'Manual',
-    'Automático': 'Automático',
+    Automático: 'Automático',
     Importado: 'Importado',
     Dividendo: 'Dividendo',
     'Crear valor nuevo': 'Crear valor nuevo',
     'Valores y grupos': 'Valores y grupos',
-    'Define la estructura de cartera, los grupos visibles y los desgloses.': 'Define la estructura de cartera, los grupos visibles y los desgloses.',
+    'Define la estructura de cartera, los grupos visibles y los desgloses.':
+      'Define la estructura de cartera, los grupos visibles y los desgloses.',
     'Usar grupos de valores': 'Usar grupos de valores',
     'Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.':
       'Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.',
@@ -124,7 +135,7 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.':
       'Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.',
     'Listado de valores': 'Listado de valores',
-    'Posición': 'Posición',
+    Posición: 'Posición',
     'Con posición abierta': 'Con posición abierta',
     'Sin posición abierta': 'Sin posición abierta',
     'Ref. Proveedor': 'Ref. Proveedor',
@@ -136,7 +147,8 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.':
       'Asistente de conciliación - revisa instrumentos, operaciones e impacto antes de guardar.',
     'Descarga la plantilla': 'Descarga la plantilla',
-    'Excel oficial de ValorGrid con instrucciones y ejemplos.': 'Excel oficial de ValorGrid con instrucciones y ejemplos.',
+    'Excel oficial de ValorGrid con instrucciones y ejemplos.':
+      'Excel oficial de ValorGrid con instrucciones y ejemplos.',
     'Descargar plantilla': 'Descargar plantilla',
     'Rellena tus movimientos': 'Rellena tus movimientos',
     'Completa la hoja Movimientos con tus operaciones.': 'Completa la hoja Movimientos con tus operaciones.',
@@ -156,7 +168,8 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'transaction.mode.manualTotal.hint': 'Use this option when your broker provides quantity and total settled in EUR.',
     'transaction.mode.manualUnit.label': 'Unit price',
     'transaction.mode.manualUnit.hint': 'Use this option when you know the executed quantity and unit price.',
-    'transaction.mode.sellHint': 'Enter the sold quantity and gross sale amount in EUR. ValorGrid does not query market data for manual sales.',
+    'transaction.mode.sellHint':
+      'Enter the sold quantity and gross sale amount in EUR. ValorGrid does not query market data for manual sales.',
     'transaction.field.soldQuantity': 'Sold quantity',
     'transaction.field.grossSellEur': 'Gross sale amount EUR',
     'transaction.field.totalEur': 'Total EUR',
@@ -182,22 +195,27 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'group.showYtd': 'Show in YTD review',
     'group.allowBreakdown': 'Allow breakdown',
     'group.empty': 'No groups. Create one to classify instruments.',
-    'import.file.invalidXlsx': 'You selected "ValorGrid Excel template", but the file is not .xlsx. Select the correct format or change the data source.',
-    'import.file.invalidCsv': 'You selected a CSV format, but the file is .xlsx. Select "ValorGrid Excel template" or upload a CSV file.',
+    'import.file.invalidXlsx':
+      'You selected "ValorGrid Excel template", but the file is not .xlsx. Select the correct format or change the data source.',
+    'import.file.invalidCsv':
+      'You selected a CSV format, but the file is .xlsx. Select "ValorGrid Excel template" or upload a CSV file.',
     'import.feedback.analyzing': 'Analyzing import...',
     'import.feedback.ready': 'Preview ready. Review instruments, operations and impact before importing.',
     'import.feedback.pending': 'Review pending items before confirming the import.',
     'import.feedback.confirmingInstruments': 'Confirming instruments...',
     'import.feedback.incompleteInstruments': 'Incomplete instruments - {details}',
     'import.feedback.missingFields': '{label}: missing {fields}',
-    'import.empty.instructions': 'Select an Excel file and click Analyze file. Then we will review instruments, operations and impact before saving anything.',
+    'import.empty.instructions':
+      'Select an Excel file and click Analyze file. Then we will review instruments, operations and impact before saving anything.',
     'import.row.commission': 'Fee',
     'import.row.zeroPrice': 'Original price 0 EUR (split/dividend)',
     'delete.transactions.title': 'Delete movements',
-    'delete.transactions.subtitle': 'Confirm the impact before deleting. History will be recalculated from the first affected movement.',
+    'delete.transactions.subtitle':
+      'Confirm the impact before deleting. History will be recalculated from the first affected movement.',
     'delete.transactions.confirm': 'Delete movements',
     'delete.transactions.impactTitle': 'History impact',
-    'delete.transactions.impactText': 'The historical curve will be invalidated from {date}, and dashboard, YTD and ledger will be recalculated.',
+    'delete.transactions.impactText':
+      'The historical curve will be invalidated from {date}, and dashboard, YTD and ledger will be recalculated.',
     'delete.transactions.firstAffectedDate': 'the first affected date',
     'delete.transactions.more.one': 'And 1 more movement.',
     'delete.transactions.more.other': 'And {count} more movements.',
@@ -226,8 +244,10 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'dividends.estimatedTotal': 'Estimated total',
     'dividends.latestScan': 'Latest scan',
     'dividends.empty': 'No pending dividends. ValorGrid searches for dividends automatically when the app starts.',
-    'dividends.mismatchWarning': 'The total was adjusted manually and may not exactly match dividend per share x shares x FX.',
-    'dividends.splitWarning': 'Yahoo Finance reports a split or dividend split related to this instrument. ValorGrid does not process dividend splits yet; it will be improved in a future edition.',
+    'dividends.mismatchWarning':
+      'The total was adjusted manually and may not exactly match dividend per share x shares x FX.',
+    'dividends.splitWarning':
+      'Yahoo Finance reports a split or dividend split related to this instrument. ValorGrid does not process dividend splits yet; it will be improved in a future edition.',
     'dividends.badge': 'Dividend',
     'dividends.exDate': 'Ex-date: {date}',
     'dividends.currency': 'Currency: {currency}',
@@ -296,7 +316,8 @@ export const MODAL_TEXT_TRANSLATIONS = {
       'No open position is available. Register a buy before adding a sale.',
     'No hay valores creados. Crea un valor antes de registrar compras.':
       'No instruments have been created. Create an instrument before registering buys.',
-    'Indica la cantidad vendida y el importe bruto de venta en EUR.': 'Enter the sold quantity and gross sale amount in EUR.',
+    'Indica la cantidad vendida y el importe bruto de venta en EUR.':
+      'Enter the sold quantity and gross sale amount in EUR.',
     'Indica el total en euros, o bien la cantidad con su precio unitario.':
       'Enter the total in euros, or the quantity with its unit price.',
     'Validando precio y movimiento...': 'Validating price and movement...',
@@ -316,14 +337,15 @@ export const MODAL_TEXT_TRANSLATIONS = {
     Cantidad: 'Quantity',
     Precio: 'Price',
     Valor: 'Value',
-    'Comisión': 'Fee',
+    Comisión: 'Fee',
     Manual: 'Manual',
-    'Automático': 'Automatic',
+    Automático: 'Automatic',
     Importado: 'Imported',
     Dividendo: 'Dividend',
     'Crear valor nuevo': 'Create new instrument',
     'Valores y grupos': 'Instruments and groups',
-    'Define la estructura de cartera, los grupos visibles y los desgloses.': 'Define portfolio structure, visible groups and breakdowns.',
+    'Define la estructura de cartera, los grupos visibles y los desgloses.':
+      'Define portfolio structure, visible groups and breakdowns.',
     'Usar grupos de valores': 'Use instrument groups',
     'Al desactivarlo, los instrumentos se gestionan sin grupos y el dashboard se muestra por instrumento.':
       'When disabled, instruments are managed without groups and the dashboard is shown by instrument.',
@@ -338,7 +360,7 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'Selecciona el tipo y completa los datos. El proveedor de precios (Yahoo Finance o Alpha Vantage) se asigna automáticamente.':
       'Select the type and complete the fields. The price provider (Yahoo Finance or Alpha Vantage) is assigned automatically.',
     'Listado de valores': 'Instrument list',
-    'Posición': 'Position',
+    Posición: 'Position',
     'Con posición abierta': 'With open position',
     'Sin posición abierta': 'Without open position',
     'Ref. Proveedor': 'Provider ref.',
@@ -350,7 +372,8 @@ export const MODAL_TEXT_TRANSLATIONS = {
     'Asistente de conciliación — revisa instrumentos, operaciones e impacto antes de guardar.':
       'Reconciliation assistant - review instruments, operations and impact before saving.',
     'Descarga la plantilla': 'Download the template',
-    'Excel oficial de ValorGrid con instrucciones y ejemplos.': 'Official ValorGrid Excel file with instructions and examples.',
+    'Excel oficial de ValorGrid con instrucciones y ejemplos.':
+      'Official ValorGrid Excel file with instructions and examples.',
     'Descargar plantilla': 'Download template',
     'Rellena tus movimientos': 'Fill in your movements',
     'Completa la hoja Movimientos con tus operaciones.': 'Complete the Movements sheet with your operations.',

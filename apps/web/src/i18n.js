@@ -6,7 +6,9 @@ const textOriginals = new WeakMap();
 const attrOriginals = new WeakMap();
 
 function normalizeLanguage(value) {
-  const language = String(value || '').toLowerCase().slice(0, 2);
+  const language = String(value || '')
+    .toLowerCase()
+    .slice(0, 2);
   return SUPPORTED_LANGUAGES.has(language) ? language : 'es';
 }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.32.2
+
+- chore: extend the Prettier gate to all application, script and test sources and establish an informative clone audit.
+- refactor: extract focused market-data, portfolio, transaction, import, form and renderer collaborators before applying the mechanical formatting baseline.
+- perf: add a reproducible local benchmark over the canonical synthetic dataset with median, p95, memory and static-resource measurements.
+- docs: document the extracted module boundaries and the quality and performance verification commands.
+
 ## 3.32.1
 
 - fix: make manual, reset and risk backups verify SQLite integrity before they are accepted.

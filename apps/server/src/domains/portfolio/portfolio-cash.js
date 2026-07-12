@@ -22,7 +22,8 @@ async function buildCashValuation(instrument, deps, asOfDate = null) {
   };
   if (balance <= 0.0000001) return base;
   const currency = String(instrument.currency || 'EUR').toUpperCase();
-  const fxToEur = currency === 'EUR' ? 1 : await deps.getFxToEur(currency, asOfDate || deps.getToday(), { allowStale: true });
+  const fxToEur =
+    currency === 'EUR' ? 1 : await deps.getFxToEur(currency, asOfDate || deps.getToday(), { allowStale: true });
   if (!Number.isFinite(Number(fxToEur))) return { ...base, dataQuality: 'missing_fx', valuationAvailable: false };
   const priceEur = deps.toEur(1, currency, Number(fxToEur));
   return { ...base, priceEur, currency, value: balance * priceEur, dataQuality: 'ok' };

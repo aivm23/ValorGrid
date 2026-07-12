@@ -21,8 +21,7 @@ function withDatabase(dbPath, work) {
 }
 
 function parseSchemaTableNames(schemaSource) {
-  const source =
-    schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
+  const source = schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const names = new Set();
   for (const match of source.matchAll(/\bCREATE TABLE IF NOT EXISTS\s+([a-z_][a-z0-9_]*)\s*\(/gi)) {
     names.add(match[1]);
@@ -85,15 +84,11 @@ function run() {
         const missingTables = expectedTables.filter((name) => !presentTables.includes(name));
         const metaRows = presentTables.includes('app_meta')
           ? db
-              .prepare(
-                "SELECT key, value FROM app_meta WHERE key IN ('ledger_version', 'price_version') ORDER BY key",
-              )
+              .prepare("SELECT key, value FROM app_meta WHERE key IN ('ledger_version', 'price_version') ORDER BY key")
               .all()
           : [];
         const metaMap = new Map(metaRows.map((row) => [row.key, row.value]));
-        const missingMetaKeys = ['ledger_version', 'price_version'].filter(
-          (key) => !metaMap.has(key),
-        );
+        const missingMetaKeys = ['ledger_version', 'price_version'].filter((key) => !metaMap.has(key));
         return { missingTables, missingMetaKeys, presentTables };
       });
 
@@ -116,11 +111,7 @@ function run() {
           inspection.missingMetaKeys,
         );
       } else {
-        addCheck(
-          'ok',
-          'meta-keys',
-          'app_meta keys present (ledger_version and price_version).',
-        );
+        addCheck('ok', 'meta-keys', 'app_meta keys present (ledger_version and price_version).');
       }
     } catch (error) {
       addCheck('fail', 'db-open-error', 'Failed to inspect database.', error.message);
@@ -141,9 +132,7 @@ function run() {
       process.stdout.write(`${line}\n`);
     }
   }
-  process.stdout.write(
-    `Summary: ${summary.ok} OK, ${summary.warn} WARN, ${summary.fail} FAIL\n`,
-  );
+  process.stdout.write(`Summary: ${summary.ok} OK, ${summary.warn} WARN, ${summary.fail} FAIL\n`);
   process.stdout.write(`${JSON.stringify({ dbPath }, null, 2)}\n`);
   if (summary.fail > 0) {
     process.exit(1);

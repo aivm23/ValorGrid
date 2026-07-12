@@ -55,7 +55,9 @@ export function attach(ctx) {
   }
 
   function selectVisibleGroups() {
-    ctx.state.selectedGroupIds = [...new Set([...(ctx.state.selectedGroupIds || []), ...(ctx.state.visibleGroupIds || [])])];
+    ctx.state.selectedGroupIds = [
+      ...new Set([...(ctx.state.selectedGroupIds || []), ...(ctx.state.visibleGroupIds || [])]),
+    ];
     ctx.renderGroupRows();
   }
 
@@ -82,7 +84,11 @@ export function attach(ctx) {
 
   function showTransactionDeletePreview(ids) {
     const selected = (ctx.state.transactions || []).filter((transaction) => ids.includes(String(transaction.id)));
-    const firstDate = selected.map((transaction) => transaction.date).filter(Boolean).sort()[0] || null;
+    const firstDate =
+      selected
+        .map((transaction) => transaction.date)
+        .filter(Boolean)
+        .sort()[0] || null;
     const totals = selected.reduce(
       (acc, item) => {
         acc.value += Number(item.valueEur || 0);

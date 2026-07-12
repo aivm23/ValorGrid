@@ -139,7 +139,13 @@ export function attach(ctx) {
     if (commodity) {
       if (!ctx.elements.wizardInstrumentSymbol.value) ctx.elements.wizardInstrumentSymbol.value = commodity;
       if (!ctx.elements.wizardInstrumentName.value) {
-        const labels = { GOLD: 'Gold spot', SILVER: 'Silver spot', WTI: 'WTI crude oil', BRENT: 'Brent crude oil', NATURAL_GAS: 'Natural gas' };
+        const labels = {
+          GOLD: 'Gold spot',
+          SILVER: 'Silver spot',
+          WTI: 'WTI crude oil',
+          BRENT: 'Brent crude oil',
+          NATURAL_GAS: 'Natural gas',
+        };
         ctx.elements.wizardInstrumentName.value = labels[commodity] || commodity;
       }
       ctx.elements.wizardInstrumentCurrency.value = 'USD';
@@ -154,18 +160,20 @@ export function attach(ctx) {
     const isCommodity = type === 'commodity';
     const payload = {
       useGroup,
-      group: useGroup ? {
-        name: ctx.elements.wizardGroupName.value.trim(),
-        showInDistribution: true,
-        showInMonthly: true,
-        isExpandable: false,
-      } : null,
+      group: useGroup
+        ? {
+            name: ctx.elements.wizardGroupName.value.trim(),
+            showInDistribution: true,
+            showInMonthly: true,
+            isExpandable: false,
+          }
+        : null,
       instrument: {
         symbol,
-        yahooSymbol: isCommodity ? symbol : (ctx.elements.wizardInstrumentYahoo.value.trim() || symbol),
+        yahooSymbol: isCommodity ? symbol : ctx.elements.wizardInstrumentYahoo.value.trim() || symbol,
         name: ctx.elements.wizardInstrumentName.value.trim() || symbol,
         type,
-        currency: isCommodity ? 'USD' : (ctx.elements.wizardInstrumentCurrency.value || 'EUR'),
+        currency: isCommodity ? 'USD' : ctx.elements.wizardInstrumentCurrency.value || 'EUR',
       },
       confirmRetroactive: ctx.elements.wizardPlanConfirmRetroactive.checked,
     };

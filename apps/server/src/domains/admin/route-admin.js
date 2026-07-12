@@ -7,7 +7,7 @@ function sendError(response, sendJson, error) {
 
 module.exports = async function handleAdminRoutes(ctx, request, response, url) {
   const {
-sendJson,
+    sendJson,
     getQuoteForSymbol,
     listMarketDataSources,
     buildHealth,
@@ -177,7 +177,7 @@ sendJson,
   }
 
   if (url.pathname === '/api/market-data/sources' && request.method === 'GET') {
-sendJson(response, 200, listMarketDataSources());
+    sendJson(response, 200, listMarketDataSources());
     return true;
   }
 

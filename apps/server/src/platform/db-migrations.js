@@ -33,9 +33,7 @@ function compareSemver(a, b) {
 }
 
 function tableExists(db, table) {
-  const row = db
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-    .get(table);
+  const row = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
   return Boolean(row);
 }
 
@@ -69,9 +67,7 @@ function setMetaValue(db, key, value) {
 
 function findPendingMigrations(currentVersion) {
   return MIGRATIONS.filter(
-    (m) =>
-      compareSemver(m.from, currentVersion) >= 0 &&
-      compareSemver(m.to, CURRENT_SCHEMA_VERSION) <= 0,
+    (m) => compareSemver(m.from, currentVersion) >= 0 && compareSemver(m.to, CURRENT_SCHEMA_VERSION) <= 0,
   ).sort((a, b) => compareSemver(a.from, b.from));
 }
 
@@ -200,7 +196,9 @@ function attach(ctx) {
       setMetaValue(db, LAST_MIGRATION_FROM_KEY, fromVersion);
       setMetaValue(db, LAST_MIGRATION_TO_KEY, CURRENT_SCHEMA_VERSION);
 
-      logger?.info?.(`db-migrations: migrated ${fromVersion} -> ${CURRENT_SCHEMA_VERSION}, ${applied.length} migration(s) applied`);
+      logger?.info?.(
+        `db-migrations: migrated ${fromVersion} -> ${CURRENT_SCHEMA_VERSION}, ${applied.length} migration(s) applied`,
+      );
       return {
         migrated: true,
         fromVersion,

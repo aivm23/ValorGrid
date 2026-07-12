@@ -38,7 +38,12 @@ for (let i = 0; i < args.length; i++) {
 }
 
 if (help) {
-  process.stdout.write(fs.readFileSync(__filename, 'utf8').match(/\/\*\*[\s\S]*?\*\//)[0].trim() + '\n');
+  process.stdout.write(
+    fs
+      .readFileSync(__filename, 'utf8')
+      .match(/\/\*\*[\s\S]*?\*\//)[0]
+      .trim() + '\n',
+  );
   process.exit(0);
 }
 
@@ -59,7 +64,7 @@ console.log(`${LABEL.info} SQL:  ${sqlPath}`);
 
 // ── Extraer resumen del encabezado del SQL ────────────────────────────────
 const sqlLines = fs.readFileSync(sqlPath, 'utf8').split('\n');
-const headerLines = sqlLines.filter(l => /^--/.test(l)).slice(0, 4);
+const headerLines = sqlLines.filter((l) => /^--/.test(l)).slice(0, 4);
 if (headerLines.length) {
   console.log(`${LABEL.info} Descripción:`);
   for (const h of headerLines) {
@@ -160,7 +165,10 @@ console.log(`\n${LABEL.info} Estado PRE-migración:`);
 try {
   const preRow = srcDb.prepare('SELECT COUNT(*) AS cnt FROM instruments').get();
   console.log(`  Instrumentos: ${preRow.cnt}`);
-  const preTypes = srcDb.prepare('SELECT DISTINCT type FROM instruments ORDER BY type').all().map(r => r.type);
+  const preTypes = srcDb
+    .prepare('SELECT DISTINCT type FROM instruments ORDER BY type')
+    .all()
+    .map((r) => r.type);
   console.log(`  Tipos: ${preTypes.join(', ')}`);
 } catch {
   // tabla instruments puede no existir aún
@@ -193,7 +201,10 @@ if (!dryRun) {
   try {
     const postRow = srcDb.prepare('SELECT COUNT(*) AS cnt FROM instruments').get();
     console.log(`  Instrumentos: ${postRow.cnt}`);
-    const postTypes = srcDb.prepare('SELECT DISTINCT type FROM instruments ORDER BY type').all().map(r => r.type);
+    const postTypes = srcDb
+      .prepare('SELECT DISTINCT type FROM instruments ORDER BY type')
+      .all()
+      .map((r) => r.type);
     console.log(`  Tipos: ${postTypes.join(', ')}`);
   } catch {}
 
@@ -204,7 +215,9 @@ if (!dryRun) {
   try {
     const fkRows = srcDb.prepare('PRAGMA foreign_key_check').all();
     fkOk = fkRows.length === 0;
-    console.log(`  ${fkOk ? '[PASS]' : '[FAIL]'} PRAGMA foreign_key_check: ${fkOk ? 'ok (0 filas)' : `${fkRows.length} violaciones`}`);
+    console.log(
+      `  ${fkOk ? '[PASS]' : '[FAIL]'} PRAGMA foreign_key_check: ${fkOk ? 'ok (0 filas)' : `${fkRows.length} violaciones`}`,
+    );
   } catch (err) {
     console.log(`  [FAIL] PRAGMA foreign_key_check: ${err.message}`);
   }
@@ -212,7 +225,9 @@ if (!dryRun) {
   try {
     const integrity = srcDb.prepare('PRAGMA integrity_check').all();
     integrityOk = integrity.length === 1 && integrity[0].integrity_check === 'ok';
-    console.log(`  ${integrityOk ? '[PASS]' : '[FAIL]'} PRAGMA integrity_check: ${integrityOk ? 'ok' : integrity.map(r => r.integrity_check).join('; ')}`);
+    console.log(
+      `  ${integrityOk ? '[PASS]' : '[FAIL]'} PRAGMA integrity_check: ${integrityOk ? 'ok' : integrity.map((r) => r.integrity_check).join('; ')}`,
+    );
   } catch (err) {
     console.log(`  [FAIL] PRAGMA integrity_check: ${err.message}`);
   }
@@ -224,7 +239,8 @@ if (!dryRun) {
       const oneLine = schemaRow.sql.replace(/\n\s*/g, ' ').substring(0, 120);
       console.log(`  Schema: ${oneLine}...`);
       const checkMatch = schemaRow.sql.match(/CHECK\s*\(type IN\s*\([^)]+\)/);
-      if (checkMatch) console.log(`  Tipos permitidos: ${checkMatch[0].replace(/CHECK\s*\(type IN\s*\(/, '').replace(/\)$/, '')}`);
+      if (checkMatch)
+        console.log(`  Tipos permitidos: ${checkMatch[0].replace(/CHECK\s*\(type IN\s*\(/, '').replace(/\)$/, '')}`);
     }
   } catch {}
 

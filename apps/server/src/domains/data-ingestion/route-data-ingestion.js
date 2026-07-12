@@ -71,7 +71,10 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
       const body = await readJsonBody(request);
       let riskBackup = null;
       try {
-        riskBackup = createRiskBackup({ reason: 'before-import-commit', metadata: { filename: body.filename || 'unknown' } });
+        riskBackup = createRiskBackup({
+          reason: 'before-import-commit',
+          metadata: { filename: body.filename || 'unknown' },
+        });
       } catch (backupError) {
         sendError(response, sendJson, backupError);
         return true;
@@ -93,7 +96,11 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
   if (importBatchMatch && request.method === 'GET') {
     const batchId = decodeURIComponent(importBatchMatch[1]);
     const batch = getImportBatch(batchId);
-    sendJson(response, batch ? 200 : 404, batch ? { batch, rows: getImportRows(batchId) } : { error: 'Import batch not found' });
+    sendJson(
+      response,
+      batch ? 200 : 404,
+      batch ? { batch, rows: getImportRows(batchId) } : { error: 'Import batch not found' },
+    );
     return true;
   }
 
@@ -109,15 +116,18 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
       sendJson(response, 200, { ok: true });
       return true;
     }
-      let riskBackup = null;
-      try {
-        riskBackup = createRiskBackup({ reason: 'before-import-rollback', metadata: { batchId, filename: batch.filename } });
-      } catch (backupError) {
-        sendError(response, sendJson, backupError);
-        return true;
-      }
-      rollbackImportBatch(batchId);
-      sendJson(response, 200, { ok: true, backup: riskBackup });
+    let riskBackup = null;
+    try {
+      riskBackup = createRiskBackup({
+        reason: 'before-import-rollback',
+        metadata: { batchId, filename: batch.filename },
+      });
+    } catch (backupError) {
+      sendError(response, sendJson, backupError);
+      return true;
+    }
+    rollbackImportBatch(batchId);
+    sendJson(response, 200, { ok: true, backup: riskBackup });
     return true;
   }
 

@@ -65,8 +65,7 @@ function attachBrandPalette(ctx) {
   const SKIP_GROUP_IDS = new Set(['general', 'importados']);
 
   function applyBrandPaletteToGroups() {
-    const groups = listActiveInstrumentGroups()
-      .filter((g) => !SKIP_GROUP_IDS.has(g.id));
+    const groups = listActiveInstrumentGroups().filter((g) => !SKIP_GROUP_IDS.has(g.id));
     groups.sort((a, b) => {
       if (a.displayOrder !== b.displayOrder) return a.displayOrder - b.displayOrder;
       if (a.name !== b.name) return a.name.localeCompare(b.name);

@@ -2,7 +2,22 @@ const { assertCtxDeps } = require('./ctx-utils');
 const { createBasicAuthGuard } = require('./auth');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['http', 'port', 'handleApi', 'sendJson', 'resolveRequestPath', 'fs', 'path', 'contentTypes', 'config', 'extensions'], 'http');
+  assertCtxDeps(
+    ctx,
+    [
+      'http',
+      'port',
+      'handleApi',
+      'sendJson',
+      'resolveRequestPath',
+      'fs',
+      'path',
+      'contentTypes',
+      'config',
+      'extensions',
+    ],
+    'http',
+  );
 
   const { http, port, handleApi, sendJson, resolveRequestPath, fs, path, contentTypes, config, extensions } = ctx;
   const translate = (request, message) =>
@@ -27,7 +42,9 @@ module.exports = function attach(ctx) {
       } catch (error) {
         console.error(error);
         const status = error.statusCode || 500;
-        sendJson(response, status, { error: translate(request, status === 500 ? 'Internal server error' : error.message) });
+        sendJson(response, status, {
+          error: translate(request, status === 500 ? 'Internal server error' : error.message),
+        });
       }
       return;
     }

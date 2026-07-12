@@ -39,11 +39,7 @@ function assertString(value, fieldName) {
  */
 function assertOneOf(value, allowed, fieldName) {
   if (!allowed.includes(value)) {
-    throw new AppError(
-      400,
-      `${fieldName} must be one of: ${allowed.join(', ')}`,
-      'INVALID_VALUE',
-    );
+    throw new AppError(400, `${fieldName} must be one of: ${allowed.join(', ')}`, 'INVALID_VALUE');
   }
 }
 

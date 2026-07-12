@@ -21,9 +21,7 @@ function collectSourceFiles() {
     { dir: 'test', filter: '.js' },
     { dir: 'scripts', filter: '.js' },
   ];
-  const singleFiles = [
-    'apps/web/index.html',
-  ];
+  const singleFiles = ['apps/web/index.html'];
   const result = [...singleFiles];
 
   for (const { dir, filter } of dirsToScan) {
@@ -264,9 +262,7 @@ function findIssues(relativePath) {
 
 const allIssues = targetFiles
   .filter((f) => !f.replace(/\\/g, '/').startsWith('scripts/check-spanish-docs')) // skip self
-  .flatMap((relativePath) =>
-    findIssues(relativePath).map((issue) => ({ file: relativePath, ...issue })),
-  );
+  .flatMap((relativePath) => findIssues(relativePath).map((issue) => ({ file: relativePath, ...issue })));
 
 if (allIssues.length) {
   for (const issue of allIssues) {
@@ -278,4 +274,6 @@ if (allIssues.length) {
 
 const mdCount = targetFiles.filter((f) => f.endsWith('.md')).length;
 const srcCount = targetFiles.filter((f) => !f.endsWith('.md')).length;
-process.stdout.write(`Spanish docs spellcheck passed for ${targetFiles.length} file(s) (${mdCount} Markdown, ${srcCount} source).\n`);
+process.stdout.write(
+  `Spanish docs spellcheck passed for ${targetFiles.length} file(s) (${mdCount} Markdown, ${srcCount} source).\n`,
+);

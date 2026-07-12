@@ -7,10 +7,10 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..', '..');
 
 const CHECKS = [
-  { dir: 'local',      label: 'local/' },
-  { dir: 'data',        label: 'data/ (legacy)' },
-  { dir: '.backups',    label: '.backups/ (legacy)' },
-  { dir: 'dist',        label: 'dist/ (legacy build output)' },
+  { dir: 'local', label: 'local/' },
+  { dir: 'data', label: 'data/ (legacy)' },
+  { dir: '.backups', label: '.backups/ (legacy)' },
+  { dir: 'dist', label: 'dist/ (legacy build output)' },
 ];
 
 function formatSize(bytes) {
@@ -58,7 +58,7 @@ for (const check of CHECKS) {
 // Check for *.sqlite* files in root (not in local/)
 console.log('\n[Root *.sqlite* files (outside local/)]');
 const rootEntries = fs.readdirSync(ROOT, { withFileTypes: true });
-const sqliteFiles = rootEntries.filter(e => e.isFile() && /\.sqlite/.test(e.name));
+const sqliteFiles = rootEntries.filter((e) => e.isFile() && /\.sqlite/.test(e.name));
 
 if (sqliteFiles.length === 0) {
   console.log('  None found');

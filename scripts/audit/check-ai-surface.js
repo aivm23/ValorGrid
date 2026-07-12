@@ -14,8 +14,8 @@ const sources = [
 ];
 
 const OLD_PATH_PATTERNS = [
-  { regex: /(?<![a-z/])src\//g,     label: 'src/ (without apps/server/ prefix)', skipPrefix: 'apps/server/' },
-  { regex: /(?<![a-z/])client\//g,  label: 'client/ (without apps/web/ prefix)',  skipPrefix: 'apps/web/'   },
+  { regex: /(?<![a-z/])src\//g, label: 'src/ (without apps/server/ prefix)', skipPrefix: 'apps/server/' },
+  { regex: /(?<![a-z/])client\//g, label: 'client/ (without apps/web/ prefix)', skipPrefix: 'apps/web/' },
   { regex: /(?<![a-z/])desktop\//g, label: 'desktop/ (without apps/desktop/ prefix)', skipPrefix: 'apps/desktop/' },
 ];
 
@@ -39,11 +39,13 @@ function collectMdFiles(dirs, file) {
 }
 
 const mdFiles = [];
-const sourcesNormalized = sources.map(s => path.resolve(s));
-mdFiles.push(...collectMdFiles(
-  sourcesNormalized.filter(s => fs.statSync(s).isDirectory()),
-  sourcesNormalized.find(s => fs.statSync(s).isFile())
-));
+const sourcesNormalized = sources.map((s) => path.resolve(s));
+mdFiles.push(
+  ...collectMdFiles(
+    sourcesNormalized.filter((s) => fs.statSync(s).isDirectory()),
+    sourcesNormalized.find((s) => fs.statSync(s).isFile()),
+  ),
+);
 
 let exitCode = 0;
 
@@ -59,7 +61,9 @@ for (const file of mdFiles) {
       while ((match = pattern.regex.exec(line)) !== null) {
         const before = line.slice(0, match.index);
         if (before.endsWith(pattern.skipPrefix)) continue;
-        console.log(`FAIL: ${path.relative(ROOT, file)}:${i + 1} — old path reference "${match[0]}" (${pattern.label})`);
+        console.log(
+          `FAIL: ${path.relative(ROOT, file)}:${i + 1} — old path reference "${match[0]}" (${pattern.label})`,
+        );
         exitCode = 1;
       }
     }

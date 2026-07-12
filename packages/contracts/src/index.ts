@@ -1,4 +1,3 @@
-
 /** Instrumento financiero almacenado en el ledger. */
 export interface Instrument {
   symbol: string;
@@ -212,7 +211,13 @@ export interface PriceQuote {
 export interface RouteHandlers {
   sendJson: (response: unknown, statusCode: number, payload: unknown) => void;
   readJsonBody: (request: unknown) => Promise<Record<string, unknown>>;
-  sendText: (response: unknown, statusCode: number, text: string, contentType?: string, headers?: Record<string, string>) => void;
+  sendText: (
+    response: unknown,
+    statusCode: number,
+    text: string,
+    contentType?: string,
+    headers?: Record<string, string>,
+  ) => void;
   getQuoteForSymbol: (
     symbol: string,
     date?: string | null,

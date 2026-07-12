@@ -85,4 +85,10 @@ if (insertAt === -1) {
 
 const entry = buildEntry(latestVersion);
 const nextLines = [...lines.slice(0, insertAt), entry, ...lines.slice(insertAt)];
-fs.writeFileSync(changelogPath, `${nextLines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd()}\n`);
+fs.writeFileSync(
+  changelogPath,
+  `${nextLines
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trimEnd()}\n`,
+);

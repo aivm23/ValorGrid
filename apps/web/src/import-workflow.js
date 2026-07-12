@@ -1,6 +1,5 @@
 import {
   IMPORTED_GROUP_ID,
-  IMPORTED_GROUP_NAME,
   FIELD_LABELS,
   isXlsxSource,
   canDownloadTemplate,
@@ -13,6 +12,7 @@ import {
   renderImportProBanners,
 } from './import-workflow-helpers.js';
 import { updateImportFileDisplay } from './import-file-zone.js';
+import { applyInstrumentChoices } from './import-instrument-choices.js';
 
 export {
   toBase64,
@@ -70,14 +70,14 @@ export function syncImportMode(ctx) {
   ctx.elements.importContent.closest('.field').hidden = true;
   ctx.elements.importMapping.closest('.import-advanced-options').hidden = true;
   ctx.elements.importTemplateDownload.hidden = !canDownload;
-  ctx.elements.importFile.accept = xlsxMode ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : '.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  ctx.elements.importFile.accept = xlsxMode
+    ? '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    : '.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   if (!xlsxMode) {
     ctx.elements.importSheetField.hidden = true;
     ctx.elements.importSheet.innerHTML = '';
   }
 }
-
-
 
 export function snapshotInstrumentChoices(ctx) {
   ctx.state.importInstrumentChoicesSnapshot = JSON.parse(JSON.stringify(ctx.state.importInstrumentChoices || {}));
@@ -85,7 +85,11 @@ export function snapshotInstrumentChoices(ctx) {
 
 export function ensureInstrumentChoices(ctx, preview) {
   const detected = preview?.detectedInstruments || [];
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
+  const existingSymbols = new Set(
+    (ctx.state.instruments || [])
+      .filter((item) => item.type !== 'fx' && item.type !== 'cash')
+      .map((item) => item.symbol),
+  );
   const snapshot = ctx.state.importInstrumentChoicesSnapshot;
   if (snapshot) {
     const snapshotByIsin = new Map();
@@ -99,7 +103,10 @@ export function ensureInstrumentChoices(ctx, preview) {
       const orphanedChoice = isin ? snapshotByIsin.get(isin) : null;
       if (orphanedChoice) {
         ctx.state.importInstrumentChoices[item.key] = JSON.parse(JSON.stringify(orphanedChoice));
-        if (ctx.state.importInstrumentChoices[item.key].action === 'create' && ctx.state.importInstrumentChoices[item.key].create) {
+        if (
+          ctx.state.importInstrumentChoices[item.key].action === 'create' &&
+          ctx.state.importInstrumentChoices[item.key].create
+        ) {
           ctx.state.importInstrumentChoices[item.key].create.tickerSuggestions = item.tickerSuggestions || [];
         }
       }
@@ -120,7 +127,11 @@ export function ensureInstrumentChoices(ctx, preview) {
       action: omitByDefault ? 'omit' : resolvedSymbol ? 'map' : 'create',
       symbol: resolvedSymbol,
       create: {
-        symbol: autoSuggestion ? String(autoSuggestion).replace(/\.[A-Z]+$/, '').slice(0, 10) : suggestSymbol(item.label),
+        symbol: autoSuggestion
+          ? String(autoSuggestion)
+              .replace(/\.[A-Z]+$/, '')
+              .slice(0, 10)
+          : suggestSymbol(item.label),
         yahooSymbol: autoSuggestion,
         name: item.tickerSuggestions?.[0]?.displayName || item.label || '',
         type: inferInstrumentType(item),
@@ -135,7 +146,11 @@ export function ensureInstrumentChoices(ctx, preview) {
 
 export function unresolvedInstrumentItems(ctx, preview) {
   const choices = ctx.state.importInstrumentChoices || {};
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
+  const existingSymbols = new Set(
+    (ctx.state.instruments || [])
+      .filter((item) => item.type !== 'fx' && item.type !== 'cash')
+      .map((item) => item.symbol),
+  );
   return (preview?.detectedInstruments || []).filter((item) => {
     const choice = choices[item.key] || {};
     if (choice.action === 'omit') return false;
@@ -152,9 +167,21 @@ export function unresolvedInstrumentItems(ctx, preview) {
 }
 
 export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((entry) => entry.type !== 'fx' && entry.type !== 'cash').map((entry) => entry.symbol));
+  const existingSymbols = new Set(
+    (ctx.state.instruments || [])
+      .filter((entry) => entry.type !== 'fx' && entry.type !== 'cash')
+      .map((entry) => entry.symbol),
+  );
   if (choice.action === 'omit') return true;
-  if (choice.action === 'map') return Boolean(String(choice.symbol || '').trim() && existingSymbols.has(String(choice.symbol || '').trim().toUpperCase()));
+  if (choice.action === 'map')
+    return Boolean(
+      String(choice.symbol || '').trim() &&
+      existingSymbols.has(
+        String(choice.symbol || '')
+          .trim()
+          .toUpperCase(),
+      ),
+    );
   if (choice.action === 'create') {
     const create = choice.create || {};
     return ['symbol', 'yahooSymbol', 'name', 'type', 'currency'].every((field) => String(create[field] || '').trim());
@@ -162,11 +189,13 @@ export function isInstrumentChoiceComplete(ctx, item, choice = {}) {
   return item.resolutionStatus !== 'needs_mapping';
 }
 
-
-
 export function unresolvedInstrumentDetails(ctx, preview) {
   const choices = ctx.state.importInstrumentChoices || {};
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
+  const existingSymbols = new Set(
+    (ctx.state.instruments || [])
+      .filter((item) => item.type !== 'fx' && item.type !== 'cash')
+      .map((item) => item.symbol),
+  );
   const details = [];
   for (const item of preview?.detectedInstruments || []) {
     const choice = choices[item.key] || {};
@@ -224,62 +253,6 @@ export function applyImportGroupAction(ctx, groupAction) {
   }
 }
 
-function applyInstrumentChoices(ctx, payload, preview) {
-  const choices = ctx.state.importInstrumentChoices || {};
-  const rowsByIndex = new Map((preview.rows || []).map((row) => [row.rowIndex, row]));
-  const newInstruments = [];
-  const newGroups = [];
-  const instrumentMappings = { ...(payload.instrumentMappings || {}) };
-  const existingSymbols = new Set((ctx.state.instruments || []).filter((item) => item.type !== 'fx' && item.type !== 'cash').map((item) => item.symbol));
-  const existingGroups = new Set((ctx.state.groups || []).map((item) => item.id));
-  for (const item of preview.detectedInstruments || []) {
-    const choice = choices[item.key];
-    if (!choice) continue;
-    const rowIndexes = item.rowIndexes || [];
-    if (choice.action === 'omit') {
-      rowIndexes.forEach((rowIndex) => {
-        payload.rowActions[rowIndex] = 'skip';
-      });
-      continue;
-    }
-    if (choice.action === 'map' && choice.symbol && existingSymbols.has(choice.symbol)) {
-      instrumentMappings[item.key] = choice.symbol;
-      rowIndexes.forEach((rowIndex) => {
-        payload.rowMappings[rowIndex] = { symbol: choice.symbol };
-        const row = rowsByIndex.get(rowIndex);
-        if (row?.status === 'needs_mapping') payload.rowActions[rowIndex] = 'import';
-      });
-      continue;
-    }
-    if (choice.action === 'create') {
-      const create = choice.create || {};
-      if (!create.symbol || !create.yahooSymbol || !create.name || !create.type || !create.currency) continue;
-      const symbol = String(create.symbol).trim().toUpperCase();
-      if (!existingGroups.has(IMPORTED_GROUP_ID) && !newGroups.some((group) => group.id === IMPORTED_GROUP_ID)) {
-        newGroups.push({ id: IMPORTED_GROUP_ID, name: IMPORTED_GROUP_NAME, color: '#64748b' });
-      }
-      instrumentMappings[item.key] = symbol;
-      newInstruments.push({
-        symbol,
-        yahooSymbol: String(create.yahooSymbol || symbol).trim(),
-        name: String(create.name || symbol).trim(),
-        type: String(create.type || 'stock').trim().toLowerCase(),
-        currency: String(create.currency || 'EUR').trim().toUpperCase(),
-        groupId: IMPORTED_GROUP_ID,
-        color: String(create.color || '#2563eb').trim(),
-      });
-      rowIndexes.forEach((rowIndex) => {
-        payload.rowMappings[rowIndex] = { symbol };
-        const row = rowsByIndex.get(rowIndex);
-        if (row?.status === 'needs_mapping') payload.rowActions[rowIndex] = 'import';
-      });
-    }
-  }
-  payload.instrumentMappings = instrumentMappings;
-  payload.newInstruments = newInstruments;
-  payload.newGroups = newGroups;
-}
-
 export function buildImportPayload(ctx) {
   const source = ctx.elements.importSource.value || 'valorgrid-xlsx';
   const payload = {
@@ -307,14 +280,18 @@ export function applySuggestionToChoice(ctx, key, suggestion) {
   choice.action = 'create';
   choice.create = {
     ...prev,
-    yahooSymbol: String(suggestion.yahooSymbol || prev.yahooSymbol || '').trim().toUpperCase(),
+    yahooSymbol: String(suggestion.yahooSymbol || prev.yahooSymbol || '')
+      .trim()
+      .toUpperCase(),
     symbol: String(suggestion.yahooSymbol || prev.symbol || '')
       .trim()
       .toUpperCase()
       .replace(/\.[A-Z]+$/, '')
       .slice(0, 10),
     name: String(suggestion.displayName || prev.name || '').trim(),
-    currency: String(suggestion.currency || prev.currency || 'EUR').trim().toUpperCase(),
+    currency: String(suggestion.currency || prev.currency || 'EUR')
+      .trim()
+      .toUpperCase(),
     color: prev.color || '#2563eb',
     type: prev.type || 'stock',
     groupId: prev.groupId || IMPORTED_GROUP_ID,
@@ -331,7 +308,10 @@ export function updateSheetSelector(ctx, preview) {
   }
   const selected = preview.selectedSheet || preview.sheetName || sheets[0];
   ctx.elements.importSheet.innerHTML = sheets
-    .map((sheet) => `<option value="${ctx.escapeHtml(sheet)}"${sheet === selected ? ' selected' : ''}>${ctx.escapeHtml(sheet)}</option>`)
+    .map(
+      (sheet) =>
+        `<option value="${ctx.escapeHtml(sheet)}"${sheet === selected ? ' selected' : ''}>${ctx.escapeHtml(sheet)}</option>`,
+    )
     .join('');
 }
 

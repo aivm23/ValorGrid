@@ -32,7 +32,11 @@ module.exports = async function handleLiquidityRoutes(ctx, request, response, ur
   const accountMatch = url.pathname.match(/^\/api\/liquidity\/accounts\/([^/]+)$/);
   if (accountMatch && request.method === 'PUT') {
     try {
-      sendJson(response, 200, await updateLiquidityAccount(decodeURIComponent(accountMatch[1]), await readJsonBody(request)));
+      sendJson(
+        response,
+        200,
+        await updateLiquidityAccount(decodeURIComponent(accountMatch[1]), await readJsonBody(request)),
+      );
     } catch (error) {
       sendError(response, sendJson, error);
     }

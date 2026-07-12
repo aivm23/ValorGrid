@@ -160,10 +160,19 @@ module.exports = function attach(ctx) {
   async function scanCorporateActions(input = {}) {
     const { fromDate, toDate } = normalizeScanWindow(input);
     const wanted = input.symbols?.length
-      ? new Set(input.symbols.map((symbol) => String(symbol || '').trim().toUpperCase()).filter(Boolean))
+      ? new Set(
+          input.symbols
+            .map((symbol) =>
+              String(symbol || '')
+                .trim()
+                .toUpperCase(),
+            )
+            .filter(Boolean),
+        )
       : null;
     const instruments = listInstruments().filter(
-      (instrument) => isSplitEligibleInstrument(instrument) && (!wanted || wanted.has(String(instrument.symbol).toUpperCase())),
+      (instrument) =>
+        isSplitEligibleInstrument(instrument) && (!wanted || wanted.has(String(instrument.symbol).toUpperCase())),
     );
     const summary = {
       scannedSymbols: 0,

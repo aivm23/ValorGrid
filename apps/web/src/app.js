@@ -36,14 +36,51 @@ import { attach as attachAportaciones } from './aportaciones.js';
 import { attach as attachUpdates } from './updates.js';
 import { attach as attachEvents } from './events.js';
 
-const ctx = { fetchJson, normalizeErrorMessage, sendJson, deleteBackup, window, document, localStorage: storage, Intl, Number, Date, Math, Promise, Set, Map };
+const ctx = {
+  fetchJson,
+  normalizeErrorMessage,
+  sendJson,
+  deleteBackup,
+  window,
+  document,
+  localStorage: storage,
+  Intl,
+  Number,
+  Date,
+  Math,
+  Promise,
+  Set,
+  Map,
+};
 
 [
-  attachState, attachI18n, attachDom, attachConfirmDialog, attachFormat, attachCharts, attachSummary, attachMonthly,
-  attachLedger, attachOperations, attachLiquidity, attachDashboard, attachForms, attachTransactionEditor, attachTheme, attachHistory,
-  attachOnboarding, attachImports, attachDividends, attachPrivacy, attachBulkActions, attachHistoryPreferences,
+  attachState,
+  attachI18n,
+  attachDom,
+  attachConfirmDialog,
+  attachFormat,
+  attachCharts,
+  attachSummary,
+  attachMonthly,
+  attachLedger,
+  attachOperations,
+  attachLiquidity,
+  attachDashboard,
+  attachForms,
+  attachTransactionEditor,
+  attachTheme,
+  attachHistory,
+  attachOnboarding,
+  attachImports,
+  attachDividends,
+  attachPrivacy,
+  attachBulkActions,
+  attachHistoryPreferences,
   attachReturnBreakdownPreferences,
-  attachInstrumentColors, attachAlphaVantageSetup, attachExtensions, attachAportaciones,
+  attachInstrumentColors,
+  attachAlphaVantageSetup,
+  attachExtensions,
+  attachAportaciones,
   attachUpdates,
 ].forEach((attach) => attach(ctx));
 

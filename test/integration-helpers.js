@@ -31,10 +31,8 @@ global.fetch = async (url) => {
   const period2 = Number(parsed.searchParams.get('period2'));
   const requestedDate =
     Number.isFinite(period1) && period1 > 0 ? new Date(period1 * 1000).toISOString().slice(0, 10) : null;
-  const item =
-    (requestedDate && mockDatedPrices.get(`${yahooSymbol}:${requestedDate}`)) ||
-    mockPrices[yahooSymbol] ||
-    { price: 10, currency: 'EUR' };
+  const item = (requestedDate && mockDatedPrices.get(`${yahooSymbol}:${requestedDate}`)) ||
+    mockPrices[yahooSymbol] || { price: 10, currency: 'EUR' };
   const marketTime = Number.isFinite(period1) && period1 > 0 ? period1 + 43200 : 1778796000;
   const timestamps = [];
   const closes = [];
@@ -69,7 +67,10 @@ global.fetch = async (url) => {
         events.splits = Object.fromEntries(
           splits.map((event) => {
             const timestamp = Date.parse(`${event.date}T00:00:00Z`) / 1000;
-            return [String(timestamp), { date: timestamp, numerator: event.numerator || 1, denominator: event.denominator || 1 }];
+            return [
+              String(timestamp),
+              { date: timestamp, numerator: event.numerator || 1, denominator: event.denominator || 1 },
+            ];
           }),
         );
       }
@@ -122,7 +123,14 @@ function cachePrice(yahooSymbol, requestedDate, price, currency = 'EUR', marketD
   ).run(yahooSymbol, requestedDate, marketDate, price, currency);
 }
 
-function seedTestInstrument({ symbol, yahooSymbol, name = symbol, type = 'stock', currency = 'EUR', color = '#0d9488' }) {
+function seedTestInstrument({
+  symbol,
+  yahooSymbol,
+  name = symbol,
+  type = 'stock',
+  currency = 'EUR',
+  color = '#0d9488',
+}) {
   db.prepare(
     `INSERT OR REPLACE INTO instruments
       (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active)
@@ -134,7 +142,8 @@ function plainCellValue(cell) {
   const value = cell?.value;
   if (value === null || value === undefined) return '';
   if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value === 'object' && Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if (typeof value === 'object' && Array.isArray(value.richText))
+    return value.richText.map((part) => part.text || '').join('');
   if (typeof value === 'object' && value.text) return String(value.text);
   if (typeof value === 'object' && value.result !== undefined) return value.result;
   return value;
@@ -207,11 +216,6 @@ async function jsonRequest(pathname, options = {}) {
   const body = await response.json().catch(() => ({}));
   return { response, body };
 }
-
-
-
-
-
 
 function registerLifecycle(testRunner = test) {
   testRunner.before(async () => {

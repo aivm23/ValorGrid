@@ -42,8 +42,7 @@ function resolveDatabaseArtifacts(dbPath) {
 }
 
 function parseSchemaTableNames(schemaSource) {
-  const source =
-    schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
+  const source = schemaSource || fs.readFileSync(path.join(repoRoot(), 'apps', 'server', 'src', 'schema.js'), 'utf8');
   const names = new Set();
   for (const match of source.matchAll(/\bCREATE TABLE IF NOT EXISTS\s+([a-z_][a-z0-9_]*)\s*\(/gi)) {
     names.add(match[1]);
@@ -120,9 +119,7 @@ function inspectDatabase(dbPath) {
     const missingTables = expectedTables.filter((name) => !presentTables.includes(name));
     const metaRows = presentTables.includes('app_meta')
       ? db
-          .prepare(
-            "SELECT key, value FROM app_meta WHERE key IN ('ledger_version', 'price_version') ORDER BY key",
-          )
+          .prepare("SELECT key, value FROM app_meta WHERE key IN ('ledger_version', 'price_version') ORDER BY key")
           .all()
       : [];
     const metaMap = new Map(metaRows.map((row) => [row.key, row.value]));
@@ -151,11 +148,7 @@ function inspectDatabase(dbPath) {
   });
 }
 
-function resetDatabase({
-  env = process.env,
-  root = repoRoot(),
-  createBackupFn = createBackupForPath,
-} = {}) {
+function resetDatabase({ env = process.env, root = repoRoot(), createBackupFn = createBackupForPath } = {}) {
   const config = resolveRuntimeConfig(env, root);
   const { dbPath, backupDir } = config;
   assertResetPathSafety(dbPath, { root, env });

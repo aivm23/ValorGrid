@@ -2,20 +2,122 @@ const defaultFrom = '2020-01-01';
 const defaultTo = '2026-05-16';
 
 const instruments = [
-  { symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock', currency: 'EUR', color: '#0d9488', base: 39 },
-  { symbol: 'GOOG', yahooSymbol: 'GOOG', name: 'Alphabet', type: 'stock', currency: 'USD', color: '#ea580c', base: 367 },
-  { symbol: 'META', yahooSymbol: 'META', name: 'Meta Platforms', type: 'stock', currency: 'USD', color: '#16a34a', base: 577 },
-  { symbol: 'MSFT', yahooSymbol: 'MSFT', name: 'Microsoft', type: 'stock', currency: 'USD', color: '#0891b2', base: 379 },
+  {
+    symbol: 'NVO',
+    yahooSymbol: 'NOV.DE',
+    name: 'Novo Nordisk',
+    type: 'stock',
+    currency: 'EUR',
+    color: '#0d9488',
+    base: 39,
+  },
+  {
+    symbol: 'GOOG',
+    yahooSymbol: 'GOOG',
+    name: 'Alphabet',
+    type: 'stock',
+    currency: 'USD',
+    color: '#ea580c',
+    base: 367,
+  },
+  {
+    symbol: 'META',
+    yahooSymbol: 'META',
+    name: 'Meta Platforms',
+    type: 'stock',
+    currency: 'USD',
+    color: '#16a34a',
+    base: 577,
+  },
+  {
+    symbol: 'MSFT',
+    yahooSymbol: 'MSFT',
+    name: 'Microsoft',
+    type: 'stock',
+    currency: 'USD',
+    color: '#0891b2',
+    base: 379,
+  },
   { symbol: 'AAPL', yahooSymbol: 'AAPL', name: 'Apple', type: 'stock', currency: 'USD', color: '#be123c', base: 298 },
-  { symbol: 'SPPW', yahooSymbol: 'SPPW.DE', name: 'ETF MSCI World', type: 'etf', currency: 'EUR', color: '#a855f7', base: 46 },
-  { symbol: 'ICGA', yahooSymbol: 'ICGA.DE', name: 'ETF MSCI China', type: 'etf', currency: 'EUR', color: '#dc2626', base: 5 },
+  {
+    symbol: 'SPPW',
+    yahooSymbol: 'SPPW.DE',
+    name: 'ETF MSCI World',
+    type: 'etf',
+    currency: 'EUR',
+    color: '#a855f7',
+    base: 46,
+  },
+  {
+    symbol: 'ICGA',
+    yahooSymbol: 'ICGA.DE',
+    name: 'ETF MSCI China',
+    type: 'etf',
+    currency: 'EUR',
+    color: '#dc2626',
+    base: 5,
+  },
   { symbol: 'U308', yahooSymbol: 'URA', name: 'ETF U308', type: 'etf', currency: 'USD', color: '#f59e0b', base: 48 },
-  { symbol: 'SEMI', yahooSymbol: 'SMH', name: 'ETF Semiconductores', type: 'etf', currency: 'USD', color: '#0284c7', base: 660 },
-  { symbol: 'USDEUR', yahooSymbol: 'USDEUR=X', name: 'USD/EUR', type: 'fx', currency: 'EUR', color: '#64748b', base: 0.9 },
-  { symbol: 'GOLD', yahooSymbol: 'GC=F', name: 'Gold Spot', type: 'commodity', currency: 'USD', color: '#eab308', base: 4173, provider: 'alpha_vantage', providerSymbol: 'GOLD' },
-  { symbol: 'SILVER', yahooSymbol: 'SI=F', name: 'Silver Spot', type: 'commodity', currency: 'USD', color: '#94a3b8', base: 65, provider: 'alpha_vantage', providerSymbol: 'SILVER' },
-  { symbol: 'BRENT', yahooSymbol: 'BZ=F', name: 'Brent Crude', type: 'commodity', currency: 'USD', color: '#f97316', base: 81, provider: 'alpha_vantage', providerSymbol: 'BRENT' },
-  { symbol: 'BTC', yahooSymbol: 'BTC-EUR', name: 'Bitcoin', type: 'crypto', currency: 'EUR', color: '#f7931a', base: 70000 },
+  {
+    symbol: 'SEMI',
+    yahooSymbol: 'SMH',
+    name: 'ETF Semiconductores',
+    type: 'etf',
+    currency: 'USD',
+    color: '#0284c7',
+    base: 660,
+  },
+  {
+    symbol: 'USDEUR',
+    yahooSymbol: 'USDEUR=X',
+    name: 'USD/EUR',
+    type: 'fx',
+    currency: 'EUR',
+    color: '#64748b',
+    base: 0.9,
+  },
+  {
+    symbol: 'GOLD',
+    yahooSymbol: 'GC=F',
+    name: 'Gold Spot',
+    type: 'commodity',
+    currency: 'USD',
+    color: '#eab308',
+    base: 4173,
+    provider: 'alpha_vantage',
+    providerSymbol: 'GOLD',
+  },
+  {
+    symbol: 'SILVER',
+    yahooSymbol: 'SI=F',
+    name: 'Silver Spot',
+    type: 'commodity',
+    currency: 'USD',
+    color: '#94a3b8',
+    base: 65,
+    provider: 'alpha_vantage',
+    providerSymbol: 'SILVER',
+  },
+  {
+    symbol: 'BRENT',
+    yahooSymbol: 'BZ=F',
+    name: 'Brent Crude',
+    type: 'commodity',
+    currency: 'USD',
+    color: '#f97316',
+    base: 81,
+    provider: 'alpha_vantage',
+    providerSymbol: 'BRENT',
+  },
+  {
+    symbol: 'BTC',
+    yahooSymbol: 'BTC-EUR',
+    name: 'Bitcoin',
+    type: 'crypto',
+    currency: 'EUR',
+    color: '#f7931a',
+    base: 70000,
+  },
 ];
 
 // Alphabet's 20-for-1 split began trading on a split-adjusted basis on 2022-07-18.
@@ -37,7 +139,13 @@ const corporateActions = [
 const stockShareAmounts = [20, 12, 8, 4];
 
 const liquidityAccounts = [
-  { symbol: 'CASH_CUENTA_OPERATIVA_EUR', name: 'Cuenta operativa EUR', currency: 'EUR', color: '#06b6d4', cashBalance: 2500 },
+  {
+    symbol: 'CASH_CUENTA_OPERATIVA_EUR',
+    name: 'Cuenta operativa EUR',
+    currency: 'EUR',
+    color: '#06b6d4',
+    cashBalance: 2500,
+  },
   { symbol: 'CASH_BROKER_USD', name: 'Broker USD', currency: 'USD', color: '#0284c7', cashBalance: 1500 },
 ];
 
@@ -261,12 +369,7 @@ function seedLoadtestDb(db, options = {}) {
       );
       insertRange.run(instrument.yahooSymbol, cacheFrom, to);
       for (const date of dates) {
-        insertDaily.run(
-          instrument.yahooSymbol,
-          date,
-          deterministicPrice(instrument, date, from),
-          instrument.currency,
-        );
+        insertDaily.run(instrument.yahooSymbol, date, deterministicPrice(instrument, date, from), instrument.currency);
       }
       if (instrument.provider) {
         insertPriceSource.run(instrument.symbol, instrument.provider, instrument.providerSymbol, 0, 45);
@@ -449,7 +552,8 @@ function seedLoadtestDb(db, options = {}) {
     transactions: db.prepare('SELECT COUNT(*) AS count FROM transactions').get().count,
     prices: db.prepare('SELECT COUNT(*) AS count FROM daily_price_cache').get().count,
     corporateActions: db.prepare('SELECT COUNT(*) AS count FROM corporate_actions').get().count,
-    liquidityAccounts: db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE type = 'cash' AND active = 1").get().count,
+    liquidityAccounts: db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE type = 'cash' AND active = 1").get()
+      .count,
   };
 }
 

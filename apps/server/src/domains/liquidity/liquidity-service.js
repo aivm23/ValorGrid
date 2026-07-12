@@ -1,7 +1,11 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(ctx, ['repositories', 'normalizeSymbol', 'getToday', 'getFxToEur', 'invalidateLedger'], 'liquidity-service');
+  assertCtxDeps(
+    ctx,
+    ['repositories', 'normalizeSymbol', 'getToday', 'getFxToEur', 'invalidateLedger'],
+    'liquidity-service',
+  );
 
   const { repositories, normalizeSymbol, getToday, getFxToEur, invalidateLedger } = ctx;
   const repository = repositories.liquidity;
@@ -14,7 +18,9 @@ module.exports = function attach(ctx) {
   }
 
   function normalizeCurrency(value) {
-    const currency = String(value || 'EUR').trim().toUpperCase();
+    const currency = String(value || 'EUR')
+      .trim()
+      .toUpperCase();
     if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a 3-letter code');
     return currency;
   }
@@ -32,13 +38,15 @@ module.exports = function attach(ctx) {
   }
 
   function symbolBaseFromName(name, currency) {
-    return `CASH_${name}`
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .toUpperCase()
-      .slice(0, 32) + `_${currency}`;
+    return (
+      `CASH_${name}`
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toUpperCase()
+        .slice(0, 32) + `_${currency}`
+    );
   }
 
   function nextCashSymbol(name, currency) {
@@ -111,7 +119,9 @@ module.exports = function attach(ctx) {
       cashBalance: normalizeBalance(input.cashBalance ?? input.balance ?? existing.cashBalance),
       displayOrder: Number(input.displayOrder ?? existing.displayOrder ?? 0),
       showInDistribution:
-        input.showInDistribution === undefined ? Boolean(existing.showInDistribution) : Boolean(input.showInDistribution),
+        input.showInDistribution === undefined
+          ? Boolean(existing.showInDistribution)
+          : Boolean(input.showInDistribution),
     });
     invalidateLedger(getToday(), 'liquidity-update');
     return { account: await enrichAccount(account), state: await getLiquidityState() };

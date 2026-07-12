@@ -53,7 +53,10 @@ test('storage.js validates theme values in theme.js', () => {
   const source = fs.readFileSync(themePath, 'utf8');
   assert.ok(source.includes('dark'), 'theme.js must handle dark theme');
   assert.ok(source.includes('light'), 'theme.js must handle light theme');
-  assert.ok(source.includes('Set') || source.includes('includes') || source.includes('.has('), 'theme.js must validate against a whitelist');
+  assert.ok(
+    source.includes('Set') || source.includes('includes') || source.includes('.has('),
+    'theme.js must validate against a whitelist',
+  );
 });
 
 test('theme.js does not accept arbitrary values', () => {
@@ -61,7 +64,7 @@ test('theme.js does not accept arbitrary values', () => {
   const source = fs.readFileSync(themePath, 'utf8');
   // Must have a validation mechanism (set or explicit check)
   assert.ok(
-    source.includes('VALID_THEMES') || source.includes('dark') && source.includes('light'),
+    source.includes('VALID_THEMES') || (source.includes('dark') && source.includes('light')),
     'theme.js must validate theme values',
   );
 });

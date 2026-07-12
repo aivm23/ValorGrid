@@ -35,21 +35,38 @@ const COMMODITY_SPOT_FUNCTIONS = {
 const VALID_COMMODITIES = new Set(['WTI', 'BRENT', 'NATURAL_GAS', 'GOLD', 'SILVER']);
 
 function isCommodityProviderSymbol(value) {
-  return VALID_COMMODITIES.has(String(value || '').trim().toUpperCase());
+  return VALID_COMMODITIES.has(
+    String(value || '')
+      .trim()
+      .toUpperCase(),
+  );
 }
 
 function isCommodityType(type) {
-  return String(type || '').trim().toLowerCase() === 'commodity';
+  return (
+    String(type || '')
+      .trim()
+      .toLowerCase() === 'commodity'
+  );
 }
 
 function commodityCurrency(providerSymbol) {
-  return COMMODITY_DEFINITIONS[String(providerSymbol || '').trim().toUpperCase()]?.currency || 'USD';
+  return (
+    COMMODITY_DEFINITIONS[
+      String(providerSymbol || '')
+        .trim()
+        .toUpperCase()
+    ]?.currency || 'USD'
+  );
 }
 
 const FUNCTIONS_WITH_INTERVAL = new Set(['WTI', 'BRENT', 'NATURAL_GAS', 'GOLD_SILVER_HISTORY']);
 
 function normalizeProvider(value) {
-  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_');
 }
 
 function defaultMaxStalenessDays(source, instrument = {}) {
@@ -91,10 +108,12 @@ function makeResolvePriceSources(listPriceSourcesForInstrument) {
       .filter((source) => source.enabled && source.provider && source.providerSymbol);
     if (configured.length) return configured;
     if (isCommodityType(instrument.type) && instrument.yahoo_symbol) {
-      return [normalizeSource(
-        { provider: 'alpha_vantage', providerSymbol: instrument.yahoo_symbol, priority: 0 },
-        instrument,
-      )];
+      return [
+        normalizeSource(
+          { provider: 'alpha_vantage', providerSymbol: instrument.yahoo_symbol, priority: 0 },
+          instrument,
+        ),
+      ];
     }
     return [fallbackYahooSource(instrument, instrument.yahoo_symbol || yahooSymbol || instrument.symbol)];
   };
@@ -124,12 +143,16 @@ function alphaKey() {
 }
 
 function alphaFunctionForSource(source) {
-  const symbol = String(source.providerSymbol || '').trim().toUpperCase();
+  const symbol = String(source.providerSymbol || '')
+    .trim()
+    .toUpperCase();
   return COMMODITY_HISTORY_FUNCTIONS[symbol] || { functionName: 'TIME_SERIES_DAILY', symbol };
 }
 
 function alphaSpotFunctionForSource(source) {
-  const symbol = String(source.providerSymbol || '').trim().toUpperCase();
+  const symbol = String(source.providerSymbol || '')
+    .trim()
+    .toUpperCase();
   return COMMODITY_SPOT_FUNCTIONS[symbol] || null;
 }
 
@@ -185,7 +208,11 @@ function parseAlphaDaily(payload, source, instrument) {
       .filter((row) => row.date && Number.isFinite(row.price) && row.price > 0)
       .sort((a, b) => a.date.localeCompare(b.date));
   }
-  throw new Error(normalizeAlphaMessage(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage returned no data'));
+  throw new Error(
+    normalizeAlphaMessage(
+      payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage returned no data',
+    ),
+  );
 }
 
 function parseAlphaSpot(payload, source, instrument) {
@@ -198,7 +225,11 @@ function parseAlphaSpot(payload, source, instrument) {
       source: 'Alpha Vantage',
     };
   }
-  throw new Error(normalizeAlphaMessage(payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage spot returned no data'));
+  throw new Error(
+    normalizeAlphaMessage(
+      payload.Note || payload.Information || payload['Error Message'] || 'Alpha Vantage spot returned no data',
+    ),
+  );
 }
 
 function parseSeries(series, currency) {

@@ -18,7 +18,11 @@ export async function fetchJson(url, options = {}) {
   const timeoutId = window.setTimeout(() => controller.abort('timeout'), timeoutMs);
   let response;
   try {
-    response = await fetch(url, { cache: 'no-store', signal: controller.signal, headers: { 'Accept-Language': acceptLanguage() } });
+    response = await fetch(url, {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: { 'Accept-Language': acceptLanguage() },
+    });
   } finally {
     window.clearTimeout(timeoutId);
     if (options.signal) {

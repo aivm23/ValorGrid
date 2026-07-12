@@ -31,11 +31,20 @@ const files = fs
   .map((entry) => path.join(releaseDir, entry.name))
   .filter((filePath) => {
     const basename = path.basename(filePath);
-    return allowedNames.has(basename) || basename.startsWith('latest') || allowedExtensions.has(path.extname(filePath).toLowerCase());
+    return (
+      allowedNames.has(basename) ||
+      basename.startsWith('latest') ||
+      allowedExtensions.has(path.extname(filePath).toLowerCase())
+    );
   })
   .filter((filePath) => {
     const basename = path.basename(filePath);
-    return allowedNames.has(basename) || basename.startsWith('latest') || versionArtifactPattern.test(basename) || basename.includes(version);
+    return (
+      allowedNames.has(basename) ||
+      basename.startsWith('latest') ||
+      versionArtifactPattern.test(basename) ||
+      basename.includes(version)
+    );
   })
   .filter((filePath) => path.basename(filePath) !== 'SHA256SUMS.txt')
   .sort((a, b) => a.localeCompare(b));

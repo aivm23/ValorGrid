@@ -1,18 +1,15 @@
 const test = require('node:test');
-const {
-  assert,
-  db,
-  jsonRequest,
-  registerLifecycle,
-} = require('./integration-helpers');
+const { assert, db, jsonRequest, registerLifecycle } = require('./integration-helpers');
 
 registerLifecycle(test);
 
 test('GET /api/instrument-groups returns groups list', async () => {
   db.prepare('DELETE FROM instrument_groups WHERE id NOT IN (?)').run('general');
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('test-group', 'Test Group', '#ff0000');
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'test-group',
+    'Test Group',
+    '#ff0000',
+  );
 
   const { body, response } = await jsonRequest('/api/instrument-groups');
   assert.equal(response.status, 200);
@@ -62,9 +59,11 @@ test('DELETE /api/instrument-groups/nonexistent returns missing status', async (
 
 test('DELETE /api/instrument-groups returns blocked when group has active instruments', async () => {
   db.prepare('DELETE FROM instruments WHERE symbol = ?').run('BLOCKINSTR');
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('blocked-group', 'Blocked Group', '#ff0000');
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'blocked-group',
+    'Blocked Group',
+    '#ff0000',
+  );
   db.prepare(
     `INSERT OR REPLACE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id)
      VALUES (?, ?, ?, ?, ?, ?, 0, 0, 1, ?)`,
@@ -84,9 +83,11 @@ test('DELETE /api/instrument-groups returns blocked when group has active instru
 
 test('DELETE /api/instrument-groups returns deleted when group has no active instruments', async () => {
   db.prepare('DELETE FROM instruments WHERE symbol = ?').run('CLEANINSTR');
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('clean-group', 'Clean Group', '#00ff00');
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'clean-group',
+    'Clean Group',
+    '#00ff00',
+  );
   db.prepare(
     `INSERT OR REPLACE INTO instruments (symbol, yahoo_symbol, name, type, currency, color, base_shares, fallback_price, active, group_id)
      VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?)`,
@@ -104,12 +105,16 @@ test('DELETE /api/instrument-groups returns deleted when group has no active ins
 });
 
 test('DELETE /api/instrument-groups bulk removes multiple groups', async () => {
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('bulk-group-a', 'Bulk A', '#aa0000');
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('bulk-group-b', 'Bulk B', '#00aa00');
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'bulk-group-a',
+    'Bulk A',
+    '#aa0000',
+  );
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'bulk-group-b',
+    'Bulk B',
+    '#00aa00',
+  );
 
   const { body, response } = await jsonRequest('/api/instrument-groups', {
     method: 'DELETE',
@@ -135,9 +140,7 @@ test('areInstrumentGroupsEnabled defaults true when no app_meta value', async ()
 });
 
 test('PUT /api/instrument-groups/settings disables groups correctly', async () => {
-  db.prepare(
-    `INSERT OR REPLACE INTO app_meta (key, value) VALUES ('instr_groups_enabled', '1')`,
-  ).run();
+  db.prepare(`INSERT OR REPLACE INTO app_meta (key, value) VALUES ('instr_groups_enabled', '1')`).run();
 
   const { body, response } = await jsonRequest('/api/instrument-groups/settings', {
     method: 'PUT',
@@ -182,9 +185,11 @@ test('PUT /api/instrument-groups/settings validates enabled is boolean', async (
 
 test('POST /api/instrument-groups rejects duplicate group name', async () => {
   db.prepare("DELETE FROM instrument_groups WHERE id IN ('dup-group')");
-  db.prepare(
-    `INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`,
-  ).run('dup-group', 'Dup Group', '#ff0000');
+  db.prepare(`INSERT OR IGNORE INTO instrument_groups (id, name, color, active) VALUES (?, ?, ?, 1)`).run(
+    'dup-group',
+    'Dup Group',
+    '#ff0000',
+  );
 
   const { body, response } = await jsonRequest('/api/instrument-groups', {
     method: 'POST',

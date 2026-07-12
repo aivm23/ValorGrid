@@ -75,7 +75,7 @@ if (action === 'copy') {
 
   const legacyBackupDir = path.join(root, '.backups');
   if (fs.existsSync(legacyBackupDir)) {
-    const files = fs.readdirSync(legacyBackupDir).filter(f => f.endsWith('.sqlite'));
+    const files = fs.readdirSync(legacyBackupDir).filter((f) => f.endsWith('.sqlite'));
     for (const file of files) {
       const src = path.join(legacyBackupDir, file);
       const dst = path.join(localBackupDir, file);

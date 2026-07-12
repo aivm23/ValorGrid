@@ -11,7 +11,9 @@ function normalizeExtension(candidate, logger) {
 
   const edition = candidate.edition === 'professional' ? 'professional' : 'community';
   const features = Array.isArray(candidate.features)
-    ? candidate.features.filter((feature) => typeof feature === 'string' && feature.trim()).map((feature) => feature.trim())
+    ? candidate.features
+        .filter((feature) => typeof feature === 'string' && feature.trim())
+        .map((feature) => feature.trim())
     : [];
   const web = candidate.web && typeof candidate.web === 'object' ? candidate.web : {};
   const webRoot = web.root ? path.resolve(web.root) : null;
@@ -80,7 +82,9 @@ function createExtensionHost({ config, logger }) {
     const extension = loaded.find((item) => item.id === match[1]);
     if (!extension?.webRoot) return null;
     const resolvedPath = path.resolve(extension.webRoot, match[2]);
-    return resolvedPath.startsWith(extension.webRoot + path.sep) || resolvedPath === extension.webRoot ? resolvedPath : null;
+    return resolvedPath.startsWith(extension.webRoot + path.sep) || resolvedPath === extension.webRoot
+      ? resolvedPath
+      : null;
   }
 
   async function handleApiRoute(ctx, request, response, url) {

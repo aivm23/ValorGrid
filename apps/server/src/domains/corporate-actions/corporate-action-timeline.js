@@ -38,8 +38,7 @@ function calculateSharesWithSplits({ baseShares = 0, transactions = [], splits =
     const nextTransaction = orderedTransactions[transactionIndex];
     const nextSplit = orderedSplits[splitIndex];
     const applySplit =
-      nextSplit &&
-      (!nextTransaction || compareDate(nextSplit.effectiveDate, nextTransaction.date) <= 0);
+      nextSplit && (!nextTransaction || compareDate(nextSplit.effectiveDate, nextTransaction.date) <= 0);
 
     if (applySplit) {
       shares *= Number(nextSplit.ratio);

@@ -162,11 +162,15 @@ module.exports = function attach(ctx) {
   }
 
   function markCommittedImportRowsRolledBack(batchId) {
-    db.prepare("UPDATE import_rows SET status = 'rolled_back' WHERE batch_id = ? AND status = 'committed'").run(batchId);
+    db.prepare("UPDATE import_rows SET status = 'rolled_back' WHERE batch_id = ? AND status = 'committed'").run(
+      batchId,
+    );
   }
 
   function markImportBatchRolledBack(batchId) {
-    db.prepare("UPDATE import_batches SET status = 'rolled_back', rolled_back_at = CURRENT_TIMESTAMP WHERE id = ?").run(batchId);
+    db.prepare("UPDATE import_batches SET status = 'rolled_back', rolled_back_at = CURRENT_TIMESTAMP WHERE id = ?").run(
+      batchId,
+    );
   }
 
   function listImportRollbackEntries() {
@@ -198,7 +202,9 @@ module.exports = function attach(ctx) {
 
   function listLedgerEventsSince({ symbol, fromDate }) {
     return db
-      .prepare('SELECT date, type, shares FROM transactions WHERE symbol = ? AND date >= ? ORDER BY date ASC, created_at ASC')
+      .prepare(
+        'SELECT date, type, shares FROM transactions WHERE symbol = ? AND date >= ? ORDER BY date ASC, created_at ASC',
+      )
       .all(symbol, fromDate)
       .map((row) => ({ date: row.date, type: row.type, shares: Number(row.shares || 0) }));
   }

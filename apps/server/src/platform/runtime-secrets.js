@@ -23,7 +23,11 @@ function writeSecrets(baseDir, secrets) {
   const filePath = secretsFilePath(baseDir);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(secrets, null, 2), { encoding: 'utf-8', mode: 0o600 });
-  try { fs.chmodSync(filePath, 0o600); } catch { /* Windows: chmodSync not supported */ }
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    /* Windows: chmodSync not supported */
+  }
 }
 
 function readAlphaVantageKey(baseDir) {

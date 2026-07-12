@@ -1,10 +1,26 @@
 export function attach(ctx) {
   const SKIP_GROUP_IDS = new Set(['general', 'importados']);
   const BRAND_PALETTE_COLORS = [
-    '#06b6d4', '#8b5cf6', '#4989e5', '#27a0dd', '#6a73ee',
-    '#17abd8', '#3894e1', '#597ee9', '#7a67f2', '#0eb0d6',
-    '#1fa5da', '#309adf', '#408fe3', '#5183e7', '#6178eb',
-    '#726df0', '#8362f4', '#0ab3d5', '#12aed7', '#1ba8d9',
+    '#06b6d4',
+    '#8b5cf6',
+    '#4989e5',
+    '#27a0dd',
+    '#6a73ee',
+    '#17abd8',
+    '#3894e1',
+    '#597ee9',
+    '#7a67f2',
+    '#0eb0d6',
+    '#1fa5da',
+    '#309adf',
+    '#408fe3',
+    '#5183e7',
+    '#6178eb',
+    '#726df0',
+    '#8362f4',
+    '#0ab3d5',
+    '#12aed7',
+    '#1ba8d9',
   ];
 
   function computeBrandColor(index) {
@@ -28,8 +44,8 @@ export function attach(ctx) {
 
     const colorInputs = document.querySelectorAll(
       '#new-group-color, #new-instrument-color, ' +
-      '#wizard-group-color, #wizard-instrument-color, ' +
-      'input[data-field="color"], input[data-group-field="color"]'
+        '#wizard-group-color, #wizard-instrument-color, ' +
+        'input[data-field="color"], input[data-group-field="color"]',
     );
     colorInputs.forEach((input) => {
       input.disabled = enabled;
@@ -69,9 +85,11 @@ export function attach(ctx) {
         ctx.elements.priceStatus.textContent = msg;
       } else {
         if (result.snapshotCleared) {
-          ctx.elements.priceStatus.textContent = 'Paleta autom\u00e1tica desactivada. Se han restaurado los colores anteriores.';
+          ctx.elements.priceStatus.textContent =
+            'Paleta autom\u00e1tica desactivada. Se han restaurado los colores anteriores.';
         } else {
-          ctx.elements.priceStatus.textContent = 'Paleta autom\u00e1tica desactivada. No hab\u00eda copia previa de colores.';
+          ctx.elements.priceStatus.textContent =
+            'Paleta autom\u00e1tica desactivada. No hab\u00eda copia previa de colores.';
         }
       }
 

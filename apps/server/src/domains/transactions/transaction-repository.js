@@ -64,10 +64,14 @@ module.exports = function attach(ctx) {
   function listTransactionSharesForSymbol(symbol, asOfDate = null) {
     return asOfDate
       ? db
-          .prepare('SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? AND date <= ? ORDER BY date ASC, created_at ASC')
+          .prepare(
+            'SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? AND date <= ? ORDER BY date ASC, created_at ASC',
+          )
           .all(symbol, asOfDate)
       : db
-          .prepare('SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? ORDER BY date ASC, created_at ASC')
+          .prepare(
+            'SELECT type, shares, date, created_at AS createdAt FROM transactions WHERE symbol = ? ORDER BY date ASC, created_at ASC',
+          )
           .all(symbol);
   }
 

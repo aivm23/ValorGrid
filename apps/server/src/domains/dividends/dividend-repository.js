@@ -85,7 +85,10 @@ module.exports = function attach(ctx) {
       params.push(filters.toDate);
     }
     const sql = `${eventSelect()} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY e.ex_date DESC, e.symbol ASC`;
-    return db.prepare(sql).all(...params).map(mapEvent);
+    return db
+      .prepare(sql)
+      .all(...params)
+      .map(mapEvent);
   }
 
   function getDividendEvent(id) {
@@ -93,7 +96,9 @@ module.exports = function attach(ctx) {
   }
 
   function findDividendEventBySource(symbol, sourceEventId) {
-    return mapEvent(db.prepare(`${eventSelect()} WHERE e.symbol = ? AND e.source_event_id = ?`).get(symbol, sourceEventId));
+    return mapEvent(
+      db.prepare(`${eventSelect()} WHERE e.symbol = ? AND e.source_event_id = ?`).get(symbol, sourceEventId),
+    );
   }
 
   function upsertDividendDraft(event) {
@@ -193,7 +198,9 @@ module.exports = function attach(ctx) {
   }
 
   function getDividendSetting(symbol) {
-    const row = db.prepare('SELECT auto_include AS autoInclude FROM dividend_instrument_settings WHERE symbol = ?').get(symbol);
+    const row = db
+      .prepare('SELECT auto_include AS autoInclude FROM dividend_instrument_settings WHERE symbol = ?')
+      .get(symbol);
     return { symbol, autoInclude: Boolean(row?.autoInclude) };
   }
 
@@ -219,7 +226,9 @@ module.exports = function attach(ctx) {
          FROM dividend_events`,
       )
       .get();
-    const settings = db.prepare('SELECT COUNT(*) AS count FROM dividend_instrument_settings WHERE auto_include = 1').get();
+    const settings = db
+      .prepare('SELECT COUNT(*) AS count FROM dividend_instrument_settings WHERE auto_include = 1')
+      .get();
     return {
       pendingDraftCount: Number(totals.pendingDraftCount || 0),
       pendingDraftTotalEur: Number(totals.pendingDraftTotalEur || 0),

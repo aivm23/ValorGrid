@@ -133,7 +133,12 @@ module.exports = function attach(ctx) {
       }
 
       importRepository.markImportBatchCommitted(batchId);
-      return { batch: getImportBatch(batchId), rows: getImportRows(batchId), summary: preview.summary, usedExistingBatch: false };
+      return {
+        batch: getImportBatch(batchId),
+        rows: getImportRows(batchId),
+        summary: preview.summary,
+        usedExistingBatch: false,
+      };
     });
 
     if (!result.usedExistingBatch && !duplicateOnly) {

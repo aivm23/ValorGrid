@@ -28,9 +28,15 @@ function makeMarketDataAdmin({
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Manual price date must use YYYY-MM-DD');
     const price = Number(input.price);
     if (!Number.isFinite(price) || price <= 0) throw new Error('Manual price must be greater than 0');
-    const currency = String(input.currency || instrument.currency || 'EUR').trim().toUpperCase();
-    const manualSource = listPriceSourcesForInstrument(instrument.symbol).find((source) => source.provider === 'manual');
-    const providerSymbol = String(input.providerSymbol || input.isin || manualSource?.providerSymbol || instrument.symbol)
+    const currency = String(input.currency || instrument.currency || 'EUR')
+      .trim()
+      .toUpperCase();
+    const manualSource = listPriceSourcesForInstrument(instrument.symbol).find(
+      (source) => source.provider === 'manual',
+    );
+    const providerSymbol = String(
+      input.providerSymbol || input.isin || manualSource?.providerSymbol || instrument.symbol,
+    )
       .trim()
       .toUpperCase();
     upsertMarketPricePoint({

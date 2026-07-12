@@ -173,8 +173,7 @@ module.exports = function attach(ctx) {
           const transaction = transactionRows[transactionIndex];
           const split = splitRows[splitIndex];
           const applySplit =
-            split &&
-            (!transaction || String(split.effectiveDate).localeCompare(String(transaction.date)) <= 0);
+            split && (!transaction || String(split.effectiveDate).localeCompare(String(transaction.date)) <= 0);
 
           if (applySplit) {
             if (positions.has(split.symbol)) {

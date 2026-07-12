@@ -23,20 +23,17 @@ function check(condition, message) {
 
 // apps/server/package.json: must have exceljs in dependencies
 const serverPkg = readJSON(path.join(ROOT, 'apps', 'server', 'package.json'));
-check(
-  serverPkg.dependencies && serverPkg.dependencies.exceljs,
-  'apps/server/package.json has exceljs in dependencies'
-);
+check(serverPkg.dependencies && serverPkg.dependencies.exceljs, 'apps/server/package.json has exceljs in dependencies');
 
 // apps/desktop/package.json: must have electron and electron-builder in devDependencies
 const desktopPkg = readJSON(path.join(ROOT, 'apps', 'desktop', 'package.json'));
 check(
   desktopPkg.devDependencies && desktopPkg.devDependencies.electron,
-  'apps/desktop/package.json has electron in devDependencies'
+  'apps/desktop/package.json has electron in devDependencies',
 );
 check(
   desktopPkg.devDependencies && desktopPkg.devDependencies['electron-builder'],
-  'apps/desktop/package.json has electron-builder in devDependencies'
+  'apps/desktop/package.json has electron-builder in devDependencies',
 );
 
 // root package.json: must NOT have exceljs, electron, or electron-builder

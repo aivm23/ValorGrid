@@ -29,7 +29,10 @@ function getCellPlainValue(cell) {
   }
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   if (typeof value === 'object' && Array.isArray(value.richText)) {
-    return value.richText.map((part) => part.text || '').join('').trim();
+    return value.richText
+      .map((part) => part.text || '')
+      .join('')
+      .trim();
   }
   if (typeof value === 'object' && value.text) return String(value.text).trim();
   return String(value).trim();
@@ -57,10 +60,20 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
         'legacyDrawing',
       ],
     });
-    workbookData = { sheets: workbook.worksheets.map((sheet) => sheet.name), getWorksheet: (name) => workbook.getWorksheet(name) };
+    workbookData = {
+      sheets: workbook.worksheets.map((sheet) => sheet.name),
+      getWorksheet: (name) => workbook.getWorksheet(name),
+    };
   } catch (error) {
-    if (error?.message?.includes('zip') || error?.message?.includes('ZIP') || error?.message?.includes('central directory') || error?.message?.includes('End-of-central-directory')) {
-      throw new Error('El archivo no es un Excel valido (.xlsx). Has intentado cargar un archivo CSV o corrupto en el formato Excel. Quizas no has seleccionado el formato correcto o el archivo esta danado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions');
+    if (
+      error?.message?.includes('zip') ||
+      error?.message?.includes('ZIP') ||
+      error?.message?.includes('central directory') ||
+      error?.message?.includes('End-of-central-directory')
+    ) {
+      throw new Error(
+        'El archivo no es un Excel valido (.xlsx). Has intentado cargar un archivo CSV o corrupto en el formato Excel. Quizas no has seleccionado el formato correcto o el archivo esta danado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions',
+      );
     }
     throw error;
   }
@@ -68,9 +81,15 @@ async function parseXlsxRows(contentBase64, sheetNameInput) {
   const sheets = workbookData.sheets;
   if (!sheets.length) throw new Error('El archivo XLSX no contiene hojas');
   for (const sheet of sheets) {
-    if (!ALLOWED_SHEETS.has(sheet)) throw new Error(`Hoja no permitida: "${sheet}". Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no usa esa plantilla. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.`);
+    if (!ALLOWED_SHEETS.has(sheet))
+      throw new Error(
+        `Hoja no permitida: "${sheet}". Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no usa esa plantilla. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.`,
+      );
   }
-  if (!sheets.includes('Movimientos')) throw new Error('Falta la hoja Movimientos. Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no es un Excel de ValorGrid. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.');
+  if (!sheets.includes('Movimientos'))
+    throw new Error(
+      'Falta la hoja Movimientos. Has seleccionado la fuente "Plantilla Excel de ValorGrid" pero el archivo no es un Excel de ValorGrid. Revisa que hayas elegido el importador correcto (ClickTrade, DEGIRO, Interactive Brokers, etc.) en el desplegable de origen.',
+    );
   if (sheetNameInput && sheetNameInput !== 'Movimientos') {
     throw new Error('Solo se permite importar la hoja Movimientos');
   }
@@ -169,7 +188,9 @@ function normalizeType(value) {
 }
 
 function resolveAdapter(sourceInput = 'valorgrid-xlsx') {
-  const source = String(sourceInput || 'valorgrid-xlsx').trim().toLowerCase();
+  const source = String(sourceInput || 'valorgrid-xlsx')
+    .trim()
+    .toLowerCase();
   const adapter = adapterDefinitions[source] || knownProAdapters[source];
   if (!adapter) throw new Error(`Origen de importación no soportado: ${sourceInput}`);
   return { source, ...adapter };
@@ -214,7 +235,9 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   const price = Number.isFinite(rawPrice) ? Math.abs(rawPrice) : rawPrice;
   const valueEurInput = Number.isFinite(rawValueEur) ? Math.abs(rawValueEur) : rawValueEur;
   const commissionEur = Math.abs(Number(parseNumber(mappedValue(row, mapping, profile, 'commissionEur')) || 0));
-  const currency = String(mappedValue(row, mapping, profile, 'currency') || 'EUR').trim().toUpperCase();
+  const currency = String(mappedValue(row, mapping, profile, 'currency') || 'EUR')
+    .trim()
+    .toUpperCase();
   const fxInput = parseNumber(mappedValue(row, mapping, profile, 'fxToEur'));
   const fxToEur = currency === 'EUR' ? 1 : Number.isFinite(fxInput) && fxInput > 0 ? fxInput : null;
   const effectivePrice = price === 0 && inferredType === 'add' ? 0.0001 : price;
@@ -236,7 +259,8 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   if (!date) errors.push('Fecha inválida');
   if (!Number.isFinite(shares) || shares <= 0) errors.push('Acciones debe ser mayor que 0');
   if (!Number.isFinite(price) || price < 0) errors.push('Precio no puede ser negativo');
-  if (rowKind === 'trade' && price === 0 && inferredType === 'add') warnings.push('Compra a 0 EUR (split/dividendo) - se importa con precio minimo');
+  if (rowKind === 'trade' && price === 0 && inferredType === 'add')
+    warnings.push('Compra a 0 EUR (split/dividendo) - se importa con precio minimo');
   if (!/^[A-Z]{3}$/.test(currency)) errors.push('Divisa no soportada');
   if (currency !== 'EUR' && (!Number.isFinite(fxToEur) || fxToEur <= 0)) errors.push('FX a EUR obligatorio');
   if (!Number.isFinite(valueEur) || valueEur < 0) errors.push('Valor EUR no puede ser negativo');
@@ -332,7 +356,9 @@ function serializeSummary(summary) {
 async function parseImportPayload(input, adapter) {
   if (adapter.parser === 'pro-csv') {
     if (typeof adapter.parse !== 'function') {
-      throw new Error(`El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`);
+      throw new Error(
+        `El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`,
+      );
     }
     const content = String(input.content || '').trim();
     if (!content) throw new Error('Contenido CSV obligatorio');
@@ -348,7 +374,9 @@ async function parseImportPayload(input, adapter) {
   }
   if (adapter.parser === 'pro-xlsx') {
     if (typeof adapter.parse !== 'function') {
-      throw new Error(`El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`);
+      throw new Error(
+        `El adaptador para ${adapter.label || adapter.source} no está disponible en esta edición. Quizás no has seleccionado el formato correcto o el adaptador aún no está implementado. Puedes proponer nuevos adaptadores en https://github.com/aivm23/ValorGrid/discussions`,
+      );
     }
     const contentBase64 = String(input.contentBase64 || '').trim();
     if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
@@ -362,7 +390,8 @@ async function parseImportPayload(input, adapter) {
       fileSubtype: parsed.fileSubtype || adapter.profile || adapter.source,
     };
   }
-  if (adapter.parser !== 'exceljs') throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
+  if (adapter.parser !== 'exceljs')
+    throw new Error('Fuente no soportada: usa la plantilla Excel de ValorGrid (valorgrid-xlsx).');
   const contentBase64 = String(input.contentBase64 || '').trim();
   if (!contentBase64) throw new Error('Contenido XLSX obligatorio');
   const parsed = await parseXlsxRows(contentBase64, input.sheetName || adapter.defaultSheet || null);

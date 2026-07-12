@@ -55,7 +55,8 @@ function renderWorkflowActions(ctx, activeStep, preview, canContinue = true, sta
   else if (activeStep === 'file') nextLabel = ctx.t('import.actions.toInstruments');
   else if (activeStep === 'instruments') nextLabel = ctx.t('import.actions.confirmInstruments');
   else if (activeStep === 'operations') nextLabel = ctx.t('import.actions.reviewImpact');
-  const nextDisabled = !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
+  const nextDisabled =
+    !preview || !canContinue || busy || (activeStep === 'confirm' && !preview.canCommit) ? ' disabled' : '';
   return `
     <div class="import-workflow-actions">
       ${activeStep === 'file' ? '<span></span>' : `<button type="button" class="button btn-cancel" data-import-back${backDisabled}>${ctx.t('import.actions.back')}</button>`}
@@ -95,7 +96,9 @@ function renderFileStep(ctx, preview, warnings = []) {
 function choiceIsComplete(choice, item, instrumentOptions = []) {
   if (choice?.action === 'omit') return true;
   if (choice?.action === 'map') {
-    const symbol = String(choice.symbol || '').trim().toUpperCase();
+    const symbol = String(choice.symbol || '')
+      .trim()
+      .toUpperCase();
     return Boolean(symbol && instrumentOptions.some((option) => option.symbol === symbol));
   }
   if (choice?.action === 'create') {
@@ -106,7 +109,9 @@ function choiceIsComplete(choice, item, instrumentOptions = []) {
 }
 
 function missingCreateFields(create = {}) {
-  return new Set(['symbol', 'yahooSymbol', 'name', 'type', 'currency'].filter((field) => !String(create[field] || '').trim()));
+  return new Set(
+    ['symbol', 'yahooSymbol', 'name', 'type', 'currency'].filter((field) => !String(create[field] || '').trim()),
+  );
 }
 
 function isSafetyOmitted(item, action) {
@@ -186,7 +191,10 @@ function renderInstrumentCard(ctx, item, state, instrumentOptions) {
               <select data-import-instrument-symbol="${ctx.escapeHtml(item.key)}">
                 <option value="">${ctx.t('import.instrument.selectTarget')}</option>
                 ${instrumentOptions
-                  .map((option) => `<option value="${ctx.escapeHtml(option.symbol)}"${option.symbol === symbol ? ' selected' : ''}>${ctx.escapeHtml(option.label)}</option>`)
+                  .map(
+                    (option) =>
+                      `<option value="${ctx.escapeHtml(option.symbol)}"${option.symbol === symbol ? ' selected' : ''}>${ctx.escapeHtml(option.label)}</option>`,
+                  )
                   .join('')}
               </select>
             </label>`
@@ -246,11 +254,14 @@ function renderOperationGroups(ctx, rows, state) {
   }
   return Array.from(groups.values())
     .map((group) => {
-      const actions = group.rows.map((row) => state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip'));
+      const actions = group.rows.map(
+        (row) => state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip'),
+      );
       const importableRows = group.rows.filter((row) => row.status === 'valid');
       const importedRows = actions.filter((action) => action === 'import');
       const skippedRows = actions.filter((action) => action !== 'import');
-      const groupAction = importedRows.length === group.rows.length ? 'import' : skippedRows.length === group.rows.length ? 'skip' : '';
+      const groupAction =
+        importedRows.length === group.rows.length ? 'import' : skippedRows.length === group.rows.length ? 'skip' : '';
       const rowIndexes = group.rows.map((row) => row.rowIndex).join(',');
       return `
         <details class="import-operation-group">
@@ -275,13 +286,27 @@ function renderOperationGroups(ctx, rows, state) {
 
 function renderOperationRow(ctx, row, state) {
   const selectedAction = state.importRowActions?.[row.rowIndex] || (row.status === 'valid' ? 'import' : 'skip');
-  const symbol = row.normalized?.symbol || row.normalized?.name || row.raw?.Producto || row.raw?.Product || ctx.t('import.operations.unassigned');
+  const symbol =
+    row.normalized?.symbol ||
+    row.normalized?.name ||
+    row.raw?.Producto ||
+    row.raw?.Product ||
+    ctx.t('import.operations.unassigned');
   const hasZeroPrice = row.normalized?.originalPrice === 0 && row.normalized?.type === 'add';
   const rowWarnings = row.normalized?.warnings || [];
-  const rawReference = row.raw?.Producto || row.raw?.Product || row.raw?.Descripcion || row.raw?.Descripción || row.raw?.Description || row.raw?.ISIN || row.raw?.Isin || '';
-  const unresolvedReference = !row.normalized?.symbol && rawReference
-    ? `<small class="import-row-reference">${ctx.escapeHtml(ctx.t('import.operations.excelReference', { value: rawReference }))}</small>`
-    : '';
+  const rawReference =
+    row.raw?.Producto ||
+    row.raw?.Product ||
+    row.raw?.Descripcion ||
+    row.raw?.Descripción ||
+    row.raw?.Description ||
+    row.raw?.ISIN ||
+    row.raw?.Isin ||
+    '';
+  const unresolvedReference =
+    !row.normalized?.symbol && rawReference
+      ? `<small class="import-row-reference">${ctx.escapeHtml(ctx.t('import.operations.excelReference', { value: rawReference }))}</small>`
+      : '';
   return `
     <article class="import-operation-row import-row-${ctx.escapeHtml(row.status)}">
       <div>

@@ -10,21 +10,13 @@ const CHECKS = [
   {
     dir: path.join(ROOT, 'apps', 'web', 'src'),
     name: 'apps/web/src',
-    patterns: [
-      /require\(['"]\.\.\/server\//,
-      /import\(['"]\.\.\/server\//,
-      /from\s+['"]\.\.\/server\//,
-    ],
+    patterns: [/require\(['"]\.\.\/server\//, /import\(['"]\.\.\/server\//, /from\s+['"]\.\.\/server\//],
     label: 'cross-boundary require/import to server',
   },
   {
     dir: path.join(ROOT, 'apps', 'server', 'src'),
     name: 'apps/server/src',
-    patterns: [
-      /require\(['"]\.\.\/web\//,
-      /import\(['"]\.\.\/web\//,
-      /from\s+['"]\.\.\/web\//,
-    ],
+    patterns: [/require\(['"]\.\.\/web\//, /import\(['"]\.\.\/web\//, /from\s+['"]\.\.\/web\//],
     label: 'cross-boundary require/import to web',
   },
 ];

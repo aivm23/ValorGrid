@@ -16,11 +16,19 @@ function normalizeNewInstruments(input = {}) {
   if (!Array.isArray(input.newInstruments)) return [];
   return input.newInstruments
     .map((item) => ({
-      symbol: String(item.symbol || '').trim().toUpperCase(),
-      yahooSymbol: String(item.yahooSymbol || item.yahoo_symbol || item.symbol || '').trim().toUpperCase(),
+      symbol: String(item.symbol || '')
+        .trim()
+        .toUpperCase(),
+      yahooSymbol: String(item.yahooSymbol || item.yahoo_symbol || item.symbol || '')
+        .trim()
+        .toUpperCase(),
       name: String(item.name || item.symbol || '').trim(),
-      type: String(item.type || 'stock').trim().toLowerCase(),
-      currency: String(item.currency || 'EUR').trim().toUpperCase(),
+      type: String(item.type || 'stock')
+        .trim()
+        .toLowerCase(),
+      currency: String(item.currency || 'EUR')
+        .trim()
+        .toUpperCase(),
       color: String(item.color || '#2563eb').trim(),
       groupId: String(item.groupId || item.group_id || '').trim() || null,
     }))
@@ -28,7 +36,16 @@ function normalizeNewInstruments(input = {}) {
 }
 
 function createImportEntityHelpers(ctx) {
-  const { repositories, getInstrument, createInstrumentGroup, createInstrument, upsertInstrumentIdentifier, groupIdFromName, ensureGeneralGroup, areInstrumentGroupsEnabled } = ctx;
+  const {
+    repositories,
+    getInstrument,
+    createInstrumentGroup,
+    createInstrument,
+    upsertInstrumentIdentifier,
+    groupIdFromName,
+    ensureGeneralGroup,
+    areInstrumentGroupsEnabled,
+  } = ctx;
   const instrumentsRepository = repositories?.instruments;
   if (!instrumentsRepository) {
     throw new Error('import-entities requires ctx.repositories.instruments');
@@ -59,9 +76,15 @@ function createImportEntityHelpers(ctx) {
 
   function persistRowIdentifiers(row, instrument) {
     for (const identifier of row.normalized.externalIdentifiers || []) {
-      const provider = String(identifier.provider || '').trim().toLowerCase();
-      const identifierType = String(identifier.identifierType || identifier.type || '').trim().toLowerCase();
-      const identifierValue = String(identifier.identifierValue || identifier.value || '').trim().toUpperCase();
+      const provider = String(identifier.provider || '')
+        .trim()
+        .toLowerCase();
+      const identifierType = String(identifier.identifierType || identifier.type || '')
+        .trim()
+        .toLowerCase();
+      const identifierValue = String(identifier.identifierValue || identifier.value || '')
+        .trim()
+        .toUpperCase();
       if (!provider || !identifierType || !identifierValue) continue;
       upsertInstrumentIdentifier({
         instrumentSymbol: instrument.symbol,
@@ -81,4 +104,3 @@ function createImportEntityHelpers(ctx) {
 module.exports = {
   createImportEntityHelpers,
 };
-

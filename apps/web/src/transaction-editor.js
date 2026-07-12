@@ -23,7 +23,9 @@ export function attach(ctx) {
       date: ctx.elements.transactionEditDate.value,
       shares: Number(ctx.elements.transactionEditShares.value),
       price: Number(ctx.elements.transactionEditPrice.value),
-      currency: String(ctx.elements.transactionEditCurrency.value || '').trim().toUpperCase(),
+      currency: String(ctx.elements.transactionEditCurrency.value || '')
+        .trim()
+        .toUpperCase(),
       fxToEur: Number(ctx.elements.transactionEditFx.value),
       commissionEur: Number(ctx.elements.transactionEditCommission.value || 0),
       note: String(ctx.elements.transactionEditNote.value || '').trim() || null,
@@ -45,7 +47,11 @@ export function attach(ctx) {
     ctx.elements.transactionEditSubmit.disabled = true;
     setFeedback(ctx.t('Validando cambios...'));
     try {
-      const data = await ctx.sendJson(`/api/transactions/${encodeURIComponent(transactionId)}/preview`, 'POST', buildPayload());
+      const data = await ctx.sendJson(
+        `/api/transactions/${encodeURIComponent(transactionId)}/preview`,
+        'POST',
+        buildPayload(),
+      );
       if (requestId !== previewRequest) return false;
       renderPreview(data.preview);
       setFeedback('');

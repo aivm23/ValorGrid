@@ -6,13 +6,15 @@ module.exports = function attach(ctx) {
   const { db } = ctx;
 
   function groupIdFromName(name) {
-    return String(name || 'general')
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'general';
+    return (
+      String(name || 'general')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'general'
+    );
   }
 
   function ensureGroup(id, name, color, options = {}) {

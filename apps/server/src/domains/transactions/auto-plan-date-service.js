@@ -1,19 +1,13 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
 
 module.exports = function attach(ctx) {
-  assertCtxDeps(
-    ctx,
-    [
-      'getToday',
-      'dateUtc',
-      'addDays',
-    ],
-    'auto-plan-date-service',
-  );
+  assertCtxDeps(ctx, ['getToday', 'dateUtc', 'addDays'], 'auto-plan-date-service');
 
   const { getToday: _getToday, dateUtc, addDays } = ctx;
 
-  function getToday() { return _getToday(); }
+  function getToday() {
+    return _getToday();
+  }
 
   function weekdayNumber(dateValue) {
     const jsDay = dateUtc(dateValue).getUTCDay();
@@ -55,7 +49,11 @@ module.exports = function attach(ctx) {
 
     if (normalized.frequency === 'weekly' || normalized.frequency === 'biweekly') {
       const step = normalized.frequency === 'biweekly' ? 14 : 7;
-      for (let date = nextWeekdayOnOrAfter(startDate, Number(normalized.weekday)); date <= toDate; date = addDays(date, step)) {
+      for (
+        let date = nextWeekdayOnOrAfter(startDate, Number(normalized.weekday));
+        date <= toDate;
+        date = addDays(date, step)
+      ) {
         dates.push(date);
       }
       return dates;

@@ -253,7 +253,9 @@ module.exports = function attach(ctx) {
   }
 
   function setDividendAutoInclude(symbol, autoInclude) {
-    const normalized = String(symbol || '').trim().toUpperCase();
+    const normalized = String(symbol || '')
+      .trim()
+      .toUpperCase();
     if (!normalized) throw new Error('symbol is required');
     return { setting: dividendRepository.setDividendAutoInclude(normalized, Boolean(autoInclude)) };
   }

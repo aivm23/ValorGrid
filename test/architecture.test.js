@@ -15,13 +15,11 @@ function lineCount(relativePath) {
 
 function filesUnder(relativePath) {
   const dir = path.join(root, relativePath);
-  return fs
-    .readdirSync(dir, { withFileTypes: true })
-    .flatMap((entry) => {
-      const child = path.join(relativePath, entry.name);
-      if (entry.isDirectory()) return filesUnder(child);
-      return entry.isFile() && entry.name.endsWith('.js') ? [child] : [];
-    });
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const child = path.join(relativePath, entry.name);
+    if (entry.isDirectory()) return filesUnder(child);
+    return entry.isFile() && entry.name.endsWith('.js') ? [child] : [];
+  });
 }
 
 test('backend architecture stays modular and SQLite remains isolated', () => {
@@ -37,10 +35,32 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
   }
 
-  assert.equal(/\.prepare\(|db\./.test(read(path.join('apps', 'server', 'src', 'routes.js'))), false, 'routes must not run SQL directly');
-  assert.equal(/FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(read(path.join('apps', 'server', 'src', 'domains', 'market-data', 'market-data.js'))), false, 'market-data must not own ledger logic');
-  assert.equal(/db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(read(path.join('apps', 'server', 'src', 'domains', 'market-data', 'market-data.js'))), false, 'market-data service must not execute SQL directly');
-  assert.equal(/db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(read(path.join('apps', 'server', 'src', 'domains', 'instruments', 'instrument-service.js'))), false, 'instrument-service must not execute SQL directly');
+  assert.equal(
+    /\.prepare\(|db\./.test(read(path.join('apps', 'server', 'src', 'routes.js'))),
+    false,
+    'routes must not run SQL directly',
+  );
+  assert.equal(
+    /FROM transactions|INSERT INTO transactions|cash_flow|portfolio_value/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'market-data', 'market-data.js')),
+    ),
+    false,
+    'market-data must not own ledger logic',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|price_cache|daily_price_cache/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'market-data', 'market-data.js')),
+    ),
+    false,
+    'market-data service must not execute SQL directly',
+  );
+  assert.equal(
+    /db\.prepare\(|db\.exec\(|FROM instruments|INSERT INTO instruments|instrument_identifiers|instrument_groups/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'instruments', 'instrument-service.js')),
+    ),
+    false,
+    'instrument-service must not execute SQL directly',
+  );
   assert.equal(
     /db\.prepare\(|db\.exec\(|FROM transactions|INSERT INTO transactions|DELETE FROM transactions|auto_plan_skips|auto_plans/.test(
       read(path.join('apps', 'server', 'src', 'domains', 'transactions', 'transaction-service.js')),
@@ -77,12 +97,16 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'history-service must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|app_meta|history_invalidations/.test(read(path.join('apps', 'server', 'src', 'domains', 'meta', 'meta-state.js'))),
+    /db\.prepare\(|db\.exec\(|app_meta|history_invalidations/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'meta', 'meta-state.js')),
+    ),
     false,
     'meta-state must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|instrument_identifiers|FROM instruments/.test(read(path.join('apps', 'server', 'src', 'domains', 'ticker-suggestions', 'ticker-suggestions.js'))),
+    /db\.prepare\(|db\.exec\(|instrument_identifiers|FROM instruments/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'ticker-suggestions', 'ticker-suggestions.js')),
+    ),
     false,
     'ticker-suggestions must not execute SQL directly',
   );
@@ -94,12 +118,16 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
     'portfolio-service must not execute SQL directly',
   );
   assert.equal(
-    /db\.prepare\(|db\.exec\(|PRAGMA|FROM history_invalidations/.test(read(path.join('apps', 'server', 'src', 'domains', 'admin', 'diagnostics-service.js'))),
+    /db\.prepare\(|db\.exec\(|PRAGMA|FROM history_invalidations/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'admin', 'diagnostics-service.js')),
+    ),
     false,
     'diagnostics-service must not execute SQL directly',
   );
   assert.ok(
-    read(path.join('apps', 'server', 'src', 'routes.js')).includes("require('./domains/instruments/route-instruments')"),
+    read(path.join('apps', 'server', 'src', 'routes.js')).includes(
+      "require('./domains/instruments/route-instruments')",
+    ),
     'routes must delegate to domain route modules',
   );
   const routeFiles = [
@@ -115,26 +143,35 @@ test('backend architecture stays modular and SQLite remains isolated', () => {
       read(routePath).includes('resolveRouteHandlers(ctx)'),
       `${name} must resolve handlers from grouped services`,
     );
-    assert.ok(
-      read(routePath).includes('sendError'),
-      `${name} must use AppError-aware sendError helper`,
-    );
+    assert.ok(read(routePath).includes('sendError'), `${name} must use AppError-aware sendError helper`);
   }
   assert.equal(
-    /ctx\.db|db\.prepare\(|db\.exec\(/.test(read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-preview.js'))),
+    /ctx\.db|db\.prepare\(|db\.exec\(/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-preview.js')),
+    ),
     false,
     'import-preview must not query SQLite directly',
   );
   assert.equal(
-    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-repository.js'))),
+    /function beginTransaction|function commitTransaction|function rollbackTransaction/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-repository.js')),
+    ),
     false,
     'import-repository must use shared db transaction helpers, not manual begin/commit/rollback',
   );
   assert.ok(
-    read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-repository.js')).includes('runInTransaction'),
+    read(path.join('apps', 'server', 'src', 'domains', 'data-ingestion', 'ingestion-repository.js')).includes(
+      'runInTransaction',
+    ),
     'import-repository must expose runInTransaction wrapper',
   );
-  assert.equal(/Yahoo|fetchYahoo|query1\.finance/.test(read(path.join('apps', 'server', 'src', 'domains', 'portfolio', 'portfolio-service.js'))), false, 'portfolio-service must not call Yahoo directly');
+  assert.equal(
+    /Yahoo|fetchYahoo|query1\.finance/.test(
+      read(path.join('apps', 'server', 'src', 'domains', 'portfolio', 'portfolio-service.js')),
+    ),
+    false,
+    'portfolio-service must not call Yahoo directly',
+  );
   assert.ok(
     read(path.join('apps', 'server', 'src', 'routes.js')).includes("path.basename(resolvedPath) === 'secrets.json'"),
     'resolveRequestPath must block secrets.json from being served as a static asset',
@@ -153,7 +190,10 @@ test('app composition root initializes grouped ctx namespaces', () => {
   assert.match(appSource, /const ctx = \{[\s\S]*\blogger,/, 'ctx object must expose logger');
   assert.match(appSource, /const ctx = \{[\s\S]*\brepositories,/, 'ctx object must expose repositories');
   assert.match(appSource, /const ctx = \{[\s\S]*\bservices,/, 'ctx object must expose services');
-  assert.ok(appSource.includes('bindGroupedCtxNamespaces(ctx);'), 'grouped ctx namespaces must be hydrated after module load');
+  assert.ok(
+    appSource.includes('bindGroupedCtxNamespaces(ctx);'),
+    'grouped ctx namespaces must be hydrated after module load',
+  );
   const instrumentRepositoryIndex = appSource.indexOf("'./domains/instruments/instrument-repository'");
   const instrumentServiceIndex = appSource.indexOf("'./domains/instruments/instrument-service'");
   assert.ok(instrumentRepositoryIndex >= 0, 'src/app.js must load instrument-repository module');
@@ -178,10 +218,7 @@ test('app composition root initializes grouped ctx namespaces', () => {
   const importRepositoryIndex = appSource.indexOf("'./domains/data-ingestion/ingestion-repository'");
   const importServiceIndex = appSource.indexOf("'./domains/data-ingestion/ingestion-service'");
   assert.ok(importRepositoryIndex >= 0, 'src/app.js must load import-repository module');
-  assert.ok(
-    importServiceIndex > importRepositoryIndex,
-    'src/app.js must load import-repository before import-service',
-  );
+  assert.ok(importServiceIndex > importRepositoryIndex, 'src/app.js must load import-repository before import-service');
   const onboardingRepositoryIndex = appSource.indexOf("'./domains/onboarding/onboarding-repository'");
   const onboardingServiceIndex = appSource.indexOf("'./domains/onboarding/onboarding-service'");
   assert.ok(onboardingRepositoryIndex >= 0, 'src/app.js must load onboarding-repository module');
@@ -192,10 +229,7 @@ test('app composition root initializes grouped ctx namespaces', () => {
   const historyRepositoryIndex = appSource.indexOf("'./domains/history/history-repository'");
   const historyCoreIndex = appSource.indexOf("'./domains/history/history-core'");
   assert.ok(historyRepositoryIndex >= 0, 'src/app.js must load history-repository module');
-  assert.ok(
-    historyCoreIndex > historyRepositoryIndex,
-    'src/app.js must load history-repository before history-core',
-  );
+  assert.ok(historyCoreIndex > historyRepositoryIndex, 'src/app.js must load history-repository before history-core');
 
   assert.equal(
     appSource.includes('ctx.repositories.dataIngestion,'),
@@ -217,7 +251,10 @@ test('app composition root initializes grouped ctx namespaces', () => {
 });
 
 test('server public exports remain stable after modularization', () => {
-  process.env.PORTFOLIO_DB_PATH ||= path.join(fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'arch-db-')), 'portfolio.sqlite');
+  process.env.PORTFOLIO_DB_PATH ||= path.join(
+    fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'arch-db-')),
+    'portfolio.sqlite',
+  );
   process.env.PORT ||= '0';
   const serverModule = require('../apps/server/server.js');
   const expected = [
@@ -242,7 +279,10 @@ test('server public exports remain stable after modularization', () => {
 });
 
 test('frontend architecture stays modular', () => {
-  assert.ok(lineCount(path.join('apps', 'web', 'src', 'app.js')) <= 150, 'client/app.js must remain a small orchestrator');
+  assert.ok(
+    lineCount(path.join('apps', 'web', 'src', 'app.js')) <= 150,
+    'client/app.js must remain a small orchestrator',
+  );
   for (const file of filesUnder('apps/web/src')) {
     assert.ok(lineCount(file) <= 400, `${file} must stay below 400 lines`);
     assert.equal(/with\s*\(\s*ctx\s*\)/.test(read(file)), false, `${file} must not use with(ctx)`);
@@ -250,9 +290,21 @@ test('frontend architecture stays modular', () => {
   }
 
   assert.equal(/fetch\(/.test(read(path.join('apps', 'web', 'src', 'charts.js'))), false, 'charts must not fetch data');
-  assert.equal(/document\.|querySelector|innerHTML/.test(read(path.join('apps', 'web', 'src', 'api.js'))), false, 'api must not touch DOM');
-  assert.equal(/api\/|fetchJson|sendJson/.test(read(path.join('apps', 'web', 'src', 'theme.js'))), false, 'theme must not call portfolio APIs');
-  assert.equal(read(path.join('apps', 'web', 'src', 'app.js')).includes('undefined'), false, 'client/app.js must not render undefined text');
+  assert.equal(
+    /document\.|querySelector|innerHTML/.test(read(path.join('apps', 'web', 'src', 'api.js'))),
+    false,
+    'api must not touch DOM',
+  );
+  assert.equal(
+    /api\/|fetchJson|sendJson/.test(read(path.join('apps', 'web', 'src', 'theme.js'))),
+    false,
+    'theme must not call portfolio APIs',
+  );
+  assert.equal(
+    read(path.join('apps', 'web', 'src', 'app.js')).includes('undefined'),
+    false,
+    'client/app.js must not render undefined text',
+  );
 });
 
 test('client/app.js imports use valid relative paths targeting existing files', () => {
@@ -291,15 +343,30 @@ test('import wizard uses non technical row decisions', () => {
   const imports = read(path.join('apps', 'web', 'src', 'imports.js'));
   const html = read('apps/web/index.html');
 
-  assert.ok(renderer.includes('select class="import-row-control"'), 'row actions must use a compact import/omit dropdown');
+  assert.ok(
+    renderer.includes('select class="import-row-control"'),
+    'row actions must use a compact import/omit dropdown',
+  );
   assert.equal(renderer.includes('>Revisar</option>'), false, 'row actions must not expose a review option');
-  assert.ok(renderer.includes('import.operations.mixed'), 'group action must expose a translated mixed state when rows are partially selected');
+  assert.ok(
+    renderer.includes('import.operations.mixed'),
+    'group action must expose a translated mixed state when rows are partially selected',
+  );
   assert.ok(renderer.includes('is-safety-omitted'), 'unsafe default omissions must be visually highlighted');
   assert.ok(confirmRenderer.includes('import-confirm-hero'), 'confirm step must use a structured impact summary');
   assert.ok(html.includes('class="import-file-actions"'), 'analyze action must sit directly below the file drop zone');
-  assert.ok(imports.includes('ctx.elements.importPreview.hidden = Boolean(preview)'), 'analyze action must hide after preview is available');
-  assert.ok(workflow.includes('create.yahooSymbol'), 'created instruments must require a Yahoo ticker before confirming');
-  assert.ok(workflowHelpers.includes("const IMPORTED_GROUP_ID = 'importados'"), 'import-created instruments must default to Importados');
+  assert.ok(
+    imports.includes('ctx.elements.importPreview.hidden = Boolean(preview)'),
+    'analyze action must hide after preview is available',
+  );
+  assert.ok(
+    workflow.includes('create.yahooSymbol'),
+    'created instruments must require a Yahoo ticker before confirming',
+  );
+  assert.ok(
+    workflowHelpers.includes("const IMPORTED_GROUP_ID = 'importados'"),
+    'import-created instruments must default to Importados',
+  );
 });
 
 test('administration and instrument filtering stay toolbar driven', () => {
@@ -309,7 +376,11 @@ test('administration and instrument filtering stay toolbar driven', () => {
 
   assert.ok(html.includes('id="admin-manager"'), 'administration must be available from the toolbar');
   assert.ok(html.includes('id="admin-dialog"'), 'administration must render in a modal');
-  assert.equal(html.includes('aria-labelledby="operations-title"'), false, 'administration must not be a main dashboard panel');
+  assert.equal(
+    html.includes('aria-labelledby="operations-title"'),
+    false,
+    'administration must not be a main dashboard panel',
+  );
   assert.ok(html.includes('id="negative-red-toggle"'), 'negative color preference must be configurable');
   assert.ok(html.includes('id="instrument-position-filter"'), 'instrument modal must include position filters');
   assert.ok(operations.includes('currentSharesForInstrument'), 'instrument filter must use current net shares');

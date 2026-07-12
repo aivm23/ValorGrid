@@ -15,34 +15,12 @@ const {
 } = require('./ingestion-reconcile');
 const { markSkippedSaleDeficit } = require('./ingestion-sale-rules');
 const {
-  normalizeMatchText,
-  getRawValue,
   rebuildImportIdentity,
   mappingKeyForIdentifier,
   buildInstrumentMapping,
   canCommitRows,
+  resolveByHeuristic,
 } = require('./ingestion-preview-helpers');
-
-
-function resolveByHeuristic(ctx, normalized, raw) {
-  if (normalized.symbol) {
-    const exactSymbol = ctx.getInstrument(normalized.symbol);
-    if (exactSymbol) return exactSymbol;
-  }
-  const instruments = ctx.listInstruments().filter((item) => item.type !== 'fx');
-  const product = getRawValue(raw, ['Ticker', 'ticker', 'Symbol', 'symbol']) || normalized.symbol;
-  const productKey = normalizeMatchText(product);
-  if (!productKey) return null;
-  for (const instrument of instruments) {
-    const symbolKey = normalizeMatchText(instrument.symbol);
-    const yahooKey = normalizeMatchText(instrument.yahooSymbol);
-    const nameKey = normalizeMatchText(instrument.name);
-    if (symbolKey && productKey === symbolKey) return instrument;
-    if (yahooKey && productKey === yahooKey) return instrument;
-    if (nameKey && productKey === nameKey) return instrument;
-  }
-  return null;
-}
 
 function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   const candidates = row.normalized.externalIdentifiers || [];
@@ -71,17 +49,19 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   }
 
   const identifierCandidates = candidates.filter((candidate) => {
-    const provider = String(candidate.provider || '').trim().toLowerCase();
-    const type = String(candidate.identifierType || candidate.type || '').trim().toLowerCase();
+    const provider = String(candidate.provider || '')
+      .trim()
+      .toLowerCase();
+    const type = String(candidate.identifierType || candidate.type || '')
+      .trim()
+      .toLowerCase();
     if (provider === 'manual' && type === 'ticker') return false;
     if (type === 'exchange') return false;
     return true;
   });
   const resolvedByIdentifier = ctx.resolveInstrumentFromIdentifiers(identifierCandidates);
   if (resolvedByIdentifier) {
-    const tickerCandidate = candidates.find((c) =>
-      String(c.identifierType || '').toLowerCase() === 'ticker'
-    );
+    const tickerCandidate = candidates.find((c) => String(c.identifierType || '').toLowerCase() === 'ticker');
     if (tickerCandidate && resolvedByIdentifier.symbol !== tickerCandidate.identifierValue) {
       return {
         instrument: { ...resolvedByIdentifier, symbol: tickerCandidate.identifierValue },
@@ -93,9 +73,7 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   }
 
   // If ticker is not in DB, return needs_mapping with the ticker from the adapter
-  const tickerCandidate = candidates.find((c) =>
-    String(c.identifierType || '').toLowerCase() === 'ticker'
-  );
+  const tickerCandidate = candidates.find((c) => String(c.identifierType || '').toLowerCase() === 'ticker');
   if (tickerCandidate && !ctx.getInstrument(tickerCandidate.identifierValue)) {
     return {
       instrument: { symbol: tickerCandidate.identifierValue, type: 'stock', name: '', color: '#2563eb' },
@@ -105,7 +83,8 @@ function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
   }
 
   const resolvedByHeuristic = resolveByHeuristic(ctx, row.normalized, row.raw);
-  if (resolvedByHeuristic) return { instrument: resolvedByHeuristic, resolutionStatus: 'resolved', matchedBy: 'name_heuristic' };
+  if (resolvedByHeuristic)
+    return { instrument: resolvedByHeuristic, resolutionStatus: 'resolved', matchedBy: 'name_heuristic' };
 
   const firstKey = candidates.map(mappingKeyForIdentifier).find(Boolean);
   return { instrument: null, resolutionStatus: 'needs_mapping', mappingKey: firstKey || null };
@@ -126,7 +105,9 @@ function almostEqual(a, b, relative = 0.02, absolute = 0.05) {
 }
 
 function displayLabelFromIdentifiers(identifiers = []) {
-  const brokerProduct = identifiers.find((item) => String(item.identifierType || item.type || '').toLowerCase() === 'broker_product');
+  const brokerProduct = identifiers.find(
+    (item) => String(item.identifierType || item.type || '').toLowerCase() === 'broker_product',
+  );
   return String(brokerProduct?.displayName || brokerProduct?.identifierValue || '').trim();
 }
 
@@ -161,12 +142,7 @@ function validateFuturePositions(ctx, importRepository, pendingRows) {
   for (const [symbol, rows] of bySymbol) {
     const firstDate = rows.map((row) => row.date).sort()[0];
     const events = importRepository.listLedgerEventsSince({ symbol, fromDate: firstDate });
-    const dates = [
-      ...new Set([
-        ...events.map((event) => event.date),
-        ...rows.map((row) => row.date),
-      ]),
-    ].sort();
+    const dates = [...new Set([...events.map((event) => event.date), ...rows.map((row) => row.date)])].sort();
 
     for (const date of dates) {
       const shares = ctx.getPositionShares(
@@ -207,7 +183,6 @@ function applyTimelineValidation(ctx, importRepository, rows) {
   });
 }
 
-
 async function previewImportFactory(ctx, input = {}) {
   const importRepository = ctx.repositories?.dataIngestion;
   if (!importRepository) {
@@ -217,7 +192,15 @@ async function previewImportFactory(ctx, input = {}) {
   const adapter = resolveAdapter(input.source || 'csv');
   const mapping = buildInstrumentMapping(input);
   const rowDecisions = normalizeRowDecisions(input);
-  const virtualSymbols = new Set((input.newInstruments || []).map((item) => String(item.symbol || '').trim().toUpperCase()).filter(Boolean));
+  const virtualSymbols = new Set(
+    (input.newInstruments || [])
+      .map((item) =>
+        String(item.symbol || '')
+          .trim()
+          .toUpperCase(),
+      )
+      .filter(Boolean),
+  );
   const parsedPayload = await parseImportPayload(input, adapter);
   const scopedPayloadHash = buildScopedPayloadHash(parsedPayload, input);
   const fileSubtype = parsedPayload.fileSubtype || 'unknown';
@@ -228,7 +211,9 @@ async function previewImportFactory(ctx, input = {}) {
   const mappingsRequired = new Map();
 
   let rows = parsedPayload.parsed.rows.map((row) => {
-    let { normalized, errors } = normalizeImportRow(ctx, row, input.mapping || {}, adapter.source, adapter.profile, { fileSubtype });
+    let { normalized, errors } = normalizeImportRow(ctx, row, input.mapping || {}, adapter.source, adapter.profile, {
+      fileSubtype,
+    });
     const rowDecision = rowDecisions.get(row.rowIndex) || {};
     const skipRequested = rowDecision.action === 'skip';
     if (rowDecision.symbol) {
@@ -236,7 +221,9 @@ async function previewImportFactory(ctx, input = {}) {
       rebuildImportIdentity(normalized, adapter.source, sha256);
     }
     if (rowDecision.edit) {
-      const edited = applyRowEdit(normalized, rowDecision.edit, adapter.source, (next, source) => rebuildImportIdentity(next, source, sha256));
+      const edited = applyRowEdit(normalized, rowDecision.edit, adapter.source, (next, source) =>
+        rebuildImportIdentity(next, source, sha256),
+      );
       normalized = edited.normalized;
       if (edited.errors.length) errors.push(...edited.errors);
     }
@@ -244,7 +231,16 @@ async function previewImportFactory(ctx, input = {}) {
     const resolution = forcedInstrument
       ? { instrument: forcedInstrument, resolutionStatus: 'resolved', matchedBy: 'row_mapping' }
       : rowDecision.symbol && virtualSymbols.has(String(rowDecision.symbol).toUpperCase())
-        ? { instrument: { symbol: String(rowDecision.symbol).toUpperCase(), type: 'stock', name: String(rowDecision.symbol).toUpperCase(), color: '#2563eb' }, resolutionStatus: 'mapped_new', matchedBy: 'row_mapping' }
+        ? {
+            instrument: {
+              symbol: String(rowDecision.symbol).toUpperCase(),
+              type: 'stock',
+              name: String(rowDecision.symbol).toUpperCase(),
+              color: '#2563eb',
+            },
+            resolutionStatus: 'mapped_new',
+            matchedBy: 'row_mapping',
+          }
         : resolveRowInstrument(ctx, { normalized, raw: row.data }, mapping, virtualSymbols);
     if (resolution.instrument && normalized.symbol !== resolution.instrument.symbol) {
       normalized.symbol = resolution.instrument.symbol;
@@ -253,8 +249,11 @@ async function previewImportFactory(ctx, input = {}) {
 
     const instrument = normalized.symbol ? ctx.getInstrument(normalized.symbol) || resolution.instrument : null;
     const mappingKey =
-      normalized.externalIdentifiers?.map(mappingKeyForIdentifier).find(Boolean) || (normalized.symbol ? `ticker:${normalized.symbol}` : null);
-    const detectedLabel = String(normalized.symbol || displayLabelFromIdentifiers(normalized.externalIdentifiers) || mappingKey || '').trim();
+      normalized.externalIdentifiers?.map(mappingKeyForIdentifier).find(Boolean) ||
+      (normalized.symbol ? `ticker:${normalized.symbol}` : null);
+    const detectedLabel = String(
+      normalized.symbol || displayLabelFromIdentifiers(normalized.externalIdentifiers) || mappingKey || '',
+    ).trim();
 
     if (mappingKey && !detectedInstruments.has(mappingKey)) {
       detectedInstruments.set(mappingKey, {
@@ -262,15 +261,20 @@ async function previewImportFactory(ctx, input = {}) {
         label: detectedLabel,
         symbol: normalized.symbol || null,
         isin:
-          normalized.externalIdentifiers
-            ?.find((item) => String(item.identifierType || '').toLowerCase() === 'isin')
+          normalized.externalIdentifiers?.find((item) => String(item.identifierType || '').toLowerCase() === 'isin')
             ?.identifierValue || null,
         currency: normalized.currency || null,
         exchange: null,
         resolutionStatus: resolution.resolutionStatus,
         resolutionSource: resolution.matchedBy || null,
         autoResolutionConfidence:
-          resolution.matchedBy === 'identifier' ? 'alta' : resolution.matchedBy === 'row_mapping' ? 'alta' : resolution.matchedBy ? 'media' : 'ninguna',
+          resolution.matchedBy === 'identifier'
+            ? 'alta'
+            : resolution.matchedBy === 'row_mapping'
+              ? 'alta'
+              : resolution.matchedBy
+                ? 'media'
+                : 'ninguna',
         rowCount: 0,
         buys: 0,
         sells: 0,
@@ -287,10 +291,13 @@ async function previewImportFactory(ctx, input = {}) {
       if (normalized.type === 'add') instrumentInfo.buys += 1;
       if (normalized.type === 'remove') instrumentInfo.sells += 1;
       instrumentInfo.approxValueEur += Number(normalized.valueEur || 0);
-      if (normalized.date && (!instrumentInfo.firstDate || normalized.date < instrumentInfo.firstDate)) instrumentInfo.firstDate = normalized.date;
-      if (normalized.date && (!instrumentInfo.lastDate || normalized.date > instrumentInfo.lastDate)) instrumentInfo.lastDate = normalized.date;
+      if (normalized.date && (!instrumentInfo.firstDate || normalized.date < instrumentInfo.firstDate))
+        instrumentInfo.firstDate = normalized.date;
+      if (normalized.date && (!instrumentInfo.lastDate || normalized.date > instrumentInfo.lastDate))
+        instrumentInfo.lastDate = normalized.date;
       if (resolution.resolutionStatus === 'needs_mapping') instrumentInfo.resolutionStatus = 'needs_mapping';
-      if (resolution.matchedBy && !instrumentInfo.resolutionSource) instrumentInfo.resolutionSource = resolution.matchedBy;
+      if (resolution.matchedBy && !instrumentInfo.resolutionSource)
+        instrumentInfo.resolutionSource = resolution.matchedBy;
       if (rowDecision.action === 'skip') instrumentInfo.hasSkippedRows = true;
     }
 
@@ -316,18 +323,41 @@ async function previewImportFactory(ctx, input = {}) {
       ledgerMatch = matchExistingLedgerTransaction(importRepository, normalized);
       if (ledgerMatch) rowKind = 'duplicate_ledger_match';
     }
-    if (rowKind === 'trade' && resolution.resolutionStatus === 'needs_mapping' && mappingKey && !mappingsRequired.has(mappingKey)) {
-      mappingsRequired.set(mappingKey, { key: mappingKey, label: detectedLabel, symbol: normalized.symbol || null, sampleRow: row.rowIndex });
+    if (
+      rowKind === 'trade' &&
+      resolution.resolutionStatus === 'needs_mapping' &&
+      mappingKey &&
+      !mappingsRequired.has(mappingKey)
+    ) {
+      mappingsRequired.set(mappingKey, {
+        key: mappingKey,
+        label: detectedLabel,
+        symbol: normalized.symbol || null,
+        sampleRow: row.rowIndex,
+      });
     }
 
     if (normalized.symbol && !instrument && resolution.resolutionStatus !== 'needs_mapping' && rowKind === 'trade') {
       errors.push(`Instrumento no existe: ${normalized.symbol}`);
     }
-    if (instrument?.type === 'fx' && rowKind === 'trade') errors.push('No se importan movimientos sobre instrumentos FX');
+    if (instrument?.type === 'fx' && rowKind === 'trade')
+      errors.push('No se importan movimientos sobre instrumentos FX');
 
     let saleDeficit = null;
-    if (resolution.resolutionStatus !== 'needs_mapping' && rowKind === 'trade' && normalized.type === 'remove' && normalized.symbol && normalized.date) {
-      const available = positionWithPendingRows(ctx, normalized.symbol, normalized.date, allResolvedTrades, row.rowIndex);
+    if (
+      resolution.resolutionStatus !== 'needs_mapping' &&
+      rowKind === 'trade' &&
+      normalized.type === 'remove' &&
+      normalized.symbol &&
+      normalized.date
+    ) {
+      const available = positionWithPendingRows(
+        ctx,
+        normalized.symbol,
+        normalized.date,
+        allResolvedTrades,
+        row.rowIndex,
+      );
       if (available + 0.0000001 < normalized.shares) {
         saleDeficit = {
           code: available <= 0.0000001 ? 'existing_empty_position' : 'existing_insufficient_position',
@@ -355,7 +385,13 @@ async function previewImportFactory(ctx, input = {}) {
       seenHashes.add(normalized.rowHash);
     }
     if (rowKind === 'trade' && normalized.symbol && normalized.date && Number.isFinite(normalized.shares)) {
-      allResolvedTrades.push({ rowIndex: row.rowIndex, symbol: normalized.symbol, date: normalized.date, type: normalized.type, shares: normalized.shares });
+      allResolvedTrades.push({
+        rowIndex: row.rowIndex,
+        symbol: normalized.symbol,
+        date: normalized.date,
+        type: normalized.type,
+        shares: normalized.shares,
+      });
     }
 
     const outputRow = {
@@ -378,7 +414,13 @@ async function previewImportFactory(ctx, input = {}) {
   rows = rows.map((row) => {
     if (row.status !== 'skipped' || row.blockReasonCode !== 'existing_empty_position') return row;
     if (row.normalized.type !== 'remove' || !row.normalized.symbol || !row.normalized.date) return row;
-    const available = positionWithPendingRows(ctx, row.normalized.symbol, row.normalized.date, allResolvedTrades, row.rowIndex);
+    const available = positionWithPendingRows(
+      ctx,
+      row.normalized.symbol,
+      row.normalized.date,
+      allResolvedTrades,
+      row.rowIndex,
+    );
     if (available + 0.0000001 < row.normalized.shares) return row;
     return { ...row, status: 'valid', rowKind: 'trade', blockReasonCode: null, blockReasonMessage: null };
   });
@@ -387,9 +429,14 @@ async function previewImportFactory(ctx, input = {}) {
     if (row.status === 'valid' && row.rowKind === 'trade') accepted.push(row.normalized);
   }
 
-  const sellOnlyUnresolvedKeys = new Set(Array.from(detectedInstruments.values())
-    .filter((item) => item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0)
-    .map((item) => item.key));
+  const sellOnlyUnresolvedKeys = new Set(
+    Array.from(detectedInstruments.values())
+      .filter(
+        (item) =>
+          item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0,
+      )
+      .map((item) => item.key),
+  );
   if (sellOnlyUnresolvedKeys.size) {
     rows = rows.map((row) => {
       if (row.status !== 'needs_mapping' || !sellOnlyUnresolvedKeys.has(row.mappingKey)) return row;

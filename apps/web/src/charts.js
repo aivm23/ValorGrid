@@ -1,13 +1,5 @@
 export function attach(ctx) {
-  const {
-    assetColor,
-    formatCurrency,
-    formatInstrumentQuantity,
-    formatPlainDate,
-    escapeHtml,
-    state,
-    elements,
-  } = ctx;
+  const { assetColor, formatCurrency, formatInstrumentQuantity, formatPlainDate, escapeHtml, state, elements } = ctx;
 
   function buildConicGradient(items, total) {
     if (!total) return 'var(--track)';
@@ -139,11 +131,12 @@ export function attach(ctx) {
       ].join('\n');
     }
     const type = historyEventLabel(event.type);
-    const origin = event.origin === 'auto'
-      ? ctx.t('history.origin.auto')
-      : event.origin === 'import'
-        ? ctx.t('history.origin.import')
-        : ctx.t('history.origin.manual');
+    const origin =
+      event.origin === 'auto'
+        ? ctx.t('history.origin.auto')
+        : event.origin === 'import'
+          ? ctx.t('history.origin.import')
+          : ctx.t('history.origin.manual');
     const lines = [
       `${type} ${event.symbol}`,
       formatPlainDate(event.date),
@@ -164,16 +157,18 @@ export function attach(ctx) {
     return [
       ctx.tn('history.tooltip.movements', events.length, { date: formatPlainDate(date) }),
       '---',
-      ...events.map((event) => {
-        const type = historyEventLabel(event.type);
-        if (event.type === 'split') {
-          const oldShares = Number(event.price || 0);
-          const newShares = Number(event.shares || 0);
-          const ratio = oldShares > 0 ? newShares / oldShares : 0;
-          return `${type} ${event.symbol}: ${ctx.formatShareNumber(oldShares)} -> ${ctx.formatShareNumber(newShares)} (${ctx.formatShareNumber(ratio)}x)`;
-        }
-        return `${type} ${event.symbol}: ${formatInstrumentQuantity(event.shares, event)}, ${formatCurrency(Number(event.valueEur))}`;
-      }).flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
+      ...events
+        .map((event) => {
+          const type = historyEventLabel(event.type);
+          if (event.type === 'split') {
+            const oldShares = Number(event.price || 0);
+            const newShares = Number(event.shares || 0);
+            const ratio = oldShares > 0 ? newShares / oldShares : 0;
+            return `${type} ${event.symbol}: ${ctx.formatShareNumber(oldShares)} -> ${ctx.formatShareNumber(newShares)} (${ctx.formatShareNumber(ratio)}x)`;
+          }
+          return `${type} ${event.symbol}: ${formatInstrumentQuantity(event.shares, event)}, ${formatCurrency(Number(event.valueEur))}`;
+        })
+        .flatMap((line, index) => (index === 0 ? [line] : ['---', line])),
     ].join('\n');
   }
 
@@ -216,16 +211,16 @@ export function attach(ctx) {
     <article class="has-border-accent"><span>${escapeHtml(ctx.t('history.stats.visibleContributed'))}</span><strong>${formatCurrency(invested)}</strong></article>
     <article class="has-border-violet"><span>${escapeHtml(ctx.t('history.stats.visibleEvents'))}</span><strong>${visibleEvents.length}</strong></article>
   `;
-    const quality = history.meta?.dataQuality && history.meta.dataQuality !== 'ok'
-      ? ctx.t('history.status.quality', { quality: history.meta.dataQuality })
-      : '';
+    const quality =
+      history.meta?.dataQuality && history.meta.dataQuality !== 'ok'
+        ? ctx.t('history.status.quality', { quality: history.meta.dataQuality })
+        : '';
     elements.historyStatus.textContent = ctx.tn('history.status.points', history.series.length, {
       value: formatCurrency(last.value),
       quality,
     });
-    elements.historyGranularity.textContent = history.granularity === 'weekly'
-      ? ctx.t('history.granularity.weekly')
-      : ctx.t('history.granularity.daily');
+    elements.historyGranularity.textContent =
+      history.granularity === 'weekly' ? ctx.t('history.granularity.weekly') : ctx.t('history.granularity.daily');
     if (elements.historySubtitle) {
       elements.historySubtitle.textContent = ctx.t('history.subtitle.fromDate', { date: formatPlainDate(first.date) });
     }
@@ -236,10 +231,15 @@ export function attach(ctx) {
     const height = 320;
     const padding = { top: 24, right: 24, bottom: 38, left: 68 };
     const scale = buildHistoryScale(history, width, height, padding);
-    const path = history.series.map((_, index) => `${index === 0 ? 'M' : 'L'} ${linePoint(history.series, index, scale)}`).join(' ');
+    const path = history.series
+      .map((_, index) => `${index === 0 ? 'M' : 'L'} ${linePoint(history.series, index, scale)}`)
+      .join(' ');
     const contributedPath = history.series
       .filter((item) => Number.isFinite(Number(item.contributed)))
-      .map((item, index) => `${index === 0 ? 'M' : 'L'} ${scale.x(item.date).toFixed(2)},${scale.y(item.contributed).toFixed(2)}`)
+      .map(
+        (item, index) =>
+          `${index === 0 ? 'M' : 'L'} ${scale.x(item.date).toFixed(2)},${scale.y(item.contributed).toFixed(2)}`,
+      )
       .join(' ');
     const firstLinePoint = linePoint(history.series, 0, scale);
     const lastLinePoint = linePoint(history.series, history.series.length - 1, scale);
@@ -281,7 +281,9 @@ export function attach(ctx) {
         const eventColor = group.length > 1 ? 'url(#historyEventMultiGrad)' : historyEventColor(group[0]);
         const eventType = group.every((event) => event.type === 'split')
           ? 'split'
-          : group.some((event) => event.type === 'remove') ? 'remove' : 'add';
+          : group.some((event) => event.type === 'remove')
+            ? 'remove'
+            : 'add';
         const r = group.length > 1 ? 6 : 5;
         return `
         <circle
@@ -335,9 +337,9 @@ export function attach(ctx) {
       <text class="history-axis-label history-axis-label-mid" x="${scale.x(midDate).toFixed(2)}" y="${
         height - 8
       }">${formatPlainDate(midDate)}</text>
-      <text class="history-axis-label history-axis-label-end" x="${width - padding.right}" y="${height - 8}">${
-        formatPlainDate(last.date)
-      }</text>
+      <text class="history-axis-label history-axis-label-end" x="${width - padding.right}" y="${height - 8}">${formatPlainDate(
+        last.date,
+      )}</text>
       <path class="history-line" d="${path}"></path>
       ${eventDots}
     </svg>

@@ -63,7 +63,8 @@ export function shouldOmitInstrumentByDefault(preview, item) {
   const hasCorporateActionHint = /\b(RTS?|RIGHTS?|NON\s*TRADEABLE)\b/.test(productText);
   const allIgnored = rows.every((row) => row.status === 'ignored' || row.rowKind === 'corporate_action_ignored');
   if (hasCorporateActionHint || allIgnored) return true;
-  const unresolvedSellOnly = item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0;
+  const unresolvedSellOnly =
+    item.resolutionStatus === 'needs_mapping' && Number(item.sells || 0) > 0 && Number(item.buys || 0) === 0;
   return unresolvedSellOnly;
 }
 
@@ -122,27 +123,27 @@ export function renderImportProBanners(sources, edition, escapeHtml, t = (value)
 
   if (proImplemented.length) {
     const names = proImplemented.map((source) => getImportSourceDisplayName(source)).join(', ');
-      html +=
-        '<div class="import-pro-banner import-pro-banner-brokers">' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
-        '<span class="import-pro-banner-title">' +
-        escapeHtml(names) +
-        '</span> ' +
-        '<span class="pro-edition-label">Professional Edition</span></div>';
+    html +=
+      '<div class="import-pro-banner import-pro-banner-brokers">' +
+      '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
+      '<span class="import-pro-banner-title">' +
+      escapeHtml(names) +
+      '</span> ' +
+      '<span class="pro-edition-label">Professional Edition</span></div>';
   }
 
   if (proComingSoon.length) {
     const soonNames = proComingSoon.map((source) => getImportSourceDisplayName(source)).join(', ');
-      html +=
-        '<div class="import-pro-banner import-pro-banner-clicktrade">' +
-        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
-        '<span class="import-pro-banner-title">' +
-        escapeHtml(soonNames) +
-        '</span> - ' +
-        '<span class="import-soon-label">' +
-        escapeHtml(t('import.source.comingSoon')) +
-        '</span> ' +
-        '<span class="pro-edition-label">Professional Edition</span></div>';
+    html +=
+      '<div class="import-pro-banner import-pro-banner-clicktrade">' +
+      '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="7" width="10" height="7" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M4.5 7V4.5a3.5 3.5 0 0 1 7 0V7" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/></svg> ' +
+      '<span class="import-pro-banner-title">' +
+      escapeHtml(soonNames) +
+      '</span> - ' +
+      '<span class="import-soon-label">' +
+      escapeHtml(t('import.source.comingSoon')) +
+      '</span> ' +
+      '<span class="pro-edition-label">Professional Edition</span></div>';
   }
 
   return html;

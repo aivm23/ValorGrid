@@ -46,7 +46,7 @@ export function buildInstrumentPayload(elements) {
     yahooSymbol: symbol,
     name: elements.newInstrumentName.value || symbol,
     type,
-    currency: isCommodity ? 'USD' : (elements.newInstrumentCurrency.value || 'EUR'),
+    currency: isCommodity ? 'USD' : elements.newInstrumentCurrency.value || 'EUR',
     groupId: elements.newInstrumentGroup?.value,
   };
   if (isCommodity) {

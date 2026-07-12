@@ -18,7 +18,10 @@ for (let index = start + 1; index < lines.length; index += 1) {
 }
 
 const tag = `v${version}`;
-const changelogBody = lines.slice(start + 1, end).join('\n').trim();
+const changelogBody = lines
+  .slice(start + 1, end)
+  .join('\n')
+  .trim();
 const notes = [
   `# ValorGrid ${tag}`,
   '',

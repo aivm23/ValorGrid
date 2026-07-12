@@ -27,13 +27,13 @@ export function attach(ctx) {
       { value: '6', label: 'Sábado' },
       { value: '7', label: 'Domingo' },
     ];
-    const ordered = ctx.state.weekStart === 'sunday'
-      ? [all[6], all[0], all[1], all[2], all[3], all[4], all[5]]
-      : all;
-    return ordered.map((d) => {
-      const sel = String(selectedValue) === d.value ? ' selected' : '';
-      return `<option value="${d.value}"${sel}>${escapeHtml(ctx.t?.(d.label) || d.label)}</option>`;
-    }).join('');
+    const ordered = ctx.state.weekStart === 'sunday' ? [all[6], all[0], all[1], all[2], all[3], all[4], all[5]] : all;
+    return ordered
+      .map((d) => {
+        const sel = String(selectedValue) === d.value ? ' selected' : '';
+        return `<option value="${d.value}"${sel}>${escapeHtml(ctx.t?.(d.label) || d.label)}</option>`;
+      })
+      .join('');
   }
 
   function formatDate(value) {
@@ -62,9 +62,10 @@ export function attach(ctx) {
 
   function todayInputValue() {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
-      now.getDate(),
-    ).padStart(2, '0')}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(
+      2,
+      '0',
+    )}`;
   }
 
   function addYears(dateValue, years) {
@@ -124,7 +125,9 @@ export function attach(ctx) {
   function instrumentTypeForSymbol(symbol) {
     if (!symbol) return '';
     const normalized = String(symbol).trim().toUpperCase();
-    const instrument = (ctx.state.instruments || []).find((item) => String(item.symbol || '').toUpperCase() === normalized);
+    const instrument = (ctx.state.instruments || []).find(
+      (item) => String(item.symbol || '').toUpperCase() === normalized,
+    );
     return instrument?.type || '';
   }
 
@@ -152,7 +155,7 @@ export function attach(ctx) {
     if (ctx.state.hideBalances) return '••••';
     const shares = Number(value || 0);
     if (!Number.isFinite(shares)) return '0';
-    const hasExtraPrecision = (shares % 1) * 100 % 1 !== 0;
+    const hasExtraPrecision = ((shares % 1) * 100) % 1 !== 0;
     const formatter = hasExtraPrecision ? ctx.cryptoSharesFormatter : ctx.sharesFormatter;
     return formatter.format(shares);
   }

@@ -24,10 +24,14 @@ const INSTRUCCIONES_ROWS = [
   ['3. Cada fila de datos representa una operación (compra o venta).'],
   [''],
   ['Campos:'],
-  ['- Tipo (opcional): "compra", "venta", "c", "v", "buy", "sell". Si se deja vacío, se infiere del signo de Acciones.'],
+  [
+    '- Tipo (opcional): "compra", "venta", "c", "v", "buy", "sell". Si se deja vacío, se infiere del signo de Acciones.',
+  ],
   ['- Fecha (obligatorio): formato DD/MM/AAAA (ej: 15/01/2026).'],
   ['- Ticker (obligatorio): símbolo del instrumento en ValorGrid.'],
-  ['- Yahoo (opcional): ticker de Yahoo Finance para precios automáticos. Si se omite, se usará el que tenga el instrumento en ValorGrid.'],
+  [
+    '- Yahoo (opcional): ticker de Yahoo Finance para precios automáticos. Si se omite, se usará el que tenga el instrumento en ValorGrid.',
+  ],
   ['- Acciones (obligatorio): cantidad. Positivo = compra, negativo = venta si no se usa Tipo.'],
   ['- Precio (obligatorio): precio unitario en la divisa de la operación.'],
   ['- Divisa (obligatorio): código ISO de 3 letras (EUR, USD, PLN, etc.).'],
@@ -63,9 +67,19 @@ function appendSheet(workbook, sheetName, rows, widths) {
 
 async function generateTemplateXlsx() {
   const workbook = new ExcelJS.Workbook();
-  appendSheet(workbook, 'Movimientos', [MOVIMIENTOS_HEADERS], MOVIMIENTOS_HEADERS.map(() => 18));
+  appendSheet(
+    workbook,
+    'Movimientos',
+    [MOVIMIENTOS_HEADERS],
+    MOVIMIENTOS_HEADERS.map(() => 18),
+  );
   appendSheet(workbook, 'Instrucciones', INSTRUCCIONES_ROWS, [100]);
-  appendSheet(workbook, 'Ejemplos', [EJEMPLOS_HEADERS, ...EJEMPLOS_ROWS], EJEMPLOS_HEADERS.map(() => 18));
+  appendSheet(
+    workbook,
+    'Ejemplos',
+    [EJEMPLOS_HEADERS, ...EJEMPLOS_ROWS],
+    EJEMPLOS_HEADERS.map(() => 18),
+  );
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 

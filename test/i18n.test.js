@@ -28,13 +28,19 @@ test('frontend i18n layer is wired into app bootstrap and preferences', () => {
   assert.ok(events.includes('handleLanguageChange'), 'events module wires language changes');
   assert.ok(i18n.includes('registerTranslations'), 'extensions can register private dictionaries');
   assert.ok(i18n.includes('MutationObserver'), 'dynamic DOM mutations are translated');
-  assert.ok(i18n.includes("data-i18n"), 'static DOM nodes can bind explicit i18n keys');
-  assert.ok(i18n.includes("data-label"), 'responsive table labels are translated');
+  assert.ok(i18n.includes('data-i18n'), 'static DOM nodes can bind explicit i18n keys');
+  assert.ok(i18n.includes('data-label'), 'responsive table labels are translated');
   assert.ok(i18n.includes("from './i18n-catalog.js'"), 'i18n imports the shared catalog');
   assert.ok(catalog.includes('BASE_TEXT_TRANSLATIONS'), 'catalog exports base translations');
   assert.ok(catalog.includes("from './i18n-catalog-modals.js'"), 'catalog imports modal translations');
   assert.ok(catalog.includes("from './i18n-catalog-import.js'"), 'catalog imports import workflow translations');
-  for (const rangeKey of ['history.range.all', 'history.range.5y', 'history.range.2y', 'history.range.1y', 'history.range.ytd']) {
+  for (const rangeKey of [
+    'history.range.all',
+    'history.range.5y',
+    'history.range.2y',
+    'history.range.1y',
+    'history.range.ytd',
+  ]) {
     assert.ok(uiCatalog.includes(`'${rangeKey}'`), `${rangeKey} must exist in the UI i18n catalog`);
     assert.ok(html.includes(`data-i18n="${rangeKey}"`), `${rangeKey} must be bound in static history range buttons`);
   }
@@ -48,7 +54,11 @@ test('frontend number formatting is centralized behind locale helpers', () => {
       offenders.push(relativePath);
     }
   }
-  assert.deepEqual(offenders, [], 'web modules must not hardcode es-ES number formatting outside i18n fallback helpers');
+  assert.deepEqual(
+    offenders,
+    [],
+    'web modules must not hardcode es-ES number formatting outside i18n fallback helpers',
+  );
 });
 
 test('Community Professional Edition gate honors Accept-Language', async () => {
@@ -63,7 +73,9 @@ test('Community Professional Edition gate honors Accept-Language', async () => {
 
 test('dashboard dynamic copy is rendered through i18n keys', () => {
   const i18n = read('apps/web/src/i18n-catalog.js');
-  const operations = read('apps/web/src/operations.js');
+  const operations = [read('apps/web/src/operations.js'), read('apps/web/src/operations-metric-renderer.js')].join(
+    '\n',
+  );
   const summary = read('apps/web/src/summary.js');
 
   for (const key of [
@@ -89,11 +101,21 @@ test('dashboard dynamic copy is rendered through i18n keys', () => {
     'valor(es) con cotizacion antigua',
     "'Desglose disponible'",
   ]) {
-    assert.equal(operations.includes(literal) || summary.includes(literal), false, `${literal} must not be rendered directly`);
+    assert.equal(
+      operations.includes(literal) || summary.includes(literal),
+      false,
+      `${literal} must not be rendered directly`,
+    );
   }
 
-  assert.ok(operations.includes("ctx.t('operations.metrics.marketValue.label')"), 'operations renders metric labels via i18n keys');
-  assert.ok(summary.includes("ctx.tn('summary.priceStatus.stale'"), 'summary renders stale price status via i18n plurals');
+  assert.ok(
+    operations.includes("ctx.t('operations.metrics.marketValue.label')"),
+    'operations renders metric labels via i18n keys',
+  );
+  assert.ok(
+    summary.includes("ctx.tn('summary.priceStatus.stale'"),
+    'summary renders stale price status via i18n plurals',
+  );
 });
 
 test('frontend residual dashboard surfaces use i18n keys for generated copy', () => {
@@ -105,7 +127,7 @@ test('frontend residual dashboard surfaces use i18n keys for generated copy', ()
   const ledger = read('apps/web/src/ledger.js');
   const imports = read('apps/web/src/import-preview-renderer.js');
   const confirm = read('apps/web/src/import-confirm-renderer.js');
-  const forms = read('apps/web/src/forms.js');
+  const forms = [read('apps/web/src/forms.js'), read('apps/web/src/auto-plan-form.js')].join('\n');
 
   for (const key of [
     'monthly.subtitle.withData',
@@ -137,7 +159,7 @@ test('frontend residual dashboard surfaces use i18n keys for generated copy', ()
   assert.ok(forms.includes('form.operation.title.buy'), 'operation dialog labels use i18n keys');
   assert.ok(forms.includes("ctx.t('Añadir plan')"), 'recurring contribution add button uses i18n');
   assert.ok(forms.includes("ctx.t('Día mes')"), 'recurring contribution month-day label uses i18n');
-  assert.ok(forms.includes("ctx.dateInputLang"), 'recurring contribution date input follows active language');
+  assert.ok(forms.includes('ctx.dateInputLang'), 'recurring contribution date input follows active language');
 });
 
 test('frontend modal copy is covered by i18n dictionaries', () => {

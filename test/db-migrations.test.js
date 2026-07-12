@@ -17,7 +17,11 @@ function withTempDb(fn) {
   try {
     return fn({ tempDir, dbPath, backupDir });
   } finally {
-    try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch { /* Windows may lock WAL/SHM briefly */ }
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      /* Windows may lock WAL/SHM briefly */
+    }
   }
 }
 
@@ -151,9 +155,7 @@ test('migration is idempotent when already up to date', () => {
   withTempDb(({ dbPath, backupDir }) => {
     const db = openDatabase(dbPath);
     createOldSchema29(db);
-    db.prepare(
-      "INSERT INTO app_meta (key, value) VALUES ('schema_version', '3.32.0')",
-    ).run();
+    db.prepare("INSERT INTO app_meta (key, value) VALUES ('schema_version', '3.32.0')").run();
     const ctx = buildCtx(db, dbPath, backupDir);
     migrations(ctx);
     const result = ctx.runMigrations();

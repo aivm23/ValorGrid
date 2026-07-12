@@ -6,8 +6,10 @@ module.exports = function attach(ctx) {
   const { repositories, metaKeys, memoryCache } = ctx;
   const metaRepository = repositories.meta || {};
   const { getMetaNumberByKey, setMetaNumberByKey, insertHistoryInvalidation } = metaRepository;
-  if (typeof getMetaNumberByKey !== 'function') throw new Error('meta-state requires repositories.meta.getMetaNumberByKey');
-  if (typeof setMetaNumberByKey !== 'function') throw new Error('meta-state requires repositories.meta.setMetaNumberByKey');
+  if (typeof getMetaNumberByKey !== 'function')
+    throw new Error('meta-state requires repositories.meta.getMetaNumberByKey');
+  if (typeof setMetaNumberByKey !== 'function')
+    throw new Error('meta-state requires repositories.meta.setMetaNumberByKey');
   if (typeof insertHistoryInvalidation !== 'function') {
     throw new Error('meta-state requires repositories.meta.insertHistoryInvalidation');
   }
@@ -58,4 +60,3 @@ module.exports = function attach(ctx) {
     invalidatePrices,
   });
 };
-

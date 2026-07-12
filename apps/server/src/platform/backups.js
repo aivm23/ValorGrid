@@ -16,18 +16,29 @@ function pruneOldBackups(backupDir, limit = 6) {
     .readdirSync(backupDir)
     .filter(safeBackupName)
     .map((file) => {
-      try { return { file, mtime: fs.statSync(path.join(backupDir, file)).mtimeMs }; }
-      catch { return null; }
+      try {
+        return { file, mtime: fs.statSync(path.join(backupDir, file)).mtimeMs };
+      } catch {
+        return null;
+      }
     })
     .filter(Boolean)
     .sort((a, b) => b.mtime - a.mtime);
   for (const old of all.slice(limit)) {
-    try { fs.unlinkSync(path.join(backupDir, old.file)); } catch { /* skip */ }
+    try {
+      fs.unlinkSync(path.join(backupDir, old.file));
+    } catch {
+      /* skip */
+    }
   }
 }
 
 function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
-  try { db.exec('PRAGMA wal_checkpoint(FULL)'); } catch { /* skip for in-memory or non-WAL databases */ }
+  try {
+    db.exec('PRAGMA wal_checkpoint(FULL)');
+  } catch {
+    /* skip for in-memory or non-WAL databases */
+  }
   const targetPath = path.join(backupDir, fileName);
   fs.copyFileSync(dbPath, targetPath);
   try {
@@ -42,7 +53,11 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
       verification,
     };
   } catch (error) {
-    try { fs.unlinkSync(targetPath); } catch { /* best effort cleanup */ }
+    try {
+      fs.unlinkSync(targetPath);
+    } catch {
+      /* best effort cleanup */
+    }
     throw new Error(`Backup verification failed: ${error.message}`);
   }
 }
