@@ -136,7 +136,7 @@ const corporateActions = [
   },
 ];
 
-const stockShareAmounts = [20, 12, 8, 4];
+const stockShareAmounts = [2, 2, 1, 1];
 
 const liquidityAccounts = [
   {
@@ -429,7 +429,7 @@ function seedLoadtestDb(db, options = {}) {
         const price = deterministicPrice(instrument, date, from);
         const fx = instrument.currency === 'USD' ? deterministicPrice(bySymbol.get('USDEUR'), date, from) : 1;
         const priceEur = instrument.currency === 'USD' ? price * fx : price;
-        const plannedValueEur = 125 + ((index + slot) % 6) * 35;
+        const plannedValueEur = 15 + ((index + slot) % 6) * 5;
         const shares = loadtestPurchaseShares(instrument, index, slot, plannedValueEur, priceEur);
         const valueEur = instrument.type === 'stock' ? Number((shares * priceEur).toFixed(2)) : plannedValueEur;
         holdings.set(symbol, holdings.get(symbol) + shares);
@@ -509,14 +509,14 @@ function seedLoadtestDb(db, options = {}) {
       }
     }
 
-    insertAutoPlan.run('GOLD', 50, 15, 1, '2024-06-01', 'monthly', null);
+    insertAutoPlan.run('GOLD', 6, 15, 1, '2024-06-01', 'monthly', null);
     const gold = bySymbol.get('GOLD');
     for (const { year, month } of monthsBetween('2024-06-01', to)) {
       const date = monthDate(year, month, 15);
       if (date > to) continue;
       const price = deterministicPrice(gold, date, from);
       const fx = deterministicPrice(bySymbol.get('USDEUR'), date, from);
-      const valueEur = 50;
+      const valueEur = 6;
       const priceEur = price * fx;
       const shares = Number((valueEur / priceEur).toFixed(8));
       holdings.set('GOLD', holdings.get('GOLD') + shares);
