@@ -2,10 +2,10 @@
 
 Esta guía explica cómo crear instrumentos en ValorGrid. El proveedor de precios se asigna automáticamente según el tipo de instrumento.
 
-| Tipo               | Proveedor     | Requisito                                                   |
-| ------------------ | ------------- | ----------------------------------------------------------- |
-| ETF, Stock, Crypto | Yahoo Finance | Ticker Yahoo válido                                         |
-| Commodity          | Alpha Vantage | Clave API guardada desde el asistente o variable de entorno |
+| Tipo               | Proveedor     | Requisito                                                            |
+| ------------------ | ------------- | -------------------------------------------------------------------- |
+| ETF, Stock, Crypto | Yahoo Finance | Ticker Yahoo válido                                                  |
+| Commodity          | Alpha Vantage | Clave API guardada desde el asistente o configuración del despliegue |
 
 ## Crear ETF, Stock o Crypto (Yahoo)
 
@@ -55,7 +55,7 @@ Si no hay clave de Alpha Vantage configurada, ValorGrid te mostrará un asistent
 2. Completa el formulario (email + aceptar términos).
 3. Pega la clave recibida y confirma.
 
-La clave se valida automáticamente con una llamada de prueba a la API. Solo se guarda si es válida. Este flujo está disponible en la app de escritorio y en Docker/CasaOS cuando la clave no viene de variable de entorno. En Docker/servidor también puedes configurar `VALORGRID_ALPHA_VANTAGE_API_KEY` como variable de entorno.
+La clave se valida automáticamente con una llamada de prueba a la API. Solo se guarda si es válida. Este flujo está disponible en la app de escritorio y en Docker/CasaOS cuando la clave no está gestionada por la configuración del despliegue.
 
 La divisa `USD` es fija para todas las commodities. ValorGrid convertirá los precios a EUR mediante el tipo de cambio diario.
 
@@ -75,4 +75,4 @@ Las ventas manuales se registran siempre con cantidad vendida, importe bruto de 
 
 - Usa tickers internos simples y estables.
 - Commodities en USD: ValorGrid convierte a EUR automáticamente con el FX del día.
-- Alpha Vantage requiere clave API. En la app de escritorio y en Docker/CasaOS puedes configurarla desde el mismo asistente. En despliegues avanzados, usa `VALORGRID_ALPHA_VANTAGE_API_KEY`.
+- Alpha Vantage requiere clave API. En la app de escritorio y en Docker/CasaOS puedes configurarla desde el mismo asistente. En despliegues avanzados, usa el gestor de secretos del entorno.

@@ -36,10 +36,10 @@ El verificador ejecuta tests y comprobaciones de privacidad sobre archivos publi
 
 La ruta de DB se decide así:
 
-1. `PORTFOLIO_DB_PATH`, si está definido.
+1. La ruta activa configurada explícitamente, si existe.
 2. `local/valorgrid/data/portfolio.sqlite` por defecto.
 
-En la app de escritorio, ValorGrid define `PORTFOLIO_DB_PATH` automáticamente dentro de la carpeta privada de datos de usuario de la aplicación. Los backups de escritorio usan la misma zona privada mediante `VALORGRID_BACKUP_DIR`.
+En la app de escritorio, la base de datos y los backups se resuelven automáticamente dentro de la carpeta privada de datos de la aplicación.
 
 Recomendación:
 
@@ -99,13 +99,11 @@ Recomendación:
 
 - úsalo en localhost, LAN privada o VPN;
 - no abras el puerto directamente a Internet;
-- si necesitas acceso externo en Docker/CasaOS, configura `VALORGRID_AUTH_PASSWORD` y usa HTTPS delante del contenedor.
+- si necesitas acceso externo en Docker/CasaOS, configura autenticación mediante el gestor de secretos del despliegue y usa HTTPS delante del contenedor.
 
 ## Login monousuario
 
-`VALORGRID_AUTH_PASSWORD` activa Basic Auth para toda la app. `VALORGRID_AUTH_USER` es opcional y por defecto es `valorgrid`.
-
-La contraseña no se guarda en SQLite ni se muestra en la API. Debe gestionarse como secreto del despliegue. Si `VALORGRID_AUTH_PASSWORD` está vacío, ValorGrid mantiene el modo local sin login.
+La autenticación protege toda la app cuando está configurada. La contraseña no se guarda en SQLite ni se muestra en la API; debe gestionarse como secreto del despliegue. Si no se configura, ValorGrid mantiene el modo local sin login.
 
 ## GitHub
 

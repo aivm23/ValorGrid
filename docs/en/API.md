@@ -1,6 +1,6 @@
 # API
 
-ValorGrid exposes a local HTTP API used by the web UI. The public API is stable for Community users and uses JSON payloads unless an endpoint explicitly returns a file.
+ValorGrid exposes the current local HTTP API used by the web UI. It uses JSON payloads unless an endpoint explicitly returns a file.
 
 Main areas:
 

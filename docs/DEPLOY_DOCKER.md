@@ -18,19 +18,9 @@ Abrir:
 http://localhost:1325
 ```
 
-`deploy/docker/docker-compose.yml` usa:
+El compose publica la aplicación en el puerto `1325` y monta directorios persistentes separados para datos y backups.
 
-- `HOST=0.0.0.0`
-- `PORT=1325`
-- `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
-- `VALORGRID_BACKUP_DIR=/app/.backups`
-- `VALORGRID_AUTH_USER=valorgrid`
-- `VALORGRID_AUTH_PASSWORD=` (vacío: login desactivado)
-- `VALORGRID_ALPHA_VANTAGE_API_KEY=` (opcional)
-- `./data:/data`
-- `./backups:/app/.backups`
-
-`data/` y `backups/` son privados, estan ignorados por Git y deben incluirse en tu estrategia de backup.
+`data/` y `backups/` son privados, están ignorados por Git y deben incluirse en tu estrategia de backup.
 
 ## CasaOS AppStore oficial
 
@@ -42,25 +32,15 @@ El archivo de tienda es `deploy/docker/compose.casaos.yml` y usa la imagen con e
 
 ## Login monousuario
 
-ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expuestas fuera de una LAN privada, activa Basic Auth con variables de entorno:
-
-```bash
-VALORGRID_AUTH_USER=valorgrid
-VALORGRID_AUTH_PASSWORD=usa-una-contraseña-larga
-```
-
-Si `VALORGRID_AUTH_PASSWORD` está vacío o no existe, el login queda desactivado. Si está configurado, ValorGrid protege toda la app: pantalla principal, assets, API, exportaciones, backups, `/api/health` y `/api/version`.
+ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expuestas fuera de una LAN privada, configura Basic Auth mediante el mecanismo de secretos de tu despliegue y reinicia el contenedor. La protección cubre la interfaz, API, exportaciones, backups y endpoints de estado.
 
 Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
 
 ## Alpha Vantage para commodities
 
-Las commodities usan Alpha Vantage. En Docker y CasaOS hay dos formas de configurar la clave:
+Las commodities usan Alpha Vantage. Para uso normal, crea la commodity y añade la clave desde el asistente. En despliegues administrados, la clave puede gestionarse mediante la configuración segura del contenedor.
 
-- Recomendado para usuarios no técnicos: abre ValorGrid, crea una commodity y pega la clave en el asistente. La clave se guarda en `/data/secrets.json`, dentro del volumen persistente, y queda activa sin reiniciar el contenedor.
-- Avanzado: define `VALORGRID_ALPHA_VANTAGE_API_KEY` en la configuración del contenedor. Esta variable tiene prioridad sobre la clave local y requiere recrear/reiniciar el contenedor para cambiarla.
-
-La API nunca devuelve el valor de la clave; solo informa si Alpha Vantage está configurado y si la clave viene de entorno o de almacenamiento local.
+La API nunca devuelve el valor de la clave; solo informa si Alpha Vantage está configurado y si la interfaz puede gestionarla.
 
 Pasos de prueba previos al envío a AppStore:
 
@@ -71,10 +51,7 @@ Pasos de prueba previos al envío a AppStore:
 5. Instalar y abrir la Web UI.
 6. Verificar `GET /api/health`.
 
-El compose CasaOS usa bind mounts bajo `/DATA/AppData/valorgrid`, que es la ruta esperada para datos persistentes de apps en CasaOS:
-
-- `/DATA/AppData/valorgrid/data:/data`
-- `/DATA/AppData/valorgrid/backups:/app/.backups`
+El compose de CasaOS monta directorios persistentes separados para datos y backups.
 
 ## Imagen latest
 
@@ -106,10 +83,6 @@ docker compose pull
 docker compose up -d
 ```
 
-### Migraciones automáticas en Docker
-
-Por defecto, la migración automática de schema está deshabilitada en Docker para evitar mutar la DB sin control operatorio. La sección **Actualización** muestra las migraciones pendientes y los comandos para ejecutarlas manualmente con `scripts/run-sql-migration.js`. Para habilitar la migración automática al arrancar, definir `VALORGRID_AUTO_MIGRATE=1` en el entorno del contenedor. Ver [DB_OPERATIONS.md](DB_OPERATIONS.md) para más detalle.
-
 Rollback:
 
 1. Detener la app en CasaOS.
@@ -130,4 +103,4 @@ ValorGrid conserva automáticamente los 6 backups más recientes en el directori
 
 ## Seguridad
 
-ValorGrid incluye Basic Auth monousuario opcional con `VALORGRID_AUTH_PASSWORD`. Para exponer Docker/CasaOS fuera de una LAN privada, configura una contraseña fuerte y usa HTTPS delante del contenedor.
+Para exponer Docker/CasaOS fuera de una LAN privada, configura una contraseña fuerte mediante el gestor de secretos del despliegue y usa HTTPS delante del contenedor.

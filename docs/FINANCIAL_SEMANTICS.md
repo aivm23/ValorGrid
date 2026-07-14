@@ -154,7 +154,7 @@ La plantilla Excel de ValorGrid (`valorgrid-xlsx`) usa las siguientes reglas:
 - `Tipo` (compra/venta) se infiere del signo de `Acciones` si se deja vacío.
 - `Comision EUR` es siempre opcional (por defecto 0).
 
-Estas reglas aplican al perfil público `valorgrid`. Los adaptadores privados de ValorGrid Pro/Enterprise deben normalizar sus datos a esta semántica antes de llegar al ledger.
+Estas reglas aplican a la plantilla pública `valorgrid-xlsx` y al ledger de Community.
 
 ## Cálculos de posición
 
@@ -200,7 +200,7 @@ Umbral de visibilidad: `0.01` EUR. Definido en `apps/server/src/app.js`. Las pos
 
 - La selección de proveedor es automática según el tipo de instrumento:
   - **ETF, Stock, Crypto**: Yahoo Finance (fuente por defecto).
-  - **Commodity**: Alpha Vantage (requiere clave API guardada desde el asistente o `VALORGRID_ALPHA_VANTAGE_API_KEY`).
+  - **Commodity**: Alpha Vantage (requiere clave API configurada desde el asistente o el despliegue).
 - Alpha Vantage para commodities usa los endpoints `GOLD_SILVER_HISTORY` y `GOLD_SILVER_SPOT` en lugar de `FX_DAILY`.
 - Los precios de proveedores alternativos se cachean en `market_price_points`.
 - Las escrituras de transacciones siguen siendo estrictas: no usan caché antiguo de Yahoo de forma automática.

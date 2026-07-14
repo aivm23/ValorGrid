@@ -8,7 +8,7 @@ Por defecto el servidor escucha en:
 http://127.0.0.1:1325
 ```
 
-Si `VALORGRID_AUTH_PASSWORD` está configurado, toda la API queda protegida con Basic Auth monousuario. El usuario por defecto es `valorgrid` y puede cambiarse con `VALORGRID_AUTH_USER`.
+Cuando el despliegue configura autenticación, toda la API queda protegida con Basic Auth monousuario.
 
 ## Sistema
 
@@ -23,7 +23,7 @@ GET /api/update/docker-commands
 ```
 
 - `GET /api/version`: devuelve la versión definida en `package.json` y la edición (`community` o `professional`).
-- `GET /api/extensions`: devuelve un manifiesto público de extensiones activas. En Community devuelve una lista vacía; en ediciones profesionales puede incluir módulos web y estilos cargables sin exponer contratos privados.
+- `GET /api/extensions`: devuelve el estado público de capacidades por edición. En Community no expone capacidades profesionales ni sus contratos.
 - `GET /api/health`: devuelve estado local, ruta de base de datos activa, versiones internas y último build histórico.
 - `GET /api/state`: devuelve el estado completo de la aplicación: instrumentos, grupos, movimientos, planes automáticos y ruta de base de datos activa.
 - `GET /api/diagnostics/performance`: devuelve métricas de rendimiento, tamaños de caché e invalidaciones pendientes.
@@ -274,7 +274,7 @@ Si el proveedor no responde y existe un precio local anterior, la respuesta pued
 - El campo `apiKey` debe tener 16 caracteres alfanuméricos mayúsculas.
 - Se valida con una llamada real a `GOLD_SILVER_SPOT` antes de guardar.
 - Si la clave es inválida o el límite diario está activo, devuelve `400` con mensaje explicativo.
-- Si `VALORGRID_ALPHA_VANTAGE_API_KEY` está configurada por entorno, devuelve `400` e indica que la clave se cambie en la configuración del contenedor o proceso.
+- Si la clave está gestionada por la configuración del despliegue, devuelve `400` e indica que debe cambiarse allí.
 
 Respuesta:
 
@@ -288,9 +288,8 @@ Respuesta:
 
 ### Gestión local de la clave
 
-- **App de escritorio**: la clave se guarda en `secrets.json` junto al directorio de backups dentro de la carpeta privada de Electron (`app.getPath('userData')`). ValorGrid nunca la expone por API ni la envía a servidores externos (salvo a la API oficial de Alpha Vantage para consultar precios).
-- **Docker/CasaOS**: si no se configura variable de entorno, la misma vista de configuración permite pegar la clave y guardarla en el volumen persistente de datos (`/data/secrets.json`) sin reiniciar el contenedor.
-- **Servidor/dev avanzado**: `VALORGRID_ALPHA_VANTAGE_API_KEY` tiene prioridad sobre la clave local persistida. `ALPHA_VANTAGE_API_KEY` sigue aceptada por compatibilidad.
+- La clave guardada desde la aplicación permanece en el almacenamiento privado de la instalación. No se devuelve por API ni se envía a terceros salvo a Alpha Vantage al consultar precios.
+- Un despliegue administrado puede gestionar la clave fuera de la aplicación. En ese caso, la interfaz no permite modificarla en caliente.
 
 ## Backups
 
@@ -301,7 +300,7 @@ GET /api/backups/:file
 DELETE /api/backups/:file
 ```
 
-Los backups se guardan en `local/valorgrid/backups/` y no deben versionarse.
+Los backups se guardan localmente y no deben versionarse.
 
 - `GET /api/backups` — lista todos los backups disponibles.
 - `POST /api/backups` — crea un nuevo backup de la base de datos activa.
@@ -384,7 +383,7 @@ Respuesta:
 valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado, siempre disponible)
 ```
 
-Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración, contratos de adaptación y detalles operativos se documentan solo en materiales privados de ValorGrid Pro/Enterprise. Cuando una edición privada está cargada mediante el host de extensiones, sus fuentes pueden aparecer como `available: true` sin que Community publique el adaptador ni su contrato interno.
+Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración y contratos de adaptación se documentan solo en materiales privados de ValorGrid Pro/Enterprise.
 
 ### Descarga de plantilla
 
@@ -396,7 +395,7 @@ Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edit
 
 La respuesta incluye `Content-Disposition: attachment` y MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
 
-La plantilla se procesa internamente con ExcelJS. El parser solo acepta `.xlsx` moderno, limita el archivo a 2 MB, exige la hoja `Movimientos`, bloquea hojas no permitidas, valida encabezados exactos, rechaza fórmulas y limita Community a 500 movimientos por importación.
+El importador solo acepta `.xlsx` moderno, limita el archivo a 2 MB, exige la hoja `Movimientos`, bloquea hojas no permitidas, valida encabezados exactos, rechaza fórmulas y limita Community a 500 movimientos por importación.
 
 ### Semántica de importación con plantilla
 

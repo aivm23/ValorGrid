@@ -2,7 +2,7 @@
 
 [Spanish docs](../FIRST_STEPS.md) · [English README](../../README.en.md)
 
-This folder mirrors the public GitHub documentation in English. The Spanish files in `docs/` remain the canonical detailed reference for this release cycle; this English mirror provides the same user-facing structure and public/private boundary.
+This folder provides compact English guides for the public Community surface. The Spanish files in `docs/` remain the canonical detailed reference for this release cycle; both languages preserve the same public/private boundary.
 
 ## User Guides
 

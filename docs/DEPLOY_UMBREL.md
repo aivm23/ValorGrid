@@ -10,9 +10,9 @@ ValorGrid tiene un paquete Umbrel independiente de los ficheros Docker y CasaOS:
 
 - El contenedor usa la misma imagen GHCR que Docker/CasaOS, pero fijada por tag versionado y digest SHA-256.
 - La Web UI se publica por `app_proxy`; el compose de Umbrel no declara `ports:`.
-- La base SQLite, backups internos y `secrets.json` viven bajo `${APP_DATA_DIR}/data`.
-- `VALORGRID_AUTH_PASSWORD` queda vacío porque Umbrel aporta autenticación delante de la app.
-- La clave Alpha Vantage puede guardarse desde la UI y queda en `/data/secrets.json`, dentro del volumen persistente de Umbrel.
+- La base SQLite, los backups internos y la configuración local viven en el almacenamiento persistente de Umbrel.
+- Umbrel aporta autenticación delante de la app.
+- La clave de Alpha Vantage puede guardarse desde la UI dentro de los datos persistentes de la aplicación.
 - La ficha no promete que ningún dato salga del servidor: los movimientos y configuración son locales, pero las consultas de precios se envían al proveedor de mercado configurado.
 
 ## Sincronizar el paquete
@@ -83,7 +83,7 @@ Para preparar el PR oficial:
 - Importar la plantilla XLSX de ValorGrid.
 - Consultar precios de mercado.
 - Crear backup desde la UI.
-- Reiniciar la app y umbrelOS; comprobar que DB, backups y `secrets.json` persisten.
+- Reiniciar la app y umbrelOS; comprobar que DB, backups y configuración persisten.
 - Actualizar desde una versión anterior con datos existentes.
 - Restaurar backup de Umbrel y comprobar `/api/health`.
 - Probar `linux/amd64` y `linux/arm64` antes de pedir revisión oficial.
@@ -99,7 +99,7 @@ npm run verify:publication
 npm run audit:release
 ```
 
-`verify:publication` falla si el paquete Umbrel usa `latest`, `build:`, `ports:`, socket Docker, volúmenes nombrados o rutas persistentes fuera de `${APP_DATA_DIR}`. Mientras el digest sea placeholder, emite un warning; antes del envío oficial debe reemplazarse por el digest real.
+`verify:publication` falla si el paquete Umbrel usa `latest`, `build:`, `ports:`, socket Docker, volúmenes nombrados o rutas persistentes fuera del directorio de datos de la aplicación. Mientras el digest sea placeholder, emite un warning; antes del envío oficial debe reemplazarse por el digest real.
 
 ## Fuentes oficiales
 

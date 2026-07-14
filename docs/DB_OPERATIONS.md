@@ -16,7 +16,7 @@ Este documento cubre el ciclo de vida operativo de SQLite en ValorGrid: backup, 
 
 La app y los scripts comparten la misma política:
 
-1. `PORTFOLIO_DB_PATH` si está definido.
+1. Ruta de base de datos configurada explícitamente, si existe.
 2. `local/valorgrid/data/portfolio.sqlite` como ruta canónica.
 
 ## Comandos operativos
@@ -24,8 +24,8 @@ La app y los scripts comparten la misma política:
 - Los backups creados por la app y la API usan la `backupDir` resuelta por `apps/server/src/platform/config.js`.
 - `npm run db:backup` también usa la misma `backupDir` de `config.js`.
 - Toda copia creada por la app o los scripts ejecuta `integrity_check` y `foreign_key_check` antes de considerarse válida.
-- En desarrollo local sin `PORTFOLIO_DB_PATH`, `backupDir` por defecto es `local/valorgrid/backups/` (si no existe `.backups/` legacy).
-- Con `PORTFOLIO_DB_PATH`, `backupDir` se coloca junto a la carpeta privada de datos, salvo que `VALORGRID_BACKUP_DIR` lo sobrescriba.
+- En desarrollo local, el directorio de backups se resuelve junto al almacenamiento de la aplicación, conservando compatibilidad con instalaciones antiguas.
+- La ubicación de backups se resuelve junto al almacenamiento privado de la aplicación o desde la configuración del despliegue.
 - La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
 
 ## Backup manual antes de mantenimiento
@@ -55,13 +55,13 @@ No existe endpoint HTTP para reset por diseño.
 
 Rutas estándar (desarrollo local):
 
-- DB activa en contenedor: `/local/valorgrid/data/portfolio.sqlite`
-- Backups en contenedor: `/local/valorgrid/backups/`
+- DB activa en contenedor: `/data/portfolio.sqlite`
+- Backups en contenedor: `/app/.backups`
 
 Volúmenes recomendados (desarrollo local):
 
-- `./local/valorgrid/data:/local/valorgrid/data`
-- `./local/valorgrid/backups:/local/valorgrid/backups`
+- `./local/valorgrid/data:/data`
+- `./local/valorgrid/backups:/app/.backups`
 
 Para despliegue CasaOS, las rutas reales se definen en `deploy/docker/compose.casaos.yml` (DB: `/data/portfolio.sqlite`, backups: `/app/.backups`).
 
@@ -99,6 +99,8 @@ Hay dos versiones del script, una para cada entorno:
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.26.1-to-3.27.0.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.28.12-to-3.28.13.sql
 .\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.29.0-to-3.30.0.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.30.0-to-3.31.0.sql
+.\scripts\run-sql-migration.ps1 -SqlPath deploy/sql/update-3.31.4-to-3.32.0.sql
 ```
 
 **Docker / CasaOS / Linux / macOS (Node.js — no requiere sqlite3 CLI):**
@@ -112,6 +114,8 @@ node scripts/run-sql-migration.js --sql deploy/sql/update-3.20.0-to-3.21.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.26.1-to-3.27.0.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.28.12-to-3.28.13.sql
 node scripts/run-sql-migration.js --sql deploy/sql/update-3.29.0-to-3.30.0.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.30.0-to-3.31.0.sql
+node scripts/run-sql-migration.js --sql deploy/sql/update-3.31.4-to-3.32.0.sql
 
 # Docker (ejecutar dentro del contenedor)
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.15.0-to-3.16.0.sql
@@ -121,6 +125,8 @@ docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/upd
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.26.1-to-3.27.0.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.28.12-to-3.28.13.sql
 docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.29.0-to-3.30.0.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.30.0-to-3.31.0.sql
+docker exec -it valorgrid node scripts/run-sql-migration.js --sql deploy/sql/update-3.31.4-to-3.32.0.sql
 
 # Con opciones explícitas
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.15.0-to-3.16.0.sql --db /data/portfolio.sqlite
@@ -129,6 +135,9 @@ node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.17.0-to-3.18.0.
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.20.0-to-3.21.0.sql --db /data/portfolio.sqlite
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.26.1-to-3.27.0.sql --db /data/portfolio.sqlite
 node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.28.12-to-3.28.13.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.29.0-to-3.30.0.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.30.0-to-3.31.0.sql --db /data/portfolio.sqlite
+node scripts/run-sql-migration.js --sql /app/deploy/sql/update-3.31.4-to-3.32.0.sql --db /data/portfolio.sqlite
 ```
 
 **Parámetros del script PowerShell (`run-sql-migration.ps1`):**
@@ -174,7 +183,7 @@ A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones auto
 
 - La meta key `schema_version` en `app_meta` registra la versión de schema de la DB.
 - Fresh install: `schema.js` inserta `schema_version` con `CURRENT_SCHEMA_VERSION` (definida en `db-migrations.js`).
-- DBs existentes sin `schema_version`: el migrador infiere la versión por columnas/tablas conocidas (p. ej. `cash_balance` en `instruments` → `3.29.0`). Si no puede inferir, bloquea el arranque con un error claro y no aplica migraciones.
+- DBs existentes sin `schema_version`: el migrador infiere la versión por columnas/tablas conocidas (p. ej. `note` en `transactions` → `3.32.0`, `cash_balance` en `instruments` → `3.29.0`). Si no puede inferir, bloquea el arranque con un error claro y no aplica migraciones.
 - Tras migrar, registra también `last_migration_at`, `last_migration_from` y `last_migration_to` en `app_meta`.
 
 ### Orden de arranque
@@ -187,7 +196,7 @@ A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones auto
 ### Comportamiento por runtime
 
 - **Desktop (Windows/Linux/macOS)**: migración automática al arrancar una versión nueva, siempre con backup previo.
-- **Docker/CasaOS/Umbrel**: por defecto la migración automática está deshabilitada. El endpoint `/api/update/status` muestra las migraciones pendientes y los comandos a ejecutar. Para habilitarla, definir `VALORGRID_AUTO_MIGRATE=1`.
+- **Docker/CasaOS/Umbrel**: por defecto la migración automática está deshabilitada. El endpoint `/api/update/status` muestra las migraciones pendientes y los comandos a ejecutar; la migración debe iniciarse como una acción explícita del administrador.
 
 ### Stop rule
 

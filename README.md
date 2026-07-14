@@ -54,7 +54,7 @@ Guía completa: [docs/DEPLOY_DOCKER.md](docs/DEPLOY_DOCKER.md).
 - Escucha en `127.0.0.1` por defecto.
 - Sin login requerido. Sin sincronización externa.
 - Yahoo Finance solo consulta símbolos de mercado concretos, cachea localmente.
-- En Docker/CasaOS: activa `VALORGRID_AUTH_PASSWORD` si expones fuera de la LAN.
+- En Docker/CasaOS: configura autenticación mediante el gestor de secretos del despliegue si expones fuera de la LAN.
 
 No deben subirse a GitHub: `.env`, `data/*.sqlite`, `.backups/`, hojas Excel personales.
 

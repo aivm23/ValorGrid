@@ -141,9 +141,8 @@ Reglas de transición:
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
 - `app-error.js`: clase `AppError` con `statusCode` + `errorCode`.
-- `runtime-secrets.js`: persistencia local de claves API (Alpha Vantage) en `secrets.json`, fuera de SQLite. En desktop vive bajo `app.getPath('userData')`; en Docker/CasaOS vive en el volumen de datos (`/data/secrets.json`). Cargado antes del bucle de módulos.
-- `extensions.js`: frontera pública de capacidades opcionales por edición. Normaliza únicamente el manifiesto y los assets que Community puede exponer.
-- `extensions-runtime.js`: integración interna de capacidades opcionales antes de montar rutas HTTP. La configuración y operación de ediciones privadas se documenta exclusivamente fuera del repositorio Community.
+- `runtime-secrets.js`: gestiona de forma local las claves API guardadas desde la aplicación, fuera de SQLite.
+- `extensions.js` y `extensions-runtime.js`: delimitan las capacidades opcionales por edición. La configuración y operación de ediciones privadas se documentan exclusivamente fuera del repositorio Community.
 
 **Archivos raíz en `apps/server/src/`:**
 
@@ -245,12 +244,12 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 **Sub-módulos de import-service (cargados internamente):**
 
-- `ingestion-parser`: parseo ExcelJS de la plantilla XLSX oficial de ValorGrid a formato canónico, con hojas permitidas, encabezados exactos, límite de tamaño, límite de filas y rechazo de fórmulas.
+- `ingestion-parser`: validación de la plantilla XLSX oficial de ValorGrid y normalización a formato canónico, con hojas permitidas, encabezados exactos, límite de tamaño, límite de filas y rechazo de fórmulas.
 - `ingestion-preview`: generación de preview y detección de instrumentos.
 - `ingestion-preview-helpers`: utilidades para renderizado de preview.
 - `ingestion-reconcile`: conciliación de filas con instrumentos existentes.
 - `ingestion-entities`: creación de instrumentos y grupos nuevos.
-- `ingestion-profiles`: definición de la plantilla Community `valorgrid-xlsx` y listado de fuentes disponibles por edición (`listImportSources()`), sin documentar detalles operativos de conectores profesionales en la documentación pública.
+- `ingestion-profiles`: definición de la plantilla Community `valorgrid-xlsx` y listado de fuentes disponibles por edición, sin documentar detalles operativos de conectores profesionales en la documentación pública.
 - `ingestion-hash`: cálculo de hashes para deduplicación.
 - `ingestion-sale-rules`: reglas de validación de ventas.
 - `template-generator`: generación de plantilla XLSX oficial de ValorGrid.
@@ -415,24 +414,17 @@ Para migraciones de schema versionadas, existe `scripts/run-sql-migration.ps1` q
 
 ## Docker, CasaOS y Umbrel
 
-Docker ejecuta la app como servicio local con:
+Docker ejecuta la app como servicio local en el puerto documentado y mantiene datos y backups en volúmenes persistentes fuera del contenedor.
 
-- `HOST=0.0.0.0`
-- `PORT=1325`
-- `PORTFOLIO_DB_PATH=/data/portfolio.sqlite`
-- `VALORGRID_BACKUP_DIR=/app/.backups`
-
-Los volúmenes guardan datos y backups fuera del contenedor.
-
-Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>` y persiste todo bajo `${APP_DATA_DIR}/data`. En Umbrel, `VALORGRID_BACKUP_DIR=/data/backups` para que backups y `secrets.json` queden dentro del volumen principal de la app.
+Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>` y conserva los datos en el almacenamiento persistente de la aplicación.
 
 ## Seguridad
 
-La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. En Umbrel queda desactivado porque la autenticación la aporta `app_proxy`. Para uso doméstico sin `VALORGRID_AUTH_PASSWORD`, debe quedarse en:
+La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. En Umbrel queda desactivado porque la autenticación la aporta `app_proxy`. Para uso doméstico sin autenticación, debe quedarse en:
 
 - localhost,
 - LAN privada,
 - VPN,
-- o reverse proxy con HTTPS y `VALORGRID_AUTH_PASSWORD`.
+- o reverse proxy con HTTPS y autenticación configurada mediante el despliegue.
 
 No debe exponerse directamente a Internet sin HTTPS y autenticación.
