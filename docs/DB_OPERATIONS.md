@@ -184,6 +184,7 @@ A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones auto
 - La meta key `schema_version` en `app_meta` registra la versión de schema de la DB.
 - Fresh install: `schema.js` inserta `schema_version` con `CURRENT_SCHEMA_VERSION` (definida en `db-migrations.js`).
 - DBs existentes sin `schema_version`: el migrador infiere la versión por columnas/tablas conocidas (p. ej. `note` en `transactions` → `3.32.0`, `cash_balance` en `instruments` → `3.29.0`). Si no puede inferir, bloquea el arranque con un error claro y no aplica migraciones.
+- Si la estructura física está por delante de `schema_version` (por ejemplo, `transactions.note` ya existe pero la meta sigue en `3.31.0`), el migrador crea un backup verificado, comprueba integridad y reconcilia solo las metadatas. No vuelve a ejecutar el `ALTER TABLE`, incluso con auto-migración Docker deshabilitada.
 - Tras migrar, registra también `last_migration_at`, `last_migration_from` y `last_migration_to` en `app_meta`.
 
 ### Orden de arranque

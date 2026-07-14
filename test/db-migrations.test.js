@@ -165,6 +165,32 @@ test('migration is idempotent when already up to date', () => {
   });
 });
 
+test('migration reconciles stale metadata when transactions.note already exists', () => {
+  withTempDb(({ dbPath, backupDir }) => {
+    const db = openDatabase(dbPath);
+    createOldSchema29(db);
+    db.exec('ALTER TABLE transactions ADD COLUMN note TEXT');
+    db.prepare("INSERT INTO app_meta (key, value) VALUES ('schema_version', '3.31.0')").run();
+    const ctx = buildCtx(db, dbPath, backupDir, { mode: 'docker' });
+    migrations(ctx);
+
+    const status = ctx.getMigrationStatus();
+    assert.equal(status.currentSchemaVersion, '3.32.0');
+    assert.equal(status.metadataReconciliationRequired, true);
+    assert.deepEqual(status.pending, []);
+
+    const result = ctx.runMigrations();
+    assert.equal(result.migrated, false);
+    assert.equal(result.reconciled, true);
+    assert.equal(result.reason, 'metadata-reconciled');
+    assert.ok(fs.existsSync(result.backupPath), 'a verified backup is created before metadata repair');
+    assert.equal(db.prepare("SELECT value FROM app_meta WHERE key = 'schema_version'").get().value, '3.32.0');
+    assert.equal(db.prepare("SELECT value FROM app_meta WHERE key = 'last_migration_from'").get().value, '3.31.0');
+    assert.equal(db.prepare("SELECT value FROM app_meta WHERE key = 'last_migration_to'").get().value, '3.32.0');
+    db.close();
+  });
+});
+
 test('migration error stops and does not mark as migrated', () => {
   withTempDb(({ tempDir, dbPath, backupDir }) => {
     const db = openDatabase(dbPath);

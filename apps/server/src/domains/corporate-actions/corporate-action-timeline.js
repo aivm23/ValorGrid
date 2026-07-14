@@ -41,7 +41,7 @@ function calculateSharesWithSplits({ baseShares = 0, transactions = [], splits =
       nextSplit && (!nextTransaction || compareDate(nextSplit.effectiveDate, nextTransaction.date) <= 0);
 
     if (applySplit) {
-      shares *= Number(nextSplit.ratio);
+      shares = evaluateSplitForPosition(shares, nextSplit).shares;
       splitIndex += 1;
     } else {
       shares += transactionSign(nextTransaction.type) * Number(nextTransaction.shares || 0);
@@ -56,3 +56,4 @@ module.exports = {
   calculateSharesWithSplits,
   normalizeSplit,
 };
+const { evaluateSplitForPosition } = require('./corporate-action-policy');

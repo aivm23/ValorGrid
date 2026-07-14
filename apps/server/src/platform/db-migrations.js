@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const backups = require('./backups');
+const { withTransaction } = require('./db');
 
 const CURRENT_SCHEMA_VERSION = '3.32.0';
 const SCHEMA_VERSION_KEY = 'schema_version';
@@ -118,10 +119,14 @@ function attach(ctx) {
       }
       current = inferred;
     }
+    const inferred = inferSchemaVersion(db);
+    const metadataReconciliationRequired = Boolean(inferred && compareSemver(inferred, current) > 0);
+    if (metadataReconciliationRequired) current = inferred;
     const pending = findPendingMigrations(current);
     return {
       currentSchemaVersion: current,
       targetSchemaVersion: CURRENT_SCHEMA_VERSION,
+      metadataReconciliationRequired,
       pending: pending.map((m) => ({ from: m.from, to: m.to, file: m.file })),
     };
   }
@@ -150,6 +155,35 @@ function attach(ctx) {
       }
       currentVersion = inferred;
       logger?.warn?.(`db-migrations: schema_version missing, inferred ${inferred}`);
+    }
+
+    const inferredVersion = inferSchemaVersion(db);
+    if (inferredVersion && compareSemver(inferredVersion, currentVersion) > 0) {
+      if (compareSemver(inferredVersion, CURRENT_SCHEMA_VERSION) > 0) {
+        const error = new Error(
+          `El schema fisico (${inferredVersion}) es posterior a la version soportada (${CURRENT_SCHEMA_VERSION}).`,
+        );
+        error.code = 'SCHEMA_VERSION_AHEAD';
+        throw error;
+      }
+      const backup = backups.createBackup({ db, dbPath, root: repoRoot, backupDir });
+      runIntegrityCheck(db);
+      const now = new Date().toISOString();
+      withTransaction(db, () => {
+        setMetaValue(db, SCHEMA_VERSION_KEY, inferredVersion);
+        setMetaValue(db, LAST_MIGRATION_AT_KEY, now);
+        setMetaValue(db, LAST_MIGRATION_FROM_KEY, currentVersion);
+        setMetaValue(db, LAST_MIGRATION_TO_KEY, inferredVersion);
+      });
+      logger?.warn?.(`db-migrations: reconciled metadata ${currentVersion} -> ${inferredVersion}`);
+      return {
+        migrated: false,
+        reconciled: true,
+        reason: 'metadata-reconciled',
+        fromVersion: currentVersion,
+        toVersion: inferredVersion,
+        backupPath: backup.path,
+      };
     }
 
     const pending = findPendingMigrations(currentVersion);
@@ -191,10 +225,12 @@ function attach(ctx) {
       runIntegrityCheck(db);
 
       const now = new Date().toISOString();
-      setMetaValue(db, SCHEMA_VERSION_KEY, CURRENT_SCHEMA_VERSION);
-      setMetaValue(db, LAST_MIGRATION_AT_KEY, now);
-      setMetaValue(db, LAST_MIGRATION_FROM_KEY, fromVersion);
-      setMetaValue(db, LAST_MIGRATION_TO_KEY, CURRENT_SCHEMA_VERSION);
+      withTransaction(db, () => {
+        setMetaValue(db, SCHEMA_VERSION_KEY, CURRENT_SCHEMA_VERSION);
+        setMetaValue(db, LAST_MIGRATION_AT_KEY, now);
+        setMetaValue(db, LAST_MIGRATION_FROM_KEY, fromVersion);
+        setMetaValue(db, LAST_MIGRATION_TO_KEY, CURRENT_SCHEMA_VERSION);
+      });
 
       logger?.info?.(
         `db-migrations: migrated ${fromVersion} -> ${CURRENT_SCHEMA_VERSION}, ${applied.length} migration(s) applied`,

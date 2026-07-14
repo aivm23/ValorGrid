@@ -16,6 +16,14 @@ Fuentes de verdad actuales:
 
 > Nota: Corregir una compra o venta recalcula `value_eur` y `cash_flow_eur` desde sus datos de ejecución y vuelve a materializar el histórico desde la primera fecha afectada. La nota opcional de un movimiento no interviene en ningún cálculo financiero.
 
+## Acciones corporativas y posición histórica
+
+- Un split automático solo modifica acciones cuando Yahoo informa `1:N` o `N:1`, la posición al cierre del día anterior es positiva y el resultado es entero.
+- Ratios como `21:20` o `3:2`, posiciones inexistentes y resultados fraccionarios se omiten sin alterar ledger, FIFO ni histórico.
+- La elegibilidad se decide en la fecha del evento. Un split o dividendo legítimo se conserva aunque la posición se venda por completo más adelante.
+- Los dividendos posteriores a una venta completa se omiten porque en su `exDate` ya no había acciones con derecho.
+- Una pareja técnica de compra/venta importada solo se marca `corporate_action_ignored` si sus cantidades, precios, valor, divisa, fecha e identidad coinciden exactamente con un split Yahoo elegible. No genera cash-flow ni movimientos reales.
+
 ## Convencion de signos base
 
 - `cash_flow_eur < 0`: salida de caja (compras + comisión).

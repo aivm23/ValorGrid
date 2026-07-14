@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
+const { evaluateSplitForPosition } = require('../corporate-actions/corporate-action-policy');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -177,7 +178,7 @@ module.exports = function attach(ctx) {
 
           if (applySplit) {
             if (positions.has(split.symbol)) {
-              positions.set(split.symbol, positions.get(split.symbol) * Number(split.ratio));
+              positions.set(split.symbol, evaluateSplitForPosition(positions.get(split.symbol), split).shares);
             }
             splitIndex += 1;
           } else {

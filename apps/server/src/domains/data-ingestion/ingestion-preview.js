@@ -14,6 +14,7 @@ const {
   buildImpactPreview,
 } = require('./ingestion-reconcile');
 const { markSkippedSaleDeficit } = require('./ingestion-sale-rules');
+const { reconcileTechnicalCorporateActionPairs } = require('./ingestion-corporate-actions');
 const {
   rebuildImportIdentity,
   mappingKeyForIdentifier,
@@ -411,6 +412,11 @@ async function previewImportFactory(ctx, input = {}) {
     return saleDeficit ? markSkippedSaleDeficit(outputRow, saleDeficit.code, saleDeficit.available) : outputRow;
   });
 
+  rows = await reconcileTechnicalCorporateActionPairs(ctx, rows);
+  const effectiveResolvedTrades = rows
+    .filter((row) => row.status === 'valid' && row.rowKind === 'trade')
+    .map((row) => ({ rowIndex: row.rowIndex, ...row.normalized }));
+
   rows = rows.map((row) => {
     if (row.status !== 'skipped' || row.blockReasonCode !== 'existing_empty_position') return row;
     if (row.normalized.type !== 'remove' || !row.normalized.symbol || !row.normalized.date) return row;
@@ -418,7 +424,7 @@ async function previewImportFactory(ctx, input = {}) {
       ctx,
       row.normalized.symbol,
       row.normalized.date,
-      allResolvedTrades,
+      effectiveResolvedTrades,
       row.rowIndex,
     );
     if (available + 0.0000001 < row.normalized.shares) return row;

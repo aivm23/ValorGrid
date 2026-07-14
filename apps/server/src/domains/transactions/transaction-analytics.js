@@ -1,3 +1,5 @@
+const { evaluateSplitForPosition } = require('../corporate-actions/corporate-action-policy');
+
 function compareLedgerEvents(a, b) {
   const dateCompare = String(a.date || '').localeCompare(String(b.date || ''));
   if (dateCompare !== 0) return dateCompare;
@@ -28,9 +30,11 @@ function buildLedgerAnalyticsFromTransactions(transactions, currentValue = 0, sp
   for (const event of events) {
     if (event.kind === 'split') {
       const split = event.split;
-      const ratio = Number(split.ratio);
-      if (!Number.isFinite(ratio) || ratio <= 0) continue;
       const lots = lotsBySymbol.get(split.symbol) || [];
+      const currentShares = lots.reduce((sum, lot) => sum + Number(lot.shares || 0), 0);
+      const result = evaluateSplitForPosition(currentShares, split);
+      if (!result.applied) continue;
+      const ratio = result.shares / currentShares;
       for (const lot of lots) {
         lot.shares *= ratio;
       }

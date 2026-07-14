@@ -256,6 +256,30 @@ test('dividend scan does not duplicate and auto includes next dividend unless sp
   mockSplitEvents.delete('DIVA.DE');
 });
 
+test('dividend scan ignores events after a position was fully sold', async () => {
+  seedTestInstrument({ symbol: 'DIVC', yahooSymbol: 'DIVC.DE', name: 'Dividend Closed', type: 'stock' });
+  cachePrice('DIVC.DE', '2026-01-10', 10);
+  cachePrice('DIVC.DE', '2026-02-01', 10);
+  await createTransaction({ type: 'add', symbol: 'DIVC', date: '2026-01-10', shares: 5 });
+  await createTransaction({ type: 'remove', symbol: 'DIVC', date: '2026-02-01', shares: 5 });
+  mockDividendEvents.set('DIVC.DE', [{ exDate: '2026-03-10', amount: 0.5 }]);
+
+  const scan = await jsonRequest('/api/dividends/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'test', fromDate: '2026-03-01', toDate: '2026-03-31', symbols: ['DIVC'] }),
+  });
+
+  assert.equal(scan.response.status, 200);
+  assert.equal(scan.body.summary.createdDrafts, 0);
+  assert.equal(scan.body.summary.ignoredNoShares, 1);
+  assert.equal(
+    getTransactions().some((transaction) => transaction.symbol === 'DIVC' && transaction.type === 'dividend'),
+    false,
+  );
+  mockDividendEvents.delete('DIVC.DE');
+});
+
 test('manual dividend transaction is rejected', async () => {
   const { response, body } = await jsonRequest('/api/transactions', {
     method: 'POST',
@@ -486,6 +510,16 @@ test('automatic Yahoo split adjusts positions and is idempotent', async () => {
     entryMode: 'manual_total_eur',
   });
   assert.equal(getPositionShares('GOOGS', '2026-03-01'), 17);
+  await createTransaction({
+    type: 'remove',
+    symbol: 'GOOGS',
+    date: '2026-03-02',
+    shares: 17,
+    euros: 1020,
+    entryMode: 'manual_total_eur',
+  });
+  assert.equal(getPositionShares('GOOGS', '2026-03-02'), 0);
+  assert.equal(listCorporateActions({ symbol: 'GOOGS' }).actions.length, 1);
   mockSplitEvents.delete('GOOGS');
 });
 
@@ -506,6 +540,69 @@ test('automatic Yahoo reverse split reduces positions from the effective date', 
   assert.equal(getPositionShares('REVS', '2026-01-31'), 60);
   assert.equal(getPositionShares('REVS', '2026-02-01'), 3);
   mockSplitEvents.delete('REVS');
+});
+
+test('corporate action scan reports unsupported ratios, empty positions and fractional results', async () => {
+  seedTestInstrument({ symbol: 'RATIOX', yahooSymbol: 'RATIOX', name: 'Ratio Policy', type: 'stock' });
+  seedTestInstrument({ symbol: 'CLOSEX', yahooSymbol: 'CLOSEX', name: 'Closed Split', type: 'stock' });
+  seedTestInstrument({ symbol: 'FRACX', yahooSymbol: 'FRACX', name: 'Fractional Reverse', type: 'stock' });
+  await createTransaction({
+    type: 'add',
+    symbol: 'RATIOX',
+    date: '2026-01-10',
+    shares: 20,
+    euros: 200,
+    entryMode: 'manual_total_eur',
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'CLOSEX',
+    date: '2026-01-10',
+    shares: 1,
+    euros: 10,
+    entryMode: 'manual_total_eur',
+  });
+  await createTransaction({
+    type: 'remove',
+    symbol: 'CLOSEX',
+    date: '2026-01-20',
+    shares: 1,
+    euros: 10,
+    entryMode: 'manual_total_eur',
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'FRACX',
+    date: '2026-01-10',
+    shares: 3,
+    euros: 30,
+    entryMode: 'manual_total_eur',
+  });
+  mockSplitEvents.set('RATIOX', [
+    { date: '2026-02-01', numerator: 21, denominator: 20 },
+    { date: '2026-02-02', numerator: 3, denominator: 2 },
+  ]);
+  mockSplitEvents.set('CLOSEX', [{ date: '2026-02-01', numerator: 20, denominator: 1 }]);
+  mockSplitEvents.set('FRACX', [{ date: '2026-02-01', numerator: 1, denominator: 2 }]);
+
+  const scan = await scanCorporateActions({
+    symbols: ['RATIOX', 'CLOSEX', 'FRACX'],
+    fromDate: '2026-01-01',
+    toDate: '2026-03-01',
+  });
+
+  assert.equal(scan.summary.createdActions, 0);
+  assert.equal(scan.summary.ignoredActions, 4);
+  assert.equal(scan.summary.ignoredByReason.unsupported_ratio, 2);
+  assert.equal(scan.summary.ignoredByReason.no_position, 1);
+  assert.equal(scan.summary.ignoredByReason.fractional_result, 1);
+  assert.equal(scan.ignoredActions.length, 4);
+  assert.equal(getPositionShares('RATIOX', '2026-03-01'), 20);
+  assert.equal(getPositionShares('CLOSEX', '2026-03-01'), 0);
+  assert.equal(getPositionShares('FRACX', '2026-03-01'), 3);
+  mockSplitEvents.delete('RATIOX');
+  mockSplitEvents.delete('CLOSEX');
+  mockSplitEvents.delete('FRACX');
 });
 
 test('liquidity accounts can be created and count in current summary without ledger movements', async () => {

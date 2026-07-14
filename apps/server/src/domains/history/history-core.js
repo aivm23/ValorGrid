@@ -1,4 +1,5 @@
 const { assertCtxDeps } = require('../../platform/ctx-utils');
+const { evaluateSplitForPosition } = require('../corporate-actions/corporate-action-policy');
 
 module.exports = function attach(ctx) {
   assertCtxDeps(
@@ -7,6 +8,7 @@ module.exports = function attach(ctx) {
       'repositories',
       'historyRanges',
       'getToday',
+      'addDays',
       'addYears',
       'listInstruments',
       'dateUtc',
@@ -14,6 +16,7 @@ module.exports = function attach(ctx) {
       'historyBuildKey',
       'getTransactions',
       'listSplitsUntil',
+      'getPositionShares',
     ],
     'history-core',
   );
@@ -22,6 +25,7 @@ module.exports = function attach(ctx) {
     repositories,
     historyRanges,
     getToday,
+    addDays,
     addYears,
     listInstruments,
     dateUtc,
@@ -29,6 +33,7 @@ module.exports = function attach(ctx) {
     historyBuildKey,
     getTransactions,
     listSplitsUntil,
+    getPositionShares,
   } = ctx;
 
   const historyRepository = repositories.history;
@@ -94,6 +99,10 @@ module.exports = function attach(ctx) {
   function splitEventsForRange(fromDate, toDate) {
     return listSplitsUntil(toDate)
       .filter((split) => split.effectiveDate >= fromDate && split.effectiveDate <= toDate)
+      .filter((split) => {
+        const sharesBefore = getPositionShares(split.symbol, addDays(split.effectiveDate, -1));
+        return evaluateSplitForPosition(sharesBefore, split).applied;
+      })
       .map((split) => ({
         id: split.id,
         type: 'split',

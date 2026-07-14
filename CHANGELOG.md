@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.32.8
+
+- fix: apply automatic splits and reverse splits only for supported `1:N` or `N:1` ratios that produce an integer position.
+- fix: ignore corporate actions and dividends when no position existed on the event date while preserving valid historical events for positions closed later.
+- fix: reconcile exact broker technical pairs against Yahoo split events without creating ledger purchases or sales.
+- fix: recover safely when `transactions.note` exists but `schema_version` metadata is stale.
+- test: cover GOOG `1:20`, reverse splits, unsupported ratios, closed positions, post-sale dividends and near-match import pairs.
+
 ## 3.32.7
 
 - fix: count all served web resources, including split nested stylesheets, in the reproducible performance baseline.

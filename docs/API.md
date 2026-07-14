@@ -187,6 +187,8 @@ POST /api/corporate-actions/scan
 
 - `GET /api/corporate-actions`: lista splits/reverse splits registrados automáticamente desde Yahoo Finance. Acepta filtros opcionales `symbol`, `fromDate` y `toDate`.
 - `POST /api/corporate-actions/scan`: escanea Yahoo Finance para instrumentos `stock` y `etf` con `yahoo_symbol`. Body opcional: `{ "symbols": ["GOOG"], "fromDate": "2026-01-01", "toDate": "2026-12-31" }`.
+- La respuesta incluye `summary.ignoredActions`, `summary.ignoredByReason` e `ignoredActions[]` para auditar eventos omitidos por ratio no soportado, ausencia de posición o resultado fraccionario.
+- Solo se aplican ratios `1:N` o `N:1` con resultado entero. La posición se evalúa al cierre del día anterior a `effectiveDate`; cerrar la posición después no elimina el split histórico.
 - Los eventos se registran de forma idempotente por `symbol + source_event_id`.
 - Registrar o actualizar un split inválida el histórico desde `effective_date` vía `ledger_version`; no modifica `price_version`.
 - No existe confirmación manual: el mercado ya cotiza con el split/reverse split aplicado.

@@ -1,3 +1,5 @@
+const { evaluateSplitForPosition } = require('../corporate-actions/corporate-action-policy');
+
 function normalizeTransactionNote(value) {
   if (value === undefined || value === null) return null;
   const note = String(value).trim();
@@ -39,7 +41,7 @@ function createTransactionEditor({
         const split = splits[splitIndex];
         const effectiveDate = String(split.effectiveDate || split.effective_date || '');
         if (effectiveDate > item.date) break;
-        shares *= Number(split.ratio || 1);
+        shares = evaluateSplitForPosition(shares, split).shares;
         splitIndex += 1;
       }
       shares += transactionSign(item.type) * Number(item.shares || 0);

@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 const { assertCtxDeps } = require('../../platform/ctx-utils');
+const { evaluateSplitForPosition, isSupportedSplitRatio } = require('./corporate-action-policy');
 
 function isIsoDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
@@ -112,7 +113,8 @@ module.exports = function attach(ctx) {
           ratio,
         };
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
   }
 
   async function scanCorporateActionsForInstrument(instrumentInput, fromDateInput = null, toDateInput = null) {
@@ -121,7 +123,7 @@ module.exports = function attach(ctx) {
         ? listInstruments().find((item) => item.symbol === instrumentInput)
         : instrumentInput;
     if (!isSplitEligibleInstrument(instrument)) {
-      return { scanned: false, created: 0, updated: 0, actions: [], invalidatedFrom: null };
+      return { scanned: false, created: 0, updated: 0, actions: [], ignoredActions: [], invalidatedFrom: null };
     }
 
     const { fromDate, toDate } = normalizeScanWindow({ fromDate: fromDateInput, toDate: toDateInput });
@@ -135,8 +137,27 @@ module.exports = function attach(ctx) {
     let updated = 0;
     let invalidatedFrom = null;
     const actions = [];
+    const ignoredActions = [];
 
     for (const event of events) {
+      const getPositionShares = ctx.services.transactions?.getPositionShares || ctx.getPositionShares;
+      const sharesBefore =
+        typeof getPositionShares === 'function'
+          ? getPositionShares(instrument.symbol, addDays(event.effectiveDate, -1))
+          : 0;
+      const evaluation = evaluateSplitForPosition(sharesBefore, event);
+      if (!isSupportedSplitRatio(event) || !evaluation.applied) {
+        ignoredActions.push({
+          symbol: instrument.symbol,
+          yahooSymbol,
+          effectiveDate: event.effectiveDate,
+          oldShares: event.oldShares,
+          newShares: event.newShares,
+          sharesBefore,
+          reason: evaluation.reason,
+        });
+        continue;
+      }
       const result = upsertSplitAction({
         id: corporateActionId(instrument.symbol, event.sourceEventId),
         type: 'split',
@@ -154,7 +175,7 @@ module.exports = function attach(ctx) {
     }
 
     if (invalidatedFrom) invalidateLedger(invalidatedFrom, 'corporate-action-split');
-    return setMemoryCached(cacheKey, { scanned: true, created, updated, actions, invalidatedFrom });
+    return setMemoryCached(cacheKey, { scanned: true, created, updated, actions, ignoredActions, invalidatedFrom });
   }
 
   async function scanCorporateActions(input = {}) {
@@ -178,11 +199,14 @@ module.exports = function attach(ctx) {
       scannedSymbols: 0,
       createdActions: 0,
       updatedActions: 0,
+      ignoredActions: 0,
+      ignoredByReason: {},
       failedSymbols: [],
       fromDate,
       toDate,
     };
     const actions = [];
+    const ignoredActions = [];
 
     for (const instrument of instruments) {
       summary.scannedSymbols += 1;
@@ -190,6 +214,12 @@ module.exports = function attach(ctx) {
         const result = await scanCorporateActionsForInstrument(instrument, fromDate, toDate);
         summary.createdActions += result.created;
         summary.updatedActions += result.updated;
+        const ignoredForInstrument = result.ignoredActions || [];
+        summary.ignoredActions += ignoredForInstrument.length;
+        ignoredActions.push(...ignoredForInstrument);
+        for (const ignored of ignoredForInstrument) {
+          summary.ignoredByReason[ignored.reason] = Number(summary.ignoredByReason[ignored.reason] || 0) + 1;
+        }
         actions.push(...result.actions);
       } catch (error) {
         summary.failedSymbols.push({
@@ -200,7 +230,7 @@ module.exports = function attach(ctx) {
       }
     }
 
-    return { summary, actions };
+    return { summary, actions, ignoredActions };
   }
 
   function listCorporateActions(filters = {}) {
