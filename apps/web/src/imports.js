@@ -38,7 +38,12 @@ export function attach(ctx) {
   const { renderImportBatches, loadImportBatches, rollbackImportBatch } = createImportBatchManager(ctx);
   async function openImportDialog() {
     resetImportDraft(ctx, { resetSource: true });
-    await loadImportSources(ctx);
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.import.open.title'), message: ctx.t('loading.import.open.message') },
+      async () => {
+        await loadImportSources(ctx);
+      },
+    );
     syncImportMode(ctx);
     ctx.elements.importDialog.showModal();
   }
@@ -85,6 +90,8 @@ export function attach(ctx) {
           keepStep: true,
           preserveOnError: true,
           feedback: ctx.t('import.feedback.confirmingInstruments'),
+          loadingTitleKey: 'loading.import.validateInstruments.title',
+          loadingMessageKey: 'loading.import.validateInstruments.message',
         });
         const detailsAfter = unresolvedInstrumentDetails(ctx, ctx.state.importPreview);
         if (detailsAfter.length) {
@@ -106,7 +113,11 @@ export function attach(ctx) {
     }
     if (current === 'operations') {
       ensureDefaultRowActions(ctx);
-      await previewCsvImport({ keepStep: true });
+      await previewCsvImport({
+        keepStep: true,
+        loadingTitleKey: 'loading.import.validateOperations.title',
+        loadingMessageKey: 'loading.import.validateOperations.message',
+      });
       ctx.state.importConfirmedSteps.operations = true;
       return setImportStep('confirm');
     }
@@ -167,12 +178,25 @@ export function attach(ctx) {
       updateImportFileDisplay(ctx, '');
       return;
     }
-    if (isXlsxMode) {
-      const buffer = await file.arrayBuffer();
-      ctx.state.importFileMeta = { name: file.name, contentBase64: toBase64(buffer) };
-    } else {
-      ctx.elements.importContent.value = await file.text();
-      ctx.state.importFileMeta = { name: file.name, contentBase64: null };
+    try {
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.import.read.title'), message: ctx.t('loading.import.read.message') },
+        async () => {
+          if (isXlsxMode) {
+            const buffer = await file.arrayBuffer();
+            ctx.state.importFileMeta = { name: file.name, contentBase64: toBase64(buffer) };
+          } else {
+            ctx.elements.importContent.value = await file.text();
+            ctx.state.importFileMeta = { name: file.name, contentBase64: null };
+          }
+        },
+      );
+    } catch (error) {
+      ctx.state.importFileMeta = null;
+      updateImportFileDisplay(ctx, '');
+      ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
+      updateCommitButton(ctx);
+      return;
     }
     updateImportFileDisplay(ctx, file.name);
     resetImportState(ctx);
@@ -189,7 +213,12 @@ export function attach(ctx) {
     ctx.elements.importPreview.disabled = true;
     ctx.elements.importFeedback.textContent = options.feedback || ctx.t('import.feedback.analyzing');
     try {
-      const data = await ctx.api.imports.preview(buildImportPayload(ctx));
+      const loadingTitleKey = options.loadingTitleKey || 'loading.import.analyze.title';
+      const loadingMessageKey = options.loadingMessageKey || 'loading.import.analyze.message';
+      const data = await ctx.withAppLoading(
+        { title: ctx.t(loadingTitleKey), message: ctx.t(loadingMessageKey) },
+        async () => ctx.api.imports.preview(buildImportPayload(ctx)),
+      );
       ctx.state.importPreview = data.preview;
       updateSheetSelector(ctx, data.preview);
       if (!options.keepStep) ctx.state.importStep = 'file';
@@ -219,20 +248,18 @@ export function attach(ctx) {
       return;
     }
     ctx.elements.importCommit.disabled = true;
-    ctx.elements.importPreviewOutput.innerHTML = `<div class="import-committing-overlay"><div class="import-committing-card"><img src="./assets/brand/valorgrid-logo.png" alt="" aria-hidden="true" /><strong>${ctx.t('import.commit.overlay.title')}</strong><span>${ctx.t('import.commit.overlay.subtitle')}</span></div></div>`;
+    ctx.elements.importPreviewOutput.innerHTML = '';
+    const loadingTitle = ctx.t('loading.import.commit.title');
+    const loadingMessage = ctx.t('loading.import.commit.message');
     try {
-      ensureDefaultRowActions(ctx);
-      await ctx.api.imports.commit(buildImportPayload(ctx));
-      ctx.state.historyCache = {};
-      // data.backup disabled: automatic risk backups are not performed
-      // if (response?.backup) {
-      //   ctx.elements.importFeedback.textContent = `Importación guardada. Backup automático creado: ${response.backup.file}`;
-      // } else {
-      ctx.elements.importFeedback.textContent = 'Importación guardada (sin cambios nuevos).';
-      // }
-      await loadImportBatches();
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
+      await ctx.withAppLoading({ title: loadingTitle, message: loadingMessage }, async () => {
+        ensureDefaultRowActions(ctx);
+        await ctx.api.imports.commit(buildImportPayload(ctx));
+        ctx.state.historyCache = {};
+        await loadImportBatches();
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
+      });
       resetImportDraft(ctx);
       closeImportDialog();
     } catch (error) {

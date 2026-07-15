@@ -8,22 +8,37 @@
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
-    <div id="boot-overlay" class="boot-overlay" role="status" aria-live="polite">
-      <div class="boot-card">
-        <img src="/assets/brand/valorgrid-logo.png" width="1254" height="1254" alt="" aria-hidden="true" />
-        <strong>Cargando ValorGrid...</strong>
-        <span>Preparando datos y cartera local.</span>
+    <dialog
+      id="app-loading-dialog"
+      class="app-loading-dialog"
+      aria-labelledby="app-loading-title"
+      aria-describedby="app-loading-message"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div class="app-loading-card">
+        <img
+          class="app-loading-logo"
+          src="/assets/brand/valorgrid-logo.png"
+          width="1254"
+          height="1254"
+          alt=""
+          aria-hidden="true"
+        />
+        <strong id="app-loading-title" class="app-loading-title">Cargando ValorGrid...</strong>
+        <span id="app-loading-message" class="app-loading-message">Preparando datos y cartera local.</span>
+        <section class="app-loading-summary" aria-label="Resumen de la operación" hidden></section>
         <a
-          class="boot-issue-link"
+          class="app-loading-issue-link"
           href="https://github.com/aivm23/ValorGrid/issues"
           target="_blank"
           rel="noopener"
           hidden
           >Abrir incidencia en GitHub Issues</a
         >
-        <button id="boot-retry" class="button button-compact" type="button" hidden>Reintentar</button>
+        <button id="app-loading-retry" class="button button-compact" type="button" hidden>Reintentar</button>
       </div>
-    </div>
+    </dialog>
     <main class="page-shell">
       <header class="hero">
         <div class="hero-top">

@@ -23,6 +23,7 @@ export function attachTransactionEntryModes(ctx, setAddFeedback) {
   function resetTransactionPreview() {
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
+    ctx.state.transactionPreview = null;
     setAddFeedback('');
   }
 

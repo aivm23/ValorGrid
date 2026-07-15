@@ -26,14 +26,25 @@ export function attach(ctx) {
     }
   }
 
-  async function openAlphaVantageAssistant(callback) {
+  function showInstrumentCreateError(error) {
+    const errEl = document.getElementById('instrument-create-error');
+    if (!errEl) return;
+    errEl.textContent = ctx.normalizeErrorMessage(error);
+    errEl.hidden = false;
+  }
+
+  async function openAlphaVantageAssistant(callback, knownStatus = null) {
     pendingCommodityCreate = callback || null;
-    const status = await checkAlphaVantageStatus();
+    const status =
+      knownStatus ||
+      (await ctx.withAppLoading(
+        { title: ctx.t('loading.alphaVantage.check.title'), message: ctx.t('loading.alphaVantage.check.message') },
+        checkAlphaVantageStatus,
+      ));
     if (status.configured) {
-      if (pendingCommodityCreate) {
-        pendingCommodityCreate();
-        pendingCommodityCreate = null;
-      }
+      const pending = pendingCommodityCreate;
+      pendingCommodityCreate = null;
+      if (pending) await pending();
       return;
     }
     if (!status.canSaveKey) {
@@ -64,6 +75,7 @@ export function attach(ctx) {
   }
 
   async function saveKey() {
+    if (elements.saveKey.disabled) return;
     const key = elements.keyInput.value.trim();
     if (!key) {
       setFeedback('Introduce la clave que has recibido de Alpha Vantage.', true);
@@ -72,18 +84,21 @@ export function attach(ctx) {
     setFeedback('Validando clave con Alpha Vantage...');
     elements.saveKey.disabled = true;
     try {
-      const result = await ctx.api.marketData.alphaVantage.saveKey(key);
+      const result = await ctx.withAppLoading(
+        {
+          title: ctx.t('loading.alphaVantage.validate.title'),
+          message: ctx.t('loading.alphaVantage.validate.message'),
+        },
+        async () => ctx.api.marketData.alphaVantage.saveKey(key),
+      );
       setFeedback(result.message || 'Clave guardada correctamente.');
-      elements.saveKey.disabled = false;
-      if (pendingCommodityCreate) {
-        window.setTimeout(() => {
-          closeAlphaVantageAssistant();
-          pendingCommodityCreate();
-          pendingCommodityCreate = null;
-        }, 1200);
-      } else {
-        window.setTimeout(closeAlphaVantageAssistant, 1200);
-      }
+      const pending = pendingCommodityCreate;
+      window.setTimeout(() => {
+        elements.dialog.close();
+        pendingCommodityCreate = null;
+        elements.saveKey.disabled = false;
+        if (pending) Promise.resolve(pending()).catch(showInstrumentCreateError);
+      }, 1200);
     } catch (error) {
       setFeedback(ctx.normalizeErrorMessage(error), true);
       elements.saveKey.disabled = false;
@@ -102,27 +117,41 @@ export function attach(ctx) {
     if (event.key === 'Enter') saveKey();
   });
 
-  async function createCommodityWithAlphaVantageCheck(payload) {
-    const status = await checkAlphaVantageStatus();
+  async function createCommodityWithAlphaVantageCheck(payload, onDeferredCreated) {
+    const status = await ctx.withAppLoading(
+      { title: ctx.t('loading.alphaVantage.check.title'), message: ctx.t('loading.alphaVantage.check.message') },
+      checkAlphaVantageStatus,
+    );
     if (status.configured) {
-      await ctx.api.instruments.create(payload);
+      await ctx.withAppLoading(
+        {
+          title: ctx.t('loading.alphaVantage.create.title'),
+          message: ctx.t('loading.alphaVantage.create.message'),
+        },
+        async () => {
+          await ctx.api.instruments.create(payload);
+        },
+      );
       return true;
     }
-    return new Promise((resolve) => {
-      openAlphaVantageAssistant(async () => {
-        try {
-          await ctx.api.instruments.create(payload);
-          resolve(true);
-        } catch (error) {
-          const errEl = document.getElementById('instrument-create-error');
-          if (errEl) {
-            errEl.textContent = ctx.normalizeErrorMessage(error);
-            errEl.hidden = false;
-          }
-          resolve(false);
-        }
-      });
-    });
+
+    await openAlphaVantageAssistant(async () => {
+      try {
+        await ctx.withAppLoading(
+          {
+            title: ctx.t('loading.alphaVantage.create.title'),
+            message: ctx.t('loading.alphaVantage.create.message'),
+          },
+          async () => {
+            await ctx.api.instruments.create(payload);
+          },
+        );
+        await onDeferredCreated?.();
+      } catch (error) {
+        showInstrumentCreateError(error);
+      }
+    }, status);
+    return false;
   }
 
   Object.assign(ctx, {

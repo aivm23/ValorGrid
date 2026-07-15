@@ -119,6 +119,9 @@ export function createApiClient({ fetchBlob, fetchJson, sendJson }) {
       const query = params.toString();
       return `/api/export/transactions.xlsx${query ? `?${query}` : ''}`;
     },
+    transactions(filters = {}) {
+      return fetchBlob(exports.transactionsUrl(filters));
+    },
   };
 
   const dashboard = {

@@ -299,6 +299,8 @@ Módulos principales:
 - `i18n-catalog-ui.js`: sub-catálogo de traducciones de UI general (formato, cantidades, confirmaciones, revisión YTD, estados de mercado).
 - `i18n-catalog-modals.js`: sub-catálogo de traducciones de modales (modos de entrada de transacción, selección de instrumentos/grupos, formularios).
 - `i18n-catalog-import.js`: sub-catálogo de traducciones del asistente de importación (fuentes, sugerencias, badges, decisiones de instrumentos).
+- `i18n-catalog-loading.js`: sub-catálogo de traducciones del modal de carga unificado (boot, dashboard, operaciones, importación, etc.).
+- `loading-overlay.js`: gestor del modal de carga `<dialog>` nativo reutilizable para acciones asíncronas explícitas del usuario. Expone `ctx.withAppLoading(options, operation)` con un umbral visual de 200 ms y cierre inmediato en el `finally` de la promesa observada, admite un resumen estructurado mediante `options.summary`/`update({ summary })`, y expone `ctx.setBootState(status, message)` para el estado de arranque. Reemplaza el antiguo `boot-overlay` y el overlay incrustado de importación. Es reentrante mediante tokens internos, da prioridad a la operación activa sin perder un error de arranque pendiente, bloquea Escape y backdrop, y restaura el foco anterior.
 - `dom.js`: composición de referencias a nodos.
 - `dom-query.js`: `requiredElement`, `optionalElement` y `elementList`; los elementos core obligatorios fallan temprano si el HTML está incompleto.
 - `confirm-dialog.js`: modal de confirmación propio y reutilizable para evitar diálogos nativos del navegador.
@@ -312,7 +314,8 @@ Módulos principales:
 - `operations.js`: instrumentos, grupos, backups y administración.
 - `operations-metric-renderer.js`: markup y copy de las tarjetas de métricas de Operativa.
 - `liquidity.js`: gestion de cuentas de liquidez actuales dentro de Valores, separadas de instrumentos operables.
-- `operations-metrics.js`: comportamiento de las métricas de Operativa; sus IDs proceden del adaptador generado `operations-metric-catalog.js`.
+- `operations-metrics.js`: comportamiento de las métricas de Operativa.
+- `operations-metric-catalog.js`: catálogo canónico de métricas de operativa, adaptable entre CommonJS y ESM.
 - `ledger.js`: movimientos y filtros.
 - `dividends.js`: alerta de toolbar, modal de borradores y scan automático de dividendos al arrancar.
 - `monthly.js`: revisión YTD.
@@ -320,7 +323,7 @@ Módulos principales:
 - `history-preferences.js`: teaser de preferencias profesionales del gráfico Histórico y sincronización visual del panel de edición.
 - `return-breakdown-preferences.js`: teaser de rentabilidad avanzada Professional Edition.
 - `instrument-colors.js`: sincronización de paleta corporativa automática y bloqueo de inputs de color.
-- `dashboard.js`: arranque de UI y boot overlay.
+- `dashboard.js`: carga y renderizado de dashboard e histórico; el estado visual de arranque se coordina desde `app.js` mediante `loading-overlay.js`.
 - `imports.js`: orquestación del asistente de importación, carga de fuentes desde `GET /api/import/sources` (`loadImportSources()`), y gestión de visibilidad de teasers PRO.
 - `import-batches.js`: listado y rollback de lotes importados.
 - `import-workflow.js`: lógica de flujo y validación de importación.

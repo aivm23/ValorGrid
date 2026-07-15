@@ -59,12 +59,14 @@ export function createImportBatchManager(ctx) {
     if (!confirmed) return;
     button.disabled = true;
     try {
-      await ctx.api.imports.rollback(button.dataset.rollbackImport);
-      ctx.state.historyCache = {};
+      await ctx.withAppLoading({ title: ctx.t('loading.import.rollback.title') }, async () => {
+        await ctx.api.imports.rollback(button.dataset.rollbackImport);
+        ctx.state.historyCache = {};
+        await loadImportBatches();
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
+      });
       ctx.elements.importFeedback.textContent = 'Importación revertida.';
-      await loadImportBatches();
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
     } catch (error) {
       ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
     } finally {

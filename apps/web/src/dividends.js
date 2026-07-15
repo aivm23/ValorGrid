@@ -49,7 +49,12 @@ export function attach(ctx) {
   async function openDividendDraftDialog() {
     const { elements, state } = ctx;
     state.dividendDraftDialogOpen = true;
-    await refreshDividendDrafts();
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.dividends.open.title'), message: ctx.t('loading.dividends.open.message') },
+      async () => {
+        await refreshDividendDrafts();
+      },
+    );
     elements.dividendDraftDialog?.showModal();
   }
 
@@ -149,37 +154,60 @@ export function attach(ctx) {
   }
 
   async function saveDividendDraft(id, card) {
-    await ctx.api.dividends.updateDraft(id, readDraftForm(card));
-    card.querySelector('[data-dividend-save]')?.setAttribute('hidden', '');
-    await refreshDividendDrafts();
-    await refreshDividendSummary();
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.dividends.save.title'), message: ctx.t('loading.dividends.save.message') },
+      async () => {
+        await ctx.api.dividends.updateDraft(id, readDraftForm(card));
+        card.querySelector('[data-dividend-save]')?.setAttribute('hidden', '');
+        await refreshDividendDrafts();
+        await refreshDividendSummary();
+      },
+    );
   }
 
   async function confirmDividendDraft(id, card) {
     const autoIncludeNext = Boolean(card.querySelector('[data-dividend-auto-next]')?.checked);
-    await saveDividendDraft(id, card);
-    await ctx.api.dividends.confirmDraft(id, autoIncludeNext);
-    await refreshDividendSummary();
-    await refreshDividendDrafts();
-    await ctx.refreshDashboard();
-    await ctx.refreshHistory({ force: true });
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.dividends.confirm.title'), message: ctx.t('loading.dividends.confirm.message') },
+      async () => {
+        await ctx.api.dividends.updateDraft(id, readDraftForm(card));
+        card.querySelector('[data-dividend-save]')?.setAttribute('hidden', '');
+        await ctx.api.dividends.confirmDraft(id, autoIncludeNext);
+        await refreshDividendSummary();
+        await refreshDividendDrafts();
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
+      },
+    );
   }
 
   async function ignoreDividendDraft(id) {
-    await ctx.api.dividends.ignoreDraft(id);
-    await refreshDividendSummary();
-    await refreshDividendDrafts();
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.dividends.dismiss.title'), message: ctx.t('loading.dividends.dismiss.message') },
+      async () => {
+        await ctx.api.dividends.ignoreDraft(id);
+        await refreshDividendSummary();
+        await refreshDividendDrafts();
+      },
+    );
   }
 
   async function handleDividendDraftClick(event) {
     const card = event.target.closest('[data-dividend-draft]');
     if (!card) return;
+    const actionButton = event.target.closest('[data-dividend-save], [data-dividend-confirm], [data-dividend-ignore]');
+    if (!actionButton || actionButton.disabled) return;
     const id = card.dataset.dividendDraft;
     const draft = draftById(id);
     if (!draft) return;
-    if (event.target.closest('[data-dividend-save]')) await saveDividendDraft(id, card);
-    if (event.target.closest('[data-dividend-confirm]')) await confirmDividendDraft(id, card);
-    if (event.target.closest('[data-dividend-ignore]')) await ignoreDividendDraft(id);
+    actionButton.disabled = true;
+    try {
+      if (actionButton.matches('[data-dividend-save]')) await saveDividendDraft(id, card);
+      if (actionButton.matches('[data-dividend-confirm]')) await confirmDividendDraft(id, card);
+      if (actionButton.matches('[data-dividend-ignore]')) await ignoreDividendDraft(id);
+    } finally {
+      if (actionButton.isConnected) actionButton.disabled = false;
+    }
   }
 
   async function handleDividendAutoChange(event) {
@@ -188,11 +216,26 @@ export function attach(ctx) {
     const card = event.target.closest('[data-dividend-draft]');
     const draft = card ? draftById(card.dataset.dividendDraft) : null;
     if (!draft) return;
-    await ctx.api.dividends.updateSettings(draft.symbol, {
-      autoInclude: checkbox.checked,
-    });
-    await refreshDividendDrafts();
-    await refreshDividendSummary();
+    const nextValue = checkbox.checked;
+    checkbox.disabled = true;
+    try {
+      await ctx.withAppLoading(
+        {
+          title: ctx.t('loading.dividends.preference.title'),
+          message: ctx.t('loading.dividends.preference.message'),
+        },
+        async () => {
+          await ctx.api.dividends.updateSettings(draft.symbol, { autoInclude: nextValue });
+          await refreshDividendDrafts();
+          await refreshDividendSummary();
+        },
+      );
+    } catch (error) {
+      checkbox.checked = !nextValue;
+      throw error;
+    } finally {
+      if (checkbox.isConnected) checkbox.disabled = false;
+    }
   }
 
   ctx.elements.dividendAlert?.addEventListener('click', openDividendDraftDialog);

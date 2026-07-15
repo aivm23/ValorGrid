@@ -504,40 +504,7 @@
   background: color-mix(in srgb, var(--accent) 3%, var(--bg));
 }
 
-/* ── Refined commit overlay ── */
-
-#import-dialog .import-committing-card {
-  gap: 16px;
-  padding: 36px 48px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
-  border-radius: 16px;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 4%, var(--card)), var(--card));
-  box-shadow:
-    0 20px 48px rgba(15, 23, 42, 0.1),
-    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-#import-dialog .import-committing-card img {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  animation: importSpinRefined 1.3s ease-in-out infinite;
-}
-
-@keyframes importSpinRefined {
-  0% {
-    transform: scale(0.9) rotate(0deg);
-    opacity: 0.65;
-  }
-  50% {
-    transform: scale(1.06) rotate(180deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.9) rotate(360deg);
-    opacity: 0.65;
-  }
-}
+/* ── Refined commit overlay (removed — now uses unified app-loading-dialog) ── */
 
 /* ── Refined kind pill ── */
 

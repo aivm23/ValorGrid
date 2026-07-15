@@ -32,25 +32,10 @@ export function computeProviderStatus(marketDataSources) {
 }
 
 export function attach(ctx) {
-  function setBootState(status, message = '') {
-    const { elements } = ctx;
-    if (!elements.bootOverlay) return;
-    const text = elements.bootOverlay.querySelector('span');
-    const title = elements.bootOverlay.querySelector('strong');
-    const issueLink = elements.bootOverlay.querySelector('.boot-issue-link');
-    if (text && message) text.textContent = message;
-    if (title) title.textContent = status === 'error' ? 'No se pudo arrancar ValorGrid' : 'Cargando ValorGrid...';
-    if (issueLink) issueLink.hidden = status !== 'error';
-    elements.bootOverlay.classList.toggle('is-error', status === 'error');
-    elements.bootOverlay.hidden = status === 'ready';
-    if (elements.bootRetry) elements.bootRetry.hidden = status !== 'error';
-  }
-
-  async function refreshDashboard() {
+  async function refreshDashboard(options = {}) {
     const { elements, state } = ctx;
     elements.refreshPrices.disabled = true;
     elements.priceStatus.textContent = 'Cargando precios online...';
-    if (!state.initialLoadComplete) setBootState('loading', 'Preparando datos y cartera local.');
 
     try {
       const {
@@ -93,7 +78,6 @@ export function attach(ctx) {
 
       renderDashboard();
       state.initialLoadComplete = true;
-      setBootState('ready');
       try {
         await ctx.loadImportSources(ctx);
       } catch {
@@ -101,16 +85,17 @@ export function attach(ctx) {
       }
       ctx.refreshDividendSummary?.();
       ctx.window.setTimeout(() => ctx.startDividendStartupScan?.(), 0);
+      return true;
     } catch (error) {
       elements.priceStatus.textContent = `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`;
-      if (!state.initialLoadComplete)
-        setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
       try {
         state.onboarding = await ctx.api.onboarding.status();
         elements.onboardingWizard.hidden = !state.onboarding?.needsSetup;
       } catch {
         // Keep the previous toolbar state if even onboarding cannot be read.
       }
+      if (options.throwOnError) throw error;
+      return false;
     } finally {
       elements.refreshPrices.disabled = false;
     }
@@ -172,7 +157,7 @@ export function attach(ctx) {
       state.history = cached;
       ctx.cacheHistory(cached);
       ctx.renderHistory();
-      return;
+      return true;
     }
 
     const controller = new AbortController();
@@ -185,17 +170,19 @@ export function attach(ctx) {
         timeoutMs: 60000,
         signal: controller.signal,
       });
-      if (requestId !== state.historyRequestId) return;
+      if (requestId !== state.historyRequestId) return false;
       state.history = history;
       ctx.cacheHistory(history);
       ctx.renderHistory();
+      return true;
     } catch (error) {
-      if (requestId !== state.historyRequestId) return;
+      if (requestId !== state.historyRequestId) return false;
       elements.historyStatus.textContent = `No se pudo cargar histórico: ${ctx.normalizeErrorMessage(error)}`;
+      return false;
     } finally {
       if (requestId === state.historyRequestId) state.historyAbortController = null;
     }
   }
 
-  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory, setBootState, renderMarketProviderStatus });
+  Object.assign(ctx, { renderDashboard, refreshDashboard, refreshHistory, renderMarketProviderStatus });
 }

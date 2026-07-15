@@ -137,18 +137,23 @@ export function attach(ctx) {
     if (!ids.length) return;
     try {
       ctx.elements.instrumentDeletePreview.innerHTML = `<p class="subtle">${ctx.t('delete.transactions.deleting')}</p>`;
-      const response = await ctx.api.transactions.removeMany(ids);
-      ctx.state.selectedTransactionIds = [];
-      ctx.state.pendingTransactionDelete = [];
-      ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deletedBackup', { file: response.backup.file })}</p>`;
-      } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deleted')}</p>`;
-      }
-      ctx.elements.instrumentDeleteDialog.close();
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.delete.title'), message: ctx.t('loading.delete.message') },
+        async () => {
+          const response = await ctx.api.transactions.removeMany(ids);
+          ctx.state.selectedTransactionIds = [];
+          ctx.state.pendingTransactionDelete = [];
+          ctx.state.historyCache = {};
+          if (response?.backup) {
+            ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deletedBackup', { file: response.backup.file })}</p>`;
+          } else {
+            ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.transactions.deleted')}</p>`;
+          }
+          ctx.elements.instrumentDeleteDialog.close();
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
+        },
+      );
     } catch (error) {
       ctx.elements.instrumentDeletePreview.innerHTML = `<p class="error">${ctx.escapeHtml(ctx.normalizeErrorMessage(error))}</p>`;
     }
@@ -159,7 +164,10 @@ export function attach(ctx) {
     if (!symbols.length) return;
 
     try {
-      const data = await ctx.api.instruments.previewDelete(symbols);
+      const data = await ctx.withAppLoading(
+        { title: ctx.t('loading.instrument.check.title'), message: ctx.t('loading.instrument.check.message') },
+        async () => ctx.api.instruments.previewDelete(symbols),
+      );
       showInstrumentDeletePreview(data.results || []);
     } catch (error) {
       ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
@@ -216,18 +224,23 @@ export function attach(ctx) {
     const symbols = ctx.state.pendingInstrumentDelete || [];
     if (!symbols.length) return;
     try {
-      const response = await ctx.api.instruments.removeMany(symbols);
-      ctx.state.selectedInstrumentSymbols = ctx.state.selectedInstrumentSymbols.filter((s) => !symbols.includes(s));
-      ctx.state.pendingInstrumentDelete = [];
-      ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deletedBackup', { file: response.backup.file })}</p>`;
-      } else {
-        ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deleted')}</p>`;
-      }
-      ctx.elements.instrumentDeleteDialog.close();
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.instrument.delete.title'), message: ctx.t('loading.instrument.delete.message') },
+        async () => {
+          const response = await ctx.api.instruments.removeMany(symbols);
+          ctx.state.selectedInstrumentSymbols = ctx.state.selectedInstrumentSymbols.filter((s) => !symbols.includes(s));
+          ctx.state.pendingInstrumentDelete = [];
+          ctx.state.historyCache = {};
+          if (response?.backup) {
+            ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deletedBackup', { file: response.backup.file })}</p>`;
+          } else {
+            ctx.elements.instrumentDeletePreview.innerHTML = `<p class="ok">${ctx.t('delete.instruments.deleted')}</p>`;
+          }
+          ctx.elements.instrumentDeleteDialog.close();
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
+        },
+      );
     } catch (error) {
       ctx.elements.instrumentDeletePreview.innerHTML = `<p class="error">${ctx.escapeHtml(ctx.normalizeErrorMessage(error))}</p>`;
     }
@@ -259,16 +272,21 @@ export function attach(ctx) {
     });
     if (!confirmed) return;
     try {
-      const response = await ctx.api.instruments.groups.removeMany(ids);
-      ctx.state.selectedGroupIds = [];
-      ctx.state.historyCache = {};
-      if (response?.backup) {
-        ctx.elements.backupList.textContent = ctx.t('delete.groups.deletedBackup', { file: response.backup.file });
-      } else {
-        ctx.elements.backupList.textContent = ctx.t('delete.groups.deleted');
-      }
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.groups.delete.title'), message: ctx.t('loading.groups.delete.message') },
+        async () => {
+          const response = await ctx.api.instruments.groups.removeMany(ids);
+          ctx.state.selectedGroupIds = [];
+          ctx.state.historyCache = {};
+          if (response?.backup) {
+            ctx.elements.backupList.textContent = ctx.t('delete.groups.deletedBackup', { file: response.backup.file });
+          } else {
+            ctx.elements.backupList.textContent = ctx.t('delete.groups.deleted');
+          }
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
+        },
+      );
     } catch (error) {
       ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
     }

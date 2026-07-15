@@ -1,5 +1,29 @@
 # Changelog
 
+## 3.33.1
+
+- fix: close the unified loading dialog as soon as its observed promise settles, while preserving boot errors across nested operations.
+- fix: keep Alpha Vantage configuration interaction outside the loading promise so cancelling or completing the assistant cannot leave the loader blocked.
+- feat: show the validated purchase or sale summary inside the operation loader and close the transaction form immediately after portfolio refresh, without a fixed success delay.
+- fix: cover file reading, import validation phases, contribution preview, onboarding preview, exports, updates and dividend preferences with complete error handling and double-submit protection.
+- test: verify safe operation-summary rendering, immediate settlement, boot-error restoration, loading-key completeness and the transaction flow without fixed timers.
+
+## 3.33.0
+
+- feat: unified native `<dialog>` loading overlay replacing boot-overlay and import-committing overlay.
+- feat: `loading-overlay.js` with `ctx.withAppLoading(options, operation)` (200ms display threshold, reentrant, Escape-blocked, focus-restoring).
+- feat: `ctx.setBootState(status, message)` for boot loading, error and retry via the same dialog.
+- feat: `ctx.runInitialLoad()` orchestrates dashboard + history and closes the boot overlay only when both complete.
+- feat: `i18n-catalog-loading.js` with a complete ES/EN catalog for every user-triggered loading action.
+- feat: wrap all user-initiated async actions with `withAppLoading`: buy/sell, edit, delete, contributions, onboarding, palette, groups, instruments, liquidity, Alpha Vantage, import (open/analyze/commit/rollback), template download, ledger export, dividends, backups, updates, and manual refresh.
+- refactor: replace boot-overlay `<div>` with `<dialog id="app-loading-dialog">` using `[open]` CSS selector.
+- refactor: remove `.import-committing-overlay` and `.import-committing-card` CSS classes.
+- refactor: ledger export now uses fetch+blob instead of `window.location.href`.
+- refactor: `dashboard.js` no longer manages boot state directly; `runInitialLoad()` handles it.
+- test: integration tests verify every caller uses withAppLoading with correct i18n keys.
+- test: i18n tests verify ES/EN key parity and catalog registration.
+- docs: update `ARCHITECTURE.md` and `TESTING.md` with new module and coverage.
+
 ## 3.32.8
 
 - fix: apply automatic splits and reverse splits only for supported `1:N` or `N:1` ratios that produce an integer position.

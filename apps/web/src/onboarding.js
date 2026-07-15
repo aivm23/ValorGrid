@@ -232,21 +232,26 @@ export function attach(ctx) {
     setWizardFeedback('Validando alta completa...');
     try {
       const payload = buildWizardPayload();
-      const previewData = await ctx.api.onboarding.preview(payload, { timeoutMs: 20000 });
-      ctx.state.wizardPreview = previewData.preview;
-      renderWizardPlanPreview(previewData.preview);
-      if (previewData.preview.requiresRetroactiveConfirmation && !payload.confirmRetroactive) {
-        setWizardFeedback('Confirma las aportaciones retroactivas pendientes antes de guardar.', true);
-        return;
-      }
-
-      setWizardFeedback('Guardando alta completa...');
-      const data = await ctx.api.onboarding.commit(payload, { timeoutMs: 30000 });
-      ctx.state.autoPlans = data.autoPlans || ctx.state.autoPlans;
-      setWizardFeedback('Cartera inicial creada.');
-      ctx.state.historyCache = {};
-      await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
-      window.setTimeout(closeWizardDialog, 500);
+      const committed = await ctx.withAppLoading(
+        { title: ctx.t('loading.onboarding.title'), message: ctx.t('loading.onboarding.message') },
+        async (update) => {
+          const previewData = await ctx.api.onboarding.preview(payload, { timeoutMs: 20000 });
+          ctx.state.wizardPreview = previewData.preview;
+          renderWizardPlanPreview(previewData.preview);
+          if (previewData.preview.requiresRetroactiveConfirmation && !payload.confirmRetroactive) {
+            setWizardFeedback('Confirma las aportaciones retroactivas pendientes antes de guardar.', true);
+            return false;
+          }
+          update({ title: ctx.t('loading.onboarding.title') });
+          const data = await ctx.api.onboarding.commit(payload, { timeoutMs: 30000 });
+          ctx.state.autoPlans = data.autoPlans || ctx.state.autoPlans;
+          setWizardFeedback('Cartera inicial creada.');
+          ctx.state.historyCache = {};
+          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+          return true;
+        },
+      );
+      if (committed) window.setTimeout(closeWizardDialog, 500);
     } catch (error) {
       setWizardFeedback(ctx.normalizeErrorMessage(error), true);
     } finally {

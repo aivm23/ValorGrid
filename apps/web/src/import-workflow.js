@@ -323,15 +323,20 @@ export function updateCommitButton(ctx) {
 
 export async function downloadImportTemplate(ctx) {
   try {
-    const blob = await ctx.api.imports.template();
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'ValorGrid_Plantilla_Importación.xlsx';
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.template.title'), message: ctx.t('loading.template.message') },
+      async () => {
+        const blob = await ctx.api.imports.template();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'ValorGrid_Plantilla_Importación.xlsx';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      },
+    );
   } catch (error) {
     ctx.elements.importFeedback.textContent = ctx.normalizeErrorMessage(error);
   }

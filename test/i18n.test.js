@@ -194,3 +194,30 @@ test('frontend modal copy is covered by i18n dictionaries', () => {
   assert.ok(dividends.includes("ctx.t('dividends.fxEur'"), 'dividend FX label uses i18n');
   assert.ok(dividends.includes("ctx.t('dividends.totalEur')"), 'dividend total label uses i18n');
 });
+
+test('loading overlay i18n catalog exists and is registered in the app', () => {
+  const app = read('apps/web/src/app.js');
+  const catalog = read('apps/web/src/i18n-catalog.js');
+  const loadingCatalog = read('apps/web/src/i18n-catalog-loading.js');
+
+  assert.ok(app.includes("from './loading-overlay.js'"), 'app imports loading-overlay module');
+  assert.ok(app.includes('attachLoadingOverlay'), 'app attaches loading-overlay module');
+  assert.ok(catalog.includes("from './i18n-catalog-loading.js'"), 'catalog imports loading translations');
+  assert.ok(loadingCatalog.includes('LOADING_TEXT_TRANSLATIONS'), 'loading catalog exports translations');
+  assert.ok(loadingCatalog.includes('loading.boot.title'), 'loading catalog has boot title');
+  assert.ok(loadingCatalog.includes('loading.boot.message'), 'loading catalog has boot message');
+  assert.ok(loadingCatalog.includes('loading.import.commit.title'), 'loading catalog has import commit title');
+
+  // Verify ES and EN have same keys
+  const esEnd = loadingCatalog.indexOf('en: {');
+  const esPart = loadingCatalog.substring(0, esEnd);
+  const esLines = esPart.split('\n').filter((l) => /^\s+'loading\./.test(l));
+  const enIdx = loadingCatalog.indexOf('en: {');
+  const enPart = loadingCatalog.substring(enIdx);
+  const enLines = enPart.split('\n').filter((l) => /^\s+'loading\./.test(l));
+
+  const esKeyCount = esLines.length;
+  const enKeyCount = enLines.length;
+  assert.ok(esKeyCount === enKeyCount, `ES has ${esKeyCount} loading keys, EN has ${enKeyCount}`);
+  assert.ok(esKeyCount > 50, `Expected >50 loading keys, got ${esKeyCount}`);
+});

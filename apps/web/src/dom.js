@@ -269,8 +269,7 @@ export function attach(ctx) {
     refreshPrices: document.querySelector('#refresh-prices'),
     balanceToggle: document.querySelector('#balance-toggle'),
     themeToggle: document.querySelector('#theme-toggle'),
-    bootOverlay: document.querySelector('#boot-overlay'),
-    bootRetry: optionalElement(document, '#boot-retry'),
+    appLoadingRetry: document.querySelector('#app-loading-retry'),
   };
 
   Object.assign(ctx, { elements });

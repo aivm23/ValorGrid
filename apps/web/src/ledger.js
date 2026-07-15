@@ -178,15 +178,14 @@ export function attach(ctx) {
     renderLedger();
   }
 
-  function handleLedgerExport() {
-    const { elements, state, window } = ctx;
+  async function handleLedgerExport() {
+    const { elements, state } = ctx;
     const filters = getLedgerFilterState(elements);
     const hasFilters = hasActiveLedgerFilters(filters);
     const allTransactions = state.transactions || [];
     const filtered = hasFilters ? filterLedgerTransactions(allTransactions, filters) : allTransactions;
     const count = filtered.length;
 
-    const url = buildLedgerExportUrl(ctx, hasFilters ? filters : undefined);
     const summaryEl = elements.ledgerExportSummary;
     const warningEl = elements.ledgerExportWarning;
     const warningTextEl = elements.ledgerExportWarningText;
@@ -206,9 +205,31 @@ export function attach(ctx) {
     }
 
     elements.ledgerExportDialog.showModal();
-    elements.ledgerExportConfirm.onclick = () => {
+    elements.ledgerExportConfirm.onclick = async () => {
+      elements.ledgerExportConfirm.disabled = true;
       elements.ledgerExportDialog.close();
-      window.location.href = url;
+      try {
+        await ctx.withAppLoading(
+          { title: ctx.t('loading.export.title'), message: ctx.t('loading.export.message') },
+          async () => {
+            const blob = await ctx.api.exports.transactions(hasFilters ? filters : undefined);
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = 'ValorGrid_Movimientos.xlsx';
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(url);
+          },
+        );
+      } catch (error) {
+        warningEl.hidden = false;
+        warningTextEl.textContent = ctx.normalizeErrorMessage(error);
+        elements.ledgerExportDialog.showModal();
+      } finally {
+        elements.ledgerExportConfirm.disabled = false;
+      }
     };
     elements.ledgerExportCancel.onclick = () => {
       elements.ledgerExportDialog.close();

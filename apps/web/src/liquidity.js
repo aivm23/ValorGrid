@@ -140,6 +140,9 @@ export function attach(ctx) {
   }
 
   async function createLiquidityAccount() {
+    const actionButton = ctx.elements.createLiquidityAccount;
+    if (actionButton?.disabled) return;
+    if (actionButton) actionButton.disabled = true;
     setLiquidityFeedback('');
     const body = {
       name: ctx.elements.newLiquidityName?.value,
@@ -148,54 +151,80 @@ export function attach(ctx) {
       color: ctx.elements.newLiquidityColor?.value || '#06b6d4',
     };
     try {
-      const result = await ctx.api.liquidity.create(body);
-      ctx.state.liquidity = result.state || ctx.state.liquidity;
-      if (ctx.elements.newLiquidityName) ctx.elements.newLiquidityName.value = '';
-      if (ctx.elements.newLiquidityBalance) ctx.elements.newLiquidityBalance.value = '';
-      setLiquidityFeedback('Liquidez creada.', 'success');
-      await ctx.refreshDashboard();
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.liquidity.create.title'), message: ctx.t('loading.liquidity.message') },
+        async () => {
+          const result = await ctx.api.liquidity.create(body);
+          ctx.state.liquidity = result.state || ctx.state.liquidity;
+          if (ctx.elements.newLiquidityName) ctx.elements.newLiquidityName.value = '';
+          if (ctx.elements.newLiquidityBalance) ctx.elements.newLiquidityBalance.value = '';
+          setLiquidityFeedback('Liquidez creada.', 'success');
+          await ctx.refreshDashboard();
+        },
+      );
     } catch (error) {
       setLiquidityFeedback(ctx.normalizeErrorMessage(error), 'error');
+    } finally {
+      if (actionButton) actionButton.disabled = false;
     }
   }
 
-  async function saveLiquidityAccount(symbol) {
+  async function saveLiquidityAccount(symbol, actionButton) {
+    if (actionButton?.disabled) return;
+    if (actionButton) actionButton.disabled = true;
     const row = [...(ctx.elements.liquidityAccounts?.querySelectorAll('[data-liquidity-symbol]') || [])].find(
       (item) => item.dataset.liquiditySymbol === symbol,
     );
     if (!row) return;
     try {
-      const result = await ctx.api.liquidity.update(symbol, liquidityPayloadFromRow(row));
-      ctx.state.liquidity = result.state || ctx.state.liquidity;
-      setLiquidityFeedback('Liquidez actualizada.', 'success');
-      await ctx.refreshDashboard();
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.liquidity.save.title'), message: ctx.t('loading.liquidity.message') },
+        async () => {
+          const result = await ctx.api.liquidity.update(symbol, liquidityPayloadFromRow(row));
+          ctx.state.liquidity = result.state || ctx.state.liquidity;
+          setLiquidityFeedback('Liquidez actualizada.', 'success');
+          await ctx.refreshDashboard();
+        },
+      );
     } catch (error) {
       setLiquidityFeedback(ctx.normalizeErrorMessage(error), 'error');
+    } finally {
+      if (actionButton?.isConnected) actionButton.disabled = false;
     }
   }
 
   async function deleteSelectedLiquidityAccounts() {
     const symbols = ctx.state.selectedLiquiditySymbols || [];
     if (!symbols.length) return;
-    const confirmed = await ctx.confirmAction({
-      title: ctx.t('liquidity.delete.title'),
-      message: ctx.tn('liquidity.delete.confirm', symbols.length),
-      confirmLabel: ctx.t('liquidity.delete.action'),
-      tone: 'danger',
-    });
-    if (!confirmed) return;
+    const actionButton = ctx.elements.liquidityAccounts?.querySelector('[data-delete-selected-liquidity]');
+    if (actionButton?.disabled) return;
+    if (actionButton) actionButton.disabled = true;
     try {
-      let nextState = ctx.state.liquidity;
-      for (const symbol of symbols) {
-        const result = await ctx.api.liquidity.remove(symbol);
-        nextState = result.state || nextState;
-      }
-      ctx.state.liquidity = nextState;
-      ctx.state.selectedLiquiditySymbols = [];
-      setLiquidityFeedback('Liquidez eliminada.', 'success');
-      await ctx.refreshDashboard();
+      const confirmed = await ctx.confirmAction({
+        title: ctx.t('liquidity.delete.title'),
+        message: ctx.tn('liquidity.delete.confirm', symbols.length),
+        confirmLabel: ctx.t('liquidity.delete.action'),
+        tone: 'danger',
+      });
+      if (!confirmed) return;
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.liquidity.delete.title'), message: ctx.t('loading.liquidity.message') },
+        async () => {
+          let nextState = ctx.state.liquidity;
+          for (const symbol of symbols) {
+            const result = await ctx.api.liquidity.remove(symbol);
+            nextState = result.state || nextState;
+          }
+          ctx.state.liquidity = nextState;
+          ctx.state.selectedLiquiditySymbols = [];
+          setLiquidityFeedback('Liquidez eliminada.', 'success');
+          await ctx.refreshDashboard();
+        },
+      );
     } catch (error) {
       setLiquidityFeedback(ctx.normalizeErrorMessage(error), 'error');
+    } finally {
+      if (actionButton?.isConnected) actionButton.disabled = false;
     }
   }
 
@@ -205,7 +234,7 @@ export function attach(ctx) {
     const selectVisibleButton = event.target.closest('[data-select-visible-liquidity]');
     const deselectAllButton = event.target.closest('[data-deselect-all-liquidity]');
     const deleteSelectedButton = event.target.closest('[data-delete-selected-liquidity]');
-    if (saveButton) saveLiquidityAccount(saveButton.dataset.saveLiquidity);
+    if (saveButton) saveLiquidityAccount(saveButton.dataset.saveLiquidity, saveButton);
     if (selectVisibleButton) selectVisibleLiquidity();
     if (deselectAllButton) deselectAllLiquidity();
     if (deleteSelectedButton) deleteSelectedLiquidityAccounts();

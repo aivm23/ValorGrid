@@ -71,32 +71,40 @@ export function attach(ctx) {
     const enabled = checkbox.checked;
     checkbox.disabled = true;
     try {
-      const result = await ctx.api.instruments.setBrandPalette(enabled);
-      ctx.state.brandPaletteEnabled = result.brandPaletteEnabled === true;
+      await ctx.withAppLoading(
+        {
+          title: ctx.t(enabled ? 'loading.palette.enable.title' : 'loading.palette.disable.title'),
+          message: ctx.t(enabled ? 'loading.palette.enable.message' : 'loading.palette.disable.message'),
+        },
+        async () => {
+          const result = await ctx.api.instruments.setBrandPalette(enabled);
+          ctx.state.brandPaletteEnabled = result.brandPaletteEnabled === true;
 
-      if (enabled) {
-        let msg = '';
-        if (result.snapshotCreated) {
-          msg = 'Colores actuales guardados. ';
-        } else if (result.snapshotReused) {
-          msg = 'Paleta corporativa aplicada usando la copia de colores anterior como punto de restauraci\u00f3n. ';
-        }
-        msg += `Paleta corporativa aplicada a ${result.updatedGroups || 0} grupos y ${result.updatedInstruments || 0} valores.`;
-        ctx.elements.priceStatus.textContent = msg;
-      } else {
-        if (result.snapshotCleared) {
-          ctx.elements.priceStatus.textContent =
-            'Paleta autom\u00e1tica desactivada. Se han restaurado los colores anteriores.';
-        } else {
-          ctx.elements.priceStatus.textContent =
-            'Paleta autom\u00e1tica desactivada. No hab\u00eda copia previa de colores.';
-        }
-      }
+          if (enabled) {
+            let msg = '';
+            if (result.snapshotCreated) {
+              msg = 'Colores actuales guardados. ';
+            } else if (result.snapshotReused) {
+              msg = 'Paleta corporativa aplicada usando la copia de colores anterior como punto de restauraci\u00f3n. ';
+            }
+            msg += `Paleta corporativa aplicada a ${result.updatedGroups || 0} grupos y ${result.updatedInstruments || 0} valores.`;
+            ctx.elements.priceStatus.textContent = msg;
+          } else {
+            if (result.snapshotCleared) {
+              ctx.elements.priceStatus.textContent =
+                'Paleta autom\u00e1tica desactivada. Se han restaurado los colores anteriores.';
+            } else {
+              ctx.elements.priceStatus.textContent =
+                'Paleta autom\u00e1tica desactivada. No hab\u00eda copia previa de colores.';
+            }
+          }
 
-      ctx.state.historyCache = {};
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
-      syncBrandPaletteUi();
+          ctx.state.historyCache = {};
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
+          syncBrandPaletteUi();
+        },
+      );
     } catch (error) {
       checkbox.checked = !enabled;
       ctx.elements.priceStatus.textContent = ctx.normalizeErrorMessage(error);

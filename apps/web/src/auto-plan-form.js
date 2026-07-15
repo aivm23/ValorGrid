@@ -120,47 +120,63 @@ export function createAutoPlanForm(ctx, { visibleInstruments }) {
 
   async function saveAutoPlansFromForm() {
     const autoPlans = collectAutoPlansFromForm();
+    ctx.elements.autoSubmit.disabled = true;
     try {
-      const previewData = await ctx.api.transactions.autoPlans.preview(autoPlans);
-      const warnings = previewData.preview.warnings || [];
-      if ((warnings.length || previewData.preview.pendingCount > 1) && !ctx.state.autoPlanRetroactiveConfirmed) {
-        ctx.state.autoPlanRetroactiveConfirmed = true;
-        const parts = [];
-        if (warnings.length) parts.push(warnings.map((warning) => warning.message).join(' '));
-        if (previewData.preview.pendingCount > 1) {
-          const estimated = Number(previewData.preview.estimatedTotalEur || 0);
-          const totalCopy =
-            estimated > 0 ? ctx.t(' por {amount} en total', { amount: ctx.formatCurrency(estimated) }) : '';
-          parts.push(
-            ctx.t('{count} aportaciones pendientes{total}. Pulsa Guardar de nuevo para confirmar.', {
-              count: previewData.preview.pendingCount,
-              total: totalCopy,
-            }),
-          );
-        }
-        ctx.elements.autoFeedback.textContent = parts.join(' ');
-        ctx.elements.autoFeedback.dataset.state = 'error';
-        return;
-      }
-      const data = await ctx.api.transactions.autoPlans.save(autoPlans);
-      ctx.state.autoPlans = data.autoPlans;
-      ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
-      ctx.state.autoPlanRetroactiveConfirmed = false;
-      ctx.state.historyCache = {};
-      let feedbackMsg = data.warnings?.length
-        ? data.warnings.map((warning) => warning.message).join(' ')
-        : ctx.t('Planes de aportación guardados.');
-      if (data.backup) {
-        feedbackMsg += ` ${ctx.t('Backup automático creado: {file}', { file: data.backup.file })}`;
-      }
-      ctx.elements.autoFeedback.textContent = feedbackMsg;
-      ctx.elements.autoFeedback.dataset.state = 'ok';
-      await ctx.refreshDashboard();
-      await ctx.refreshHistory({ force: true });
-      window.setTimeout(closeAutoDialog, 700);
+      const saved = await ctx.withAppLoading(
+        {
+          title: ctx.t('loading.contributions.preview'),
+          message: ctx.t('loading.contributions.preview.message'),
+        },
+        async (update) => {
+          const previewData = await ctx.api.transactions.autoPlans.preview(autoPlans);
+          const warnings = previewData.preview.warnings || [];
+          if ((warnings.length || previewData.preview.pendingCount > 1) && !ctx.state.autoPlanRetroactiveConfirmed) {
+            ctx.state.autoPlanRetroactiveConfirmed = true;
+            const parts = [];
+            if (warnings.length) parts.push(warnings.map((warning) => warning.message).join(' '));
+            if (previewData.preview.pendingCount > 1) {
+              const estimated = Number(previewData.preview.estimatedTotalEur || 0);
+              const totalCopy =
+                estimated > 0 ? ctx.t(' por {amount} en total', { amount: ctx.formatCurrency(estimated) }) : '';
+              parts.push(
+                ctx.t('{count} aportaciones pendientes{total}. Pulsa Guardar de nuevo para confirmar.', {
+                  count: previewData.preview.pendingCount,
+                  total: totalCopy,
+                }),
+              );
+            }
+            ctx.elements.autoFeedback.textContent = parts.join(' ');
+            ctx.elements.autoFeedback.dataset.state = 'error';
+            return false;
+          }
+          update({
+            title: ctx.t('loading.contributions.save.title'),
+            message: ctx.t('loading.contributions.save.message'),
+          });
+          const data = await ctx.api.transactions.autoPlans.save(autoPlans);
+          ctx.state.autoPlans = data.autoPlans;
+          ctx.state.autoPlanDrafts = data.autoPlans.map((plan) => ({ ...plan }));
+          ctx.state.autoPlanRetroactiveConfirmed = false;
+          ctx.state.historyCache = {};
+          let feedbackMsg = data.warnings?.length
+            ? data.warnings.map((warning) => warning.message).join(' ')
+            : ctx.t('Planes de aportación guardados.');
+          if (data.backup) {
+            feedbackMsg += ` ${ctx.t('Backup automático creado: {file}', { file: data.backup.file })}`;
+          }
+          ctx.elements.autoFeedback.textContent = feedbackMsg;
+          ctx.elements.autoFeedback.dataset.state = 'ok';
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
+          return true;
+        },
+      );
+      if (saved) window.setTimeout(closeAutoDialog, 700);
     } catch (error) {
       ctx.elements.autoFeedback.textContent = ctx.normalizeErrorMessage(error);
       ctx.elements.autoFeedback.dataset.state = 'error';
+    } finally {
+      ctx.elements.autoSubmit.disabled = false;
     }
   }
 

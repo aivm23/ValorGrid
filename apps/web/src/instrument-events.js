@@ -13,17 +13,22 @@ export async function handleInstrumentGroupsToggle(ctx) {
   const enabled = ctx.elements.instrumentGroupsEnabled.checked;
   ctx.elements.instrumentGroupsEnabled.disabled = true;
   try {
-    const result = await ctx.api.instruments.groups.setEnabled(enabled);
-    ctx.state.groupsEnabled = result.groupsEnabled !== false;
-    ctx.state.historyCache = {};
-    if (result.createdDefaultGroup && result.assignedInstrumentCount > 0) {
-      const msg = `Se ha creado grupo cero y se han asignado ${result.assignedInstrumentCount} instrumento${result.assignedInstrumentCount === 1 ? '' : 's'} sin grupo.`;
-      ctx.elements.priceStatus.textContent = msg;
-    } else if (!enabled) {
-      ctx.elements.priceStatus.textContent =
-        'Grupos desactivados. Los instrumentos se mostrarán directamente en el dashboard.';
-    }
-    await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.groups.toggle.title'), message: ctx.t('loading.groups.toggle.message') },
+      async () => {
+        const result = await ctx.api.instruments.groups.setEnabled(enabled);
+        ctx.state.groupsEnabled = result.groupsEnabled !== false;
+        ctx.state.historyCache = {};
+        if (result.createdDefaultGroup && result.assignedInstrumentCount > 0) {
+          const msg = `Se ha creado grupo cero y se han asignado ${result.assignedInstrumentCount} instrumento${result.assignedInstrumentCount === 1 ? '' : 's'} sin grupo.`;
+          ctx.elements.priceStatus.textContent = msg;
+        } else if (!enabled) {
+          ctx.elements.priceStatus.textContent =
+            'Grupos desactivados. Los instrumentos se mostrarán directamente en el dashboard.';
+        }
+        await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+      },
+    );
   } catch (error) {
     ctx.elements.instrumentGroupsEnabled.checked = !enabled;
     const el = ctx.elements.priceStatus;
@@ -44,10 +49,15 @@ export async function saveInstrument(ctx, event) {
   });
   button.disabled = true;
   try {
-    await ctx.api.instruments.update(row.dataset.instrument, payload);
-    ctx.state.historyCache = {};
-    await ctx.refreshDashboard();
-    await ctx.refreshHistory({ force: true });
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.instrument.save.title'), message: ctx.t('loading.instrument.save.message') },
+      async () => {
+        await ctx.api.instruments.update(row.dataset.instrument, payload);
+        ctx.state.historyCache = {};
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
+      },
+    );
   } catch (error) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   } finally {
@@ -66,10 +76,15 @@ export async function saveGroup(ctx, event) {
   });
   button.disabled = true;
   try {
-    await ctx.api.instruments.groups.update(row.dataset.group, payload);
-    ctx.state.historyCache = {};
-    await ctx.refreshDashboard();
-    await ctx.refreshHistory({ force: true });
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.groups.save.title'), message: ctx.t('loading.groups.save.message') },
+      async () => {
+        await ctx.api.instruments.groups.update(row.dataset.group, payload);
+        ctx.state.historyCache = {};
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
+      },
+    );
   } catch (error) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
   } finally {
@@ -78,34 +93,39 @@ export async function saveGroup(ctx, event) {
 }
 
 export async function createGroup(ctx) {
+  const button = ctx.elements.createGroup;
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
   try {
-    const payload = {
-      name: ctx.elements.newGroupName.value,
-      showInDistribution: true,
-      showInMonthly: true,
-      isExpandable: false,
-    };
-    if (!ctx.state.brandPaletteEnabled) payload.color = ctx.elements.newGroupColor.value;
-    await ctx.api.instruments.groups.create(payload);
-    ctx.elements.newGroupName.value = '';
-    await ctx.refreshDashboard();
+    await ctx.withAppLoading(
+      { title: ctx.t('loading.groups.create.title'), message: ctx.t('loading.groups.create.message') },
+      async () => {
+        const payload = {
+          name: ctx.elements.newGroupName.value,
+          showInDistribution: true,
+          showInMonthly: true,
+          isExpandable: false,
+        };
+        if (!ctx.state.brandPaletteEnabled) payload.color = ctx.elements.newGroupColor.value;
+        await ctx.api.instruments.groups.create(payload);
+        ctx.elements.newGroupName.value = '';
+        await ctx.refreshDashboard();
+      },
+    );
   } catch (error) {
     ctx.elements.backupList.textContent = ctx.normalizeErrorMessage(error);
+  } finally {
+    if (button) button.disabled = false;
   }
 }
 
 export async function createInstrument(ctx) {
   const elements = ctx.elements;
-  try {
-    const payload = buildInstrumentPayload(elements);
-    if (!payload.symbol) throw new Error('El símbolo es obligatorio');
-    if (!ctx.state.brandPaletteEnabled) payload.color = elements.newInstrumentColor.value;
-    if (payload.type === 'commodity' && payload.provider === 'alpha_vantage') {
-      const created = await ctx.createCommodityWithAlphaVantageCheck(payload);
-      if (!created) return;
-    } else {
-      await ctx.api.instruments.create(payload);
-    }
+  const button = elements.createInstrument;
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+
+  async function finalizeInstrumentCreation(payload) {
     resetInstrumentForm(elements);
     await ctx.refreshDashboard();
     const symbol = payload.symbol;
@@ -117,11 +137,33 @@ export async function createInstrument(ctx) {
       ctx.elements.addTicker.value = symbol;
       ctx.syncAmountInputs({ target: ctx.elements.addTicker });
     }
+  }
+
+  try {
+    const payload = buildInstrumentPayload(elements);
+    if (!payload.symbol) throw new Error('El símbolo es obligatorio');
+    if (!ctx.state.brandPaletteEnabled) payload.color = elements.newInstrumentColor.value;
+    if (payload.type === 'commodity' && payload.provider === 'alpha_vantage') {
+      const created = await ctx.createCommodityWithAlphaVantageCheck(payload, async () => {
+        await finalizeInstrumentCreation(payload);
+      });
+      if (!created) return;
+    } else {
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.instrument.create.title'), message: ctx.t('loading.instrument.create.message') },
+        async () => {
+          await ctx.api.instruments.create(payload);
+        },
+      );
+    }
+    await finalizeInstrumentCreation(payload);
   } catch (error) {
     const errEl = document.getElementById('instrument-create-error');
     if (errEl) {
       errEl.textContent = ctx.normalizeErrorMessage(error);
       errEl.hidden = false;
     }
+  } finally {
+    if (button) button.disabled = false;
   }
 }

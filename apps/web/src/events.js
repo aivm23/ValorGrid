@@ -16,14 +16,28 @@ export function attach(ctx) {
   syncStickyToolbar();
   window.addEventListener('scroll', syncStickyToolbar, { passive: true });
 
-  elements.refreshPrices.addEventListener('click', () => {
+  elements.refreshPrices.addEventListener('click', async () => {
     state.historyCache = {};
-    ctx.refreshDashboard();
-    ctx.refreshHistory({ force: true });
+    elements.refreshPrices.disabled = true;
+    try {
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.dashboard.title'), message: ctx.t('loading.dashboard.message') },
+        async () => {
+          const [dashboardOk, historyOk] = await Promise.all([
+            ctx.refreshDashboard(),
+            ctx.refreshHistory({ force: true }),
+          ]);
+          if (!dashboardOk || !historyOk) throw new Error(ctx.t('No se pudieron actualizar todos los datos.'));
+        },
+      );
+    } catch (error) {
+      elements.priceStatus.textContent = normalizeErrorMessage(error);
+    } finally {
+      elements.refreshPrices.disabled = false;
+    }
   });
-  elements.bootRetry?.addEventListener('click', () => {
-    ctx.refreshDashboard();
-    ctx.refreshHistory({ force: true });
+  elements.appLoadingRetry?.addEventListener('click', () => {
+    ctx.runInitialLoad?.();
   });
   elements.addPosition.addEventListener('click', () => ctx.openOperationDialog('add'));
   elements.removePosition.addEventListener('click', () => ctx.openOperationDialog('remove'));
@@ -64,7 +78,7 @@ export function attach(ctx) {
     ctx.renderImportBatches?.();
     ctx.renderOperationsPreferenceControls?.();
     ctx.initReturnBreakdownToggle?.();
-    ctx.loadUpdateStatus?.();
+    ctx.loadUpdateStatus?.({ interactive: false });
     elements.adminDialog.showModal();
   });
   elements.adminDialogClose?.addEventListener('click', () => elements.adminDialog.close());
@@ -262,10 +276,15 @@ export function attach(ctx) {
     const confirmed = await ctx.confirmAction({ title: label, message, confirmLabel: label });
     if (!confirmed) return;
     try {
-      await ctx.api.admin.deleteBackup(backupFile);
-      const backupData = await ctx.api.admin.backups();
-      state.backups = backupData.backups || [];
-      ctx.renderBackups();
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.backup.delete.title'), message: ctx.t('loading.backup.delete.message') },
+        async () => {
+          await ctx.api.admin.deleteBackup(backupFile);
+          const backupData = await ctx.api.admin.backups();
+          state.backups = backupData.backups || [];
+          ctx.renderBackups();
+        },
+      );
     } catch (error) {
       elements.backupList.textContent = ctx.normalizeErrorMessage(error);
     }
@@ -274,10 +293,15 @@ export function attach(ctx) {
   async function createBackup(localCtx) {
     elements.createBackup.disabled = true;
     try {
-      await ctx.api.admin.createBackup();
-      const backupData = await ctx.api.admin.backups();
-      state.backups = backupData.backups || [];
-      localCtx.renderBackups();
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.backup.create.title'), message: ctx.t('loading.backup.create.message') },
+        async () => {
+          await ctx.api.admin.createBackup();
+          const backupData = await ctx.api.admin.backups();
+          state.backups = backupData.backups || [];
+          localCtx.renderBackups();
+        },
+      );
     } catch (error) {
       elements.backupList.textContent = normalizeErrorMessage(error);
     } finally {

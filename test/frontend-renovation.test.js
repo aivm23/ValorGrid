@@ -1126,3 +1126,73 @@ test('update and Pro request i18n keys exist in both ES and EN catalogs', () => 
     assert.ok(catalog.includes(`'${key}'`), `${key} must exist in the i18n catalog`);
   }
 });
+
+test('loading-overlay.js exists and uses native dialog', () => {
+  const loading = read('apps/web/src/loading-overlay.js');
+  const html = read('apps/web/index.html');
+  assert.ok(loading.includes('showModal'), 'loading-overlay uses showModal');
+  assert.ok(loading.includes('close'), 'loading-overlay has close method');
+  assert.ok(loading.includes('withAppLoading'), 'loading-overlay exports withAppLoading');
+  assert.ok(loading.includes('setBootState'), 'loading-overlay exports setBootState');
+  assert.ok(loading.includes('app-loading-dialog'), 'loading-overlay references app-loading-dialog');
+  assert.ok(loading.includes('Escape'), 'loading-overlay blocks Escape key');
+  assert.ok(loading.includes('cancel'), 'loading-overlay blocks cancel event');
+  assert.ok(loading.includes('previousFocus'), 'loading-overlay saves previous focus');
+  assert.ok(loading.includes('isConnected'), 'loading-overlay checks isConnected before restoring focus');
+  assert.ok(loading.includes('200'), 'loading-overlay has 200ms delay');
+  assert.ok(loading.includes('finally'), 'loading-overlay closes from the tracked operation finally block');
+  assert.ok(!loading.includes('closeTimer'), 'loading-overlay has no artificial post-operation close delay');
+  assert.ok(html.includes('aria-labelledby'), 'HTML has aria-labelledby on loading dialog');
+  assert.ok(html.includes('aria-describedby'), 'HTML has aria-describedby on loading dialog');
+  assert.ok(html.includes('aria-live'), 'HTML has aria-live on loading dialog');
+  assert.ok(html.includes('aria-busy'), 'HTML has aria-busy on loading dialog');
+});
+
+test('index.html has app-loading-dialog dialog', () => {
+  const html = read('apps/web/index.html');
+  assert.ok(html.includes('app-loading-dialog'), 'HTML has app-loading-dialog');
+  assert.ok(html.includes('app-loading-card'), 'HTML has app-loading-card');
+  assert.ok(html.includes('app-loading-title'), 'HTML has app-loading-title');
+  assert.ok(html.includes('app-loading-message'), 'HTML has app-loading-message');
+  assert.ok(html.includes('app-loading-summary'), 'HTML has structured operation summary');
+  assert.ok(html.includes('app-loading-logo'), 'HTML has app-loading-logo');
+  assert.ok(html.includes('app-loading-issue-link'), 'HTML has issue link');
+  assert.ok(html.includes('app-loading-retry'), 'HTML has retry button');
+  assert.ok(html.includes('aria-labelledby'), 'HTML has aria-labelledby');
+  assert.ok(html.includes('aria-describedby'), 'HTML has aria-describedby');
+  assert.ok(html.includes('aria-live'), 'HTML has aria-live');
+  assert.ok(html.includes('aria-busy'), 'HTML has aria-busy');
+  assert.ok(!html.includes('boot-overlay'), 'boot-overlay is removed from HTML');
+  assert.ok(!html.includes('boot-card'), 'boot-card is removed from HTML');
+  assert.ok(!html.includes('boot-retry'), 'boot-retry is removed from HTML');
+  assert.ok(!html.includes('boot-issue-link'), 'boot-issue-link is removed from HTML');
+});
+
+test('import overlay uses new loading dialog instead of old inline overlay', () => {
+  const imports = read('apps/web/src/imports.js');
+  assert.ok(!imports.includes('import-committing-overlay'), 'imports no longer uses import-committing-overlay');
+  assert.ok(!imports.includes('import-committing-card'), 'imports no longer uses import-committing-card');
+  assert.ok(imports.includes('withAppLoading'), 'imports uses withAppLoading for commit');
+  assert.ok(imports.includes('loading.import.commit.title'), 'imports uses loading i18n key');
+});
+
+test('loading-overlay styles replace old boot-overlay styles in foundation.css', () => {
+  const css = read('apps/web/src/styles/foundation.css');
+  assert.ok(!css.includes('.boot-overlay'), 'foundation.css no longer has .boot-overlay');
+  assert.ok(!css.includes('.boot-card'), 'foundation.css no longer has .boot-card');
+  assert.ok(!css.includes('.boot-issue-link'), 'foundation.css no longer has .boot-issue-link');
+  assert.ok(!css.includes('bootPulse'), 'foundation.css no longer has bootPulse');
+  assert.ok(css.includes('.app-loading-dialog[open]'), 'foundation.css has .app-loading-dialog[open]');
+  assert.ok(css.includes('.app-loading-card'), 'foundation.css has .app-loading-card');
+  assert.ok(css.includes('.app-loading-logo'), 'foundation.css has .app-loading-logo');
+  assert.ok(css.includes('.app-loading-title'), 'foundation.css has .app-loading-title');
+  assert.ok(css.includes('.app-loading-message'), 'foundation.css has .app-loading-message');
+  assert.ok(css.includes('.app-loading-summary'), 'foundation.css styles the operation summary');
+  assert.ok(css.includes('.app-loading-issue-link'), 'foundation.css has .app-loading-issue-link');
+  assert.ok(css.includes('loadingPulse'), 'foundation.css has loadingPulse animation');
+  assert.ok(css.includes('prefers-reduced-motion'), 'foundation.css respects reduced motion');
+  assert.ok(css.includes('::backdrop'), 'foundation.css has ::backdrop rule');
+  assert.ok(css.includes('[open]'), 'foundation.css uses [open] selector for dialog visibility');
+  assert.ok(css.includes('width: min(360px'), 'loading dialog is sized to the card instead of the viewport');
+  assert.ok(css.includes('outline: none'), 'loading dialog removes the full-screen browser focus outline');
+});

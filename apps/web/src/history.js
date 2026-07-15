@@ -14,7 +14,10 @@ export function attach(ctx) {
     if (state.history?.range !== range) {
       state.history = null;
     }
-    ctx.refreshHistory();
+    return ctx.withAppLoading(
+      { title: ctx.t('loading.history.title'), message: ctx.t('loading.history.message') },
+      () => ctx.refreshHistory({ force: true }),
+    );
   }
 
   function showHistoryTooltip(event) {

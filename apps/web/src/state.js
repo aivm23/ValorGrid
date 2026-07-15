@@ -39,6 +39,7 @@ export function attach(ctx) {
       autoPlanRetroactiveConfirmed: false,
       transactionEntryMode: 'market_eur',
       transactionPreviewOk: false,
+      transactionPreview: null,
       transactionEditPreviewOk: false,
       selectedTransactionIds: [],
       visibleTransactionIds: [],

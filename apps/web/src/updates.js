@@ -1,9 +1,9 @@
 export function attach(ctx) {
   const { elements, window } = ctx;
 
-  async function loadUpdateStatus() {
+  async function loadUpdateStatus(options = {}) {
     const el = elements;
-    try {
+    const load = async () => {
       const status = await ctx.api.admin.updateStatus();
       el.updateCurrentVersion.textContent = status.currentVersion || '—';
       el.updateLatestVersion.textContent = status.latestVersion || '—';
@@ -40,24 +40,44 @@ export function attach(ctx) {
       }
 
       ctx._lastUpdateStatus = status;
+    };
+    if (el.updateCheck) el.updateCheck.disabled = true;
+    try {
+      if (options.interactive === false) await load();
+      else {
+        await ctx.withAppLoading(
+          { title: ctx.t('loading.update.check.title'), message: ctx.t('loading.update.check.message') },
+          load,
+        );
+      }
     } catch (error) {
       el.updateNotice.hidden = false;
       el.updateNotice.textContent = ctx.normalizeErrorMessage(error);
+    } finally {
+      if (el.updateCheck) el.updateCheck.disabled = false;
     }
   }
 
   async function copyDockerCommands() {
+    if (elements.updateDockerCommands) elements.updateDockerCommands.disabled = true;
     try {
-      const status = ctx._lastUpdateStatus;
-      const version = status?.latestVersion || '';
-      const result = await ctx.api.admin.dockerCommands(version);
-      const commands = (result.commands || []).join('\n');
-      await window.navigator.clipboard.writeText(commands);
-      elements.updateDockerOutput.hidden = false;
-      elements.updateDockerOutput.textContent = commands;
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.update.docker.title'), message: ctx.t('loading.update.docker.message') },
+        async () => {
+          const status = ctx._lastUpdateStatus;
+          const version = status?.latestVersion || '';
+          const result = await ctx.api.admin.dockerCommands(version);
+          const commands = (result.commands || []).join('\n');
+          await window.navigator.clipboard.writeText(commands);
+          elements.updateDockerOutput.hidden = false;
+          elements.updateDockerOutput.textContent = commands;
+        },
+      );
     } catch (error) {
       elements.updateDockerOutput.hidden = false;
       elements.updateDockerOutput.textContent = ctx.normalizeErrorMessage(error);
+    } finally {
+      if (elements.updateDockerCommands) elements.updateDockerCommands.disabled = false;
     }
   }
 

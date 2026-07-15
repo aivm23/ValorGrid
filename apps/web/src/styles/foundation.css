@@ -83,57 +83,152 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.boot-overlay {
+.app-loading-dialog {
   position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(6px);
+  width: min(360px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  border: 0;
+  padding: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--text);
+  overflow: visible;
+  outline: none;
 }
 
-.boot-card {
+.app-loading-dialog[open] {
+  display: block;
+}
+
+.app-loading-dialog::backdrop {
+  background: color-mix(in srgb, #07101f 76%, transparent);
+  backdrop-filter: blur(8px) saturate(0.8);
+}
+
+:root[data-theme='dark'] .app-loading-dialog::backdrop {
+  background: color-mix(in srgb, #030712 82%, transparent);
+}
+
+.app-loading-card {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 10px;
-  width: min(320px, calc(100vw - 48px));
-  padding: 26px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--card);
-  box-shadow: var(--shadow);
+  gap: 12px;
+  width: 100%;
+  padding: 30px 28px 28px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  border-radius: 18px;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 4%, var(--card)), var(--card) 58%);
+  box-shadow:
+    0 24px 64px rgba(2, 8, 23, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
   text-align: center;
 }
 
-.boot-card img {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
-  animation: bootPulse 1.1s ease-in-out infinite;
+.app-loading-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--gradient-brand);
+  content: '';
 }
 
-.boot-card span {
+.app-loading-logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 13px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 18%, transparent);
+  animation: loadingPulse 1.1s ease-in-out infinite;
+}
+
+.app-loading-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.app-loading-message {
+  max-width: 30ch;
   color: var(--muted);
   font-size: 0.9rem;
+  line-height: 1.45;
 }
 
-.boot-issue-link {
+.app-loading-summary {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+  text-align: left;
+}
+
+.app-loading-summary-heading {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.app-loading-summary-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.app-loading-summary-row {
+  min-width: 0;
+}
+
+.app-loading-summary-row dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-loading-summary-row dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.app-loading-summary-row.is-positive dd {
+  color: var(--accent-green);
+}
+
+.app-loading-summary-row.is-negative dd {
+  color: var(--negative);
+}
+
+@media (max-width: 420px) {
+  .app-loading-summary-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app-loading-issue-link {
   color: var(--accent);
   font-size: 0.84rem;
   font-weight: 750;
   text-decoration: none;
 }
 
-.boot-issue-link:hover {
+.app-loading-issue-link:hover {
   text-decoration: underline;
 }
 
-.boot-overlay.is-error .boot-card img {
+.app-loading-dialog.is-error .app-loading-logo {
   animation: none;
 }
 
-@keyframes bootPulse {
+@keyframes loadingPulse {
   0%,
   100% {
     transform: scale(0.96);
@@ -142,6 +237,12 @@ body {
   50% {
     transform: scale(1.04);
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-logo {
+    animation: none;
   }
 }
 

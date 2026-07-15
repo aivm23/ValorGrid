@@ -12,6 +12,7 @@ import { attach as attachDom } from './dom.js';
 import { attach as attachConfirmDialog } from './confirm-dialog.js';
 import { attach as attachDialogBehavior } from './dialog-behavior.js';
 import { attach as attachFormat } from './format.js';
+import { attach as attachLoadingOverlay } from './loading-overlay.js';
 import { attach as attachCharts } from './charts.js';
 import { attach as attachSummary } from './summary.js';
 import { attach as attachMonthly } from './monthly.js';
@@ -56,6 +57,7 @@ const ctx = {
   attachState,
   attachI18n,
   attachDom,
+  attachLoadingOverlay,
   attachDialogBehavior,
   attachConfirmDialog,
   attachFormat,
@@ -94,5 +96,20 @@ ctx.initNegativePreference();
 ctx.initLedgerPageSize();
 ctx.initDateFormat();
 ctx.initWeekStart();
-ctx.refreshDashboard();
-ctx.refreshHistory();
+
+async function runInitialLoad() {
+  ctx.setBootState('loading');
+  try {
+    const [dashboardResult] = await Promise.allSettled([
+      ctx.refreshDashboard({ throwOnError: true }),
+      ctx.refreshHistory(),
+    ]);
+    if (dashboardResult.status === 'rejected') throw dashboardResult.reason;
+    ctx.setBootState('ready');
+  } catch (error) {
+    ctx.setBootState('error', `No se pudieron cargar datos: ${ctx.normalizeErrorMessage(error)}`);
+  }
+}
+
+ctx.runInitialLoad = runInitialLoad;
+void runInitialLoad();

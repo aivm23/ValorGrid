@@ -104,9 +104,14 @@ export function attach(ctx) {
     ctx.elements.transactionEditSubmit.disabled = true;
     setFeedback(ctx.t('Guardando cambios...'));
     try {
-      await ctx.api.transactions.update(transactionId, buildPayload());
-      ctx.state.historyCache = {};
-      await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+      await ctx.withAppLoading(
+        { title: ctx.t('loading.edit.title'), message: ctx.t('loading.edit.message') },
+        async () => {
+          await ctx.api.transactions.update(transactionId, buildPayload());
+          ctx.state.historyCache = {};
+          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+        },
+      );
       closeTransactionEditor();
     } catch (error) {
       setFeedback(ctx.normalizeErrorMessage(error), true);

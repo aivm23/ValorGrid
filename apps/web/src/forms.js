@@ -53,8 +53,7 @@ export function attach(ctx) {
     return type === 'remove' ? ctx.t('history.events.sell') : ctx.t('history.events.buy');
   }
 
-  function renderTransactionPreview(preview) {
-    ctx.elements.transactionPreview.hidden = false;
+  function transactionPreviewDetails(preview) {
     const modeLabel =
       preview.type === 'remove' && preview.entryMode === 'manual_total_eur'
         ? ctx.t('form.operation.manualSellEur')
@@ -65,12 +64,51 @@ export function attach(ctx) {
             : ctx.t('form.operation.market');
     const marketDate =
       preview.entryMode === 'market_eur'
-        ? ` - ${ctx.t('form.operation.marketDate')}: ${ctx.formatDate(preview.marketDate)}`
+        ? `${ctx.t('form.operation.marketDate')}: ${ctx.formatDate(preview.marketDate)}`
         : '';
+    return { modeLabel, marketDate };
+  }
+
+  function buildTransactionLoadingSummary(preview) {
+    const { modeLabel, marketDate } = transactionPreviewDetails(preview);
+    const cashFlowEur = Number(preview.cashFlowEur || 0);
+    return {
+      heading: `${preview.symbol} - ${transactionTypeLabel(preview.type)}`,
+      rows: [
+        {
+          label: ctx.t('form.operation.mode'),
+          value: marketDate ? `${modeLabel} - ${marketDate}` : modeLabel,
+        },
+        {
+          label: ctx.t('form.operation.quantity'),
+          value: ctx.formatInstrumentQuantity(preview.shares, preview),
+        },
+        {
+          label: ctx.t('form.operation.price'),
+          value: `${Number(preview.price).toFixed(2)} ${preview.currency}`,
+        },
+        { label: ctx.t('form.operation.value'), value: ctx.formatCurrency(Number(preview.valueEur)) },
+        {
+          label: ctx.t('form.operation.commission'),
+          value: ctx.formatCurrency(Number(preview.commissionEur || 0)),
+        },
+        {
+          label: ctx.t('form.operation.cashFlow'),
+          value: ctx.formatCurrency(cashFlowEur),
+          tone: cashFlowEur >= 0 ? 'positive' : 'negative',
+        },
+      ],
+    };
+  }
+
+  function renderTransactionPreview(preview) {
+    ctx.elements.transactionPreview.hidden = false;
+    const { modeLabel, marketDate } = transactionPreviewDetails(preview);
+    const marketDateCopy = marketDate ? ` - ${marketDate}` : '';
     ctx.elements.transactionPreview.innerHTML = `
       <span>${ctx.t('form.operation.preview')}</span>
       <strong>${preview.symbol} - ${transactionTypeLabel(preview.type)}</strong>
-      <small>${ctx.t('form.operation.mode')}: ${modeLabel}${marketDate} - ${ctx.t('form.operation.price')}: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
+      <small>${ctx.t('form.operation.mode')}: ${modeLabel}${marketDateCopy} - ${ctx.t('form.operation.price')}: ${Number(preview.price).toFixed(2)} ${preview.currency}</small>
       <small>${ctx.t('form.operation.quantity')}: ${ctx.formatInstrumentQuantity(preview.shares, preview)} - ${ctx.t('form.operation.value')}: ${ctx.formatCurrency(Number(preview.valueEur))} - ${ctx.t('form.operation.commission')}: ${ctx.formatCurrency(Number(preview.commissionEur || 0))}</small>
       <small>${ctx.t('form.operation.cashFlow')}: ${ctx.formatCurrency(Number(preview.cashFlowEur || 0))}</small>
     `;
@@ -90,11 +128,13 @@ export function attach(ctx) {
     const payload = buildTransactionPayload(false);
     ctx.elements.transactionPreview.hidden = true;
     ctx.state.transactionPreviewOk = false;
+    ctx.state.transactionPreview = null;
     if (!payload.symbol || !payload.date || !hasValidAmount()) return false;
     try {
       const data = await ctx.api.transactions.preview(payload, { timeoutMs: 20000 });
       renderTransactionPreview(data.preview);
       ctx.state.transactionPreviewOk = true;
+      ctx.state.transactionPreview = data.preview;
       return true;
     } catch (error) {
       ctx.elements.transactionPreview.hidden = false;
@@ -159,6 +199,7 @@ export function attach(ctx) {
     if (isEmpty) {
       ctx.elements.transactionPreview.hidden = true;
       ctx.state.transactionPreviewOk = false;
+      ctx.state.transactionPreview = null;
       setAddFeedback(
         ctx.t(
           isRemove
@@ -217,27 +258,40 @@ export function attach(ctx) {
       );
       return;
     }
+    const isSell = ctx.elements.operationType.value === 'remove';
     ctx.elements.addSubmit.disabled = true;
     setAddFeedback(ctx.t('Validando precio y movimiento...'));
     try {
-      const previewOk = ctx.state.transactionPreviewOk || (await refreshTransactionPreview());
-      if (!previewOk) throw new Error(ctx.t('Revisa la previsualización antes de guardar'));
-      setAddFeedback(ctx.t('Guardando movimiento...'));
-      const data = await ctx.api.transactions.create(payload);
-      setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: data.transaction.symbol }));
-      window.setTimeout(closeAddDialog, 1800);
-      ctx.state.historyCache = {};
-      await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+      await ctx.withAppLoading(
+        {
+          title: ctx.t(isSell ? 'loading.sell.title' : 'loading.buy.title'),
+          message: ctx.t(isSell ? 'loading.sell.message' : 'loading.buy.message'),
+        },
+        async (update) => {
+          const previewOk = ctx.state.transactionPreviewOk || (await refreshTransactionPreview());
+          if (!previewOk) throw new Error(ctx.t('Revisa la previsualización antes de guardar'));
+          const preview = ctx.state.transactionPreview;
+          if (!preview) throw new Error(ctx.t('Revisa la previsualización antes de guardar'));
+          update({
+            title: ctx.t(isSell ? 'loading.sell.title' : 'loading.buy.title'),
+            summary: buildTransactionLoadingSummary(preview),
+          });
+          let transaction;
+          try {
+            const data = await ctx.api.transactions.create(payload);
+            transaction = data.transaction;
+          } catch (createError) {
+            transaction = await ctx.findTransactionById(payload.id).catch(() => null);
+            if (!transaction) throw createError;
+          }
+          setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: transaction.symbol }));
+          ctx.state.historyCache = {};
+          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+        },
+      );
+      closeAddDialog();
     } catch (error) {
-      const storedTransaction = await ctx.findTransactionById(payload.id).catch(() => null);
-      if (storedTransaction) {
-        setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: storedTransaction.symbol }));
-        window.setTimeout(closeAddDialog, 1800);
-        ctx.state.historyCache = {};
-        await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
-      } else {
-        setAddFeedback(ctx.normalizeErrorMessage(error), true);
-      }
+      setAddFeedback(ctx.normalizeErrorMessage(error), true);
     } finally {
       ctx.elements.addSubmit.disabled = false;
     }
@@ -248,6 +302,7 @@ export function attach(ctx) {
   Object.assign(ctx, {
     setAddFeedback,
     buildTransactionPayload,
+    buildTransactionLoadingSummary,
     renderTransactionPreview,
     refreshTransactionPreview,
     symbolsWithShares,
