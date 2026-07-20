@@ -16,7 +16,11 @@ const {
   saveAlphaVantageKey,
   deleteAlphaVantageKey,
 } = require('../apps/server/src/platform/runtime-secrets');
-const { normalizeAlphaMessage } = require('../apps/server/src/domains/market-data/market-data-providers');
+const {
+  PROVIDER_LABELS,
+  makeResolvePriceSources,
+  normalizeAlphaMessage,
+} = require('../apps/server/src/domains/market-data/market-data-providers');
 
 function makeBackupDir() {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-secrets-'));
@@ -240,6 +244,44 @@ test('GET /api/market-data/sources includes provider states when records exist',
   const yahooState = body.states.find((s) => s.provider === 'yahoo');
   assert.ok(yahooState, 'yahoo provider state is registered');
   assert.equal(yahooState.status, 'ok');
+});
+
+test('price source resolver keeps configured sources and appends Yahoo as fallback for stock instruments', () => {
+  const resolvePriceSources = makeResolvePriceSources(() => [
+    { provider: 'alpha_vantage', providerSymbol: 'IBM', priority: 0 },
+  ]);
+
+  const sources = resolvePriceSources({
+    symbol: 'IBM',
+    yahoo_symbol: 'IBM',
+    type: 'stock',
+  });
+
+  assert.deepEqual(
+    sources.map((item) => item.provider),
+    ['alpha_vantage', 'yahoo'],
+  );
+});
+
+test('price source resolver does not append Yahoo fallback to commodity instruments', () => {
+  const resolvePriceSources = makeResolvePriceSources(() => [
+    { provider: 'alpha_vantage', providerSymbol: 'GOLD', priority: 0 },
+  ]);
+
+  const sources = resolvePriceSources({
+    symbol: 'GOLD',
+    yahoo_symbol: 'GOLD',
+    type: 'commodity',
+  });
+
+  assert.deepEqual(
+    sources.map((item) => item.provider),
+    ['alpha_vantage'],
+  );
+});
+
+test('market data provider labels include manual price source', () => {
+  assert.equal(PROVIDER_LABELS.manual, 'Precio manual');
 });
 
 test('successful Yahoo quote registers yahoo provider state as ok', async () => {

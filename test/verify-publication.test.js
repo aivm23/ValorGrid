@@ -114,6 +114,33 @@ test('verify-publication rejects private extension mechanics in public docs', ()
   }
 });
 
+test('verify-publication rejects unimplemented brokers advertised as available', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-verify-pub-'));
+  try {
+    const pkg = {
+      name: 'valorgrid-verify-pub-fixture',
+      version: '0.0.0',
+      license: 'MPL-2.0',
+      private: true,
+      scripts: { 'seed:demo': 'node scripts/seed-loadtest-db.js' },
+    };
+    fs.mkdirSync(path.join(tempDir, 'apps', 'server'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'apps', 'web', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, 'apps', 'server', 'server.js'), 'module.exports = {};\n');
+    fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
+    fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
+    writeMinimalLicenseBaseline(tempDir);
+    const brokerClaim = ['My', 'Investor'].join('') + ' ' + ['dispo', 'nible'].join('');
+    fs.writeFileSync(path.join(tempDir, 'README.md'), `# fixture\n\nLicense: MPL-2.0\n\n${brokerClaim}.\n`);
+
+    const result = runScriptExpectFail(tempDir);
+    assert.equal(result.ok, false);
+    assert.match(result.stdout, /unimplemented-broker-claims|Unimplemented brokers/i);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('verify-publication detects a missing gitignore pattern in a temp repo', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-verify-pub-'));
   try {

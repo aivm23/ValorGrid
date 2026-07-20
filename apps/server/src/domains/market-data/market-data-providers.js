@@ -1,6 +1,7 @@
 const PROVIDER_LABELS = {
   yahoo: 'Yahoo Finance',
   alpha_vantage: 'Alpha Vantage',
+  manual: 'Precio manual',
 };
 
 const COMMODITY_DEFINITIONS = {
@@ -106,7 +107,14 @@ function makeResolvePriceSources(listPriceSourcesForInstrument) {
     const configured = listPriceSourcesForInstrument(instrument.symbol)
       .map((source) => normalizeSource(source, instrument))
       .filter((source) => source.enabled && source.provider && source.providerSymbol);
-    if (configured.length) return configured;
+    const fallbackYahooSymbol = instrument.yahoo_symbol || yahooSymbol || instrument.symbol;
+    const canUseYahooFallback =
+      fallbackYahooSymbol &&
+      !isCommodityType(instrument.type) &&
+      !configured.some((source) => source.provider === 'yahoo');
+    if (configured.length) {
+      return canUseYahooFallback ? [...configured, fallbackYahooSource(instrument, fallbackYahooSymbol)] : configured;
+    }
     if (isCommodityType(instrument.type) && instrument.yahoo_symbol) {
       return [
         normalizeSource(
@@ -115,7 +123,7 @@ function makeResolvePriceSources(listPriceSourcesForInstrument) {
         ),
       ];
     }
-    return [fallbackYahooSource(instrument, instrument.yahoo_symbol || yahooSymbol || instrument.symbol)];
+    return [fallbackYahooSource(instrument, fallbackYahooSymbol)];
   };
 }
 

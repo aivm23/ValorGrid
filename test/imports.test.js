@@ -70,6 +70,57 @@ test('valorgrid-xlsx import preview is read-only and commit is atomic and idempo
   assert.equal(getPositionShares('IMPA', '2026-01-10'), 2);
 });
 
+test('valorgrid-xlsx import preserves Yahoo column as provider reference', async () => {
+  const contentBase64 = await createWorkbookBase64({
+    Movimientos: [
+      MOVIMIENTOS_HEADERS,
+      ['compra', '2026-01-13', 'VGABC', 'VGABC.MC', 2, 10, 'EUR', 1, 20, 0, 'yahoo-column-1'],
+    ],
+  });
+
+  const preview = await previewImport({ source: 'valorgrid-xlsx', filename: 'yahoo-column.xlsx', contentBase64 });
+  const row = preview.rows[0];
+  const detected = preview.detectedInstruments.find((item) => item.symbol === 'VGABC');
+
+  assert.equal(row.normalized.symbol, 'VGABC');
+  assert.equal(row.normalized.yahooSymbol, 'VGABC.MC');
+  assert.ok(
+    row.normalized.externalIdentifiers.some(
+      (item) => item.provider === 'yahoo' && item.identifierType === 'ticker' && item.identifierValue === 'VGABC.MC',
+    ),
+  );
+  assert.equal(detected.yahooSymbol, 'VGABC.MC');
+});
+
+test('valorgrid-xlsx import warns when row Yahoo differs from existing instrument', async () => {
+  seedTestInstrument({
+    symbol: 'VGDIFF',
+    yahooSymbol: 'VGDIFF.DE',
+    name: 'Yahoo Diff',
+    type: 'stock',
+    currency: 'EUR',
+  });
+  const contentBase64 = await createWorkbookBase64({
+    Movimientos: [
+      MOVIMIENTOS_HEADERS,
+      ['compra', '2026-01-14', 'VGDIFF', 'VGDIFF.MC', 1, 10, 'EUR', 1, 10, 0, 'yahoo-column-2'],
+    ],
+  });
+
+  const preview = await previewImport({
+    source: 'valorgrid-xlsx',
+    filename: 'yahoo-column-warning.xlsx',
+    contentBase64,
+  });
+
+  assert.equal(preview.rows[0].status, 'valid');
+  assert.ok(preview.rows[0].normalized.warnings.some((item) => item.includes('VGDIFF.MC')));
+  assert.equal(
+    db.prepare('SELECT yahoo_symbol FROM instruments WHERE symbol = ?').get('VGDIFF').yahoo_symbol,
+    'VGDIFF.DE',
+  );
+});
+
 test('valorgrid-xlsx import impact and commit use only selected rows', async () => {
   seedTestInstrument({
     symbol: 'IMPS1',
@@ -165,6 +216,22 @@ test('valorgrid-xlsx import API exposes preview, commit, list, detail and rollba
   });
   assert.equal(rollback.response.status, 200);
   assert.equal(getPositionShares('IMPC', '2026-01-12'), 0);
+});
+
+test('valorgrid-xlsx import preview accepts base64 payloads above the generic 1MB body limit', async () => {
+  const largeInvalidBase64 = Buffer.alloc(900 * 1024, 1).toString('base64');
+  const result = await jsonRequest('/api/import/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'valorgrid-xlsx',
+      filename: 'large-invalid.xlsx',
+      contentBase64: largeInvalidBase64,
+    }),
+  });
+
+  assert.equal(result.response.status, 400);
+  assert.doesNotMatch(result.body.error, /Request body too large/);
 });
 
 test('valorgrid-xlsx import supports sheet selection and atomic commit', async () => {

@@ -122,7 +122,7 @@ export function ensureInstrumentChoices(ctx, preview) {
     }
     const omitByDefault = shouldOmitInstrumentByDefault(preview, item);
     const resolvedSymbol = existingSymbols.has(item.symbol) ? item.symbol : '';
-    const autoSuggestion = item.tickerSuggestions?.[0]?.yahooSymbol || '';
+    const autoSuggestion = item.yahooSymbol || item.tickerSuggestions?.[0]?.yahooSymbol || '';
     ctx.state.importInstrumentChoices[item.key] = {
       action: omitByDefault ? 'omit' : resolvedSymbol ? 'map' : 'create',
       symbol: resolvedSymbol,

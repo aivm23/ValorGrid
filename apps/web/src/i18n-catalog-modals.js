@@ -37,6 +37,7 @@ export const MODAL_TEXT_TRANSLATIONS = {
       'Has seleccionado "Plantilla Excel de ValorGrid" pero el archivo no es .xlsx. Selecciona el formato correcto o cambia el origen de datos.',
     'import.file.invalidCsv':
       'Has seleccionado un formato CSV pero el archivo es .xlsx. Selecciona "Plantilla Excel de ValorGrid" o carga un archivo CSV.',
+    'import.file.tooLarge': 'El archivo supera el maximo permitido ({max}).',
     'import.feedback.analyzing': 'Analizando importación...',
     'import.feedback.ready':
       'Previsualización preparada. Revisa instrumentos, operaciones e impacto antes de importar.',
@@ -199,6 +200,7 @@ export const MODAL_TEXT_TRANSLATIONS = {
       'You selected "ValorGrid Excel template", but the file is not .xlsx. Select the correct format or change the data source.',
     'import.file.invalidCsv':
       'You selected a CSV format, but the file is .xlsx. Select "ValorGrid Excel template" or upload a CSV file.',
+    'import.file.tooLarge': 'The file exceeds the allowed maximum ({max}).',
     'import.feedback.analyzing': 'Analyzing import...',
     'import.feedback.ready': 'Preview ready. Review instruments, operations and impact before importing.',
     'import.feedback.pending': 'Review pending items before confirming the import.',

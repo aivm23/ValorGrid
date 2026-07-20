@@ -8,6 +8,7 @@ function sendError(response, sendJson, error) {
 
 const TEMPLATE_FILENAME = 'ValorGrid_Plantilla_Importacion.xlsx';
 const TEMPLATE_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const IMPORT_BODY_MAX_BYTES = 4 * 1024 * 1024;
 
 module.exports = async function handleImportRoutes(ctx, request, response, url) {
   const {
@@ -49,7 +50,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
 
   if (url.pathname === '/api/import/preview' && request.method === 'POST') {
     try {
-      const body = await readJsonBody(request);
+      const body = await readJsonBody(request, { maxBytes: IMPORT_BODY_MAX_BYTES });
       sendJson(response, 200, { preview: await previewImport(body) });
     } catch (error) {
       sendError(response, sendJson, error);
@@ -68,7 +69,7 @@ module.exports = async function handleImportRoutes(ctx, request, response, url) 
 
   if (url.pathname === '/api/import/commit' && request.method === 'POST') {
     try {
-      const body = await readJsonBody(request);
+      const body = await readJsonBody(request, { maxBytes: IMPORT_BODY_MAX_BYTES });
       let riskBackup = null;
       try {
         riskBackup = createRiskBackup({

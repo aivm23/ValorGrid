@@ -225,6 +225,7 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   const { normalizeSymbol } = ctx;
   const explicitType = normalizeType(mappedValue(row, mapping, profile, 'type'));
   const symbol = normalizeSymbol(mappedValue(row, mapping, profile, 'symbol'));
+  const yahooSymbol = normalizeSymbol(mappedValue(row, mapping, profile, 'yahooSymbol'));
   const date = parseDateValue(mappedValue(row, mapping, profile, 'date'));
   const marketDate = parseDateValue(mappedValue(row, mapping, profile, 'marketDate')) || date;
   const rawShares = parseNumber(mappedValue(row, mapping, profile, 'shares'));
@@ -275,10 +276,22 @@ function normalizeImportRow(ctx, row, mapping = {}, source = 'valorgrid-xlsx', p
   if (symbol && !externalIdentifiers.some((item) => String(item.identifierType || '').toLowerCase() === 'ticker')) {
     externalIdentifiers.unshift({ provider: 'manual', identifierType: 'ticker', identifierValue: symbol });
   }
+  if (
+    yahooSymbol &&
+    yahooSymbol !== symbol &&
+    !externalIdentifiers.some(
+      (item) =>
+        String(item.provider || '').toLowerCase() === 'yahoo' &&
+        String(item.identifierType || item.type || '').toLowerCase() === 'ticker',
+    )
+  ) {
+    externalIdentifiers.push({ provider: 'yahoo', identifierType: 'ticker', identifierValue: yahooSymbol });
+  }
 
   const normalized = {
     type: inferredType || 'add',
     symbol,
+    yahooSymbol: yahooSymbol || symbol,
     date,
     marketDate,
     shares,

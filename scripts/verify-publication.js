@@ -95,6 +95,15 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
   'apps/server/src/domains/data-ingestion/ingestion-parser.js',
 ]);
 
+const UNIMPLEMENTED_BROKER_AVAILABLE_PATTERNS = [
+  /\bmyinvestor\b.{0,80}\b(disponible|available|soportado|supported)\b/i,
+  /\b(disponible|available|soportado|supported)\b.{0,80}\bmyinvestor\b/i,
+  /\bfreedom\s*24\b.{0,80}\b(disponible|available|soportado|supported)\b/i,
+  /\b(disponible|available|soportado|supported)\b.{0,80}\bfreedom\s*24\b/i,
+  /\btrade\s*republic\b.{0,80}\b(disponible|available|soportado|supported)\b/i,
+  /\b(disponible|available|soportado|supported)\b.{0,80}\btrade\s*republic\b/i,
+];
+
 const REQUIRED_GITIGNORE_PATTERNS = [
   '*.sqlite',
   '*.sqlite-wal',
@@ -311,6 +320,7 @@ function checkForbiddenFiles() {
 function checkForbiddenText() {
   const publicFiles = collectPublicFiles();
   const leaks = [];
+  const unavailableBrokerClaims = [];
   for (const file of publicFiles) {
     if (!TEXT_EXTENSIONS.has(path.extname(file))) continue;
     const relative = relativePosix(file);
@@ -321,11 +331,30 @@ function checkForbiddenText() {
         leaks.push(`${relative} contains ${pattern}`);
       }
     }
+    if (!['scripts/verify-publication.js', 'scripts/verify-publication.ps1'].includes(relative)) {
+      for (const pattern of UNIMPLEMENTED_BROKER_AVAILABLE_PATTERNS) {
+        if (pattern.test(content)) unavailableBrokerClaims.push(`${relative} matches ${pattern}`);
+      }
+    }
   }
   if (leaks.length) {
     addCheck('fail', 'forbidden-text', 'Private or preview text patterns found', leaks);
   } else {
     addCheck('ok', 'forbidden-text', 'No private or preview text patterns found.');
+  }
+  if (unavailableBrokerClaims.length) {
+    addCheck(
+      'fail',
+      'unimplemented-broker-claims',
+      'Unimplemented brokers must not be advertised as available',
+      unavailableBrokerClaims,
+    );
+  } else {
+    addCheck(
+      'ok',
+      'unimplemented-broker-claims',
+      'MyInvestor, Freedom24 and Trade Republic are not advertised as available.',
+    );
   }
 }
 

@@ -21,6 +21,7 @@ const {
   buildInstrumentMapping,
   canCommitRows,
   resolveByHeuristic,
+  warnOnYahooMismatch,
 } = require('./ingestion-preview-helpers');
 
 function resolveRowInstrument(ctx, row, mapping, virtualSymbols = new Set()) {
@@ -249,6 +250,7 @@ async function previewImportFactory(ctx, input = {}) {
     }
 
     const instrument = normalized.symbol ? ctx.getInstrument(normalized.symbol) || resolution.instrument : null;
+    warnOnYahooMismatch(normalized, instrument);
     const mappingKey =
       normalized.externalIdentifiers?.map(mappingKeyForIdentifier).find(Boolean) ||
       (normalized.symbol ? `ticker:${normalized.symbol}` : null);
@@ -261,6 +263,7 @@ async function previewImportFactory(ctx, input = {}) {
         key: mappingKey,
         label: detectedLabel,
         symbol: normalized.symbol || null,
+        yahooSymbol: normalized.yahooSymbol || null,
         isin:
           normalized.externalIdentifiers?.find((item) => String(item.identifierType || '').toLowerCase() === 'isin')
             ?.identifierValue || null,
@@ -299,6 +302,7 @@ async function previewImportFactory(ctx, input = {}) {
       if (resolution.resolutionStatus === 'needs_mapping') instrumentInfo.resolutionStatus = 'needs_mapping';
       if (resolution.matchedBy && !instrumentInfo.resolutionSource)
         instrumentInfo.resolutionSource = resolution.matchedBy;
+      if (!instrumentInfo.yahooSymbol && normalized.yahooSymbol) instrumentInfo.yahooSymbol = normalized.yahooSymbol;
       if (rowDecision.action === 'skip') instrumentInfo.hasSkippedRows = true;
     }
 
@@ -334,6 +338,7 @@ async function previewImportFactory(ctx, input = {}) {
         key: mappingKey,
         label: detectedLabel,
         symbol: normalized.symbol || null,
+        yahooSymbol: normalized.yahooSymbol || null,
         sampleRow: row.rowIndex,
       });
     }

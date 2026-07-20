@@ -397,7 +397,7 @@ Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edit
 
 La respuesta incluye `Content-Disposition: attachment` y MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
 
-El importador solo acepta `.xlsx` moderno, limita el archivo a 2 MB, exige la hoja `Movimientos`, bloquea hojas no permitidas, valida encabezados exactos, rechaza fórmulas y limita Community a 500 movimientos por importación.
+El importador solo acepta `.xlsx` moderno, limita el archivo XLSX a 2 MB, permite el sobre JSON/base64 necesario para transportarlo, exige la hoja `Movimientos`, bloquea hojas no permitidas, valida encabezados exactos, rechaza fórmulas y limita Community a 500 movimientos por importación.
 
 ### Semántica de importación con plantilla
 

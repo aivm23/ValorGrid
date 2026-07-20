@@ -158,6 +158,7 @@ $forbiddenTextPatterns = @(
   ('portfolio' + '_snapshot')
 )
 $textLeaks = @()
+$unimplementedBrokerClaims = @()
 $publicBrokerTeaserPatterns = @(
   ('DE' + 'GIRO'),
   ('I' + 'BKR'),
@@ -194,10 +195,28 @@ foreach ($file in $publicFiles) {
       $textLeaks += "$($file.FullName) contains $pattern"
     }
   }
+  if ($relative -notin @('scripts\verify-publication.js', 'scripts\verify-publication.ps1')) {
+    foreach ($pattern in @(
+      '\bmyinvestor\b.{0,80}\b(disponible|available|soportado|supported)\b',
+      '\b(disponible|available|soportado|supported)\b.{0,80}\bmyinvestor\b',
+      '\bfreedom\s*24\b.{0,80}\b(disponible|available|soportado|supported)\b',
+      '\b(disponible|available|soportado|supported)\b.{0,80}\bfreedom\s*24\b',
+      '\btrade\s*republic\b.{0,80}\b(disponible|available|soportado|supported)\b',
+      '\b(disponible|available|soportado|supported)\b.{0,80}\btrade\s*republic\b'
+    )) {
+      if ($content -match $pattern) {
+        $unimplementedBrokerClaims += "$($file.FullName) matches $pattern"
+      }
+    }
+  }
 }
 
 if ($textLeaks.Count -gt 0) {
   throw "Private or preview text patterns found:$([Environment]::NewLine)$($textLeaks -join [Environment]::NewLine)"
+}
+
+if ($unimplementedBrokerClaims.Count -gt 0) {
+  throw "Unimplemented brokers must not be advertised as available:$([Environment]::NewLine)$($unimplementedBrokerClaims -join [Environment]::NewLine)"
 }
 
 $runtimeFiles = @(

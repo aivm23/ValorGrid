@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.33.2
+
+- fix: read the ValorGrid Excel template `Yahoo` column during import preview and use it as the provider reference for new instrument creation.
+- fix: allow import preview and commit requests to carry 2 MB XLSX files encoded as base64 while keeping the generic JSON body limit at 1 MB.
+- fix: append Yahoo Finance as a safe fallback for configured non-commodity price sources and expose a manual price provider label.
+- test: block public claims that MyInvestor, Freedom24 or Trade Republic are active before their Professional adapters exist.
+- chore: sync CasaOS and Umbrel manifests to `v3.33.2`.
+
 ## 3.33.1
 
 - fix: close the unified loading dialog as soon as its observed promise settles, while preserving boot errors across nested operations.

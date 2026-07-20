@@ -82,6 +82,16 @@ function canCommitRows(rows, rowDecisions) {
   return selectedCanCommit || onlyNonBlockingRows;
 }
 
+function warnOnYahooMismatch(normalized, instrument) {
+  const storedYahooSymbol = String(instrument?.yahooSymbol || instrument?.yahoo_symbol || '')
+    .trim()
+    .toUpperCase();
+  if (!storedYahooSymbol || !normalized.yahooSymbol || storedYahooSymbol === normalized.yahooSymbol) return;
+  normalized.warnings.push(
+    `Yahoo de la plantilla (${normalized.yahooSymbol}) no coincide con el guardado para ${instrument.symbol} (${storedYahooSymbol}); no se modifica el instrumento.`,
+  );
+}
+
 module.exports = {
   normalizeMatchText,
   resolveByHeuristic,
@@ -90,4 +100,5 @@ module.exports = {
   mappingKeyForIdentifier,
   buildInstrumentMapping,
   canCommitRows,
+  warnOnYahooMismatch,
 };

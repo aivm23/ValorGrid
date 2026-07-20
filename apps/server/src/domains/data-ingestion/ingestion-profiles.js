@@ -43,6 +43,7 @@ const profileOverrides = {
     fieldAliases: {
       type: ['Tipo'],
       symbol: ['Ticker'],
+      yahooSymbol: ['Yahoo'],
       date: ['Fecha'],
       marketDate: ['Fecha mercado'],
       shares: ['Acciones'],

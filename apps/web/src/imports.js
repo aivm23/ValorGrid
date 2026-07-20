@@ -23,6 +23,7 @@ import {
 } from './import-workflow.js';
 
 const STEP_ORDER = ['file', 'instruments', 'operations', 'confirm'];
+const MAX_XLSX_FILE_BYTES = 2 * 1024 * 1024;
 function resetImportState(ctx) {
   ctx.state.importPreview = null;
   ctx.state.importRowActions = {};
@@ -168,6 +169,14 @@ export function attach(ctx) {
     const fileExt = (file.name.match(/\.[^.]+$/) || [])[0]?.toLowerCase();
     if (isXlsxMode && fileExt !== '.xlsx') {
       ctx.elements.importFeedback.textContent = ctx.t('import.file.invalidXlsx');
+      ctx.state.importFileMeta = null;
+      updateImportFileDisplay(ctx, '');
+      return;
+    }
+    if (isXlsxMode && file.size > MAX_XLSX_FILE_BYTES) {
+      ctx.elements.importFeedback.textContent = ctx.t('import.file.tooLarge', {
+        max: ctx.formatFileSize(MAX_XLSX_FILE_BYTES),
+      });
       ctx.state.importFileMeta = null;
       updateImportFileDisplay(ctx, '');
       return;

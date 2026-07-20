@@ -1176,6 +1176,15 @@ test('import overlay uses new loading dialog instead of old inline overlay', () 
   assert.ok(imports.includes('loading.import.commit.title'), 'imports uses loading i18n key');
 });
 
+test('import file picker enforces the documented 2MB XLSX limit before upload', () => {
+  const imports = read('apps/web/src/imports.js');
+  const translations = read('apps/web/src/i18n-catalog-modals.js');
+  assert.ok(imports.includes('MAX_XLSX_FILE_BYTES = 2 * 1024 * 1024'), 'imports defines the 2MB XLSX limit');
+  assert.ok(imports.includes('file.size > MAX_XLSX_FILE_BYTES'), 'imports validates selected XLSX file size');
+  assert.ok(imports.includes('import.file.tooLarge'), 'imports uses an i18n error for oversized files');
+  assert.ok(translations.includes('import.file.tooLarge'), 'oversized import error is translated');
+});
+
 test('loading-overlay styles replace old boot-overlay styles in foundation.css', () => {
   const css = read('apps/web/src/styles/foundation.css');
   assert.ok(!css.includes('.boot-overlay'), 'foundation.css no longer has .boot-overlay');

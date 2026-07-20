@@ -6,6 +6,8 @@ Rules:
 
 - Use `.xlsx`.
 - Keep the canonical worksheet and headers.
+- The `Yahoo` header is part of the canonical template. Its cell value is optional; when present it is used as the provider reference for new instrument creation and mismatch warnings.
+- Keep the XLSX file under 2 MB. The import endpoint allows the JSON/base64 envelope needed to transport that file size.
 - Do not upload broker exports directly in Community.
 - Review the preview before committing.
 - Use rollback by batch if an import must be undone.

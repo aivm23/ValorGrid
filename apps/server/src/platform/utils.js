@@ -43,12 +43,13 @@ module.exports = function attach(ctx) {
    */
   const MAX_BODY_BYTES = 1024 * 1024;
 
-  async function readJsonBody(request) {
+  async function readJsonBody(request, options = {}) {
+    const maxBytes = Number(options.maxBytes || MAX_BODY_BYTES);
     const chunks = [];
     let totalBytes = 0;
     for await (const chunk of request) {
       totalBytes += chunk.length;
-      if (totalBytes > MAX_BODY_BYTES) {
+      if (totalBytes > maxBytes) {
         request.destroy();
         throw Object.assign(new Error('Request body too large'), { statusCode: 413 });
       }

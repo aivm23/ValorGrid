@@ -20,7 +20,7 @@ La plantilla tiene tres hojas:
 
 La fuente pública sigue siendo `valorgrid-xlsx`, pero el parser interno usa ExcelJS. Solo se aceptan libros `.xlsx` modernos con estos controles:
 
-- tamaño máximo de 2 MB;
+- tamaño máximo de archivo XLSX de 2 MB; el endpoint de importación acepta el sobre JSON/base64 necesario para transportar ese archivo;
 - hojas permitidas: `Movimientos`, `Instrucciones`, `Ejemplos`;
 - importación exclusiva de la hoja `Movimientos`;
 - encabezados exactos de la plantilla oficial;
@@ -31,18 +31,19 @@ La fuente pública sigue siendo `valorgrid-xlsx`, pero el parser interno usa Exc
 
 Encabezados obligatorios:
 
-| Columna        | Uso                                                                                       |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `Tipo`         | `compra` o `venta`; puede dejarse vacío si `Acciones` tiene signo.                        |
-| `Fecha`        | Fecha de operación.                                                                       |
-| `Ticker`       | Ticker interno usado en ValorGrid.                                                        |
-| `Acciones`     | Cantidad del instrumento. Positiva para compra, negativa para venta si `Tipo` está vacío. |
-| `Precio`       | Precio unitario en la divisa indicada.                                                    |
-| `Divisa`       | Código ISO, por ejemplo `EUR` o `USD`.                                                    |
-| `FX a EUR`     | Tipo de cambio hacia EUR; obligatorio si la divisa no es EUR.                             |
-| `Valor EUR`    | Opcional; si falta, ValorGrid lo calcula.                                                 |
-| `Comision EUR` | Comisión en EUR, opcional.                                                                |
-| `Referencia`   | Identificador libre para deduplicación y auditoría.                                       |
+| Columna        | Uso                                                                                                                                                                                                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tipo`         | `compra` o `venta`; puede dejarse vacío si `Acciones` tiene signo.                                                                                                                                                                      |
+| `Fecha`        | Fecha de operación.                                                                                                                                                                                                                     |
+| `Ticker`       | Ticker interno usado en ValorGrid.                                                                                                                                                                                                      |
+| `Yahoo`        | Referencia del proveedor de precios. La cabecera es obligatoria; el valor puede quedar vacío. Si se informa, se usa para crear/sugerir el `yahoo_symbol` de instrumentos nuevos y se avisa si no coincide con un instrumento existente. |
+| `Acciones`     | Cantidad del instrumento. Positiva para compra, negativa para venta si `Tipo` está vacío.                                                                                                                                               |
+| `Precio`       | Precio unitario en la divisa indicada.                                                                                                                                                                                                  |
+| `Divisa`       | Código ISO, por ejemplo `EUR` o `USD`.                                                                                                                                                                                                  |
+| `FX a EUR`     | Tipo de cambio hacia EUR; obligatorio si la divisa no es EUR.                                                                                                                                                                           |
+| `Valor EUR`    | Opcional; si falta, ValorGrid lo calcula.                                                                                                                                                                                               |
+| `Comision EUR` | Comisión en EUR, opcional.                                                                                                                                                                                                              |
+| `Referencia`   | Identificador libre para deduplicación y auditoría.                                                                                                                                                                                     |
 
 ## Preview Antes De Confirmar
 
