@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.33.3
+
+- fix: keep the PowerShell publication guard aligned with the Node verifier on Linux runners.
+- chore: sync CasaOS and Umbrel manifests to `v3.33.3`.
+
 ## 3.33.2
 
 - fix: read the ValorGrid Excel template `Yahoo` column during import preview and use it as the provider reference for new instrument creation.

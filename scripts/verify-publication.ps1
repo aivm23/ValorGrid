@@ -186,6 +186,7 @@ $publicBrokerTeaserFiles = @(
 foreach ($file in $publicFiles) {
   if ($textExtensions -notcontains $file.Extension) { continue }
   $relative = $file.FullName.Substring($root.Path.Length + 1)
+  $relativeKey = $relative -replace '\\', '/'
   $content = Get-Content -Path $file.FullName -Raw
   foreach ($pattern in $forbiddenTextPatterns) {
     if ($relative -in $publicBrokerTeaserFiles -and $pattern -in $publicBrokerTeaserPatterns) {
@@ -195,7 +196,7 @@ foreach ($file in $publicFiles) {
       $textLeaks += "$($file.FullName) contains $pattern"
     }
   }
-  if ($relative -notin @('scripts\verify-publication.js', 'scripts\verify-publication.ps1')) {
+  if ($relativeKey -notin @('scripts/verify-publication.js', 'scripts/verify-publication.ps1')) {
     foreach ($pattern in @(
       '\bmyinvestor\b.{0,80}\b(disponible|available|soportado|supported)\b',
       '\b(disponible|available|soportado|supported)\b.{0,80}\bmyinvestor\b',
