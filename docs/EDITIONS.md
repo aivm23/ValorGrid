@@ -14,6 +14,8 @@ La licencia de código no concede derechos sobre el nombre, logotipo, iconos, id
 
 Pro/Enterprise puede ofrecer conectores de importación y capacidades comerciales adicionales bajo condiciones propietarias. Su código, documentación operativa, pruebas y datos de ejemplo viven fuera de este repositorio público.
 
+Si Pro/Enterprise necesita compatibilidad temporal de schema con una versión Community concreta, esa capa pertenece a la distribución no pública y debe ser retirada o formalizada allí. Community mantiene como contrato público `apps/server/src/schema.js` para instalaciones limpias y los SQL versionados de `deploy/sql/` para actualizaciones explícitas.
+
 ## Frontera pública
 
 - Community puede mostrar un teaser genérico de Professional Edition, siempre deshabilitado cuando la capacidad no está disponible.

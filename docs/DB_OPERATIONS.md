@@ -197,7 +197,11 @@ A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones auto
 ### Comportamiento por runtime
 
 - **Desktop (Windows/Linux/macOS)**: migración automática al arrancar una versión nueva, siempre con backup previo.
-- **Docker/CasaOS/Umbrel**: por defecto la migración automática está deshabilitada. El endpoint `/api/update/status` muestra las migraciones pendientes y los comandos a ejecutar; la migración debe iniciarse como una acción explícita del administrador.
+- **Docker/CasaOS/Umbrel**: los artefactos de despliegue declaran `VALORGRID_RUNTIME_MODE=docker`; por defecto la migración automática está deshabilitada. El endpoint `/api/update/status` muestra las migraciones pendientes y los comandos a ejecutar; la migración debe iniciarse como una acción explícita del administrador. Solo se puede activar deliberadamente con `VALORGRID_AUTO_MIGRATE=1`.
+
+## Propiedad del schema
+
+`apps/server/src/schema.js` es la fuente canónica del schema Community para instalaciones limpias. Los archivos `deploy/sql/update-X-to-Y.sql` son el mecanismo versionado para bases existentes. El repositorio Community no debe contener shims privados ni compatibilidad de schema de Professional/Enterprise; si una edición no pública necesita una capa temporal, debe documentarla y probarla fuera de Community sin modificar la política pública de este repositorio.
 
 ### Stop rule
 

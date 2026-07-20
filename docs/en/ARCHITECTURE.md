@@ -27,4 +27,8 @@ The CSS entrypoint imports six ordered cascade files (foundation, components, di
 
 Professional functionality remains outside the Community repository. Community may show generic public teasers and capability states, but not private implementation details.
 
+`apps/server/src/schema.js` is the canonical Community schema for fresh installs. Versioned SQL files under `deploy/sql/` are the explicit upgrade path for existing databases. Private edition schema compatibility must live outside this public repository and must not add public runtime migrations or change Community schema ownership.
+
+Docker, CasaOS and Umbrel deployments declare `VALORGRID_RUNTIME_MODE=docker`. In that runtime profile automatic database migrations are disabled by default; the app reports pending migrations and leaves execution to an explicit administrator action.
+
 `packages/contracts/src/operation-metrics.json` is the canonical Operativa metric ID catalog. A CommonJS adapter and a generated browser ESM adapter are kept identical by `contracts:check`.

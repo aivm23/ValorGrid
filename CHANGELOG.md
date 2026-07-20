@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.33.4
+
+- chore: pin umbrel package digest.
+- fix: resolve brace-expansion DoS vulnerability (npm audit).
+- chore: declare Docker runtime mode across Docker, CasaOS and Umbrel deployment artifacts.
+- docs: formalize Community schema ownership and explicit migration policy for container deployments.
+
 ## 3.33.3
 
 - fix: keep the PowerShell publication guard aligned with the Node verifier on Linux runners.

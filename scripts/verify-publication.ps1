@@ -287,6 +287,7 @@ if ([regex]::IsMatch($casaosCompose, "(?m)^volumes:\s*$")) {
 }
 
 $requiredCasaosPatterns = @(
+  '(?m)^\s*VALORGRID_RUNTIME_MODE:\s*docker\s*$',
   '(?m)^\s*version:\s*["'']?v[0-9]+\.[0-9]+\.[0-9]+["'']?\s*$',
   '(?m)^\s*updateAt:\s*["'']?[0-9]{4}-[0-9]{2}-[0-9]{2}["'']?\s*$',
   '(?m)^\s*repo:\s*https://github\.com/aivm23/ValorGrid\s*$',
@@ -370,6 +371,7 @@ foreach ($umbrelPackage in $umbrelPackages) {
     '(?m)^\s*app_proxy:\s*$',
     "(?m)^\s*APP_HOST:\s*${expectedAppHost}\s*$",
     '(?m)^\s*APP_PORT:\s*1325\s*$',
+    '(?m)^\s*VALORGRID_RUNTIME_MODE:\s*docker\s*$',
     '(?m)^\s*PORTFOLIO_DB_PATH:\s*/data/portfolio\.sqlite\s*$',
     '(?m)^\s*VALORGRID_BACKUP_DIR:\s*/data/backups\s*$',
     '(?m)^\s*-\s*\$\{APP_DATA_DIR\}/data:/data\s*$'

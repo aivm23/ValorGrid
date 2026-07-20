@@ -9,6 +9,7 @@ WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=1325 \
+    VALORGRID_RUNTIME_MODE=docker \
     PORTFOLIO_DB_PATH=/data/portfolio.sqlite
 
 COPY --chown=node:node package.json package-lock.json ./

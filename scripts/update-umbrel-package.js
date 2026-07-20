@@ -112,6 +112,7 @@ function compose({ id, version, digest }) {
     environment:
       HOST: 0.0.0.0
       PORT: ${PORT}
+      VALORGRID_RUNTIME_MODE: docker
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
       VALORGRID_BACKUP_DIR: /data/backups
       VALORGRID_AUTH_USER: valorgrid

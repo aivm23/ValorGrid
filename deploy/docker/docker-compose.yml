@@ -9,6 +9,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 1325
+      VALORGRID_RUNTIME_MODE: docker
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
       VALORGRID_BACKUP_DIR: /app/.backups
       VALORGRID_AUTH_USER: valorgrid

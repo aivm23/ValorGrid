@@ -2,12 +2,13 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:v3.33.3
+    image: ghcr.io/aivm23/valorgrid:v3.33.4
     container_name: valorgrid
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0
       PORT: 1325
+      VALORGRID_RUNTIME_MODE: docker
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
       VALORGRID_BACKUP_DIR: /app/.backups
       VALORGRID_AUTH_USER: valorgrid
@@ -34,6 +35,10 @@ services:
           description:
             en_US: Web server listening port.
             es_ES: Puerto de escucha del servidor web.
+        - container: VALORGRID_RUNTIME_MODE
+          description:
+            en_US: Runtime profile. Keep docker so database migrations remain an explicit administrator action.
+            es_ES: Perfil de ejecucion. Mantener docker para que las migraciones de base de datos sean una accion explicita del administrador.
         - container: PORTFOLIO_DB_PATH
           description:
             en_US: SQLite database file path inside the container.
@@ -77,7 +82,7 @@ x-casaos:
   author: aivm23
   developer: aivm23
   category: Finance
-  version: 'v3.33.3'
+  version: 'v3.33.4'
   updateAt: '2026-07-15'
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues

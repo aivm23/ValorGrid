@@ -5,11 +5,12 @@ services:
       APP_PORT: 1325
 
   app:
-    image: ghcr.io/aivm23/valorgrid:v3.33.3@sha256:959ef90b000b31e04443a68a266a310b7cc98c198ab126b71b79661a1043f2ef
+    image: ghcr.io/aivm23/valorgrid:v3.33.4@sha256:0000000000000000000000000000000000000000000000000000000000000000
     restart: on-failure
     environment:
       HOST: 0.0.0.0
       PORT: 1325
+      VALORGRID_RUNTIME_MODE: docker
       PORTFOLIO_DB_PATH: /data/portfolio.sqlite
       VALORGRID_BACKUP_DIR: /data/backups
       VALORGRID_AUTH_USER: valorgrid

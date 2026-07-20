@@ -169,7 +169,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 **Cargados en bucle `for...of` (orden secuencial):**
 
 1. `schema`: creación fresh idempotente de tablas.
-2. `platform/db-migrations`: sistema de migraciones automáticas con backup previo, inferencia de `schema_version` y verificación de integridad. Se ejecuta antes de `initDatabase()` al arrancar.
+2. `platform/db-migrations`: sistema de migraciones con backup previo, inferencia de `schema_version` y verificación de integridad. En desktop/server local puede ejecutarse automáticamente; en Docker, CasaOS y Umbrel queda deshabilitado por defecto y solo informa migraciones pendientes hasta que el administrador active una ejecución explícita.
 3. `schema-seed`: datos iniciales de instrumentos y planes automáticos.
 4. `domains/meta/meta-repository`: acceso SQL de `app_meta` e invalidaciones.
 5. `domains/meta/meta-state`: gestión de versiones e invalidaciones desde repository.
@@ -419,7 +419,9 @@ Para migraciones de schema versionadas, existe `scripts/run-sql-migration.ps1` q
 
 Docker ejecuta la app como servicio local en el puerto documentado y mantiene datos y backups en volúmenes persistentes fuera del contenedor.
 
-Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>` y conserva los datos en el almacenamiento persistente de la aplicación.
+Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>`, declara `VALORGRID_RUNTIME_MODE=docker` y conserva los datos en el almacenamiento persistente de la aplicación.
+
+`apps/server/src/schema.js` es la fuente canónica del schema Community. Los SQL versionados de `deploy/sql/` solo existen para actualizar bases existentes de forma explícita. Cualquier compatibilidad de schema mantenida por ediciones privadas debe vivir fuera del repositorio Community y no puede introducir migraciones runtime públicas ni alterar esta propiedad.
 
 ## Seguridad
 

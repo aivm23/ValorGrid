@@ -240,6 +240,21 @@ test('auto-migrate can be enabled in Docker via env var', () => {
   });
 });
 
+test('container deployment artifacts declare Docker runtime mode', () => {
+  const files = [
+    'deploy/docker/Dockerfile',
+    'deploy/docker/docker-compose.yml',
+    'deploy/docker/compose.casaos.yml',
+    'deploy/umbrel/official/valorgrid/docker-compose.yml',
+    'deploy/umbrel/community-store/valorgrid-store-valorgrid/docker-compose.yml',
+  ];
+
+  for (const relativePath of files) {
+    const content = fs.readFileSync(path.join(root, relativePath), 'utf8');
+    assert.match(content, /VALORGRID_RUNTIME_MODE[=:]\s*docker/, `${relativePath} declares docker runtime mode`);
+  }
+});
+
 test('findPendingMigrations returns only migrations after current version', () => {
   const pending = migrations.findPendingMigrations('3.29.0');
   assert.ok(pending.length > 0);
