@@ -109,7 +109,8 @@ export function attach(ctx) {
         async () => {
           await ctx.api.transactions.update(transactionId, buildPayload());
           ctx.state.historyCache = {};
-          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
         },
       );
       closeTransactionEditor();

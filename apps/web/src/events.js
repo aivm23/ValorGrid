@@ -23,10 +23,8 @@ export function attach(ctx) {
       await ctx.withAppLoading(
         { title: ctx.t('loading.dashboard.title'), message: ctx.t('loading.dashboard.message') },
         async () => {
-          const [dashboardOk, historyOk] = await Promise.all([
-            ctx.refreshDashboard(),
-            ctx.refreshHistory({ force: true }),
-          ]);
+          const dashboardOk = await ctx.refreshDashboard();
+          const historyOk = await ctx.refreshHistory({ force: true });
           if (!dashboardOk || !historyOk) throw new Error(ctx.t('No se pudieron actualizar todos los datos.'));
         },
       );

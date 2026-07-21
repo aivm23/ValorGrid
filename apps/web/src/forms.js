@@ -286,7 +286,8 @@ export function attach(ctx) {
           }
           setAddFeedback(ctx.t('{symbol}: movimiento guardado.', { symbol: transaction.symbol }));
           ctx.state.historyCache = {};
-          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
         },
       );
       closeAddDialog();

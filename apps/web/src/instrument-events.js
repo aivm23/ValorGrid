@@ -26,7 +26,8 @@ export async function handleInstrumentGroupsToggle(ctx) {
           ctx.elements.priceStatus.textContent =
             'Grupos desactivados. Los instrumentos se mostrarán directamente en el dashboard.';
         }
-        await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+        await ctx.refreshDashboard();
+        await ctx.refreshHistory({ force: true });
       },
     );
   } catch (error) {

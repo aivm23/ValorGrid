@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.33.5
+
+- fix: ensure history chart refreshes after editing a transaction by running dashboard and history refresh sequentially (not in parallel).
+
 ## 3.33.4
 
 - chore: pin umbrel package digest.

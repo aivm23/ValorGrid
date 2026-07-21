@@ -247,7 +247,8 @@ export function attach(ctx) {
           ctx.state.autoPlans = data.autoPlans || ctx.state.autoPlans;
           setWizardFeedback('Cartera inicial creada.');
           ctx.state.historyCache = {};
-          await Promise.all([ctx.refreshDashboard(), ctx.refreshHistory({ force: true })]);
+          await ctx.refreshDashboard();
+          await ctx.refreshHistory({ force: true });
           return true;
         },
       );

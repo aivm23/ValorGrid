@@ -1017,3 +1017,62 @@ test('weekend rebuild carries FX forward for non-EUR instruments', async () => {
   assert.ok(usdPosition.price_eur > 0, 'USD price in EUR should use stale FX rate');
   assert.equal(usdPosition.data_quality, 'stale');
 });
+
+test('editing a transaction rebuilds portfolio history with updated values', async () => {
+  db.exec(
+    'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;',
+  );
+  seedTestInstrument({ symbol: 'EDITTEST', yahooSymbol: 'EDITTEST', name: 'Edit Test', type: 'stock', currency: 'EUR' });
+
+  const created = await jsonRequest('/api/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: 'add',
+      symbol: 'EDITTEST',
+      date: '2026-06-01',
+      entryMode: 'manual_total_eur',
+      shares: 10,
+      euros: 100,
+      priceCurrency: 'EUR',
+      fxToEur: 1,
+      commissionEur: 0,
+    }),
+  });
+  assert.equal(created.response.status, 201);
+  const txId = created.body.transaction.id;
+  assert.ok(txId);
+
+  const beforeEdit = await buildPortfolioHistory('all', 'daily');
+  const beforeValue = beforeEdit.series.find((p) => p.date === '2026-06-01')?.value;
+  assert.ok(beforeValue, 'portfolio value should exist on 2026-06-01');
+
+  const invalBefore = db.prepare('SELECT COUNT(*) AS count FROM history_invalidations').get().count;
+
+  const editResult = await jsonRequest(`/api/transactions/${encodeURIComponent(txId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      date: '2026-06-01',
+      shares: 20,
+      price: 10,
+      currency: 'EUR',
+      fxToEur: 1,
+      commissionEur: 0,
+    }),
+  });
+  assert.equal(editResult.response.status, 200);
+
+  const invalAfter = db.prepare('SELECT COUNT(*) AS count FROM history_invalidations').get().count;
+  assert.ok(invalAfter > invalBefore, 'editing a transaction should create a history invalidation');
+
+  const afterEdit = await buildPortfolioHistory('all', 'daily');
+  const afterValue = afterEdit.series.find((p) => p.date === '2026-06-01')?.value;
+
+  assert.ok(afterValue !== undefined, 'portfolio value should exist after rebuild');
+  assert.notEqual(
+    Number(afterValue),
+    Number(beforeValue),
+    `portfolio value on 2026-06-01 should change after editing shares (before: ${beforeValue}, after: ${afterValue})`,
+  );
+});
