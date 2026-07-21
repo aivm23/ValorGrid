@@ -31,8 +31,18 @@ test.before(async () => {
   });
   cachePrice('HIST1', '2026-05-01', 10);
   cachePrice('HIST1', '2026-05-02', 11);
-  await createTransaction({ type: 'add', symbol: 'HIST1', date: '2026-05-01', shares: 2 });
-  await createTransaction({ type: 'remove', symbol: 'HIST1', date: '2026-05-02', shares: 1 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'HIST1',
+    date: '2026-05-01',
+    shares: 2,
+  });
+  await createTransaction({
+    type: 'remove',
+    symbol: 'HIST1',
+    date: '2026-05-02',
+    shares: 1,
+  });
 });
 
 test('GET /api/portfolio/performance returns ledger-derived return metrics', async () => {
@@ -91,7 +101,12 @@ test('automatic plans respect startDate before creating monthly transactions', a
   const legacyAutoKey = `auto:${monthKey}:NVO`;
   db.prepare('DELETE FROM transactions WHERE auto_key IN (?, ?)').run(autoKey, legacyAutoKey);
   db.prepare('DELETE FROM auto_plan_skips WHERE auto_key IN (?, ?)').run(autoKey, legacyAutoKey);
-  seedTestInstrument({ symbol: 'NVO', yahooSymbol: 'NOV.DE', name: 'Novo Nordisk', type: 'stock' });
+  seedTestInstrument({
+    symbol: 'NVO',
+    yahooSymbol: 'NOV.DE',
+    name: 'Novo Nordisk',
+    type: 'stock',
+  });
   cachePrice('NOV.DE', scheduledDate, 40);
 
   const futurePlan = await jsonRequest('/api/auto-plans', {
@@ -99,7 +114,14 @@ test('automatic plans respect startDate before creating monthly transactions', a
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       autoPlans: [
-        { symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: futureStartDate },
+        {
+          symbol: 'NVO',
+          amountEur: 25,
+          day: dueDay,
+          frequency: 'monthly',
+          enabled: true,
+          startDate: futureStartDate,
+        },
       ],
     }),
   });
@@ -123,7 +145,14 @@ test('automatic plans respect startDate before creating monthly transactions', a
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       autoPlans: [
-        { symbol: 'NVO', amountEur: 25, day: dueDay, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` },
+        {
+          symbol: 'NVO',
+          amountEur: 25,
+          day: dueDay,
+          frequency: 'monthly',
+          enabled: true,
+          startDate: `${monthKey}-01`,
+        },
       ],
     }),
   });
@@ -159,7 +188,14 @@ test('automatic plans do not duplicate legacy monthly auto keys', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       autoPlans: [
-        { symbol: 'NVO', amountEur: 25, day: 3, frequency: 'monthly', enabled: true, startDate: `${monthKey}-01` },
+        {
+          symbol: 'NVO',
+          amountEur: 25,
+          day: 3,
+          frequency: 'monthly',
+          enabled: true,
+          startDate: `${monthKey}-01`,
+        },
       ],
     }),
   });
@@ -171,7 +207,12 @@ test('automatic plans do not duplicate legacy monthly auto keys', async () => {
 
 test('automatic plans support weekly, biweekly, monthly backfill, and stable auto keys', async () => {
   for (const symbol of ['WEEK1', 'WEEK2', 'BIW1', 'MON1']) {
-    seedTestInstrument({ symbol, yahooSymbol: symbol, name: symbol, type: 'etf' });
+    seedTestInstrument({
+      symbol,
+      yahooSymbol: symbol,
+      name: symbol,
+      type: 'etf',
+    });
     db.prepare('DELETE FROM transactions WHERE symbol = ?').run(symbol);
   }
 
@@ -180,10 +221,38 @@ test('automatic plans support weekly, biweekly, monthly backfill, and stable aut
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       autoPlans: [
-        { symbol: 'WEEK1', amountEur: 10, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-05-07' },
-        { symbol: 'WEEK2', amountEur: 10, frequency: 'weekly', weekday: 3, enabled: true, startDate: '2026-05-06' },
-        { symbol: 'BIW1', amountEur: 10, frequency: 'biweekly', weekday: 3, enabled: true, startDate: '2026-04-22' },
-        { symbol: 'MON1', amountEur: 10, frequency: 'monthly', day: 3, enabled: true, startDate: '2026-01-01' },
+        {
+          symbol: 'WEEK1',
+          amountEur: 10,
+          frequency: 'weekly',
+          weekday: 3,
+          enabled: true,
+          startDate: '2026-05-07',
+        },
+        {
+          symbol: 'WEEK2',
+          amountEur: 10,
+          frequency: 'weekly',
+          weekday: 3,
+          enabled: true,
+          startDate: '2026-05-06',
+        },
+        {
+          symbol: 'BIW1',
+          amountEur: 10,
+          frequency: 'biweekly',
+          weekday: 3,
+          enabled: true,
+          startDate: '2026-04-22',
+        },
+        {
+          symbol: 'MON1',
+          amountEur: 10,
+          frequency: 'monthly',
+          day: 3,
+          enabled: true,
+          startDate: '2026-01-01',
+        },
       ],
     }),
   });
@@ -236,8 +305,19 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
       currency: 'EUR',
       color: '#2563eb',
     },
-    transaction: { enabled: true, date: '2026-05-10', euros: 100, commissionEur: 1 },
-    autoPlan: { enabled: true, amountEur: 25, frequency: 'monthly', day: 3, startDate: '2026-05-01' },
+    transaction: {
+      enabled: true,
+      date: '2026-05-10',
+      euros: 100,
+      commissionEur: 1,
+    },
+    autoPlan: {
+      enabled: true,
+      amountEur: 25,
+      frequency: 'monthly',
+      day: 3,
+      startDate: '2026-05-01',
+    },
   };
   const preview = await jsonRequest('/api/onboarding/wizard/preview', {
     method: 'POST',
@@ -273,7 +353,13 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
       currency: 'EUR',
       color: '#2563eb',
     },
-    autoPlan: { enabled: true, amountEur: 25, frequency: 'weekly', weekday: 9, startDate: '2026-05-01' },
+    autoPlan: {
+      enabled: true,
+      amountEur: 25,
+      frequency: 'weekly',
+      weekday: 9,
+      startDate: '2026-05-01',
+    },
   };
   const failed = await jsonRequest('/api/onboarding/wizard/commit', {
     method: 'POST',
@@ -350,7 +436,11 @@ test('portfolio history materializes split-adjusted shares from effective date',
     entryMode: 'manual_total_eur',
   });
   mockSplitEvents.set('HISTSPL', [{ date: '2026-02-01', numerator: 20, denominator: 1 }]);
-  await scanCorporateActions({ symbols: ['HISTSPL'], fromDate: '2026-01-01', toDate: '2026-03-01' });
+  await scanCorporateActions({
+    symbols: ['HISTSPL'],
+    fromDate: '2026-01-01',
+    toDate: '2026-03-01',
+  });
 
   const history = await buildPortfolioHistory('all', 'daily');
   const before = db
@@ -377,7 +467,12 @@ test('ledger writes invalidate materialized portfolio history versions', async (
   const beforeVersion = Number(before?.version || 0);
 
   cachePrice('NOV.DE', '2026-05-16', 40);
-  const transaction = await createTransaction({ type: 'add', symbol: 'NVO', date: '2026-05-16', shares: 1 });
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'NVO',
+    date: '2026-05-16',
+    shares: 1,
+  });
   assert.ok(db.prepare("SELECT 1 FROM history_invalidations WHERE reason = 'transaction-create'").get());
   await buildPortfolioHistory('5y');
   const after = db
@@ -415,7 +510,12 @@ test('portfolio history materialized cache survives server restart and hard relo
 
 test('GET /api/diagnostics/performance reports cache and timing data', async () => {
   cachePrice('NOV.DE', '2026-05-16', 40);
-  const transaction = await createTransaction({ type: 'add', symbol: 'NVO', date: '2026-05-16', shares: 1 });
+  const transaction = await createTransaction({
+    type: 'add',
+    symbol: 'NVO',
+    date: '2026-05-16',
+    shares: 1,
+  });
   await buildPortfolioHistory('5y');
   const { response, body } = await jsonRequest('/api/diagnostics/performance');
 
@@ -445,7 +545,12 @@ test('portfolio history persists daily prices and FX cache', async () => {
     currency: 'USD',
   });
   cachePrice('FXUSD', '2026-05-15', 10, 'USD');
-  await createTransaction({ type: 'add', symbol: 'FXUSD', date: '2026-05-15', shares: 1 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'FXUSD',
+    date: '2026-05-15',
+    shares: 1,
+  });
   const priceVersion = Number(db.prepare("SELECT value FROM app_meta WHERE key = 'price_version'").get().value);
   db.prepare("UPDATE app_meta SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'price_version'").run(
     String(priceVersion + 1),
@@ -813,7 +918,13 @@ test('PUT /api/preferences/ui returns 403 in community', async () => {
   const { response, body } = await jsonRequest('/api/preferences/ui', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['add'] } }),
+    body: JSON.stringify({
+      historyEventFilters: {
+        mode: 'custom',
+        assetTypes: ['stock'],
+        transactionTypes: ['add'],
+      },
+    }),
   });
 
   assert.equal(response.status, 403);
@@ -834,7 +945,13 @@ test('PUT /api/preferences/ui validates historyEventFilters assetTypes', async (
   const { response } = await jsonRequest('/api/preferences/ui', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['bond'], transactionTypes: ['add'] } }),
+    body: JSON.stringify({
+      historyEventFilters: {
+        mode: 'custom',
+        assetTypes: ['bond'],
+        transactionTypes: ['add'],
+      },
+    }),
   });
 
   assert.equal(response.status, 403);
@@ -845,7 +962,11 @@ test('PUT /api/preferences/ui validates historyEventFilters transactionTypes', a
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      historyEventFilters: { mode: 'custom', assetTypes: ['stock'], transactionTypes: ['dividend'] },
+      historyEventFilters: {
+        mode: 'custom',
+        assetTypes: ['stock'],
+        transactionTypes: ['dividend'],
+      },
     }),
   });
 
@@ -856,7 +977,9 @@ test('PUT /api/preferences/ui rejects custom mode without assetTypes', async () 
   const { response } = await jsonRequest('/api/preferences/ui', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ historyEventFilters: { mode: 'custom', transactionTypes: ['add'] } }),
+    body: JSON.stringify({
+      historyEventFilters: { mode: 'custom', transactionTypes: ['add'] },
+    }),
   });
 
   assert.equal(response.status, 403);
@@ -866,7 +989,9 @@ test('PUT /api/preferences/ui rejects custom mode without transactionTypes', asy
   const { response } = await jsonRequest('/api/preferences/ui', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ historyEventFilters: { mode: 'custom', assetTypes: ['stock'] } }),
+    body: JSON.stringify({
+      historyEventFilters: { mode: 'custom', assetTypes: ['stock'] },
+    }),
   });
 
   assert.equal(response.status, 403);
@@ -889,8 +1014,18 @@ test('history events include instrumentType via LEFT JOIN instruments', async ()
   });
   cachePrice('HISTFILT', '2026-05-01', 10);
   cachePrice('HISTETFF', '2026-05-01', 20);
-  await createTransaction({ type: 'add', symbol: 'HISTFILT', date: '2026-05-01', shares: 1 });
-  await createTransaction({ type: 'add', symbol: 'HISTETFF', date: '2026-05-02', euros: 100 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'HISTFILT',
+    date: '2026-05-01',
+    shares: 1,
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'HISTETFF',
+    date: '2026-05-02',
+    euros: 100,
+  });
 
   const history = await buildPortfolioHistory('all');
   const stockEvent = history.events.find((e) => e.symbol === 'HISTFILT');
@@ -911,8 +1046,20 @@ test('weekend crypto does not zero stock positions', async () => {
     DELETE FROM instruments WHERE symbol IN ('WSTK', 'WBTC');
   `);
 
-  seedTestInstrument({ symbol: 'WSTK', yahooSymbol: 'WSTK', name: 'Weekend Stock', type: 'stock', currency: 'EUR' });
-  seedTestInstrument({ symbol: 'WBTC', yahooSymbol: 'WBTC', name: 'Weekend BTC', type: 'crypto', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'WSTK',
+    yahooSymbol: 'WSTK',
+    name: 'Weekend Stock',
+    type: 'stock',
+    currency: 'EUR',
+  });
+  seedTestInstrument({
+    symbol: 'WBTC',
+    yahooSymbol: 'WBTC',
+    name: 'Weekend BTC',
+    type: 'crypto',
+    currency: 'EUR',
+  });
 
   const insertDaily = db.prepare(
     `INSERT OR REPLACE INTO daily_price_cache (yahoo_symbol, date, price, currency, source) VALUES (?, ?, ?, ?, 'test')`,
@@ -927,8 +1074,18 @@ test('weekend crypto does not zero stock positions', async () => {
   insertRange.run('WSTK', '2000-01-01', '2099-12-31');
   insertRange.run('WBTC', '2000-01-01', '2099-12-31');
 
-  await createTransaction({ type: 'add', symbol: 'WSTK', date: '2026-06-19', shares: 10 });
-  await createTransaction({ type: 'add', symbol: 'WBTC', date: '2026-06-19', shares: 0.5 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'WSTK',
+    date: '2026-06-19',
+    shares: 10,
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'WBTC',
+    date: '2026-06-19',
+    shares: 0.5,
+  });
 
   const history1 = await buildPortfolioHistory('all');
   assert.ok(history1.series.length > 0, 'first build should produce series');
@@ -980,7 +1137,13 @@ test('weekend rebuild carries FX forward for non-EUR instruments', async () => {
     type: 'stock',
     currency: 'USD',
   });
-  seedTestInstrument({ symbol: 'WBTC2', yahooSymbol: 'WBTC2', name: 'Weekend BTC 2', type: 'crypto', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'WBTC2',
+    yahooSymbol: 'WBTC2',
+    name: 'Weekend BTC 2',
+    type: 'crypto',
+    currency: 'EUR',
+  });
 
   const insertDaily = db.prepare(
     `INSERT OR REPLACE INTO daily_price_cache (yahoo_symbol, date, price, currency, source) VALUES (?, ?, ?, ?, 'test')`,
@@ -997,8 +1160,18 @@ test('weekend rebuild carries FX forward for non-EUR instruments', async () => {
   insertRange.run('WBTC2', '2000-01-01', '2099-12-31');
   insertRange.run('USDEUR=X', '2000-01-01', '2099-12-31');
 
-  await createTransaction({ type: 'add', symbol: 'WUSD', date: '2026-06-19', shares: 10 });
-  await createTransaction({ type: 'add', symbol: 'WBTC2', date: '2026-06-19', shares: 0.5 });
+  await createTransaction({
+    type: 'add',
+    symbol: 'WUSD',
+    date: '2026-06-19',
+    shares: 10,
+  });
+  await createTransaction({
+    type: 'add',
+    symbol: 'WBTC2',
+    date: '2026-06-19',
+    shares: 0.5,
+  });
 
   const history1 = await buildPortfolioHistory('all');
   assert.ok(history1.series.length > 0, 'first build should produce series');
@@ -1022,7 +1195,13 @@ test('editing a transaction rebuilds portfolio history with updated values', asy
   db.exec(
     'DELETE FROM portfolio_value_daily; DELETE FROM portfolio_value_weekly; DELETE FROM portfolio_positions_daily; DELETE FROM portfolio_events; DELETE FROM history_builds; DELETE FROM history_invalidations;',
   );
-  seedTestInstrument({ symbol: 'EDITTEST', yahooSymbol: 'EDITTEST', name: 'Edit Test', type: 'stock', currency: 'EUR' });
+  seedTestInstrument({
+    symbol: 'EDITTEST',
+    yahooSymbol: 'EDITTEST',
+    name: 'Edit Test',
+    type: 'stock',
+    currency: 'EUR',
+  });
 
   const created = await jsonRequest('/api/transactions', {
     method: 'POST',
