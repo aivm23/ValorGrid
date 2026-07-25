@@ -130,7 +130,7 @@ test('verify-publication rejects unimplemented brokers advertised as available',
     fs.writeFileSync(path.join(tempDir, 'apps', 'web', 'src', 'app.js'), '// placeholder\n');
     fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(pkg, null, 2));
     writeMinimalLicenseBaseline(tempDir);
-    const brokerClaim = ['My', 'Investor'].join('') + ' ' + ['dispo', 'nible'].join('');
+    const brokerClaim = ['Freedom', '24'].join('') + ' ' + ['dispo', 'nible'].join('');
     fs.writeFileSync(path.join(tempDir, 'README.md'), `# fixture\n\nLicense: MPL-2.0\n\n${brokerClaim}.\n`);
 
     const result = runScriptExpectFail(tempDir);

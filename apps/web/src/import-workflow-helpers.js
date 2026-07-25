@@ -77,6 +77,7 @@ export function getImportSourceDisplayName(source) {
   if (source.key === 'degiro-csv') return 'DEGIRO';
   if (source.key === 'ibkr-csv') return 'Interactive Brokers';
   if (source.key === 'clicktrade-xlsx') return 'ClickTrade';
+  if (source.key === 'myinvestor-csv') return 'MyInvestor';
   return source.label;
 }
 
@@ -93,6 +94,7 @@ function getImportSourceTooltip(source, t = (value) => value) {
   if (source.key === 'degiro-csv') return t('import.source.tooltip.degiroCsv');
   if (source.key === 'ibkr-csv') return t('import.source.tooltip.ibkrCsv');
   if (source.key === 'clicktrade-xlsx') return t('import.source.tooltip.clicktradeXlsx');
+  if (source.key === 'myinvestor-csv') return t('import.source.tooltip.myinvestorCsv');
   return source.label || '';
 }
 

@@ -96,8 +96,6 @@ const PUBLIC_BROKER_TEASER_FILES = new Set([
 ]);
 
 const UNIMPLEMENTED_BROKER_AVAILABLE_PATTERNS = [
-  /\bmyinvestor\b.{0,80}\b(disponible|available|soportado|supported)\b/i,
-  /\b(disponible|available|soportado|supported)\b.{0,80}\bmyinvestor\b/i,
   /\bfreedom\s*24\b.{0,80}\b(disponible|available|soportado|supported)\b/i,
   /\b(disponible|available|soportado|supported)\b.{0,80}\bfreedom\s*24\b/i,
   /\btrade\s*republic\b.{0,80}\b(disponible|available|soportado|supported)\b/i,

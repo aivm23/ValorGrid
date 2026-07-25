@@ -36,6 +36,12 @@ const knownProAdapters = {
     edition: 'professional',
     inputKind: 'xlsx',
   },
+  'myinvestor-csv': {
+    parser: 'pro-csv',
+    profile: 'myinvestor',
+    label: 'MyInvestor CSV',
+    edition: 'professional',
+  },
 };
 
 const profileOverrides = {

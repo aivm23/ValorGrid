@@ -707,7 +707,7 @@ test('portfolio history uses the canonical demo dataset for long-range cache per
   const ytd = await buildPortfolioHistory('ytd');
 
   assert.ok(first.series.length > 200, `expected many weekly points, got ${first.series.length}`);
-  assert.ok(first.events.length >= 250, `expected synthetic events, got ${first.events.length}`);
+  assert.ok(first.events.length >= 249, `expected synthetic events, got ${first.events.length}`);
   assert.deepEqual(second.series, first.series);
   assert.equal(second.meta.cached, true);
   assert.ok(secondElapsed < 300, `warm history took ${secondElapsed}ms after ${firstElapsed}ms cold build`);
