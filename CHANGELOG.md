@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.33.6
+
+- fix: align import-batch "Revertir" buttons using grid layout matching backup rows.
+- docs: clarify `corporate-action-timeline` source path in ARCHITECTURE.md sub-modules.
+
 ## 3.33.5
 
 - fix: ensure history chart refreshes after editing a transaction by running dashboard and history refresh sequentially (not in parallel).

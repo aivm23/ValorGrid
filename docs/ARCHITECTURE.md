@@ -240,7 +240,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 - `transaction-editor`: validación y recálculo de correcciones de compras y ventas existentes.
 - `transaction-analytics`: cálculo puro de Operativa/FIFO, incluyendo dividendos sin alterar posiciones.
 - `auto-plan-policy`: normalización y política de edición de planes automáticos.
-- `corporate-actions/corporate-action-timeline`: helper puro para aplicar splits antes de transacciones en la misma fecha.
+- `corporate-action-timeline` (`../corporate-actions/corporate-action-timeline.js`): helper puro para aplicar splits antes de transacciones en la misma fecha.
 
 **Sub-módulos de import-service (cargados internamente):**
 
