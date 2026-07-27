@@ -100,9 +100,9 @@ Documentation **must stay in sync with code**. When making changes, verify and u
 
 ## Public / Private Boundary
 
-- Community documentation may mention that ValorGrid Pro/Enterprise exists, but must not expose professional connector internals.
+- Community documentation may mention that ValorGrid Professional exists, but must not expose professional connector internals.
 - Public docs must not include private adapter ids, broker-specific parser contracts, operational environment variable names, dynamic loading mechanics, restricted workspace details, broker export fixture names, or proprietary source mapping details.
-- Exact Pro setup, adapter contracts, broker-specific import semantics, connector environment variables, and restricted-workspace workflows belong only in private ValorGrid Pro/Enterprise documentation.
+- Exact Pro setup, adapter contracts, broker-specific import semantics, connector environment variables, and restricted-workspace workflows belong only in private ValorGrid Professional documentation.
 - If a public API response can include professional sources, document the generic shape and edition semantics with placeholders instead of concrete broker identifiers.
 - Any change touching docs, publication checks, source catalog text, or import-source UI must run `npm run verify:publication` before commit.
 

@@ -79,27 +79,28 @@ No deben guardarse en el repositorio. Usa `samples/` solo para fixtures sintéti
 
 El test de privacidad escanea los archivos `.xlsx` públicos (en `samples/`) para bloquear tokens de broker, ISIN reales y nombres de fuentes privadas.
 
-## Yahoo Finance
+## Conexiones de red salientes
 
-ValorGrid puede consultar Yahoo Finance para precios. La app no envía tu ledger completo a Yahoo, pero sí puede consultar símbolos de mercado concretos.
+ValorGrid puede establecer conexiones de red salientes únicamente para:
 
-Los precios se cachean localmente en SQLite.
+- **Yahoo Finance** (`query1.finance.yahoo.com`, `query2.finance.yahoo.com`): consulta de precios de mercado de los símbolos configurados por el usuario. No se envía el ledger completo, solo el símbolo solicitado.
+- **Alpha Vantage** (`www.alphavantage.co`): consulta de precios de commodities cuando el usuario ha configurado una clave API.
+- **GitHub API** (`api.github.com`): consulta de nuevas versiones en la sección de Administración (solo el tag de la última release, sin datos de cartera).
 
-## Red local
+No existen conexiones salientes para telemetría, analíticas, publicidad ni sincronización de cartera con servicios externos.
 
-Por defecto ValorGrid escucha en:
+## Cifrado
 
-```text
-127.0.0.1
-```
+ValorGrid **no aplica cifrado propio** a la base de datos SQLite ni a los backups. La protección de datos en reposo depende del cifrado del sistema de archivos del sistema operativo (BitLocker, FileVault, LUKS) o del volumen del contenedor.
 
-En Docker se usa `0.0.0.0` dentro del contenedor para que el puerto pueda publicarse. Eso no significa que deba exponerse a Internet.
+Las conexiones a proveedores externos (Yahoo Finance, Alpha Vantage, GitHub API) usan HTTPS cuando el proveedor lo soporta. La app no impone ni gestiona certificados TLS para el tráfico HTTP entrante; el administrador del despliegue es responsable de configurar un proxy inverso con HTTPS si se expone la app fuera de localhost.
 
-Recomendación:
+## Amenazas de equipo y red
 
-- úsalo en localhost, LAN privada o VPN;
-- no abras el puerto directamente a Internet;
-- si necesitas acceso externo en Docker/CasaOS, configura autenticación mediante el gestor de secretos del despliegue y usa HTTPS delante del contenedor.
+- **Acceso local al equipo**: cualquier usuario con acceso al sistema de archivos puede leer la base de datos SQLite directamente. No hay protección por contraseña de la DB.
+- **Red local**: la app escucha en `127.0.0.1` por defecto. En Docker/CasaOS/Umbrel el listener se expone en `0.0.0.0` dentro del contenedor; la protección recae en el aislamiento de red del despliegue y en Basic Auth opcional.
+- **Exposición a Internet**: no exponer el puerto HTTP directamente sin HTTPS y autenticación. La app no implementa rate limiting, WAF ni detección de intrusiones.
+- **Proveedores externos**: Yahoo Finance y Alpha Vantage pueden registrar las consultas de símbolos. No se envían datos de cartera del usuario.
 
 ## Login monousuario
 

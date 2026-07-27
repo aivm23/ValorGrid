@@ -38,11 +38,11 @@ También existen imágenes GHCR versionadas. Más detalle en [DEPLOY_DOCKER.md](
 
 Community es la edición pública y gratuita del repositorio. Incluye gestión local, dashboard, movimientos, plantilla Excel, exportación, backups, escritorio y Docker.
 
-Pro/Enterprise queda reservado para conectores avanzados, importaciones privadas y funcionalidades comerciales. Su código y documentación operativa no se publican en este repositorio.
+Pro queda reservado para conectores avanzados, importaciones privadas y funcionalidades comerciales. Su código y documentación operativa no se publican en este repositorio.
 
 ## ¿Puedo Importar CSV De Broker En Community?
 
-No. Community importa la plantilla Excel oficial de ValorGrid. Los conectores avanzados pertenecen a Pro/Enterprise.
+No. Community importa la plantilla Excel oficial de ValorGrid. Los conectores avanzados pertenecen a Pro.
 
 ## ¿Dónde Se Guardan Los Backups?
 

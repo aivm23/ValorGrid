@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.34.0
+
+- chore: add container-level version to CasaOS compose metadata.
+- chore: bump version to v3.33.6 - align import-batch buttons and fix ARCHITECTURE.md reference.
+- fix: lower flaky event count threshold to 200 in portfolio history test.
+- feat: add MyInvestor CSV as known PRO broker adapter.
+- style: apply prettier formatting to test/portfolio-history.test.js.
+- fix: ensure history chart refreshes after editing a transaction.
+- docs: record container migration policy.
+- chore: pin umbrel digest for v3.33.4.
+- chore: align container migration runtime.
+- chore: pin umbrel package digest.
+- fix: resolve brace-expansion DoS vulnerability (npm audit).
+- fix: align powershell publication guard.
+
 ## 3.33.6
 
 - fix: align import-batch "Revertir" buttons using grid layout matching backup rows.

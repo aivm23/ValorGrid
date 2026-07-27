@@ -101,14 +101,9 @@ macOS publica DMG x64 y arm64 desde el runner `macos-latest`. En esta fase los b
 
 ## Artifacts De GitHub Actions
 
-Los instaladores definitivos se conservan como assets de GitHub Releases. Los artifacts intermedios de `Release` (`desktop-windows`, `desktop-linux`, `desktop-macos`) son temporales y tienen `retention-days: 1` para no ocupar cuota durante semanas.
+Los instaladores definitivos se conservan como assets de GitHub Releases. Los artifacts intermedios de `Release` (`desktop-windows`, `desktop-linux`, `desktop-macos`) son temporales y tienen `retention-days: 1` para evitar ocupar cuota de almacenamiento de forma innecesaria.
 
-El workflow `Cleanup Actions Artifacts` se ejecuta a diario y también puede lanzarse manualmente desde GitHub Actions. Si GitHub bloquea una release por cuota de artifacts, ejecutarlo con:
-
-- `keep_days`: `0`
-- `dry_run`: `false`
-
-GitHub recalcula la cuota cada 6-12 horas, asi que puede ser necesario esperar antes de relanzar la release.
+El workflow `Cleanup Actions Artifacts` está disponible como medida temporal para gestionar la cuota de artifacts. El objetivo es eliminar la dependencia de este workflow cuando GitHub mejore la gestión de cuota de artifacts.
 
 ## Upgrade
 

@@ -2,6 +2,8 @@
 
 ValorGrid exposes the current local HTTP API used by the web UI. It uses JSON payloads unless an endpoint explicitly returns a file.
 
+The API surface documented here is the **stable public contract for Community**. Professional editions may expose additional undocumented endpoints; those endpoints are not part of the public contract and may change without notice.
+
 Main areas:
 
 - Portfolio: summary, performance, monthly and history.

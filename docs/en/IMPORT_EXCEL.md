@@ -14,4 +14,4 @@ Rules:
 
 The English UI may localize instructions and helper text, but the canonical template headers remain stable in this release to avoid breaking existing imports.
 
-Broker-specific adapters belong to Professional/Enterprise editions and are not documented in the public Community repository.
+Broker-specific adapters belong to Professional editions and are not documented in the public Community repository.

@@ -34,7 +34,7 @@ Community importa movimientos mediante la plantilla Excel oficial de ValorGrid:
 4. Sube el archivo y revisa el preview.
 5. Confirma solo las filas validas que quieras incorporar.
 
-Los CSV/XLSX específicos de broker pertenecen a Pro/Enterprise y no forman parte del contrato público Community.
+Los CSV/XLSX específicos de broker pertenecen a Professional y no forman parte del contrato público Community.
 
 Guía completa: [IMPORT_EXCEL.md](IMPORT_EXCEL.md).
 

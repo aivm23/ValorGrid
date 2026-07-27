@@ -2,7 +2,7 @@ name: valorgrid
 
 services:
   valorgrid:
-    image: ghcr.io/aivm23/valorgrid:v3.33.6
+    image: ghcr.io/aivm23/valorgrid:v3.34.0
     container_name: valorgrid
     restart: unless-stopped
     environment:
@@ -26,7 +26,7 @@ services:
         source: /DATA/AppData/valorgrid/backups
         target: /app/.backups
     x-casaos:
-      version: 'v3.33.6'
+      version: 'v3.34.0'
       envs:
         - container: HOST
           description:
@@ -83,7 +83,7 @@ x-casaos:
   author: aivm23
   developer: aivm23
   category: Finance
-  version: 'v3.33.6'
+  version: 'v3.34.0'
   updateAt: '2026-07-15'
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues

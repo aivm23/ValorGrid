@@ -21,5 +21,5 @@ Cómo lo resuelves ahora.
 ## Edición
 
 - Community
-- Pro/Enterprise
+- Professional
 - No estoy seguro

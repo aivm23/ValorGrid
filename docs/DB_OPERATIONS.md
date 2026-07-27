@@ -201,7 +201,7 @@ A partir de la versión 3.30.0, ValorGrid incluye un sistema de migraciones auto
 
 ## Propiedad del schema
 
-`apps/server/src/schema.js` es la fuente canónica del schema Community para instalaciones limpias. Los archivos `deploy/sql/update-X-to-Y.sql` son el mecanismo versionado para bases existentes. El repositorio Community no debe contener shims privados ni compatibilidad de schema de Professional/Enterprise; si una edición no pública necesita una capa temporal, debe documentarla y probarla fuera de Community sin modificar la política pública de este repositorio.
+`apps/server/src/schema.js` es la fuente canónica del schema Community para instalaciones limpias. Los archivos `deploy/sql/update-X-to-Y.sql` son el mecanismo versionado para bases existentes. El repositorio Community no debe contener shims privados ni compatibilidad de schema de Professional; si una edición no pública necesita una capa temporal, debe documentarla y probarla fuera de Community sin modificar la política pública de este repositorio.
 
 ### Stop rule
 

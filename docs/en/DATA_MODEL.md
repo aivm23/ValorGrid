@@ -2,6 +2,8 @@
 
 The database is a local SQLite file created from the schema in source code.
 
+`apps/server/src/schema.js` is the canonical Community schema. Community is the sole owner of shared tables and migrations; private editions must not modify this public contract without going through the Community repository.
+
 Core concepts:
 
 - Instruments and instrument groups.

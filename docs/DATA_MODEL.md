@@ -4,6 +4,8 @@ ValorGrid usa SQLite local como base principal. El ledger contable vive en tabla
 
 Este documento describe el **schema fresh actual** de la aplicación. No documenta ni mantiene migraciones históricas en runtime.
 
+`apps/server/src/schema.js` es la fuente canónica del schema Community. Community es la única propietaria de las tablas y migraciones compartidas; las ediciones privadas no pueden modificar este contrato público sin pasar por el repositorio Community.
+
 ## Tablas contables principales
 
 ### `instrument_groups`

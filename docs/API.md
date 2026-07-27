@@ -2,6 +2,8 @@
 
 ValorGrid expone una API HTTP local para que el frontend gestione cartera, histórico, importaciones, backups y exportaciones.
 
+La superficie de API documentada en este archivo constituye el **contrato público estable de Community**. Las ediciones profesionales pueden exponer endpoints adicionales no documentados aquí; esos endpoints no forman parte del contrato público y pueden cambiar sin previo aviso.
+
 Por defecto el servidor escucha en:
 
 ```text
@@ -385,7 +387,7 @@ Respuesta:
 valorgrid-xlsx  (plantilla Excel de ValorGrid — recomendado, siempre disponible)
 ```
 
-Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración y contratos de adaptación se documentan solo en materiales privados de ValorGrid Pro/Enterprise.
+Las fuentes de ediciones profesionales pueden aparecer en el catálogo con `edition: "professional"` y `available: false` cuando no están habilitadas. Su configuración y contratos de adaptación se documentan solo en materiales privados de ValorGrid Professional.
 
 ### Descarga de plantilla
 

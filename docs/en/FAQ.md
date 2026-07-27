@@ -10,7 +10,7 @@ Desktop releases include the runtime. Development and source execution require N
 
 ## Can I import broker files?
 
-Community imports only the official ValorGrid Excel template. Broker-specific importers are Professional/Enterprise functionality.
+Community imports only the official ValorGrid Excel template. Broker-specific importers are Professional functionality.
 
 ## Is this financial advice?
 

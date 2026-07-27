@@ -204,7 +204,7 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 34. `domains/admin/diagnostics-repository`: acceso SQL para counts, invalidaciones y PRAGMAs de diagnóstico.
 35. `domains/admin/diagnostics-service`: métricas de rendimiento, tamaños de caché y exportación XLSX de movimientos.
 36. `domains/admin/update-service`: consulta de última release estable en GitHub Releases, comparación semver, detección de runtime y selección de asset de escritorio. Registra `ctx.services.admin.getUpdateStatus` y `ctx.services.admin.getDockerCommands`.
-37. `platform/extensions-runtime`: inicializa capacidades opcionales por edición antes de montar rutas HTTP.
+37. `platform/extensions-runtime`: inicializa capacidades opcionales por edición antes de montar rutas HTTP. Las ediciones privadas pueden extender el comportamiento registrando implementaciones en la tabla de extensiones en tiempo de arranque, sin modificar el código de Community.
 38. `routes`: enrutado HTTP --- delegador que despacha a `route-*.js` por dominio.
 39. `http`: servidor HTTP estático, Basic Auth opt-in y listener.
 
@@ -396,7 +396,7 @@ Fuentes:
 
 ValorGrid Community no incluye adaptadores concretos de broker ni muestras de exportaciones privadas. La plantilla Excel se descarga desde `GET /api/import/template.xlsx` y contiene hojas de instrucciones y ejemplos además de la hoja `Movimientos` importable. La fuente pública sigue llamándose `valorgrid-xlsx`, aunque el parser interno usa ExcelJS.
 
-Los conectores avanzados de ValorGrid Pro/Enterprise se tratan como superficie privada. Community solo documenta el contrato público de importación y no publica contratos operativos, código ni muestras privadas de esas integraciones.
+Los conectores avanzados de ValorGrid Professional se tratan como superficie privada. Community solo documenta el contrato público de importación y no publica contratos operativos, código ni muestras privadas de esas integraciones.
 
 ## Exportaciones
 
@@ -421,11 +421,11 @@ Docker ejecuta la app como servicio local en el puerto documentado y mantiene da
 
 Umbrel no reutiliza los compose de Docker local ni CasaOS. Su paquete vive en `deploy/umbrel/`, publica la UI mediante `app_proxy`, fija la imagen por `vX.Y.Z@sha256:<digest>`, declara `VALORGRID_RUNTIME_MODE=docker` y conserva los datos en el almacenamiento persistente de la aplicación.
 
-`apps/server/src/schema.js` es la fuente canónica del schema Community. Los SQL versionados de `deploy/sql/` solo existen para actualizar bases existentes de forma explícita. Cualquier compatibilidad de schema mantenida por ediciones privadas debe vivir fuera del repositorio Community y no puede introducir migraciones runtime públicas ni alterar esta propiedad.
+- `apps/server/src/schema.js` es la fuente canónica del schema Community. Los SQL versionados de `deploy/sql/` solo existen para actualizar bases existentes de forma explícita. Cualquier compatibilidad de schema mantenida por ediciones privadas debe vivir fuera del repositorio Community y no puede introducir migraciones runtime públicas ni alterar esta propiedad.
 
 ## Seguridad
 
-La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. En Umbrel queda desactivado porque la autenticación la aporta `app_proxy`. Para uso doméstico sin autenticación, debe quedarse en:
+La app incluye Basic Auth monousuario opcional para despliegues Docker/CasaOS expuestos. En Umbrel queda desactivado porque la autenticación la aporta `app_proxy`. Community no ofrece cifrado propio de la base de datos; la protección en reposo depende del cifrado del sistema de archivos o del volumen del contenedor. Para uso doméstico sin autenticación, debe quedarse en:
 
 - localhost,
 - LAN privada,
