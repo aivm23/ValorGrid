@@ -26,6 +26,7 @@ services:
         source: /DATA/AppData/valorgrid/backups
         target: /app/.backups
     x-casaos:
+      version: 'v3.33.6'
       envs:
         - container: HOST
           description:
@@ -82,7 +83,7 @@ x-casaos:
   author: aivm23
   developer: aivm23
   category: Finance
-  version: 'v3.33.5'
+  version: 'v3.33.6'
   updateAt: '2026-07-15'
   website: https://github.com/aivm23/ValorGrid
   support: https://github.com/aivm23/ValorGrid/issues
