@@ -277,9 +277,15 @@ test('manual and reset backups share the configured backup directory', () => {
     assert.equal(manual.verified, true);
     assert.equal(path.dirname(manual.path), backupDir);
 
+    const filesAfterManual = fs.readdirSync(backupDir).filter((f) => /\.sqlite$/.test(f));
+    assert.equal(filesAfterManual.length, 1, 'one backup file after manual backup');
+
     const result = resetDatabase({ env, root: tempRoot });
     assert.equal(result.backup.verified, true);
     assert.equal(path.dirname(result.backup.path), backupDir);
+
+    const filesAfterReset = fs.readdirSync(backupDir).filter((f) => /\.sqlite$/.test(f));
+    assert.equal(filesAfterReset.length, 2, 'two backup files after reset');
 
     const report = collectDoctorReport({ env, root: tempRoot });
     assert.equal(report.backupDir, backupDir);

@@ -65,7 +65,8 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
 function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
   const backupDir = ensureBackupDir(root, configuredBackupDir);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const fileName = `portfolio-${stamp}.sqlite`;
+  const ns = process.hrtime.bigint();
+  const fileName = `portfolio-${stamp}-${ns}.sqlite`;
   return copyVerifiedBackup({ db, dbPath, backupDir, fileName });
 }
 
@@ -112,7 +113,8 @@ function createRiskBackup({ db, dbPath, root, backupDir: configuredBackupDir, re
   }
   const backupDir = ensureBackupDir(root, configuredBackupDir);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const fileName = `risk-${reason}-${stamp}.sqlite`;
+  const ns = process.hrtime.bigint();
+  const fileName = `risk-${reason}-${stamp}-${ns}.sqlite`;
   return {
     ...copyVerifiedBackup({ db, dbPath, backupDir, fileName }),
     reason,
