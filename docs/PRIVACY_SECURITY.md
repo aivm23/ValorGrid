@@ -89,9 +89,15 @@ ValorGrid puede establecer conexiones de red salientes únicamente para:
 
 No existen conexiones salientes para telemetría, analíticas, publicidad ni sincronización de cartera con servicios externos.
 
+Ten en cuenta que el proveedor sí ve qué símbolos consultas: cada actualización de precio envía el símbolo solicitado a Yahoo Finance o Alpha Vantage. La app no soporta por ahora enrutar esas consultas a través de un proxy (`HTTPS_PROXY`/SOCKS). Si te preocupa esa exposición, limita la frecuencia de actualización o bloquea las consultas de mercado desde la configuración de la app.
+
 ## Cifrado
 
 ValorGrid **no aplica cifrado propio** a la base de datos SQLite ni a los backups. La protección de datos en reposo depende del cifrado del sistema de archivos del sistema operativo (BitLocker, FileVault, LUKS) o del volumen del contenedor.
+
+En concreto, los archivos de `.backups/*.sqlite` son copias literales de la base de datos sin cifrar, y `secrets.json` (clave API de Alpha Vantage, guardada con permisos `0o600` en sistemas POSIX) viaja en texto plano. Si copias esos archivos a un NAS, disco externo o nube, cifra el destino o el archivo tú mismo: proteger el backup externo es responsabilidad del operador.
+
+El cifrado opcional de backups (por ejemplo, passphrase + AES) queda como trabajo futuro y no está implementado.
 
 Las conexiones a proveedores externos (Yahoo Finance, Alpha Vantage, GitHub API) usan HTTPS cuando el proveedor lo soporta. La app no impone ni gestiona certificados TLS para el tráfico HTTP entrante; el administrador del despliegue es responsable de configurar un proxy inverso con HTTPS si se expone la app fuera de localhost.
 

@@ -22,9 +22,15 @@ ValorGrid may establish outbound connections only for:
 
 No outbound connections exist for telemetry, analytics, advertising or portfolio sync.
 
+Note that the provider does see which symbols you query: every price refresh sends the requested symbol to Yahoo Finance or Alpha Vantage. The app does not currently support routing those lookups through a proxy (`HTTPS_PROXY`/SOCKS). If that exposure concerns you, reduce the refresh frequency or disable market lookups in the app settings.
+
 ## Encryption
 
 ValorGrid does **not apply its own encryption** to the SQLite database or backups. Data-at-rest protection depends on the operating system's filesystem encryption (BitLocker, FileVault, LUKS) or the container volume.
+
+Specifically, `.backups/*.sqlite` files are literal unencrypted copies of the database, and `secrets.json` (Alpha Vantage API key, stored with `0o600` permissions on POSIX systems) is plain text. If you copy those files to a NAS, external drive or cloud storage, encrypt the destination or the file yourself: protecting external backups is the operator's responsibility.
+
+Optional backup encryption (for example, passphrase + AES) is future work and is not implemented.
 
 Connections to external providers use HTTPS where supported. The app does not manage TLS certificates for incoming HTTP traffic; deployment administrators are responsible for configuring a reverse proxy with HTTPS when exposing the app outside localhost.
 
