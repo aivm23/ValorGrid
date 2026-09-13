@@ -11,7 +11,12 @@ const {
   collectDoctorReport,
 } = require('../scripts/db-maintenance');
 const { openDatabase, verifyDatabaseFile } = require('../apps/server/src/platform/db');
-const { listBackups, decryptBackupToPath, deleteBackupFile } = require('../apps/server/src/platform/backups');
+const {
+  listBackups,
+  decryptBackupToPath,
+  deleteBackupFile,
+  pruneOldBackups,
+} = require('../apps/server/src/platform/backups');
 const { encryptBuffer, decryptBuffer, isEncryptedBackupName } = require('../apps/server/src/platform/backup-crypto');
 // Backup-dependent functions commented out: db-maintenance.js backup features disabled
 // const {
@@ -539,14 +544,16 @@ test('plain backups keep working and share the 6-backup retention with encrypted
     const listed = listBackups(tempRoot, backupDir);
     assert.equal(listed.find((entry) => entry.file === plain.file).encrypted, false);
 
+    let last = null;
     for (let i = 0; i < 7; i += 1) {
-      createBackupForPath({
+      last = createBackupForPath({
         dbPath,
         root: tempRoot,
         backupDir,
         encrypted: i % 2 === 0,
         passphrase: BACKUP_TEST_PASSPHRASE,
       });
+      assert.ok(fs.existsSync(last.path), 'the just-created backup survives retention pruning');
     }
     const files = fs.readdirSync(backupDir).filter((file) => /\.sqlite(\.enc)?$/.test(file));
     assert.equal(files.length, 6, 'retention keeps the 6 most recent backups across plain and encrypted');
@@ -590,5 +597,28 @@ test('deleting a backup also removes its verification sidecars without touching 
     assert.ok(remaining.includes(second.file), 'sibling backup kept');
     assert.ok(remaining.includes(`${second.file}-wal`), 'sibling sidecars kept');
     assert.equal(listBackups(tempRoot, backupDir).length, 2 - 1);
+  });
+});
+
+test('retention pruning keeps the just-created backup when filesystem mtimes tie', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'tied.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+
+    for (let i = 0; i < 6; i += 1) {
+      createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    }
+    const newest = createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    // Simulate coarse Windows mtime granularity: every file shares one timestamp,
+    // so mtime order alone cannot identify the newest backup.
+    const tied = new Date('2026-01-02T00:00:00.000Z');
+    for (const file of fs.readdirSync(backupDir)) {
+      fs.utimesSync(path.join(backupDir, file), tied, tied);
+    }
+    pruneOldBackups(backupDir, 6, newest.file);
+    const remaining = fs.readdirSync(backupDir).filter((file) => /\.sqlite$/.test(file));
+    assert.ok(remaining.includes(newest.file), 'just-created backup survives tied-mtime pruning');
+    assert.equal(remaining.length, 6, 'retention still caps at 6 backups');
   });
 });

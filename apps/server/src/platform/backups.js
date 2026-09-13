@@ -23,7 +23,7 @@ function removeBackupSidecars(backupDir, file) {
   }
 }
 
-function pruneOldBackups(backupDir, limit = 6) {
+function pruneOldBackups(backupDir, limit = 6, keepFile = null) {
   const all = fs
     .readdirSync(backupDir)
     .filter(safeBackupName)
@@ -36,7 +36,11 @@ function pruneOldBackups(backupDir, limit = 6) {
     })
     .filter(Boolean)
     .sort((a, b) => b.mtime - a.mtime);
-  for (const old of all.slice(limit)) {
+  // The just-created backup must survive even when filesystem mtimes tie
+  // (coarse granularity on Windows can order same-millisecond files arbitrarily).
+  const candidates = keepFile ? all.filter((entry) => entry.file !== keepFile) : all;
+  const keepCount = keepFile ? limit - 1 : limit;
+  for (const old of candidates.slice(keepCount)) {
     try {
       fs.unlinkSync(path.join(backupDir, old.file));
     } catch {
@@ -56,7 +60,7 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
   fs.copyFileSync(dbPath, targetPath);
   try {
     const verification = verifyDatabaseFile(targetPath);
-    pruneOldBackups(backupDir);
+    pruneOldBackups(backupDir, 6, fileName);
     return {
       file: fileName,
       path: targetPath,
@@ -110,7 +114,7 @@ function createEncryptedBackup({ db, dbPath, root, backupDir: configuredBackupDi
     const verification = verifyDatabaseFile(tempPath);
     fs.rmSync(tempDir, { recursive: true, force: true });
     tempPath = null;
-    pruneOldBackups(backupDir);
+    pruneOldBackups(backupDir, 6, fileName);
     return {
       file: fileName,
       path: targetPath,
@@ -258,4 +262,5 @@ module.exports = {
   resolveBackupPath,
   createRiskBackup,
   deleteBackupFile,
+  pruneOldBackups,
 };

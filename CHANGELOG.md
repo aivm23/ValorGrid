@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.36.3
+
+- fix: retention pruning never deletes the just-created backup when filesystem mtimes tie (Windows coarse granularity).
+
+## 3.36.2
+
+- docs: audit and synchronize documentation — public ADRs, Community schema ownership, remove Enterprise references.
+- chore: add container-level version to CasaOS compose metadata.
+- chore: bump version to v3.33.6 - align import-batch buttons and fix ARCHITECTURE.md reference.
+
 ## 3.36.2
 
 - docs: fix broken Valores screenshot in READMEs, document Yahoo ticker auto-derive, add missing test rows to TESTING.md.
