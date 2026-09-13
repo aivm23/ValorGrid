@@ -16,7 +16,7 @@ services:
       VALORGRID_AUTH_PASSWORD: ''
       VALORGRID_ALPHA_VANTAGE_API_KEY: ''
     ports:
-      - '1325:1325'
+      - '${BIND_IP:-127.0.0.1}:1325:1325'
     volumes:
       - ../../local/valorgrid/data:/data
       - ../../local/valorgrid/backups:/app/.backups

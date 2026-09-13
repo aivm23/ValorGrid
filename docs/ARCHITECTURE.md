@@ -271,6 +271,8 @@ Reglas que deben mantenerse en cada cambio estructural:
 
 **Decisión ESM:** el backend se mantiene en CommonJS. El frontend ya usa ESM nativo del navegador. No se introduce `"type": "module"` ni compilación a `dist`. Si en el futuro se requiere compilación TypeScript real o ESM en backend, debe tratarse como fase independiente.
 
+**Decisión dependencias runtime:** es una decisión de producto no incluir dependencias runtime (`package.json` no declara `dependencies`, solo `devDependencies`): por sencillez operativa y para reducir la superficie de bugs y vulnerabilidades heredadas de librerías de terceros. Solo se usan módulos nativos de Node.js (`node:sqlite`, `node:crypto`, `node:http`, etc.). Funcionalidades que exigirían una dependencia externa (por ejemplo, enrutar las consultas de mercado por proxy) se documentan y quedan en backlog hasta que exista una alternativa sin dependencias o se revise esta decisión explícitamente.
+
 ## Frontend
 
 ### `apps/web/index.html`

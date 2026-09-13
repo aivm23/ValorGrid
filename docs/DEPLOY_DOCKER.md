@@ -20,6 +20,17 @@ http://localhost:1325
 
 El compose publica la aplicación en el puerto `1325` y monta directorios persistentes separados para datos y backups.
 
+### Interfaz de publicación (BIND_IP)
+
+El compose local publica como `${BIND_IP:-127.0.0.1}:1325:1325`: por defecto solo loopback. Para exponerlo en tu LAN, define `BIND_IP` en un `.env` en la raíz del repositorio (ver `.env.example`):
+
+```bash
+BIND_IP=192.168.1.50
+docker compose -f deploy/docker/docker-compose.yml up -d --build
+```
+
+Usa `BIND_IP=0.0.0.0` solo detrás de HTTPS y autenticación. No edites el compose para esto: un `override` que repita `ports` publica el puerto dos veces (`address already in use`). Los composes de CasaOS y Umbrel quedan fijos a propósito (la tienda no interpola variables en los puertos).
+
 `data/` y `backups/` son privados, están ignorados por Git y deben incluirse en tu estrategia de backup.
 
 ## CasaOS AppStore oficial
@@ -39,6 +50,10 @@ Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a 
 ## Segundo factor (2FA)
 
 ValorGrid no incluye TOTP/2FA propio: el login monousuario es Basic Auth sin estado. Si expones la app más allá de tu LAN, pon delante un reverse proxy con autenticación en dos pasos (por ejemplo Authelia o Authentik) y mantén el Basic Auth de ValorGrid como segunda capa. El TOTP nativo queda como trabajo futuro.
+
+## Consultas de mercado y proxy
+
+Las consultas de precios (Yahoo Finance, Alpha Vantage) salen directas, sin soporte de `HTTPS_PROXY`/SOCKS: Node.js no lo aplica a `fetch` y añadir un agente proxy exigiría una dependencia runtime, descartada por decisión de producto (ver [ARCHITECTURE.md](ARCHITECTURE.md)). Si necesitas aislar ese tráfico, hazlo a nivel de host o red (firewall, namespace de red, Tor transparente), no desde la app.
 
 ## Alpha Vantage para commodities
 

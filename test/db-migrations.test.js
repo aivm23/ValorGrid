@@ -255,6 +255,15 @@ test('container deployment artifacts declare Docker runtime mode', () => {
   }
 });
 
+test('local docker compose publishes through configurable BIND_IP', () => {
+  const content = fs.readFileSync(path.join(root, 'deploy', 'docker', 'docker-compose.yml'), 'utf8');
+  assert.match(
+    content,
+    /\$\{BIND_IP:-127\.0\.0\.1\}:1325:1325/,
+    'local compose binds through ${BIND_IP:-127.0.0.1} instead of a fixed interface',
+  );
+});
+
 test('findPendingMigrations returns only migrations after current version', () => {
   const pending = migrations.findPendingMigrations('3.29.0');
   assert.ok(pending.length > 0);
