@@ -11,6 +11,8 @@ const {
   collectDoctorReport,
 } = require('../scripts/db-maintenance');
 const { openDatabase, verifyDatabaseFile } = require('../apps/server/src/platform/db');
+const { listBackups, decryptBackupToPath } = require('../apps/server/src/platform/backups');
+const { encryptBuffer, decryptBuffer, isEncryptedBackupName } = require('../apps/server/src/platform/backup-crypto');
 // Backup-dependent functions commented out: db-maintenance.js backup features disabled
 // const {
 //   resolveRuntimeConfig,
@@ -427,4 +429,141 @@ test('demo command is canonical and loadtest alias has been removed', () => {
     false,
     'integration helpers must not define a second synthetic dataset generator',
   );
+});
+
+const BACKUP_TEST_PASSPHRASE = 'valorgrid-test-passphrase-123';
+
+test('encrypted backups roundtrip through scrypt AES-GCM without extra dependencies', () => {
+  const plain = Buffer.from('valorgrid-encryption-roundtrip', 'utf8');
+  const enc = encryptBuffer(plain, BACKUP_TEST_PASSPHRASE);
+  assert.ok(enc.length > plain.length);
+  assert.deepEqual(decryptBuffer(enc, BACKUP_TEST_PASSPHRASE), plain);
+  assert.equal(isEncryptedBackupName('portfolio-2026.sqlite.enc'), true);
+  assert.equal(isEncryptedBackupName('portfolio-2026.sqlite'), false);
+});
+
+test('encrypted backups decrypt to a verified database equal to the plain backup', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'encrypted.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+
+    const encrypted = createBackupForPath({
+      dbPath,
+      root: tempRoot,
+      backupDir,
+      encrypted: true,
+      passphrase: BACKUP_TEST_PASSPHRASE,
+    });
+    assert.match(encrypted.file, /^portfolio-.+\.sqlite\.enc$/);
+    assert.equal(encrypted.encrypted, true);
+    assert.equal(encrypted.verified, true);
+    assert.ok(fs.existsSync(encrypted.path));
+
+    const listed = listBackups(tempRoot, backupDir);
+    assert.equal(listed.length, 1);
+    assert.equal(listed[0].encrypted, true);
+
+    const outPath = path.join(tempRoot, 'restored.sqlite');
+    const restored = decryptBackupToPath({ encPath: encrypted.path, outPath, passphrase: BACKUP_TEST_PASSPHRASE });
+    assert.equal(restored.verified, true);
+    assert.deepEqual(verifyDatabaseFile(outPath), { integrityCheck: 'ok', foreignKeyErrors: 0 });
+    const db = openDatabase(outPath);
+    assert.equal(db.prepare('SELECT COUNT(*) AS count FROM pre_reset_data').get().count, 1);
+    db.close();
+  });
+});
+
+test('encrypted backups reject a wrong passphrase and leave no decrypted residue', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'wrong-pass.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+    const encrypted = createBackupForPath({
+      dbPath,
+      root: tempRoot,
+      backupDir,
+      encrypted: true,
+      passphrase: BACKUP_TEST_PASSPHRASE,
+    });
+    const outPath = path.join(tempRoot, 'should-not-exist.sqlite');
+    assert.throws(
+      () => decryptBackupToPath({ encPath: encrypted.path, outPath, passphrase: 'wrong-passphrase-456' }),
+      /Invalid backup passphrase/,
+    );
+    assert.equal(fs.existsSync(outPath), false);
+    assert.throws(
+      () => decryptBuffer(Buffer.from('not-an-encrypted-backup'), BACKUP_TEST_PASSPHRASE),
+      /Not a ValorGrid/,
+    );
+  });
+});
+
+test('encrypted backups require a configured passphrase of at least 8 characters', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'no-pass.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+    const previous = process.env.VALORGRID_BACKUP_PASSPHRASE;
+    delete process.env.VALORGRID_BACKUP_PASSPHRASE;
+    try {
+      assert.throws(
+        () => createBackupForPath({ dbPath, root: tempRoot, backupDir, encrypted: true }),
+        /passphrase is not configured/,
+      );
+      assert.throws(
+        () => createBackupForPath({ dbPath, root: tempRoot, backupDir, encrypted: true, passphrase: 'short' }),
+        /at least 8 characters/,
+      );
+      assert.equal(
+        fs.existsSync(backupDir) ? fs.readdirSync(backupDir).filter((entry) => entry.endsWith('.enc')).length : 0,
+        0,
+        'no residue left after rejected encrypted backup',
+      );
+    } finally {
+      if (previous === undefined) delete process.env.VALORGRID_BACKUP_PASSPHRASE;
+      else process.env.VALORGRID_BACKUP_PASSPHRASE = previous;
+    }
+  });
+});
+
+test('plain backups keep working and share the 6-backup retention with encrypted ones', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'mixed.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+
+    const plain = createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    assert.match(plain.file, /^portfolio-.+\.sqlite$/);
+    assert.equal(plain.encrypted, false);
+    const listed = listBackups(tempRoot, backupDir);
+    assert.equal(listed.find((entry) => entry.file === plain.file).encrypted, false);
+
+    for (let i = 0; i < 7; i += 1) {
+      createBackupForPath({
+        dbPath,
+        root: tempRoot,
+        backupDir,
+        encrypted: i % 2 === 0,
+        passphrase: BACKUP_TEST_PASSPHRASE,
+      });
+    }
+    const files = fs.readdirSync(backupDir).filter((file) => /\.sqlite(\.enc)?$/.test(file));
+    assert.equal(files.length, 6, 'retention keeps the 6 most recent backups across plain and encrypted');
+    assert.ok(
+      files.some((file) => file.endsWith('.sqlite.enc')),
+      'encrypted backups survive retention',
+    );
+    assert.ok(
+      files.some((file) => file.endsWith('.sqlite') && !file.endsWith('.enc')),
+      'plain backups survive retention',
+    );
+
+    const report = collectDoctorReport({
+      env: { PORTFOLIO_DB_PATH: dbPath, VALORGRID_BACKUP_DIR: backupDir },
+      root: tempRoot,
+    });
+    assert.equal(report.backupsCount, 6);
+    assert.ok(report.backupsEncrypted >= 1);
+  });
 });

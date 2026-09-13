@@ -114,6 +114,7 @@ test('private database artifacts are ignored and not publishable', () => {
   const localArtifacts = fs.readdirSync(root).filter((file) => privateExtensions.has(path.extname(file)));
 
   assert.ok(gitignore.includes('*.sqlite'));
+  assert.ok(gitignore.includes('*.sqlite.enc'));
   assert.ok(gitignore.includes('*.sqlite-wal'));
   assert.ok(gitignore.includes('*.sqlite-shm'));
   assert.ok(localArtifacts.length >= 0);
@@ -255,6 +256,7 @@ test('gitignore protects local portfolio data and user import files', () => {
   const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
   for (const pattern of [
     '*.sqlite',
+    '*.sqlite.enc',
     '*.sqlite-wal',
     '*.sqlite-shm',
     '.backups/',
@@ -279,6 +281,7 @@ test('dockerignore protects private data from container build context', () => {
   for (const pattern of [
     '.git',
     '*.sqlite',
+    '*.sqlite.enc',
     '*.sqlite-wal',
     '*.sqlite-shm',
     '.backups',

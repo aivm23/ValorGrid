@@ -6,7 +6,7 @@ ValorGrid is designed as a local single-user application. Data stays on your mac
 
 Do not upload to GitHub or share publicly:
 
-- `*.sqlite`, `*.sqlite-wal`, `*.sqlite-shm`
+- `*.sqlite`, `*.sqlite.enc`, `*.sqlite-wal`, `*.sqlite-shm`
 - `local/valorgrid/backups/`, `local/valorgrid/data/`
 - `.env`, `config.local.*`, `local/`, `imports/`, `downloads/`
 - real broker exports, personal Excel files
@@ -26,11 +26,11 @@ Note that the provider does see which symbols you query: every price refresh sen
 
 ## Encryption
 
-ValorGrid does **not apply its own encryption** to the SQLite database or backups. Data-at-rest protection depends on the operating system's filesystem encryption (BitLocker, FileVault, LUKS) or the container volume.
+ValorGrid does **not encrypt** the SQLite database or plain backups (`.sqlite`) by default. Data-at-rest protection depends on the operating system's filesystem encryption (BitLocker, FileVault, LUKS) or the container volume.
 
 Specifically, `.backups/*.sqlite` files are literal unencrypted copies of the database, and `secrets.json` (Alpha Vantage API key, stored with `0o600` permissions on POSIX systems) is plain text. If you copy those files to a NAS, external drive or cloud storage, encrypt the destination or the file yourself: protecting external backups is the operator's responsibility.
 
-Optional backup encryption (for example, passphrase + AES) is future work and is not implemented.
+Optional passphrase backup encryption is available (scrypt + AES-256-GCM, `node:crypto` only): `VALORGRID_BACKUP_PASSPHRASE=... npm run db:backup -- --encrypted` produces a verified `.sqlite.enc`. See [DB_OPERATIONS.md](DB_OPERATIONS.md). The live database and `secrets.json` remain unencrypted.
 
 Connections to external providers use HTTPS where supported. The app does not manage TLS certificates for incoming HTTP traffic; deployment administrators are responsible for configuring a reverse proxy with HTTPS when exposing the app outside localhost.
 

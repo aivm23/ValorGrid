@@ -306,10 +306,10 @@ DELETE /api/backups/:file
 
 Los backups se guardan localmente y no deben versionarse.
 
-- `GET /api/backups` — lista todos los backups disponibles.
-- `POST /api/backups` — crea un nuevo backup de la base de datos activa.
-- `GET /api/backups/:file` — descarga un backup específico.
-- `DELETE /api/backups/:file` — elimina un backup específico.
+- `GET /api/backups` — lista todos los backups disponibles. Cada entrada incluye `encrypted` (boolean): `true` para `.sqlite.enc`, `false` para `.sqlite`.
+- `POST /api/backups` — crea un nuevo backup claro de la base de datos activa. Los backups cifrados solo se crean desde el CLI (la passphrase nunca viaja por HTTP).
+- `GET /api/backups/:file` — descarga un backup específico (claro o cifrado).
+- `DELETE /api/backups/:file` — elimina un backup específico (claro o cifrado).
 - Las operaciones de riesgo (bulk delete transactions, replace auto-plans, delete instruments, delete groups, import commit, import rollback) pueden devolver un campo `backup` con el backup automático creado antes de la operación.
 
 ## Exportaciones

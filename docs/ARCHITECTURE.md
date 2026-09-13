@@ -78,7 +78,7 @@ apps/server/src/
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
 ├── shared/             (brand-palette, usado por el dominio de instrumentos)
-├── platform/           (db, config, auth, http, i18n, backups, runtime-secrets, ctx-utils, validators, app-error, utils)
+├── platform/           (db, config, auth, http, i18n, backups, backup-crypto, runtime-secrets, ctx-utils, validators, app-error, utils)
 ├── app.js
 ├── routes.js
 └── ...
@@ -136,7 +136,8 @@ Reglas de transición:
 - `db.js`: apertura SQLite, PRAGMAs, verificación de ficheros y helpers `withTransaction`/`withTransactionAsync`.
 - `http.js`: servidor HTTP estático, Basic Auth opt-in y listener.
 - `i18n.js`: resolución de `Accept-Language` y traducción mínima de errores visibles sin cambiar payloads HTTP.
-- `backups.js`: creación, verificación, retención, listado y descarga de backups SQLite.
+- `backups.js`: creación, verificación, retención, listado y descarga de backups SQLite (claros y cifrados `.sqlite.enc`).
+- `backup-crypto.js`: cifrado opt-in de backups con passphrase (scrypt + AES-256-GCM, solo `node:crypto`, sin dependencias).
 - `ctx-utils.js`: `assertCtxDeps`, `getCtxDep`.
 - `utils.js`: helpers compartidos (formato, fechas, HTTP, caché).
 - `validators.js`: validadores de entrada (`assertPresent`, `assertXor`, etc.).
@@ -164,7 +165,8 @@ La lógica principal vive en módulos. Orden de carga en `app.js`:
 
 - `config`: host, puerto, rutas, versión, DB activa y auth opcional.
 - `db`: apertura SQLite, PRAGMAs, helpers y transacciones.
-- `backups`: creación, listado y descarga de backups SQLite.
+- `backups`: creación, listado y descarga de backups SQLite (claros y cifrados).
+- `backup-crypto`: cifrado opt-in de backups con passphrase.
 
 **Cargados en bucle `for...of` (orden secuencial):**
 
@@ -414,6 +416,7 @@ La app puede crear copias locales de SQLite con:
 
 Antes de copiar, se hace checkpoint WAL para reducir riesgo de backup inconsistente.
 La API y los scripts operativos comparten la misma `backupDir` resuelta por `apps/server/src/platform/config.js`; las rutas admin consumen esta capacidad desde `ctx.services.admin`.
+Los backups cifrados (`.sqlite.enc`, passphrase + AES-256-GCM vía `node:crypto`) se crean solo desde el CLI (`npm run db:backup -- --encrypted`); la API crea backups claros y solo los lista, descarga y elimina. Los backups de riesgo automáticos son siempre claros para no depender de una passphrase.
 
 Para migraciones de schema versionadas, existe `scripts/run-sql-migration.ps1` que automatiza backup + ejecución SQL + verificación de integridad usando los SQL de `deploy/sql/update-X-to-Y.sql`. Ver `docs/DB_OPERATIONS.md` para el flujo completo.
 

@@ -50,7 +50,7 @@ La release no publica bases SQLite, backups, `.env`, ficheros de importación de
 6. Confirmar que Git ignora datos privados:
 
    ```powershell
-   git check-ignore portfolio.sqlite *.sqlite-wal *.sqlite-shm local/ .backups dist
+    git check-ignore portfolio.sqlite *.sqlite.enc *.sqlite-wal *.sqlite-shm local/ .backups dist
    ```
 
 ## Instaladores de escritorio

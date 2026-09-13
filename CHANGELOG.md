@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.36.0
+
+- feat: optional encrypted backups with passphrase (scrypt + AES-256-GCM, node:crypto only, `.sqlite.enc`).
+- feat: `npm run db:backup -- --encrypted` and `--decrypt <file> --out <restored.sqlite>` flows with verified roundtrip.
+- fix: backup listing, download, delete and 6-backup retention handle mixed plain and encrypted backups.
+- docs: document encrypted backups across DB_OPERATIONS, PRIVACY_SECURITY, API and ARCHITECTURE (ES/EN).
+
 ## 3.35.0
 
 - feat: configurable BIND_IP for local docker compose, document no-runtime-deps policy.

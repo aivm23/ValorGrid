@@ -37,6 +37,27 @@ La app y los scripts comparten la misma política:
 
 `npm run db:reset` añade su propio backup automático verificado. El backup manual sigue disponible para crear un punto de restauración independiente antes de cualquier otra operación.
 
+## Backups cifrados (opcional)
+
+Para sacar copias fuera del host (NAS, disco externo, nube) sin depender del cifrado del destino:
+
+```bash
+VALORGRID_BACKUP_PASSPHRASE=pon-aqui-una-frase-larga npm run db:backup -- --encrypted
+# o bien VALORGRID_BACKUP_ENCRYPT=1 para el mismo efecto
+```
+
+- Cifrado con passphrase (mínimo 8 caracteres) mediante scrypt + AES-256-GCM, solo `node:crypto`, sin dependencias nuevas.
+- La passphrase solo se lee de `VALORGRID_BACKUP_PASSPHRASE`, nunca de argumentos (evita fugas en historial y `ps`). No se guarda en la app.
+- El backup cifrado se guarda como `.sqlite.enc` y se verifica descifrando a un temporal y ejecutando `integrity_check` + `foreign_key_check`; si falla, no deja restos.
+- Descifrar y verificar contra un destino `.sqlite`:
+
+```bash
+VALORGRID_BACKUP_PASSPHRASE=pon-aqui-una-frase-larga npm run db:backup -- --decrypt <backup.sqlite.enc> --out <restaurado.sqlite>
+```
+
+- Reglas: la retención de 6 backups cuenta claros y cifrados juntos; el listado y la descarga de la API sirven ambos tipos (cada entrada incluye `encrypted`); los backups de riesgo automáticos son siempre claros para no depender de una passphrase; `npm run db:doctor` cuenta cuántos backups cifrados hay (`backupsEncrypted`).
+- Sin passphrase no hay descifrado posible: guárdala en tu gestor de secretos. Perderla equivale a perder el backup.
+
 ## Reset fresh (destructivo)
 
 - Si la DB activa existe, `npm run db:reset` hace checkpoint WAL, crea un backup automático y verifica su integridad antes de eliminar ningún archivo.

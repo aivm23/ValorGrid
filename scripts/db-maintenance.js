@@ -73,11 +73,11 @@ function withDatabase(dbPath, work) {
   }
 }
 
-function createBackupForPath({ dbPath, root, backupDir }) {
+function createBackupForPath({ dbPath, root, backupDir, encrypted = false, passphrase }) {
   if (!fs.existsSync(dbPath)) {
     throw new Error(`Database file not found: ${dbPath}`);
   }
-  return withDatabase(dbPath, (db) => createBackup({ db, dbPath, root, backupDir }));
+  return withDatabase(dbPath, (db) => createBackup({ db, dbPath, root, backupDir, encrypted, passphrase }));
 }
 
 function removeDatabaseArtifacts(dbPath) {
@@ -290,6 +290,7 @@ function collectDoctorReport({ env = process.env, root = repoRoot() } = {}) {
     dbPath,
     backupDir,
     backupsCount: backups.length,
+    backupsEncrypted: backups.filter((backup) => backup.encrypted).length,
     checks,
     summary,
   };

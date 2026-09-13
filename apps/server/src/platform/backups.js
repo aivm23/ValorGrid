@@ -1,6 +1,8 @@
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { verifyDatabaseFile } = require('./db');
+const { encryptBuffer, decryptBuffer, readPassphrase, isEncryptedBackupName } = require('./backup-crypto');
 
 function ensureBackupDir(root, backupDir = path.join(root, '.backups')) {
   fs.mkdirSync(backupDir, { recursive: true });
@@ -8,7 +10,7 @@ function ensureBackupDir(root, backupDir = path.join(root, '.backups')) {
 }
 
 function safeBackupName(name) {
-  return /^[\w.-]+\.sqlite$/.test(name) ? name : null;
+  return /^[\w.-]+\.sqlite(\.enc)?$/.test(name) ? name : null;
 }
 
 function pruneOldBackups(backupDir, limit = 6) {
@@ -51,6 +53,7 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
       createdAt: new Date().toISOString(),
       verified: true,
       verification,
+      encrypted: isEncryptedBackupName(fileName),
     };
   } catch (error) {
     try {
@@ -62,12 +65,98 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
   }
 }
 
-function createBackup({ db, dbPath, root, backupDir: configuredBackupDir }) {
+function createBackup({ db, dbPath, root, backupDir: configuredBackupDir, encrypted = false, passphrase }) {
+  if (encrypted) {
+    return createEncryptedBackup({ db, dbPath, root, backupDir: configuredBackupDir, passphrase });
+  }
   const backupDir = ensureBackupDir(root, configuredBackupDir);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const ns = process.hrtime.bigint();
   const fileName = `portfolio-${stamp}-${ns}.sqlite`;
   return copyVerifiedBackup({ db, dbPath, backupDir, fileName });
+}
+
+function createEncryptedBackup({ db, dbPath, root, backupDir: configuredBackupDir, passphrase }) {
+  const keyMaterial = readPassphrase(passphrase);
+  try {
+    db.exec('PRAGMA wal_checkpoint(FULL)');
+  } catch {
+    /* skip for in-memory or non-WAL databases */
+  }
+  const backupDir = ensureBackupDir(root, configuredBackupDir);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const ns = process.hrtime.bigint();
+  const fileName = `portfolio-${stamp}-${ns}.sqlite.enc`;
+  const targetPath = path.join(backupDir, fileName);
+  let tempPath = null;
+  try {
+    const plainBuffer = fs.readFileSync(dbPath);
+    fs.writeFileSync(targetPath, encryptBuffer(plainBuffer, keyMaterial), { mode: 0o600 });
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'valorgrid-backup-verify-'));
+    tempPath = path.join(tempDir, 'decrypted.sqlite');
+    fs.writeFileSync(tempPath, decryptBuffer(fs.readFileSync(targetPath), keyMaterial));
+    const verification = verifyDatabaseFile(tempPath);
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    tempPath = null;
+    pruneOldBackups(backupDir);
+    return {
+      file: fileName,
+      path: targetPath,
+      size: fs.statSync(targetPath).size,
+      createdAt: new Date().toISOString(),
+      verified: true,
+      verification,
+      encrypted: true,
+    };
+  } catch (error) {
+    try {
+      fs.unlinkSync(targetPath);
+    } catch {
+      /* best effort cleanup */
+    }
+    if (tempPath) {
+      try {
+        fs.rmSync(path.dirname(tempPath), { recursive: true, force: true });
+      } catch {
+        /* best effort cleanup */
+      }
+    }
+    if (error.statusCode === 400 && /passphrase|encrypted backup/i.test(error.message)) throw error;
+    throw new Error(`Backup verification failed: ${error.message}`);
+  }
+}
+
+function decryptBackupToPath({ encPath, outPath, passphrase }) {
+  if (!isEncryptedBackupName(path.basename(encPath)) || !fs.existsSync(encPath)) {
+    const error = new Error('Encrypted backup file not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (typeof outPath !== 'string' || !outPath.endsWith('.sqlite')) {
+    const error = new Error('Decrypted output path must end with .sqlite');
+    error.statusCode = 400;
+    throw error;
+  }
+  const keyMaterial = readPassphrase(passphrase);
+  try {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, decryptBuffer(fs.readFileSync(encPath), keyMaterial));
+    const verification = verifyDatabaseFile(outPath);
+    return {
+      path: outPath,
+      size: fs.statSync(outPath).size,
+      verified: true,
+      verification,
+    };
+  } catch (error) {
+    try {
+      fs.unlinkSync(outPath);
+    } catch {
+      /* best effort cleanup */
+    }
+    if (error.statusCode === 400 && /passphrase|encrypted backup/i.test(error.message)) throw error;
+    throw new Error(`Backup verification failed: ${error.message}`);
+  }
 }
 
 function listBackups(root, configuredBackupDir) {
@@ -82,6 +171,7 @@ function listBackups(root, configuredBackupDir) {
         file,
         size: stat.size,
         createdAt: stat.mtime.toISOString(),
+        encrypted: isEncryptedBackupName(file),
       };
     })
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -147,6 +237,8 @@ function deleteBackupFile(root, file, configuredBackupDir) {
 
 module.exports = {
   createBackup,
+  createEncryptedBackup,
+  decryptBackupToPath,
   listBackups,
   resolveBackupPath,
   createRiskBackup,

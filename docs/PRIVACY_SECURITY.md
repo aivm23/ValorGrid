@@ -7,6 +7,7 @@ ValorGrid está diseñado como una aplicación local monousuario. El objetivo es
 No deben subirse a GitHub ni compartirse públicamente:
 
 - `*.sqlite`
+- `*.sqlite.enc`
 - `*.sqlite-wal`
 - `*.sqlite-shm`
 - `local/valorgrid/backups/`
@@ -93,11 +94,11 @@ Ten en cuenta que el proveedor sí ve qué símbolos consultas: cada actualizaci
 
 ## Cifrado
 
-ValorGrid **no aplica cifrado propio** a la base de datos SQLite ni a los backups. La protección de datos en reposo depende del cifrado del sistema de archivos del sistema operativo (BitLocker, FileVault, LUKS) o del volumen del contenedor.
+ValorGrid **no cifra por defecto** la base de datos SQLite ni los backups claros (`.sqlite`). La protección de datos en reposo depende del cifrado del sistema de archivos del sistema operativo (BitLocker, FileVault, LUKS) o del volumen del contenedor.
 
 En concreto, los archivos de `.backups/*.sqlite` son copias literales de la base de datos sin cifrar, y `secrets.json` (clave API de Alpha Vantage, guardada con permisos `0o600` en sistemas POSIX) viaja en texto plano. Si copias esos archivos a un NAS, disco externo o nube, cifra el destino o el archivo tú mismo: proteger el backup externo es responsabilidad del operador.
 
-El cifrado opcional de backups (por ejemplo, passphrase + AES) queda como trabajo futuro y no está implementado.
+Para copias externas existe cifrado opcional de backups con passphrase (scrypt + AES-256-GCM, solo `node:crypto`): `VALORGRID_BACKUP_PASSPHRASE=... npm run db:backup -- --encrypted` genera `.sqlite.enc` verificado. Ver [DB_OPERATIONS.md](DB_OPERATIONS.md). La base activa y `secrets.json` siguen sin cifrado propio.
 
 Las conexiones a proveedores externos (Yahoo Finance, Alpha Vantage, GitHub API) usan HTTPS cuando el proveedor lo soporta. La app no impone ni gestiona certificados TLS para el tráfico HTTP entrante; el administrador del despliegue es responsable de configurar un proxy inverso con HTTPS si se expone la app fuera de localhost.
 

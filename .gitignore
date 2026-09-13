@@ -1,5 +1,6 @@
 # Local portfolio data
 *.sqlite
+*.sqlite.enc
 *.sqlite-wal
 *.sqlite-shm
 data/

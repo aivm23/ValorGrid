@@ -294,6 +294,7 @@ function checkForbiddenFiles() {
     if (allowedPrivateRootFiles.has(name)) continue;
     if (
       name.endsWith('.sqlite') ||
+      name.endsWith('.sqlite.enc') ||
       name.endsWith('.sqlite-wal') ||
       name.endsWith('.sqlite-shm') ||
       name.endsWith('.sqlite.sql') ||
