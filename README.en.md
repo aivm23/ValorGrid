@@ -24,7 +24,7 @@ Download the installer for your platform from [GitHub Releases](https://github.c
 3. macOS x64/arm64: `ValorGrid-macOS-x64.dmg` or `ValorGrid-macOS-arm64.dmg`
 4. `SHA256SUMS.txt` for integrity verification
 
-Desktop builds include the runtime and do not require Node.js.
+Desktop builds include the runtime and do not require Node.js. macOS builds are unsigned at this stage, so Gatekeeper may ask for manual approval on first launch.
 
 ## Docker / CasaOS / Umbrel
 
@@ -64,9 +64,9 @@ ValorGrid Community covers local portfolio management with the Excel template. I
 | --------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- |
 | ![Dashboard](assets/screenshots/dashboard-demo.png) | ![Movements](assets/screenshots/movimientos-demo.png) | ![History](assets/screenshots/historico-demo.png) |
 
-| Allocation                                              | Instruments                                                |
-| ------------------------------------------------------- | ---------------------------------------------------------- |
-| ![Allocation](assets/screenshots/distribucion-demo.png) | ![Instruments](assets/screenshots/valores-grupos-demo.png) |
+| Allocation                                              | Instruments                                                  |
+| ------------------------------------------------------- | ------------------------------------------------------------ |
+| ![Allocation](assets/screenshots/distribucion-demo.png) | ![Instruments](assets/screenshots/valores-grupos-1-demo.png) |
 
 ## Development
 

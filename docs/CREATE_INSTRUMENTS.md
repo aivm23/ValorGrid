@@ -12,7 +12,7 @@ Esta guía explica cómo crear instrumentos en ValorGrid. El proveedor de precio
 Campos:
 
 - **Tipo**: primero, elige ETF, Stock o Crypto.
-- **Ticker interno**: código corto que usarás en ValorGrid. Ej: `IWDA`, `MSFT`.
+- **Ticker interno**: código corto que usarás en ValorGrid. Ej: `IWDA`, `MSFT`. Si lo dejas vacío, se deriva del ticker Yahoo (mayúsculas, sin sufijo de bolsa, máximo 10 caracteres: `MSFT` desde `MSFT`, `SAN` desde `SAN.MC`). Puedes editarlo; si colisiona con otro instrumento se avisa.
 - **Ticker Yahoo**: símbolo de Yahoo Finance. Ej: `IWDA.AS`, `MSFT`.
 - **Nombre**: nombre visible.
 - **Divisa**: EUR, USD, etc.

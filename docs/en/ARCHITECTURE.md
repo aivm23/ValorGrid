@@ -34,3 +34,5 @@ Docker, CasaOS and Umbrel deployments declare `VALORGRID_RUNTIME_MODE=docker`. I
 `packages/contracts/src/operation-metrics.json` is the canonical Operativa metric ID catalog. A CommonJS adapter and a generated browser ESM adapter are kept identical by `contracts:check`.
 
 Product decision on runtime dependencies: `package.json` declares no `dependencies` (dev-only tooling). This is deliberate, for operational simplicity and to reduce inherited bugs and vulnerabilities from third-party libraries. Only Node.js built-ins are used (`node:sqlite`, `node:crypto`, `node:http`, etc.). Features that would require an external dependency (for example, routing market lookups through a proxy) are documented and stay in backlog until a dependency-free alternative exists or this decision is explicitly revisited.
+
+Module-level detail (load order, inventories, layering rules) lives in the canonical Spanish reference: [docs/ARCHITECTURE.md](../ARCHITECTURE.md).

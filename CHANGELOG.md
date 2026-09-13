@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.36.2
+
+- docs: fix broken Valores screenshot in READMEs, document Yahoo ticker auto-derive, add missing test rows to TESTING.md.
+- docs: name Basic Auth variables in DEPLOY_DOCKER, cover encrypted backups in FAQ, add ES-canonical pointers to EN stubs.
+- docs: fix corrupted AGENTS.md command line and stale check description, sync SECURITY.md and platform inventory.
+
 ## 3.36.1
 
 - fix: deleting or rotating a backup also removes its `-wal`/`-shm` verification sidecars.

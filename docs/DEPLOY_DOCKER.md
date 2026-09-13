@@ -43,7 +43,7 @@ El archivo de tienda es `deploy/docker/compose.casaos.yml` y usa la imagen con e
 
 ## Login monousuario
 
-ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expuestas fuera de una LAN privada, configura Basic Auth mediante el mecanismo de secretos de tu despliegue y reinicia el contenedor. La protección cubre la interfaz, API, exportaciones, backups y endpoints de estado.
+ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expuestas fuera de una LAN privada, configura Basic Auth con `VALORGRID_AUTH_USER` y `VALORGRID_AUTH_PASSWORD` mediante el mecanismo de secretos de tu despliegue y reinicia el contenedor. Sin `VALORGRID_AUTH_PASSWORD` no hay login. La protección cubre la interfaz, API, exportaciones, backups y endpoints de estado.
 
 Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
 

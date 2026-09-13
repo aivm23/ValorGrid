@@ -74,9 +74,9 @@ ValorGrid Community cubre gestión local de cartera con plantilla Excel. Si nece
 | --------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
 | ![Dashboard](assets/screenshots/dashboard-demo.png) | ![Movimientos](assets/screenshots/movimientos-demo.png) | ![Histórico](assets/screenshots/historico-demo.png) |
 
-| Distribución                                              | Instrumentos                                           |
-| --------------------------------------------------------- | ------------------------------------------------------ |
-| ![Distribución](assets/screenshots/distribucion-demo.png) | ![Valores](assets/screenshots/valores-grupos-demo.png) |
+| Distribución                                              | Instrumentos                                             |
+| --------------------------------------------------------- | -------------------------------------------------------- |
+| ![Distribución](assets/screenshots/distribucion-demo.png) | ![Valores](assets/screenshots/valores-grupos-1-demo.png) |
 
 ## Desarrollo
 

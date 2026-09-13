@@ -78,7 +78,7 @@ apps/server/src/
 │   ├── ticker-suggestions/ (ticker-suggestions-*)
 │   └── admin/          (diagnostics-*, route-admin)
 ├── shared/             (brand-palette, usado por el dominio de instrumentos)
-├── platform/           (db, config, auth, http, i18n, backups, backup-crypto, runtime-secrets, ctx-utils, validators, app-error, utils)
+├── platform/           (db, db-migrations, config, auth, http, i18n, backups, backup-crypto, runtime-secrets, extensions, extensions-runtime, ctx-utils, validators, app-error, utils)
 ├── app.js
 ├── routes.js
 └── ...

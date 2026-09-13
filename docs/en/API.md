@@ -15,3 +15,5 @@ Main areas:
 - Version, health and extension manifest.
 
 Professional-only surfaces may return `403` in Community. The public documentation describes only the generic edition behavior and does not expose private adapter internals.
+
+Endpoint-level detail (routes, payloads, status codes) lives in the canonical Spanish reference: [docs/API.md](../API.md).

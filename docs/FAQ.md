@@ -46,8 +46,8 @@ No. Community importa la plantilla Excel oficial de ValorGrid. Los conectores av
 
 ## ¿Dónde Se Guardan Los Backups?
 
-En la versión de escritorio, en la zona privada de datos de la aplicación. En desarrollo local, en `local/valorgrid/backups/`. En Docker, en el volumen montado para backups.
+En la versión de escritorio, en la zona privada de datos de la aplicación. En desarrollo local, en `local/valorgrid/backups/`. En Docker, en el volumen montado para backups. Los backups claros usan `.sqlite`; los cifrados opcionales usan `.sqlite.enc` (ver [DB_OPERATIONS.md](DB_OPERATIONS.md)).
 
 ## ¿Puedo Restaurar Una Versión Anterior?
 
-Sí. Instala una release anterior y, si hace falta, reemplaza manualmente la base de datos por un backup SQLite. Revisa [GITHUB_RELEASE.md](GITHUB_RELEASE.md) y [DB_OPERATIONS.md](DB_OPERATIONS.md).
+Sí. Instala una release anterior y, si hace falta, reemplaza manualmente la base de datos por un backup SQLite. Si el backup es cifrado (`.sqlite.enc`), descífralo antes con tu passphrase. Revisa [GITHUB_RELEASE.md](GITHUB_RELEASE.md) y [DB_OPERATIONS.md](DB_OPERATIONS.md).

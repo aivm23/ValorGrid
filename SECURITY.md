@@ -5,6 +5,7 @@ This is a local, single-user portfolio app. It does not provide accounts, cloud 
 Portfolio data is stored in a local SQLite database. Keep these files private:
 
 - `*.sqlite`
+- `*.sqlite.enc`
 - `*.sqlite-wal`
 - `*.sqlite-shm`
 - `data/`

@@ -16,3 +16,5 @@ Core concepts:
 - App metadata and invalidations.
 
 Schema changes follow the DB operations policy. Fresh installs are created from the current schema; production schema updates use versioned SQL under `deploy/sql/`.
+
+Table and field detail lives in the canonical Spanish reference: [docs/DATA_MODEL.md](../DATA_MODEL.md).
