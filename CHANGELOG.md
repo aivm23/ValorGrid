@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.35.0
+
+- feat: configurable BIND_IP for local docker compose, document no-runtime-deps policy.
+- feat: derive empty instrument ticker from Yahoo symbol, document FX and 2FA.
+- docs: document unencrypted backups/secrets and market-lookup exposure.
+
 ## 3.34.0
 
 - chore: add container-level version to CasaOS compose metadata.
