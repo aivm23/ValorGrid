@@ -11,7 +11,7 @@ const {
   collectDoctorReport,
 } = require('../scripts/db-maintenance');
 const { openDatabase, verifyDatabaseFile } = require('../apps/server/src/platform/db');
-const { listBackups, decryptBackupToPath } = require('../apps/server/src/platform/backups');
+const { listBackups, decryptBackupToPath, deleteBackupFile } = require('../apps/server/src/platform/backups');
 const { encryptBuffer, decryptBuffer, isEncryptedBackupName } = require('../apps/server/src/platform/backup-crypto');
 // Backup-dependent functions commented out: db-maintenance.js backup features disabled
 // const {
@@ -565,5 +565,30 @@ test('plain backups keep working and share the 6-backup retention with encrypted
     });
     assert.equal(report.backupsCount, 6);
     assert.ok(report.backupsEncrypted >= 1);
+  });
+});
+
+test('deleting a backup also removes its verification sidecars without touching siblings', () => {
+  withActiveTempRoot((tempRoot) => {
+    const dbPath = path.join(tempRoot, 'sidecars.sqlite');
+    const backupDir = path.join(tempRoot, 'backups');
+    createLegacyDatabase(dbPath);
+
+    const first = createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    const second = createBackupForPath({ dbPath, root: tempRoot, backupDir });
+    for (const backup of [first, second]) {
+      fs.writeFileSync(path.join(backupDir, `${backup.file}-wal`), 'wal');
+      fs.writeFileSync(path.join(backupDir, `${backup.file}-shm`), 'shm');
+    }
+
+    const deleted = deleteBackupFile(tempRoot, first.file, backupDir);
+    assert.equal(deleted.deleted, first.file);
+    const remaining = fs.readdirSync(backupDir);
+    assert.ok(!remaining.includes(first.file), 'backup file removed');
+    assert.ok(!remaining.includes(`${first.file}-wal`), 'wal sidecar removed');
+    assert.ok(!remaining.includes(`${first.file}-shm`), 'shm sidecar removed');
+    assert.ok(remaining.includes(second.file), 'sibling backup kept');
+    assert.ok(remaining.includes(`${second.file}-wal`), 'sibling sidecars kept');
+    assert.equal(listBackups(tempRoot, backupDir).length, 2 - 1);
   });
 });

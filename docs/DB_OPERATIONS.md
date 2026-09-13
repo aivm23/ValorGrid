@@ -26,7 +26,7 @@ La app y los scripts comparten la misma política:
 - Toda copia creada por la app o los scripts ejecuta `integrity_check` y `foreign_key_check` antes de considerarse válida.
 - En desarrollo local, el directorio de backups se resuelve junto al almacenamiento de la aplicación, conservando compatibilidad con instalaciones antiguas.
 - La ubicación de backups se resuelve junto al almacenamiento privado de la aplicación o desde la configuración del despliegue.
-- La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo.
+- La app conserva automáticamente los 6 backups más recientes y elimina los más antiguos al crear uno nuevo. Al eliminar o rotar un backup también se eliminan sus sidecars `-wal`/`-shm` de verificación.
 
 ## Backup manual antes de mantenimiento
 

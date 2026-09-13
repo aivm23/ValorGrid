@@ -13,6 +13,16 @@ function safeBackupName(name) {
   return /^[\w.-]+\.sqlite(\.enc)?$/.test(name) ? name : null;
 }
 
+function removeBackupSidecars(backupDir, file) {
+  for (const suffix of ['-wal', '-shm']) {
+    try {
+      fs.unlinkSync(path.join(backupDir, `${file}${suffix}`));
+    } catch {
+      /* sidecars only exist as verification byproducts; missing is fine */
+    }
+  }
+}
+
 function pruneOldBackups(backupDir, limit = 6) {
   const all = fs
     .readdirSync(backupDir)
@@ -32,6 +42,7 @@ function pruneOldBackups(backupDir, limit = 6) {
     } catch {
       /* skip */
     }
+    removeBackupSidecars(backupDir, old.file);
   }
 }
 
@@ -61,6 +72,7 @@ function copyVerifiedBackup({ db, dbPath, backupDir, fileName }) {
     } catch {
       /* best effort cleanup */
     }
+    removeBackupSidecars(backupDir, fileName);
     throw new Error(`Backup verification failed: ${error.message}`);
   }
 }
@@ -114,6 +126,7 @@ function createEncryptedBackup({ db, dbPath, root, backupDir: configuredBackupDi
     } catch {
       /* best effort cleanup */
     }
+    removeBackupSidecars(backupDir, fileName);
     if (tempPath) {
       try {
         fs.rmSync(path.dirname(tempPath), { recursive: true, force: true });
@@ -154,6 +167,7 @@ function decryptBackupToPath({ encPath, outPath, passphrase }) {
     } catch {
       /* best effort cleanup */
     }
+    removeBackupSidecars(path.dirname(outPath), path.basename(outPath));
     if (error.statusCode === 400 && /passphrase|encrypted backup/i.test(error.message)) throw error;
     throw new Error(`Backup verification failed: ${error.message}`);
   }
@@ -232,6 +246,7 @@ function deleteBackupFile(root, file, configuredBackupDir) {
     throw error;
   }
   fs.unlinkSync(fullPath);
+  removeBackupSidecars(backupDir, safeName);
   return { deleted: safeName };
 }
 

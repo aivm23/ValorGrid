@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.36.1
+
+- fix: deleting or rotating a backup also removes its `-wal`/`-shm` verification sidecars.
+- chore: add container-level version to CasaOS compose metadata.
+- chore: bump version to v3.33.6 - align import-batch buttons and fix ARCHITECTURE.md reference.
+- fix: lower flaky event count threshold to 200 in portfolio history test.
+- feat: add MyInvestor CSV as known PRO broker adapter.
+
 ## 3.36.0
 
 - feat: optional encrypted backups with passphrase (scrypt + AES-256-GCM, node:crypto only, `.sqlite.enc`).
