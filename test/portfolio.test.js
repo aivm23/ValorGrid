@@ -472,6 +472,52 @@ test('GET /api/instruments returns configured instruments', async () => {
   assert.ok(body.instruments.some((item) => item.symbol === 'NVO'));
 });
 
+test('POST /api/instruments derives the ticker from the Yahoo symbol when empty', async () => {
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      symbol: '',
+      yahooSymbol: 'SAN.MC',
+      name: 'Banco Santander',
+      type: 'stock',
+      currency: 'EUR',
+    }),
+  });
+
+  assert.equal(response.status, 201);
+  assert.equal(body.instrument.symbol, 'SAN');
+  assert.equal(body.instrument.yahooSymbol, 'SAN.MC');
+});
+
+test('POST /api/instruments keeps requiring a ticker when Yahoo symbol is also empty', async () => {
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbol: '', yahooSymbol: '', name: 'Sin ticker', type: 'stock', currency: 'EUR' }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /Symbol is required/i);
+});
+
+test('POST /api/instruments reports collisions on derived tickers', async () => {
+  const { response, body } = await jsonRequest('/api/instruments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      symbol: '',
+      yahooSymbol: 'SAN.MC',
+      name: 'Duplicado Santander',
+      type: 'stock',
+      currency: 'EUR',
+    }),
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(body.error, /already exists/i);
+});
+
 test('automatic Yahoo split adjusts positions and is idempotent', async () => {
   seedTestInstrument({ symbol: 'GOOGS', yahooSymbol: 'GOOGS', name: 'Google Split Test', type: 'stock' });
   await createTransaction({

@@ -68,6 +68,21 @@ module.exports = function attach(ctx) {
       .toUpperCase();
   }
 
+  /**
+   * Derives an internal ticker from a market provider symbol (e.g. Yahoo).
+   * Used when the user leaves the internal ticker empty: strips the exchange
+   * suffix and caps length, mirroring the import-flow suggestion.
+   * @param {unknown} value
+   * @returns {string}
+   */
+  function deriveSymbolFromYahooSymbol(value) {
+    return String(value || '')
+      .trim()
+      .toUpperCase()
+      .replace(/\.[A-Z]+$/, '')
+      .slice(0, 10);
+  }
+
   /** @returns {string} */
   function getToday() {
     const now = new Date();
@@ -173,6 +188,7 @@ module.exports = function attach(ctx) {
     sendText,
     readJsonBody,
     normalizeSymbol,
+    deriveSymbolFromYahooSymbol,
     getToday,
     dateUtc,
     formatDateUtc,

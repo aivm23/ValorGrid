@@ -374,6 +374,34 @@ test('onboarding wizard preview is read-only and commit is atomic', async () => 
   );
 });
 
+test('onboarding wizard preview derives the ticker from the Yahoo symbol when empty', async () => {
+  const preview = await jsonRequest('/api/onboarding/wizard/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      group: {
+        name: 'Wizard Derived',
+        color: '#16a34a',
+        showInDistribution: true,
+        showInMonthly: true,
+        isExpandable: false,
+      },
+      instrument: {
+        symbol: '',
+        yahooSymbol: 'WIZD.DE',
+        name: 'Wizard Derived',
+        type: 'etf',
+        currency: 'EUR',
+        color: '#2563eb',
+      },
+      transaction: null,
+      autoPlan: null,
+    }),
+  });
+  assert.equal(preview.response.status, 200);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM instruments WHERE symbol = 'WIZD'").get().count, 0);
+});
+
 test('portfolio history applies adaptive granularity and returns events', async () => {
   const ytd = await buildPortfolioHistory('ytd');
   const oneYear = await buildPortfolioHistory('1y');

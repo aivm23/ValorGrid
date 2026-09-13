@@ -324,6 +324,8 @@ const CORE_TEXT_TRANSLATIONS = {
     'total vendido sin comisiones': 'total sold excluding fees',
     'Cargando precios online...': 'Loading online prices...',
     'Actualizar precios': 'Refresh prices',
+    'Tipo de cambio a EUR aplicado en la fecha de la operación (1 si ya está en EUR)':
+      'Exchange rate to EUR applied on the operation date (1 if already in EUR)',
     'Ocultar saldos': 'Hide balances',
     'Mostrar saldos': 'Show balances',
     'Cambiar tema': 'Change theme',

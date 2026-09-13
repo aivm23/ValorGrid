@@ -38,7 +38,18 @@ export function setupInstrumentForm(elements) {
 }
 
 export function buildInstrumentPayload(elements) {
-  const symbol = elements.newInstrumentSymbol.value.trim().toUpperCase();
+  const yahooRaw = elements.newInstrumentYahoo?.value || '';
+  let symbol = elements.newInstrumentSymbol.value.trim().toUpperCase();
+  if (!symbol) {
+    // Autogenerate the internal ticker from the Yahoo symbol so the user
+    // can leave it empty; mirrors deriveSymbolFromYahooSymbol on the backend.
+    symbol = yahooRaw
+      .trim()
+      .toUpperCase()
+      .replace(/\.[A-Z]+$/, '')
+      .slice(0, 10);
+    elements.newInstrumentSymbol.value = symbol;
+  }
   const type = elements.newInstrumentType?.value || 'etf';
   const isCommodity = type === 'commodity';
   const payload = {

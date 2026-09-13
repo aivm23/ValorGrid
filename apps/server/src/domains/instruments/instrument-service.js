@@ -10,6 +10,7 @@ module.exports = function attach(ctx) {
     [
       'repositories',
       'normalizeSymbol',
+      'deriveSymbolFromYahooSymbol',
       'stockColors',
       'ensureGroup',
       'invalidatePrices',
@@ -20,6 +21,8 @@ module.exports = function attach(ctx) {
   );
 
   const { repositories, normalizeSymbol, stockColors, ensureGroup, invalidatePrices, invalidateLedger, getToday } = ctx;
+  // Separate destructure: keep this file under the 500-line architecture limit.
+  const { deriveSymbolFromYahooSymbol } = ctx;
 
   const instrumentRepository = repositories.instruments;
   if (!instrumentRepository) {
@@ -336,7 +339,8 @@ module.exports = function attach(ctx) {
   }
 
   function createInstrument(input = {}) {
-    const symbol = normalizeSymbol(input.symbol || input.ticker);
+    let symbol = normalizeSymbol(input.symbol || input.ticker);
+    if (!symbol) symbol = deriveSymbolFromYahooSymbol(input.yahooSymbol || input.yahoo_symbol);
     if (!symbol) throw new Error('Symbol is required');
     if (getInstrument(symbol)) throw new Error('Instrument already exists');
     const yahooSymbol = String(input.yahooSymbol || input.yahoo_symbol || symbol).trim();

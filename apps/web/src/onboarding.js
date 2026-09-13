@@ -153,7 +153,18 @@ export function attach(ctx) {
   });
 
   function buildWizardPayload() {
-    const symbol = ctx.elements.wizardInstrumentSymbol.value.trim().toUpperCase();
+    const yahooRaw = ctx.elements.wizardInstrumentYahoo?.value || '';
+    let symbol = ctx.elements.wizardInstrumentSymbol.value.trim().toUpperCase();
+    if (!symbol) {
+      // Autogenerate the internal ticker from the provider symbol so the
+      // user can leave it empty; mirrors deriveSymbolFromYahooSymbol on the backend.
+      symbol = yahooRaw
+        .trim()
+        .toUpperCase()
+        .replace(/\.[A-Z]+$/, '')
+        .slice(0, 10);
+      ctx.elements.wizardInstrumentSymbol.value = symbol;
+    }
     const useGroup = ctx.elements.wizardUseGroup.checked;
     const paletteEnabled = ctx.state.brandPaletteEnabled === true;
     const type = ctx.elements.wizardInstrumentType.value;

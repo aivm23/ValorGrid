@@ -6,6 +6,7 @@ module.exports = function attach(ctx) {
     [
       'repositories',
       'normalizeSymbol',
+      'deriveSymbolFromYahooSymbol',
       'groupIdFromName',
       'getInstrument',
       'getToday',
@@ -27,6 +28,7 @@ module.exports = function attach(ctx) {
   const {
     repositories,
     normalizeSymbol,
+    deriveSymbolFromYahooSymbol,
     groupIdFromName,
     getInstrument,
     getToday,
@@ -57,7 +59,8 @@ module.exports = function attach(ctx) {
     const plan = input.autoPlan || input.plan || null;
     const useGroup = input.useGroup !== false;
     const groupName = String(group.name || '').trim();
-    const symbol = normalizeSymbol(instrument.symbol || instrument.ticker);
+    let symbol = normalizeSymbol(instrument.symbol || instrument.ticker);
+    if (!symbol) symbol = deriveSymbolFromYahooSymbol(instrument.yahooSymbol || instrument.yahoo_symbol);
 
     if (!symbol) throw new Error('Instrument symbol is required');
     if (getInstrument(symbol)) throw new Error('Instrument already exists');

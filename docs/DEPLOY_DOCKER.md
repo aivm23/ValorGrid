@@ -36,6 +36,10 @@ ValorGrid no gestiona usuarios en SQLite. Para instalaciones Docker/CasaOS expue
 
 Basic Auth debe ir detrás de HTTPS. No publiques el puerto HTTP directamente a Internet sin TLS.
 
+## Segundo factor (2FA)
+
+ValorGrid no incluye TOTP/2FA propio: el login monousuario es Basic Auth sin estado. Si expones la app más allá de tu LAN, pon delante un reverse proxy con autenticación en dos pasos (por ejemplo Authelia o Authentik) y mantén el Basic Auth de ValorGrid como segunda capa. El TOTP nativo queda como trabajo futuro.
+
 ## Alpha Vantage para commodities
 
 Las commodities usan Alpha Vantage. Para uso normal, crea la commodity y añade la clave desde el asistente. En despliegues administrados, la clave puede gestionarse mediante la configuración segura del contenedor.

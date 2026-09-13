@@ -514,7 +514,15 @@
 
             <label id="add-fx-field" class="field">
               <span>FX a EUR</span>
-              <input id="add-fx" name="fx" type="number" min="0" step="0.000001" placeholder="0.92" />
+              <input
+                id="add-fx"
+                name="fx"
+                type="number"
+                min="0"
+                step="0.000001"
+                placeholder="0.92"
+                title="Tipo de cambio a EUR aplicado en la fecha de la operación (1 si ya está en EUR)"
+              />
             </label>
 
             <label id="add-shares-field" class="field">
@@ -728,7 +736,7 @@
                   <option value="crypto">Crypto</option>
                   <option value="commodity">Commodity</option>
                 </select>
-                <input id="new-instrument-symbol" placeholder="Ticker interno" />
+                <input id="new-instrument-symbol" placeholder="Ticker interno (vacío = auto)" />
                 <input id="new-instrument-yahoo" placeholder="Ticker Yahoo" class="yahoo-field" />
                 <select id="new-instrument-commodity" class="commodity-field" hidden>
                   <option value="">— Commodity —</option>
@@ -1417,7 +1425,14 @@
             ><span>Divisa</span><input id="transaction-edit-currency" maxlength="3" required
           /></label>
           <label class="field"
-            ><span>FX a EUR</span><input id="transaction-edit-fx" type="number" min="0" step="0.000001" required
+            ><span>FX a EUR</span
+            ><input
+              id="transaction-edit-fx"
+              type="number"
+              min="0"
+              step="0.000001"
+              required
+              title="Tipo de cambio a EUR aplicado en la fecha de la operación (1 si ya está en EUR)"
           /></label>
           <label class="field"
             ><span>Comisión EUR</span
@@ -1531,7 +1546,10 @@
               </label>
               <label class="field">
                 <span>Ticker interno</span>
-                <input id="wizard-instrument-symbol" required placeholder="ETF01, STOCK01..." />
+                <input
+                  id="wizard-instrument-symbol"
+                  placeholder="ETF01, STOCK01... (vacío = auto desde Ref. Proveedor)"
+                />
               </label>
               <label class="field wizard-yahoo-field">
                 <span>Ref. Proveedor</span>
